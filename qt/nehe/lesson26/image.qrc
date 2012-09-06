@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Ball.bmp</file>
+        <file>Envroll.bmp</file>
+        <file>Envwall.bmp</file>
+    </qresource>
+</RCC>

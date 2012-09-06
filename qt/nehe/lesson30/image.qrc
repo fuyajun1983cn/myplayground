@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>boden.bmp</file>
+        <file>marble.bmp</file>
+        <file>spark.bmp</file>
+        <file>wand.bmp</file>
+    </qresource>
+</RCC>

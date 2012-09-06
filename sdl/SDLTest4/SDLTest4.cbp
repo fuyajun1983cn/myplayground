@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="SDLTest4" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/SDLTest4" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="SDL_image" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="`sdl-config --cflags`" />
+		</Compiler>
+		<Linker>
+			<Add option="`sdl-config --libs`" />
+		</Linker>
+		<Unit filename="CAnimation.cpp" />
+		<Unit filename="CAnimation.h" />
+		<Unit filename="CApp.cpp" />
+		<Unit filename="CApp.h" />
+		<Unit filename="CApp_OnCleanup.cpp" />
+		<Unit filename="CApp_OnEvent.cpp" />
+		<Unit filename="CApp_OnInit.cpp" />
+		<Unit filename="CApp_OnLoop.cpp" />
+		<Unit filename="CApp_OnRender.cpp" />
+		<Unit filename="CArea.cpp" />
+		<Unit filename="CArea.h" />
+		<Unit filename="CCamera.cpp" />
+		<Unit filename="CCamera.h" />
+		<Unit filename="CDefine.h" />
+		<Unit filename="CEntity.cpp" />
+		<Unit filename="CEntity.h" />
+		<Unit filename="CEvent.cpp" />
+		<Unit filename="CEvent.h" />
+		<Unit filename="CFPS.cpp" />
+		<Unit filename="CFPS.h" />
+		<Unit filename="CMap.cpp" />
+		<Unit filename="CMap.h" />
+		<Unit filename="CSurface.cpp" />
+		<Unit filename="CSurface.h" />
+		<Unit filename="CTile.cpp" />
+		<Unit filename="CTile.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

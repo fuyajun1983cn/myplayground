@@ -1,0 +1,31 @@
+# depslib dependency file v1.0
+1343556960 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CApp.cpp
+	"CApp.h"
+
+1343568926 /home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CApp.h
+	<SDL/SDL.h>
+	<GL/glew.h>
+	"CSurface.h"
+	"CEvent.h"
+
+1343440543 /home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CSurface.h
+	<SDL/SDL.h>
+
+1343438512 /home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CEvent.h
+	<SDL/SDL.h>
+
+1343556967 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CApp_OnCleanup.cpp
+	"CApp.h"
+
+1343556976 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CApp_OnEvent.cpp
+	"CApp.h"
+
+1342878349 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CApp_OnLoop.cpp
+	"CApp.h"
+
+1343438132 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CEvent.cpp
+	"CEvent.h"
+
+1343440572 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson01/CSurface.cpp
+	"CSurface.h"
+

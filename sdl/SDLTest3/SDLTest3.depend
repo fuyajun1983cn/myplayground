@@ -1,0 +1,43 @@
+# depslib dependency file v1.0
+1343438132 source:/home/fuyajun/myplayground/sdl/SDLTest3/CEvent.cpp
+	"CEvent.h"
+
+1343438512 /home/fuyajun/myplayground/sdl/SDLTest3/CEvent.h
+	<SDL/SDL.h>
+
+1343440572 source:/home/fuyajun/myplayground/sdl/SDLTest3/CSurface.cpp
+	"CSurface.h"
+
+1343440543 /home/fuyajun/myplayground/sdl/SDLTest3/CSurface.h
+	<SDL/SDL.h>
+
+1343526092 source:/home/fuyajun/myplayground/sdl/SDLTest3/CAnimation.cpp
+	"CAnimation.h"
+
+1343525987 /home/fuyajun/myplayground/sdl/SDLTest3/CAnimation.h
+	<SDL/SDL.h>
+
+1343526807 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp_OnCleanup.cpp
+	"CApp.h"
+
+1343526935 /home/fuyajun/myplayground/sdl/SDLTest3/CApp.h
+	<SDL/SDL.h>
+	"CSurface.h"
+	"CEvent.h"
+	"CAnimation.h"
+
+1343526830 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp_OnEvent.cpp
+	"CApp.h"
+
+1343526871 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp_OnInit.cpp
+	"CApp.h"
+
+1343526718 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp_OnLoop.cpp
+	"CApp.h"
+
+1343526759 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp_OnRender.cpp
+	"CApp.h"
+
+1343527011 source:/home/fuyajun/myplayground/sdl/SDLTest3/CApp.cpp
+	"CApp.h"
+

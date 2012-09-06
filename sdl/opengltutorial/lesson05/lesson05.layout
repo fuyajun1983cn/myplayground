@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="CApp.cpp" open="1" top="0" tabpos="6">
+		<Cursor position="313" topLine="18" />
+	</File>
+	<File name="CApp.h" open="1" top="0" tabpos="2">
+		<Cursor position="408" topLine="15" />
+	</File>
+	<File name="CApp_OnCleanup.cpp" open="0" top="0" tabpos="8">
+		<Cursor position="43" topLine="0" />
+	</File>
+	<File name="CApp_OnEvent.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="87" topLine="0" />
+	</File>
+	<File name="CApp_OnInit.cpp" open="1" top="0" tabpos="1">
+		<Cursor position="3356" topLine="111" />
+	</File>
+	<File name="CApp_OnRender.cpp" open="1" top="1" tabpos="3">
+		<Cursor position="820" topLine="12" />
+	</File>
+	<File name="CShaderProgram.cpp" open="0" top="0" tabpos="14">
+		<Cursor position="761" topLine="24" />
+	</File>
+	<File name="CShaderProgram.h" open="0" top="0" tabpos="13">
+		<Cursor position="236" topLine="0" />
+	</File>
+	<File name="CSurface.cpp" open="0" top="0" tabpos="5">
+		<Cursor position="329" topLine="9" />
+	</File>
+	<File name="CSurface.h" open="0" top="0" tabpos="4">
+		<Cursor position="198" topLine="6" />
+	</File>
+	<File name="CTexture.cpp" open="1" top="0" tabpos="5">
+		<Cursor position="1088" topLine="21" />
+	</File>
+	<File name="CTexture.h" open="1" top="0" tabpos="4">
+		<Cursor position="99" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>

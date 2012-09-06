@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Tim.bmp</file>
+    </qresource>
+</RCC>
