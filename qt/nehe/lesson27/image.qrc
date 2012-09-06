@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/data">
-        <file>Object.txt</file>
-        <file>Object1.txt</file>
-        <file>Object2.txt</file>
-        <file>SimpleObject.txt</file>
-    </qresource>
-</RCC>

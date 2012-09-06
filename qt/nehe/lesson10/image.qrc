@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>Mud.bmp</file>
-        <file>World.txt</file>
-    </qresource>
-</RCC>
