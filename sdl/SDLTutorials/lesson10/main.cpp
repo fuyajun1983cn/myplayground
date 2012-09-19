@@ -6,7 +6,7 @@
 #include <SDL/SDL_ttf.h>
 
 /**
-  * 演示按键检测
+  * 按钮状态测试
   */
 
 using namespace std;
@@ -17,11 +17,10 @@ const int SCREEN_BPP = 32;
 
 //The surfaces that will be used
 SDL_Surface *background = NULL;
-SDL_Surface *upMessage = NULL;
-SDL_Surface *downMessage = NULL;
-SDL_Surface *leftMessage = NULL;
-SDL_Surface *rightMessage = NULL;
-SDL_Surface *message = NULL;
+SDL_Surface *upKey = NULL;
+SDL_Surface *downKey = NULL;
+SDL_Surface *leftKey = NULL;
+SDL_Surface *rightKey = NULL;
 SDL_Surface *screen = NULL;
 //event
 SDL_Event event;
@@ -29,7 +28,7 @@ SDL_Event event;
 //font
 TTF_Font *font = NULL;
 //the colore of the font
-SDL_Color textColor = { 255, 255, 255 };
+SDL_Color textColor = { 0, 0, 0 };
 
 SDL_Surface *load_image(string filename)
 {
@@ -99,7 +98,7 @@ bool init()
     if (TTF_Init() == -1)
         return false;
 
-    SDL_WM_SetCaption("TTF Test", NULL);
+    SDL_WM_SetCaption("Key State Test", NULL);
 
     return true;
 }
@@ -112,7 +111,7 @@ bool load_files()
     if (background == NULL)
         return false;
 
-    font = load_font("lazy.ttf", 28);
+    font = load_font("lazy.ttf", 72);
     if (font == NULL)
         return false;
 
@@ -123,14 +122,13 @@ void clean_up()
 {
     //Free the surfaces
     SDL_FreeSurface(background);
-   SDL_FreeSurface(message);
-   SDL_FreeSurface(upMessage);
-   SDL_FreeSurface(downMessage);
-   SDL_FreeSurface(leftMessage);
-   SDL_FreeSurface(rightMessage);
+    SDL_FreeSurface(upKey);
+    SDL_FreeSurface(downKey);
+    SDL_FreeSurface(leftKey);
+    SDL_FreeSurface(rightKey);
 
    //Close the font that was used
-   TTF_CloseFont( font );
+   TTF_CloseFont(font);
 
    //Quit SDL_ttf
    TTF_Quit();
@@ -142,7 +140,7 @@ void clean_up()
 int main(int argc, char *argv[])
 {
     //设置工程目录
-    putenv("PROJECT_PATH=/home/fuyajun/myplayground/sdl/SDLTutorials/lesson08");
+    putenv("PROJECT_PATH=/home/fuyajun/myplayground/sdl/SDLTutorials/lesson10");
 
     bool quit = false;
 
@@ -153,19 +151,10 @@ int main(int argc, char *argv[])
         return 1;
 
     //Render the text
-    //Generate the message surfaces
-    upMessage = TTF_RenderText_Solid( font, "Up was pressed.", textColor );
-    if (upMessage == NULL)
-        return 1;
-    downMessage = TTF_RenderText_Solid( font, "Down was pressed.", textColor );
-    if (downMessage == NULL)
-        return 1;
-    leftMessage = TTF_RenderText_Solid( font, "Left was pressed", textColor );
-    if (leftMessage == NULL)
-        return 1;
-    rightMessage = TTF_RenderText_Solid( font, "Right was pressed", textColor );
-    if (rightMessage == NULL)
-        return 1;
+    upKey = TTF_RenderText_Solid( font, "Up", textColor );
+    downKey = TTF_RenderText_Solid( font, "Down", textColor );
+    leftKey = TTF_RenderText_Solid( font, "Left", textColor );
+    rightKey = TTF_RenderText_Solid( font, "Right", textColor );
 
     apply_surface(0, 0, background, screen);
 
@@ -178,30 +167,45 @@ int main(int argc, char *argv[])
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 quit = true;
-            } else if (event.type == SDL_KEYDOWN) {
-                cout<<"key: "<<event.key.keysym.sym<<endl;
-                switch (event.key.keysym.sym) {
-                case SDLK_UP: message = upMessage; break;
-                case SDLK_DOWN: message = downMessage; break;
-                case SDLK_LEFT: message = leftMessage; break;
-                case SDLK_RIGHT: message = rightMessage; break;
-                default:
-                    break;
-                }
-                //If a message needs to be displayed
-               if( message != NULL ) {
-                   //Apply the images to the screen
-                   apply_surface( 0, 0, background, screen );
-                   apply_surface( ( SCREEN_WIDTH - message->w ) / 2, ( SCREEN_HEIGHT - message->h ) / 2, message, screen );
-                   //Null the surface pointer
-                   message = NULL;
-               }
-                //Update the screen
-               if( SDL_Flip( screen ) == -1 ) {
-                   return 1;
-               }
             }
         }
+
+        //Apply the background
+        apply_surface( 0, 0, background, screen );
+
+        //Get the keystates
+       Uint8 *keystates = SDL_GetKeyState( NULL );
+
+       //If up is pressed
+       if( keystates[ SDLK_UP ] )
+       {
+           apply_surface( ( SCREEN_WIDTH - upKey->w ) / 2, ( SCREEN_HEIGHT / 2 - upKey->h ) / 2, upKey, screen );
+       }
+
+       //If down is pressed
+       if( keystates[ SDLK_DOWN ] )
+       {
+           apply_surface( ( SCREEN_WIDTH - downKey->w ) / 2, ( SCREEN_HEIGHT / 2 - downKey->h ) / 2 + ( SCREEN_HEIGHT / 2 ), downKey, screen );
+       }
+
+       //If left is pressed
+       if( keystates[ SDLK_LEFT ] )
+       {
+           apply_surface( ( SCREEN_WIDTH / 2 - leftKey->w ) / 2, ( SCREEN_HEIGHT - leftKey->h ) / 2, leftKey, screen );
+       }
+
+       //If right is pressed
+       if( keystates[ SDLK_RIGHT ] )
+       {
+           apply_surface( ( SCREEN_WIDTH / 2 - rightKey->w ) / 2 + ( SCREEN_WIDTH / 2 ), ( SCREEN_HEIGHT - rightKey->h ) / 2, rightKey, screen );
+       }
+
+       //Update the screen
+       if( SDL_Flip( screen ) == -1 )
+       {
+           return 1;
+       }
+
     }
 
     clean_up();
