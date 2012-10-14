@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Font.tga</file>
+    </qresource>
+</RCC>

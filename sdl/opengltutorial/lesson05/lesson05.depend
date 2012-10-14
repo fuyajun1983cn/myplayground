@@ -1,0 +1,306 @@
+# depslib dependency file v1.0
+1345220240 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp.cpp
+	"CApp.h"
+
+1345303039 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp.h
+	<SDL/SDL.h>
+	<GL/glew.h>
+	<glm/glm.hpp>
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/type_ptr.hpp>
+	"CSurface.h"
+	"CEvent.h"
+	"CShader.h"
+	"CShaderProgram.h"
+	"CTexture.h"
+
+1296498799 /home/fuyajun/Documents/glm/glm/glm.hpp
+	<cmath>
+	<climits>
+	<cfloat>
+	<limits>
+	"./setup.hpp"
+	"./core/_detail.hpp"
+	"./core/type.hpp"
+	"./core/func_trigonometric.hpp"
+	"./core/func_exponential.hpp"
+	"./core/func_common.hpp"
+	"./core/func_packing.hpp"
+	"./core/func_geometric.hpp"
+	"./core/func_matrix.hpp"
+	"./core/func_vector_relational.hpp"
+	"./core/func_integer.hpp"
+	"./core/func_noise.hpp"
+	"./core/_swizzle.hpp"
+
+1296557646 /home/fuyajun/Documents/glm/glm/setup.hpp
+	<immintrin.h>
+	<pmmintrin.h>
+	<emmintrin.h>
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/_detail.hpp
+	"../setup.hpp"
+	<cassert>
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type.hpp
+	"type_half.hpp"
+	"type_float.hpp"
+	"type_int.hpp"
+	"type_gentype.hpp"
+	"type_vec1.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	"type_mat2x2.hpp"
+	"type_mat2x3.hpp"
+	"type_mat2x4.hpp"
+	"type_mat3x2.hpp"
+	"type_mat3x3.hpp"
+	"type_mat3x4.hpp"
+	"type_mat4x2.hpp"
+	"type_mat4x3.hpp"
+	"type_mat4x4.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_half.hpp
+	<cstdlib>
+	"type_half.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_half.inl
+	"_detail.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_float.hpp
+	"type_half.hpp"
+	"../setup.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_int.hpp
+	"../setup.hpp"
+	"_detail.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_gentype.hpp
+	"type_size.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_size.hpp
+	<cstdlib>
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_vec1.hpp
+	"type_vec.hpp"
+	"type_float.hpp"
+	"type_int.hpp"
+	"type_size.hpp"
+	"_swizzle.hpp"
+	"type_vec1.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_vec.hpp
+	"type_gentype.hpp"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/_swizzle.hpp
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_vec1.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_vec2.hpp
+	"type_vec.hpp"
+	"type_float.hpp"
+	"type_int.hpp"
+	"type_size.hpp"
+	"_swizzle.hpp"
+	"type_vec2.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_vec2.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_vec3.hpp
+	"type_vec.hpp"
+	"type_float.hpp"
+	"type_int.hpp"
+	"type_size.hpp"
+	"_swizzle.hpp"
+	"type_vec3.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_vec3.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_vec4.hpp
+	"type_vec.hpp"
+	"type_float.hpp"
+	"type_int.hpp"
+	"type_size.hpp"
+	"_swizzle.hpp"
+	"_detail.hpp"
+	"type_vec4.inl"
+
+1296498697 /home/fuyajun/Documents/glm/glm/core/type_vec4.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat2x2.hpp
+	"type_mat.hpp"
+	"type_mat2x2.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat.hpp
+	"type_gentype.hpp"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat2x2.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat2x3.hpp
+	"type_mat.hpp"
+	"type_mat2x3.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat2x3.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat2x4.hpp
+	"type_mat.hpp"
+	"type_mat2x4.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat2x4.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat3x2.hpp
+	"type_mat.hpp"
+	"type_mat3x2.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat3x2.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat3x3.hpp
+	"type_mat.hpp"
+	"type_mat3x3.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat3x3.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat3x4.hpp
+	"type_mat.hpp"
+	"type_mat3x4.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat3x4.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat4x2.hpp
+	"type_mat.hpp"
+	"type_mat4x2.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat4x2.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat4x3.hpp
+	"type_mat.hpp"
+	"type_mat4x3.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat4x3.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/type_mat4x4.hpp
+	"type_mat.hpp"
+	"type_mat4x4.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/type_mat4x4.inl
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/func_trigonometric.hpp
+	"func_trigonometric.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_trigonometric.inl
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/func_exponential.hpp
+	"func_exponential.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_exponential.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_common.hpp
+	"func_common.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_common.inl
+
+1295530764 /home/fuyajun/Documents/glm/glm/core/func_packing.hpp
+	"func_packing.inl"
+
+1295531006 /home/fuyajun/Documents/glm/glm/core/func_packing.inl
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/func_geometric.hpp
+	"func_geometric.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_geometric.inl
+
+1296498697 /home/fuyajun/Documents/glm/glm/core/func_matrix.hpp
+	"func_matrix.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_matrix.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_vector_relational.hpp
+	"_detail.hpp"
+	"func_vector_relational.inl"
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/func_vector_relational.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_integer.hpp
+	"func_integer.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_integer.inl
+
+1296498691 /home/fuyajun/Documents/glm/glm/core/func_noise.hpp
+	"func_noise.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/core/func_noise.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/gtc/matrix_transform.hpp
+	"../glm.hpp"
+	"matrix_transform.inl"
+
+1296498799 /home/fuyajun/Documents/glm/glm/gtc/matrix_transform.inl
+
+1296498799 /home/fuyajun/Documents/glm/glm/gtc/type_ptr.hpp
+	"../glm.hpp"
+	"type_ptr.inl"
+
+1282647075 /home/fuyajun/Documents/glm/glm/gtc/type_ptr.inl
+
+1343440543 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CSurface.h
+	<SDL/SDL.h>
+
+1343438512 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CEvent.h
+	<SDL/SDL.h>
+
+1343571438 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CShader.h
+	<GL/glew.h>
+	"Defines.h"
+
+1343571514 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/Defines.h
+	<algorithm>
+	<cmath>
+	<cstring>
+	<cstdio>
+	<vector>
+	<sstream>
+	<queue>
+	<map>
+	<set>
+
+1345134558 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CShaderProgram.h
+	<GL/glew.h>
+	"CShader.h"
+
+1343556976 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp_OnEvent.cpp
+	"CApp.h"
+
+1342878349 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp_OnLoop.cpp
+	"CApp.h"
+
+1345132308 /home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CTexture.h
+	<string>
+	<GL/glew.h>
+	"CSurface.h"
+
+1345130303 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp_OnCleanup.cpp
+	"CApp.h"
+
+1345302947 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp_OnInit.cpp
+	"CApp.h"
+
+1345302922 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CApp_OnRender.cpp
+	"CApp.h"
+
+1343438132 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CEvent.cpp
+	"CEvent.h"
+
+1343571304 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CShader.cpp
+	"CShader.h"
+
+1343570158 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CShaderProgram.cpp
+	"CShaderProgram.h"
+
+1343440572 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CSurface.cpp
+	"CSurface.h"
+
+1345290340 source:/home/fuyajun/myplayground/sdl/opengltutorial/lesson05/CTexture.cpp
+	"CTexture.h"
+	<SDL/SDL_image.h>
+

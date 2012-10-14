@@ -1,0 +1,266 @@
+# depslib dependency file v1.0
+1343527040 source:/home/fuyajun/myplayground/sdl/SDLTest4/CAnimation.cpp
+	"CAnimation.h"
+
+1343525987 /home/fuyajun/myplayground/sdl/SDLTest4/CAnimation.h
+	<SDL/SDL.h>
+
+1343528759 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp.cpp
+	"CApp.h"
+
+1343546119 /home/fuyajun/myplayground/sdl/SDLTest4/CApp.h
+	<SDL/SDL.h>
+	"CSurface.h"
+	"CEvent.h"
+	"CAnimation.h"
+	"CEntity.h"
+	"CDefine.h"
+	"CArea.h"
+	"CCamera.h"
+
+1343440543 /home/fuyajun/myplayground/sdl/SDLTest4/CSurface.h
+	<SDL/SDL.h>
+
+1343438512 /home/fuyajun/myplayground/sdl/SDLTest4/CEvent.h
+	<SDL/SDL.h>
+
+1343527898 /home/fuyajun/myplayground/sdl/SDLTest4/CEntity.h
+	<vector>
+	"CAnimation.h"
+	"CSurface.h"
+
+1343546163 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp_OnEvent.cpp
+	"CApp.h"
+
+1343438132 source:/home/fuyajun/myplayground/sdl/SDLTest4/CEvent.cpp
+	"CEvent.h"
+
+1343546681 source:/home/fuyajun/myplayground/sdl/SDLTest4/CSurface.cpp
+	"CSurface.h"
+	<SDL/SDL_image.h>
+
+1343546225 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp_OnCleanup.cpp
+	"CApp.h"
+
+1343546307 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp_OnInit.cpp
+	"CApp.h"
+
+1343528610 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp_OnLoop.cpp
+	"CApp.h"
+
+1343546254 source:/home/fuyajun/myplayground/sdl/SDLTest4/CApp_OnRender.cpp
+	"CApp.h"
+
+1343544100 /home/fuyajun/myplayground/sdl/SDLTest4/CDefine.h
+
+1343546376 /home/fuyajun/myplayground/sdl/SDLTest4/CArea.h
+	"CMap.h"
+
+1343545942 /home/fuyajun/myplayground/sdl/SDLTest4/CCamera.h
+	<SDL.h>
+	"CDefine.h"
+
+1301615163 /usr/include/SDL/SDL.h
+	"SDL_main.h"
+	"SDL_stdinc.h"
+	"SDL_audio.h"
+	"SDL_cdrom.h"
+	"SDL_cpuinfo.h"
+	"SDL_endian.h"
+	"SDL_error.h"
+	"SDL_events.h"
+	"SDL_loadso.h"
+	"SDL_mutex.h"
+	"SDL_rwops.h"
+	"SDL_thread.h"
+	"SDL_timer.h"
+	"SDL_video.h"
+	"SDL_version.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_main.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_stdinc.h
+	"SDL_config.h"
+	<sys/types.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	<stdarg.h>
+	<stdlib.h>
+	<malloc.h>
+	<stddef.h>
+	<stdarg.h>
+	<memory.h>
+	<string.h>
+	<strings.h>
+	<inttypes.h>
+	<stdint.h>
+	<ctype.h>
+	<iconv.h>
+	"begin_code.h"
+	<alloca.h>
+	<malloc.h>
+	<malloc.h>
+	<malloc.h>
+	<stdlib.h>
+	"close_code.h"
+
+1301615164 /usr/include/SDL/SDL_config.h
+	"SDL_platform.h"
+	<stdarg.h>
+
+1301615163 /usr/include/SDL/SDL_platform.h
+
+1301615163 /usr/include/SDL/begin_code.h
+
+1301615164 /usr/include/SDL/close_code.h
+
+1301615163 /usr/include/SDL/SDL_audio.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_endian.h"
+	"SDL_mutex.h"
+	"SDL_thread.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_error.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_endian.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_mutex.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_thread.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_mutex.h"
+	"begin_code.h"
+	<process.h>
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_rwops.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_cdrom.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_cpuinfo.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_events.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_active.h"
+	"SDL_keyboard.h"
+	"SDL_mouse.h"
+	"SDL_joystick.h"
+	"SDL_quit.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_active.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_keyboard.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_keysym.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_keysym.h
+
+1301615163 /usr/include/SDL/SDL_mouse.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_video.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_joystick.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_quit.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+
+1301615163 /usr/include/SDL/SDL_loadso.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_timer.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1301615163 /usr/include/SDL/SDL_version.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1343528822 source:/home/fuyajun/myplayground/sdl/SDLTest4/CEntity.cpp
+	"CEntity.h"
+
+1343546633 /home/fuyajun/myplayground/sdl/SDLTest4/CMap.h
+	<SDL/SDL.h>
+	<vector>
+	"CTile.h"
+	"CSurface.h"
+
+1343544311 /home/fuyajun/myplayground/sdl/SDLTest4/CTile.h
+	"CDefine.h"
+
+1343545561 source:/home/fuyajun/myplayground/sdl/SDLTest4/CArea.cpp
+	"CArea.h"
+
+1343546006 source:/home/fuyajun/myplayground/sdl/SDLTest4/CCamera.cpp
+	"CCamera.h"
+
+1343544815 source:/home/fuyajun/myplayground/sdl/SDLTest4/CMap.cpp
+	"CMap.h"
+
+1343544364 source:/home/fuyajun/myplayground/sdl/SDLTest4/CTile.cpp
+	"CTile.h"
+

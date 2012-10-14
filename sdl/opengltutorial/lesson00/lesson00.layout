@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="CApp.cpp" open="0" top="0" tabpos="5">
+		<Cursor position="360" topLine="6" />
+	</File>
+	<File name="CApp.h" open="0" top="0" tabpos="3">
+		<Cursor position="114" topLine="0" />
+	</File>
+	<File name="CApp_OnCleanup.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="43" topLine="0" />
+	</File>
+	<File name="CApp_OnEvent.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="133" topLine="0" />
+	</File>
+	<File name="CApp_OnInit.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="1493" topLine="51" />
+	</File>
+	<File name="CApp_OnRender.cpp" open="0" top="0" tabpos="4">
+		<Cursor position="153" topLine="0" />
+	</File>
+	<File name="CSurface.h" open="0" top="0" tabpos="0">
+		<Cursor position="0" topLine="3" />
+	</File>
+</CodeBlocks_layout_file>
