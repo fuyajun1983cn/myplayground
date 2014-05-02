@@ -1,49 +1,22 @@
  git config http.postBuffer 524288000
 
- 1354  git push --all
- 1355  git push origin master
- 1356  git rm irrlicht/ -r
- 1362  git add test.txt
- 1363  git commit -a -m "a test"
- 1364  git push
- 1365  git push origin master
- 1366  git config --list
- 1367  git --help
- 1368  git log
- 1372  sudo apt-get install smartgit
- 1375  git init
- 1377  git add .
- 1378  git commit -a
- 1379  git commit -a -m "this is a test"
- 1384  git add test
- 1385  git commit -a -m "this is a test"
- 1387  git remote add origin https://code.google.com/p/my-3d-program-wharehouse/
- 1388  git push origin --all
- 1389  git rm test 
- 1390  git rm my-3d-program-wharehouse/
- 1391  git rm my-3d-program-wharehouse/ -r
- 1395  git commit -a 
- 1396  git commit -a -m "delete test file"
- 1397  git push origin master
- 1398  git rm my-3d-program-wharehouse 
- 1399  git rm my-3d-program-wharehouse -r
- 1400  git rm -r my-3d-program-wharehouse -r
- 1408  git add my-3d-program-wharehouse/
- 1409  git commit -a -m "test"
- 1410  git push origin master
- 1422  git rm test.txt
- 1423  git commit -a -m "delete "
- 1424  git push
- 1434  rm -rvf .git/
- 1445  git init
- 1450  git add IrrlichtTutorials/
- 1451  git commit -a -m "Irrlicht Tutorials"
- 1452  git remote add origin https://code.google.com/p/my-3d-program-wharehouse/
- 1453  git push origin master
- 1454  git pull
- 1461  git rm -rf my-3d-program-wharehouse/
- 1480  git rm -f my-3d-program-wharehouse
- 1481  git rm -r --cached my-3d-program-wharehouse/
- 1482  git rm -r --cached my-3d-program-wharehouse
+git init
+git remote add csdn git@code.csdn.net:fuyajun01/my-3d-program-wharehouse.git
+git pull csdn master
 
-git push origin +master
+将Google的代码Clone再提交到csdn
+git clone https://code.google.com/p/my-3d-program-wharehouse/
+git remote add csdn git@code.csdn.net:fuyajun01/my-3d-program-wharehouse.git
+git pull csdn master
+
+相关命令：
+git push csdn master
+git rm irrlicht/ -r
+git add test.txt
+git commit -a -m "a test"
+git config --list
+git --help
+git log
+git push origin --all
+git rm test 
+git commit -a 
