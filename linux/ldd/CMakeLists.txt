@@ -47,3 +47,4 @@ add_subdirectory(chapter08)
 ########## no ldd test program #############
 add_subdirectory(sysfs)
 add_subdirectory(input)
+add_subdirectory(procfs)

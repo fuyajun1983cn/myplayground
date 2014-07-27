@@ -1,0 +1,1 @@
+compile_module(procfs_test1)
