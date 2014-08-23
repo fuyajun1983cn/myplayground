@@ -1,0 +1,8 @@
+add_subdirectory(CallbackMaker) 
+add_subdirectory(Fractals) 
+add_subdirectory(Fractals_random) 
+add_subdirectory(Lorenz) 
+add_subdirectory(One) 
+add_subdirectory(shapes) 
+add_subdirectory(smooth_opengl3) 
+add_subdirectory(spaceball) 

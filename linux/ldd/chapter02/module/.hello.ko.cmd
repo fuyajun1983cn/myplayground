@@ -1,0 +1,1 @@
+cmd_/home/fuyajun/MyPlaground/ldd/chapter02/module/hello.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.2.0-48-generic-pae/scripts/module-common.lds --build-id  -o /home/fuyajun/MyPlaground/ldd/chapter02/module/hello.ko /home/fuyajun/MyPlaground/ldd/chapter02/module/hello.o /home/fuyajun/MyPlaground/ldd/chapter02/module/hello.mod.o

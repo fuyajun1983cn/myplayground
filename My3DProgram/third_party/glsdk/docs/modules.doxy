@@ -1,0 +1,57 @@
+/**
+\defgroup module_glm OpenGL Mathematics
+
+The OpenGL Mathematics (GLM) library is a C++ library for handling commonly-used mathematics code for OpenGL graphics. It has vector and matrix classes, but the API is specifically designed to mirror the API of the OpenGL Shading Language as much as possible in C++.
+
+The OpenGL Mathematics library is distributed under the <a href="http://www.opensource.org/licenses/MIT">MIT License</a>. It has <a href="http://glm.g-truc.net/api-0.9.2/index.html">separate documentation</a>. The SDK uses version 0.9.2.7.
+
+**/
+
+/**
+\defgroup module_freeglut FreeGLUT
+
+The <b>Free</b> Open<b>GL</b> <b>U</b>tility <b>T</b>oolkit is a cross-platform library for creating and managing an OpenGL window. It abstracts platform-specific code, so code written to use FreeGLUT can work on any platform FreeGLUT supports.
+
+FreeGLUT is intended for simple graphical demos, and at this purpose, it works quite well. As your needs become more complex, you will run into more and more of FreeGLUT's limitations. Consider @ref module_glfw "GLFW" as an alternative if this happens.
+
+FreeGLUT is distributed under an X-Consortium style license. FreeGLUT maintains <a href="../../freeglut/doc/index.html">separate documentation</a>. The SDK uses version 2.6.0
+**/
+
+/**
+\defgroup module_glfw GLFW
+
+GLFW is a cross-platform library for creating and managing an OpenGL window. It abstracts platform-specific code, so code written to use GLFW can work on any platform GLFW supports.
+
+The principle difference, structurally speaking, between @ref module_freeglut "FreeGLUT" and GLFW is that FreeGLUT manages the window loop. In any windowed application, there is essentially a loop that continues until the user closes the window. This loop checks a queue of messages constantly; if any messages are found, like "the user moved the mouse" or "redraw the screen", the loop processes the message. Then it goes back and checks for more messages.
+
+FreeGLUT implements the window loop itself. By calling \a glutMainLoop, the user application relinquishes control over the application to FreeGLUT. FreeGLUT uses a number of callback functions to let the application know when to do things, such a render the screen, provide input, etc.
+
+GLFW applications are required to manage the window loop themselves. This means more boilerplate code has to be written by the user for simpler applications. But for more complex applications, the power afforded by this mechanism is far more important than the minor boilerplate code. Animations may require strict timings that FreeGLUT cannot easily support. The more complicated the application, the more likely it is that you will want the freedom to control the window loop.
+
+GLFW is distributed under the <a href="http://www.opensource.org/licenses/Zlib">zlib/libpng</a> license. GLFW has PDF files for <a href="../../glfw/docs/Reference.pdf">reference documentation</a> and a <a href="../../glfw/docs/UsersGuide.pdf">user manual</a>. The SDK uses version 2.7.2.
+
+**/
+
+/**
+\defgroup module_troubleshooting Troubleshooting
+
+@section trouble_headers Header Inclusion Order
+
+Headers must be included in certain orders. GLFW and FreeGLUT headers must be included \em after including one of the GL Load OpenGL headers. For example, if you want to use OpenGL 3.3 core with FreeGLUT, you must include them in this order:
+
+\code
+#include <glload/gl_3_3.h>
+#include <GL/freeglut.h>
+\endcode
+
+This is because FreeGLUT requires some of the types defined in the GL Load headers. Normally, it would include <tt>GL/gl.h</tt> directly, but since GL Load cannot work with the old header, we have to forcibly include it outselves first.
+
+The same goes for GLEW.
+
+The GLimg library headers <em>do not</em> require the inclusion of any GL Load headers. Some of the Texture Generation functions return <tt>unsigned int</tt> instead of actual GLenum values in order to support this.
+
+GL Util and GL Mesh headers can require GL Load inclusion on a case-by-case basis. Each file that requires it will have a notation in the documentation for that particular header file. Thus, if you include glutil.h or glmesh.h, you \em need to include a GL Load header first.
+
+A good rule of thumb is to simply include the GL Load headers before including \em anything else from the SDK.
+**/
+

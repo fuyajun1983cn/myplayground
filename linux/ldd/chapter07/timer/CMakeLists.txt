@@ -1,0 +1,1 @@
+compile_module(timer)
