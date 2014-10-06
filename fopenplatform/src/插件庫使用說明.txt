@@ -1,0 +1,76 @@
+一. 概述
+PluginManager實現了插件系統的核心部分，它負責管理插件，插件的生命周期以及插件注冊的對象。
+PluginManager主要用於如下兩種情形：
+1. 管理插件及其狀態
+2. 操控一個公共對象池。
+
+二. 插件
+插件包含一個描述插件的XML文件（默認後綴名爲.xml，可以設置爲其他的後綴名）以及一個庫，它的核心類是從IPlugin派生。
+PluginManager用於設置尋找插件的目錄，並加載它們。一般的使用情形如下：
+        // 'plugins' and subdirs will be searched for plugins
+        ExtensionSystem::PluginManager::setPluginPaths(QStringList() << "plugins");
+        ExtensionSystem::PluginManager::loadPlugins(); // try to load all the plugins
+
+三. 對象池
+所有插件都可以向公共對象池中添加對象。這個對象池是PluginManager創建的。這些對象必須派生於QObject，除此之外，無其他任何前置條件。可以通過函數getObjects()和getObject()從對象池中獲取某種特定類型的一個對象或所有對象。它們通過Aggregation::query函數來判定某個對象是否與指定類型匹配。
+注： Aggreatation類允許將幾個從QObject派生的對象組成一組，它們之間可以相互轉換，即通過他們中的任何一個對象可以獲取其他的對象。
+
+四. 插件的使用
+有兩種插件使用方法 ：
+1. 一個插件A提供了一個“擴展點”，另一個插件B提供了這個擴展點。
+        // Plugin A provides a "MimeTypeHandler" extension point
+        // in plugin B:
+        MyMimeTypeHandler *handler = new MyMimeTypeHandler();
+        ExtensionSystem::PluginManager::instance()->addObject(handler);
+        // In plugin A:
+        QList<MimeTypeHandler *> mimeHandlers =
+            ExtensionSystem::PluginManager::getObjects<MimeTypeHandler>();
+
+2. 插件A提供接口，包含該接口的對象不一定存在公共對象池中，插件B直接通過ExtensionSystem::invoke模板函數來調用。
+       // In the "provide" plugin A:
+        namespace PluginA {
+        class SomeProvider : public QObject
+        {
+            Q_OBJECT
+
+        public:
+            Q_INVOKABLE QString doit(const QString &msg, int n) {
+            {
+                qDebug() << "I AM DOING IT " << msg;
+                return QString::number(n);
+            }
+        };
+        } // namespace PluginA
+
+
+        // In the "user" plugin B:
+        int someFuntionUsingPluginA()
+        {
+            using namespace ExtensionSystem;
+
+            QObject *target = PluginManager::getObjectByClassName("PluginA::SomeProvider");
+
+            if (target) {
+                // Some random argument.
+                QString msg = "REALLY.";
+
+                // Plain function call, no return value.
+                invoke<void>(target, "doit", msg, 2);
+
+                // Plain function with no return value.
+                qDebug() << "Result: " << invoke<QString>(target, "doit", msg, 21);
+
+                // Record success of function call with return value.
+                Invoker<QString> in1(target, "doit", msg, 21);
+                qDebug() << "Success: (expected)" << in1.wasSuccessful();
+
+                // Try to invoke a non-existing function.
+                Invoker<QString> in2(target, "doitWrong", msg, 22);
+                qDebug() << "Success (not expected):" << in2.wasSuccessful();
+
+            } else {
+
+                // We have to cope with plugin A's absence.
+            }
+        };
+
