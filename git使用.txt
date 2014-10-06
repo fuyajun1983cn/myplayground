@@ -1,4 +1,4 @@
- git config http.postBuffer 524288000
+git config http.postBuffer 524288000
 
 git init
 git remote add csdn git@code.csdn.net:fuyajun01/my-3d-program-wharehouse.git
@@ -19,4 +19,7 @@ git --help
 git log
 git push origin --all
 git rm test 
-git commit -a 
+git commit -a
+
+撤销一个git提交：
+git reset --hard comm_hash_id
