@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #encoding:utf-8
 
+'''
+  工具：从androidxref.com网站上批量下载代码
+'''
+
 import xml.dom.minidom
 from HTMLParser import HTMLParser
 import os
