@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 #encoding:utf-8
-
 '''
-  工具：从androidxref.com网站上批量下载代码
+  从androidxref.com网站下载代码
+   
+  update:  2015年 02月 28日 星期六 22:00:36 CST
 '''
-
 import xml.dom.minidom
 from HTMLParser import HTMLParser
 import os
@@ -12,6 +12,7 @@ import sys
 from urllib import urlopen
 import threading
 import re
+import subprocess
 
 default = xml.dom.minidom.parse("default.xml")
 prefix = "http://androidxref.com/4.4.4_r1/"
@@ -42,7 +43,7 @@ def fetch_remote_xref_file(path):
         remotefile.close()
         return filecontent
 
-def fetch_remote_raw_file(path):
+def fetch_remote_raw_file1(path):
     try:
         remotefile = urlopen(os.path.join(raw_prefix, path))
     except IOError:
@@ -62,8 +63,27 @@ def fetch_remote_raw_file(path):
             localfile.write(line+'\n')
         localfile.close()
 
+def fetch_remote_raw_file(path):
+    working_dir = os.getcwd()
+    localfile_path = os.path.join(local_prefix, path)
+    local_dir = os.path.dirname(localfile_path)
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
+    os.chdir(local_dir)
+    if os.path.exists(os.path.join(working_dir, localfile_path)):
+        print "该文件已经下载过了，跳过"
+        os.chdir(working_dir)
+        return
+    print "下载到目录：",
+    print os.getcwd()
+    subprocess.call(['wget', os.path.join(raw_prefix, path)])
+    os.chdir(working_dir)
+
 
 def is_file(path):
+    subpaths = path.split('/')
+    if '4.4.4_r1' in subpaths:
+        return False
     return path[-1] != '/'
 
 def get_android_source(path):
@@ -124,12 +144,12 @@ class FetchAndroidSourceCode(threading.Thread):
 if __name__ == "__main__":
     print "getting sourcecode from androidxref.com"
    # paths = parse_projects()
-    paths = ['frameworks/base', 'frameworks/native', 'frameworks/av', 'system/core', 'system/extras', 'system/media', 'system/netd', 'system/security', 'system/vold', 'hardware/libhardware', 'hardware/libhardware_legacy' ]
+    paths = ['frameworks/av', 'system/core', 'system/extras', 'system/media', 'system/netd', 'system/security', 'system/vold', 'hardware/libhardware', 'hardware/libhardware_legacy' ]
     for path in paths:
         print path
         t = FetchAndroidSourceCode(path)
         t.start()
         t.join()
-  #  fetch_remote_raw_file('frameworks/native/NOTICE')
+   # fetch_remote_raw_file('frameworks/native/NOTICE')
     
     
