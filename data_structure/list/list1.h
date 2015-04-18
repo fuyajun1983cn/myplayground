@@ -17,6 +17,7 @@ class LinearList {
 	LinearList<T>& Delete(int k, T& x);//删除第k个元素并将它返回到x中
 	LinearList<T>& Insert(int k, const T& x);//在第k个元素之后插入x
 	LinearList<T>& Reverse();//将表中元素次序变反
+	LinearList<T>& Half();//删除链表中的半数元素
 	void Output(ostream& out) const;
     private:
 	int length;
@@ -110,6 +111,25 @@ LinearList<T>& LinearList<T>::Insert(int k, const T& x)
     length++;
     return *this;
 }
+
+/**
+ * 删除链表中的半数元素
+ */
+template<typename T>
+LinearList<T>& LinearList<T>::Half()
+{
+    if (length == 0)
+	return *this;
+    int j = 0;
+    int n = length/2;
+    if (length % 2)
+	n = (length + 1)/2;
+    for (int i = 0; i < n; i++ ) 
+	element[j++] = element[2*i];
+    length = j;
+    return *this;
+}
+
 /**
  * 反序操作
  */

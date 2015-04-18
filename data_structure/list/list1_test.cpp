@@ -24,6 +24,18 @@ int main(int argc, char *argv[])
 	L.Delete(1,z).Delete(1,z).Delete(1,z);
 	cout<<"List is "<<L<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
+
+	//half
+	L.Insert(0,2).Insert(1,13).Insert(2,4).Insert(3,5).Insert(4,17).Insert(5,8).Insert(6,29);
+	cout<<"list is "<<L<<endl;
+	cout<<"Length is "<<L.Length()<<endl;
+	L.Half();
+	cout<<"Halfed List is "<<L<<endl;
+	L.Delete(1,z);
+	cout<<"list is "<<L<<endl;
+	L.Half();
+	cout<<"list is "<<L<<endl;
+	cout<<"Halfed List is "<<L<<endl;
     } catch (...) {
 	cerr<<"An exception has occured"<<endl;
     }
