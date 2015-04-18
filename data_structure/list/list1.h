@@ -29,6 +29,15 @@ class LinearList {
 	bool Front() const { return current == 1; }
 	void Next() ;
 	void Previous();
+	/**
+	 * 合并两个链表
+	 */
+	LinearList<T>& Alternate(const LinearList<T>& A, const LinearList<T>& B);
+	LinearList<T>& Merge(const LinearList<T>& A, const LinearList<T>& B);
+	/**
+	 * 分离操作
+	 */
+	void Split(LinearList<T>& A, LinearList<T>& B);
     private:
 	int length;
 	int MaxSize;
@@ -190,6 +199,91 @@ template<typename T>
 void Reverse(LinearList<T>& x)
 {
     x.Reverse();
+}
+
+/**
+ * 合并操作
+ * A和B中的元素交替放入到链表中
+ */
+template<typename T>
+LinearList<T>& LinearList<T>::Alternate(const LinearList<T>& A, const LinearList<T>& B)
+{
+    int n = A.Length() > B.Length() ? B.Length() : A.Length();
+    int i ;
+    for (i = 0; i < 2*n; i+=2) {
+	Insert(i, A.element[i/2]);
+	Insert(i+1, B.element[i/2]);
+    }
+    if (i < A.Length()) {
+	for (int j = i; j < A.Length(); j++)
+	    Insert(j, A.element[j]);
+    } else {
+	for (int j = i; j < B.Length(); j++)
+	    Insert(j, B.element[j]);
+    }
+    return *this;
+}
+
+/**
+ * A和B都是有序链表，
+ * 且升序方式排序
+ */
+template<typename T>
+LinearList<T>& LinearList<T>::Merge(const LinearList<T>& A, const LinearList<T>& B)
+{
+   int na = A.Length();
+   int nb = B.Length();
+   if (A.element[na-1] < B.element[0]) {
+       int i ;
+       for (i = 0; i < A.length; i++)
+	   Insert(i, A.element[i]);
+       int j;
+       for (j = 0; i < B.length; i++)
+	   Insert(i+j, B.element[j]);
+   } else if (A.element[0] > B.element[nb-1]) {
+       int i ;
+       for (i = 0; i < B.length; i++)
+	   Insert(i, B.element[i]);
+       int j;
+       for (j = 0; i < A.length; j++)
+	   Insert(i+j, A.element[j]);
+   } else {
+       int k = 0;
+       int i = 0;
+       int j = 0;
+       for (; i < na; i++) {
+	   int a = A.element[i];
+	   for (; j < nb; j++) {
+	       int b = B.element[j];
+	       if (a < b) {
+		   break;
+	       } else if (a == b) {
+		   Insert(k++, b);
+		   break;
+	       } else {
+		   Insert(k++, b);
+	       }
+	   }
+	   Insert(k++, a);
+       }
+   }
+
+   return *this;
+
+} 
+
+template<typename T>
+void LinearList<T>::Split(LinearList<T>& A, LinearList<T>& B)
+{
+    int ia = 0;
+    int ib = 0;
+    for (int i = 0; i < length; i++) {
+	if (i%2)
+	    B.Insert(ia++, element[i]);
+	else
+	    A.Insert(ib++, element[i]);
+    }
+
 }
 
 template<typename T>

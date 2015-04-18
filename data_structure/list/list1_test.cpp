@@ -5,6 +5,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     try {
+#if 0
 	LinearList<int> L;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -36,8 +37,9 @@ int main(int argc, char *argv[])
 	L.Half();
 	cout<<"list is "<<L<<endl;
 	cout<<"Halfed List is "<<L<<endl;
-
+#endif
 	//
+#if 0
 	cout<<"move around list"<<endl;
 	LinearList<int> L2;
 	L2.Insert(0,2).Insert(0,3).Insert(0,4);
@@ -66,8 +68,28 @@ int main(int argc, char *argv[])
 	L2.Previous();
 	L2.Current(z);
 	cout<<"current is "<<z<<endl;
+#endif
+#if 1
+	LinearList<int> L3;
+	L3.Insert(0, 1).Insert(1, 4).Insert(2, 6);
+	LinearList<int> L4;
+	L4.Insert(0, 2).Insert(1, 3).Insert(2,5);
+
+	LinearList<int> L5;
+	L5.Alternate(L3, L4);
+	cout<<"Alernate L3 & L4 is "<<L5<<endl;
+
+	LinearList<int> L6;
+	L6.Merge(L3, L4);
+	cout<<"Merge L3 & L4 is "<<L6<<endl;
 	
+	LinearList<int> L7, L8;
+	L6.Split(L7, L8);
+	cout<<"Split of L6 "<<endl;
+	cout<<"L7: "<<L7<<endl;
+	cout<<"L8: "<<L8<<endl;
 	
+#endif
     } catch (...) {
 	cerr<<"An exception has occured"<<endl;
     }
