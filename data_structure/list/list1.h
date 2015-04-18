@@ -1,5 +1,5 @@
-#ifndef _LIST2_H
-#define _LIST2_H
+#ifndef _LIST1_H
+#define _LIST1_H
 #include <iostream>
 #include "xcept.h"
 
@@ -16,6 +16,7 @@ class LinearList {
 	int Search(const T& x) const;//返回x所在的位置
 	LinearList<T>& Delete(int k, T& x);//删除第k个元素并将它返回到x中
 	LinearList<T>& Insert(int k, const T& x);//在第k个元素之后插入x
+	LinearList<T>& Reverse();//将表中元素次序变反
 	void Output(ostream& out) const;
     private:
 	int length;
@@ -73,7 +74,8 @@ LinearList<T>& LinearList<T>::Delete(int k, T& x)
 	    element[i-1] = element[i];
 	length--;
 	if (length <= MaxSize/4) {
-	   T *new_elements = new T[MaxSize/4];
+	   MaxSize /= 4;
+	   T *new_elements = new T[MaxSize];
 	   for (int i = 0; i < length; i++)
 		new_elements[i] = element[i];
 	   delete[] element;
@@ -94,7 +96,8 @@ LinearList<T>& LinearList<T>::Insert(int k, const T& x)
     //如果表满，则引发异常NoMem
     if (k < 0 || k > length) throw OutOfBounds();
     if (length == MaxSize) {
-       T* new_elements = new T[2*MaxSize];
+       MaxSize *= 2;
+       T* new_elements = new T[MaxSize];
        for (int i = 0; i < length; i++)
     	   new_elements[i] = element[i];
        delete[] element;       
@@ -106,6 +109,27 @@ LinearList<T>& LinearList<T>::Insert(int k, const T& x)
     element[k] = x;
     length++;
     return *this;
+}
+/**
+ * 反序操作
+ */
+template<typename T>
+LinearList<T>& LinearList<T>::Reverse()
+{
+    int tmp = 0;
+    for(int i = 0; i < length/2; i++) {
+         tmp = element[i];
+	 element[i] = element[length-1-i];
+	 element[length-1-i] = tmp;
+    }
+
+    return *this;
+}
+
+template<typename T>
+void Reverse(LinearList<T>& x)
+{
+    x.Reverse();
 }
 
 template<typename T>
