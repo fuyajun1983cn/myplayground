@@ -1,5 +1,5 @@
-#ifndef _LIST1_H
-#define _LIST1_H
+#ifndef _LIST2_H
+#define _LIST2_H
 #include <iostream>
 #include "xcept.h"
 
@@ -8,7 +8,7 @@ using namespace std;
 template<typename T>
 class LinearList {
     public:
-	LinearList(int MaxListSize = 10);
+	LinearList();
 	~LinearList() { delete [] element; }
 	bool IsEmpty() const { return length == 0; }
 	int Length() const { return length; }
@@ -22,11 +22,17 @@ class LinearList {
 	int MaxSize;
 	T *element;//一维动态数组
 };
-
+/**
+ *新建线性表时，置MaxSize为1,之后在执行插入操作期间
+ *如果在表中已经有了MaxSize个元素，则将MaxSize加倍
+ *执行删除操作时，如果线性表的尺寸降至当前MaxSize的四分之一
+ *，则分配一个更小的，尺寸为MaxSize/2的数组。
+ * 
+ */
 template<typename T>
-LinearList<T>::LinearList(int MaxListSize)
+LinearList<T>::LinearList()
 {
-    MaxSize = MaxListSize;
+    MaxSize = 1;
     element = new T[MaxSize];
     length = 0;
 }
@@ -53,7 +59,10 @@ int LinearList<T>::Search(const T&x) const
 	    return ++i;
     return 0;
 }
-
+/**
+ * 如果当前length已经降至当前的MaxSize的四分之一，
+ * 则缩小数组大小
+ */
 template<typename T>
 LinearList<T>& LinearList<T>::Delete(int k, T& x)
 {
@@ -63,10 +72,20 @@ LinearList<T>& LinearList<T>::Delete(int k, T& x)
 	for (int i = k; i < length; i++)
 	    element[i-1] = element[i];
 	length--;
+	if (length <= MaxSize/4) {
+	   T *new_elements = new T[MaxSize/4];
+	   for (int i = 0; i < length; i++)
+		new_elements[i] = element[i];
+	   delete[] element;
+	   element = new_elements;
+	}
 	return *this;
     } else throw OutOfBounds();
 }
-
+/**
+ * 如果当前数组大小已经达到MaxSize,
+ * 则数组大小再翻倍
+ */
 template<typename T>
 LinearList<T>& LinearList<T>::Insert(int k, const T& x)
 {
@@ -74,7 +93,13 @@ LinearList<T>& LinearList<T>::Insert(int k, const T& x)
     //如果不存在第k个元素，则引发OutOfBounds异常
     //如果表满，则引发异常NoMem
     if (k < 0 || k > length) throw OutOfBounds();
-    if (length == MaxSize) throw NoMem();
+    if (length == MaxSize) {
+       T* new_elements = new T[2*MaxSize];
+       for (int i = 0; i < length; i++)
+    	   new_elements[i] = element[i];
+       delete[] element;       
+       element = new_elements;
+    }
 
     for (int i = length-1; i >= k; i--)
 	element[i+1] = element[i];
