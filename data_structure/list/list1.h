@@ -9,6 +9,7 @@ template<typename T>
 class LinearList {
     public:
 	LinearList();
+	LinearList(const LinearList<T>& L);
 	~LinearList() { delete [] element; }
 	bool IsEmpty() const { return length == 0; }
 	int Length() const { return length; }
@@ -37,6 +38,16 @@ LinearList<T>::LinearList()
     MaxSize = 1;
     element = new T[MaxSize];
     length = 0;
+}
+
+template<typename T>
+LinearList<T>::LinearList(const LinearList<T>& L)
+{
+    MaxSize = L.MaxSize;
+    length = L.length;
+    element = new T[MaxSize];
+    for (int i = 0; i < MaxSize; i++)
+	element[i] = L.element[i];
 }
 
 template<typename T>
