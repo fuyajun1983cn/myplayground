@@ -20,9 +20,19 @@ class LinearList {
 	LinearList<T>& Reverse();//将表中元素次序变反
 	LinearList<T>& Half();//删除链表中的半数元素
 	void Output(ostream& out) const;
+	/**
+	 * 前移，后移操作
+	 */
+	void Reset() { current = 1; }
+	void Current(T& x) const { x = element[current-1]; }
+	bool End() const { return current == length; }
+	bool Front() const { return current == 1; }
+	void Next() ;
+	void Previous();
     private:
 	int length;
 	int MaxSize;
+	int current;
 	T *element;//一维动态数组
 };
 /**
@@ -38,6 +48,7 @@ LinearList<T>::LinearList()
     MaxSize = 1;
     element = new T[MaxSize];
     length = 0;
+    current = 1;
 }
 
 template<typename T>
@@ -48,6 +59,24 @@ LinearList<T>::LinearList(const LinearList<T>& L)
     element = new T[MaxSize];
     for (int i = 0; i < MaxSize; i++)
 	element[i] = L.element[i];
+}
+
+template<typename T>
+void LinearList<T>::Next()
+{
+    if (current >= length)
+	throw OutOfBounds();
+    else
+	current++;
+}
+
+template<typename T>
+void LinearList<T>::Previous()
+{
+    if (current <= 1)
+	throw OutOfBounds();
+    else
+	current--;
 }
 
 template<typename T>

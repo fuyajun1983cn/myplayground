@@ -36,6 +36,38 @@ int main(int argc, char *argv[])
 	L.Half();
 	cout<<"list is "<<L<<endl;
 	cout<<"Halfed List is "<<L<<endl;
+
+	//
+	cout<<"move around list"<<endl;
+	LinearList<int> L2;
+	L2.Insert(0,2).Insert(0,3).Insert(0,4);
+        cout<<"List is "<<L2<<endl;
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+	L2.Next();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+	L2.Next();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+
+	L2.Previous();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+
+	L2.Previous();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+
+	L2.Previous();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+
+	L2.Previous();
+	L2.Current(z);
+	cout<<"current is "<<z<<endl;
+	
+	
     } catch (...) {
 	cerr<<"An exception has occured"<<endl;
     }
