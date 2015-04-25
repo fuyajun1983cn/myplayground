@@ -26,7 +26,7 @@ template<typename T>
 class Chain
 {
 public:
-    Chain() { first = 0; }
+    Chain() { first = last = 0; }
     ~Chain();
     bool IsEmpty() const { return first == 0; }
     int Length() const;
@@ -40,9 +40,12 @@ public:
     void Erase();
     //将链表第一个元素置空
     void Zero() { first = 0; }
+    //在链表右端添加一个元素
+    Chain<T>& Append(const T& x);
 
 private:
     ChainNode<T> *first; //指向第一个结点的指针
+    ChainNode<T> *last;//指向最后一个结点的指针
 };
 
 /**
@@ -145,6 +148,8 @@ Chain<T>& Chain<T>::Delete(int k, T& x)
 
 	if (q && q->link) {
 	    p = q->link;
+	    if (p == last)
+		last = q;
 	    q->link = p->link;
 	} else throw OutOfBounds();
 
@@ -181,6 +186,9 @@ Chain<T>& Chain<T>::Insert(int k, const T& x)
 	first = y;
     }
 
+    if (!y->link)
+	last = y;
+
     return *this;
 }
 
@@ -195,4 +203,19 @@ void Chain<T>::Erase()
     }
 }
 
+template<typename T>
+Chain<T>& Chain<T>::Append(const T& x)
+{
+    ChainNode<T> *y;
+    y = new ChainNode<T>();
+    y->data = x;
+    y->link = 0;
+    if (first) {//链表非空
+	last->link = y;
+	last = y;
+    } else
+	first = last = y;
+
+    return *this;
+}
 #endif

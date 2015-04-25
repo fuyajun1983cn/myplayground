@@ -128,6 +128,9 @@ void test3()
 	L.Delete(1,z).Delete(1,z).Delete(1,z);
 	cout<<"List is "<<L<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
+	L.Append(5).Append(7);
+	cout<<"List is "<<L<<endl;
+	cout<<"Length = "<<L.Length()<<endl;
 
 #endif
 	//
