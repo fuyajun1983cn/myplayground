@@ -11,11 +11,14 @@ using namespace std;
 
 template<typename T>
 class Chain;
+template<typename T>
+class ChainIterator;
 
 template<typename T>
 class ChainNode
 {
     friend Chain<T>;
+    friend ChainIterator<T>;
 
 private:
     T data;
@@ -23,8 +26,35 @@ private:
 };
 
 template<typename T>
+class ChainIterator
+{
+public:
+    T* Initialize(const Chain<T>& c)
+    {
+	location = c.first;
+	if (location) 
+	    return &location->data;
+	return 0;
+    }
+
+    T* Next()
+    {
+	if (!location)
+	    return 0;
+	location = location->link;
+	if (location) 
+	    return &location->data;
+	return 0;
+    }
+
+private:
+    ChainNode<T> *location;
+};
+
+template<typename T>
 class Chain
 {
+    friend ChainIterator<T>;
 public:
     Chain() { first = last = 0; }
     ~Chain();

@@ -132,6 +132,16 @@ void test3()
 	cout<<"List is "<<L<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
 
+	cout<<"-------采用链表遍历器输出---------------------"<<endl;
+	int *x;
+	ChainIterator<int> c;
+	x = c.Initialize(L);
+	while(x) {
+	    cout<<*x<<' ';
+	    x = c.Next();
+	}
+	cout<<endl;
+
 #endif
 	//
 #if 0
