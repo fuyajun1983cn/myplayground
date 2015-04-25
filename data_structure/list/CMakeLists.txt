@@ -1,2 +1,2 @@
-add_executable(list1_test list1_test.cpp)
+add_executable(list_test list_test.cpp)
 

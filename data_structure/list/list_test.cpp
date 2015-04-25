@@ -2,7 +2,11 @@
 #include "list1.h"
 #include "xcept.h"
 using namespace std;
-int main(int argc, char *argv[])
+
+/**
+ * 测试线性表：基于公式化描述：location(i) = i - 1
+ */
+void test1()
 {
     try {
 #if 0
@@ -95,3 +99,10 @@ int main(int argc, char *argv[])
     }
 }
 
+/**
+ * 线性表测试程序，基于公式： location(i) = (location(1) + i - 1) %
+ * MaxSize
+ */
+void test2()
+{
+}
