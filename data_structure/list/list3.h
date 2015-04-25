@@ -38,6 +38,8 @@ public:
     
     //删除链表中所有节点
     void Erase();
+    //将链表第一个元素置空
+    void Zero() { first = 0; }
 
 private:
     ChainNode<T> *first; //指向第一个结点的指针
