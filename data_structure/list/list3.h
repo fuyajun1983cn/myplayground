@@ -35,6 +35,9 @@ public:
     Chain<T>& Delete(int k, T& x);
     Chain<T>& Insert(int k, const T& x);
     void Output(ostream& out) const;
+    
+    //删除链表中所有节点
+    void Erase();
 
 private:
     ChainNode<T> *first; //指向第一个结点的指针
@@ -46,12 +49,7 @@ private:
 template<typename T>
 Chain<T>::~Chain()
 {
-    ChainNode<T> *next;
-    while (first) {
-	next = first->link;
-	delete first;
-	first = next;
-    }
+    Erase();   
 }
 
 /**
@@ -184,5 +182,15 @@ Chain<T>& Chain<T>::Insert(int k, const T& x)
     return *this;
 }
 
+template<typename T>
+void Chain<T>::Erase()
+{
+    ChainNode<T> *next;
+    while (first) {
+	next = first->link;
+	delete first;
+	first = next;
+    }
+}
 
 #endif
