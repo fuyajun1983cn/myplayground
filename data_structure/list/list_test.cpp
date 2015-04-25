@@ -1,6 +1,7 @@
 #include <iostream>
 #include "list1.h"
-#include "list3.h"
+//#include "list3.h"
+#include "list4.h"
 #include "xcept.h"
 using namespace std;
 
@@ -111,7 +112,7 @@ void test2()
 void test3()
 {
     try {
-#if 1
+#if 0
 	Chain<int> L;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -143,58 +144,33 @@ void test3()
 	cout<<endl;
 
 #endif
-	//
-#if 0
-	cout<<"move around list"<<endl;
-	LinearList<int> L2;
-	L2.Insert(0,2).Insert(0,3).Insert(0,4);
-        cout<<"List is "<<L2<<endl;
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
-	L2.Next();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
-	L2.Next();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
+#if 1
+	CircularList<int> L;
+	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
+	cout<<"Length = "<<L.Length()<<endl;
+	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
+	L.Insert(0, 2).Insert(1,6).Insert(2, 7).Insert(3, 8).Insert(4,9);
+	cout<<"List is "<<L<<endl;
+	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
+	cout<<"----------------查找测试(2)---------------------"<<endl;
+	int z;
+        L.Find(1, z);
+	cout<<"First Element is "<<z<<endl;
+	cout<<"Length = "<<L.Length()<<endl;
+	cout<<"---------------删除测试---------------------"<<endl;
+	L.Delete(1, z);
+	cout<<"删除的第一个元素是："<<z<<endl;
+	cout<<"List is "<<L<<endl;
+	L.Delete(1,z).Delete(3,z).Delete(1,z);
+	cout<<"List is "<<L<<endl;
+	cout<<"Length = "<<L.Length()<<endl;
+	cout<<"---------------尾部添加元素测试------------"<<endl;
+	L.Append(5).Append(7);
+	cout<<"List is "<<L<<endl;
+	cout<<"Length = "<<L.Length()<<endl;
 
-	L2.Previous();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
-
-	L2.Previous();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
-
-	L2.Previous();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
-
-	L2.Previous();
-	L2.Current(z);
-	cout<<"current is "<<z<<endl;
 #endif
-#if 0
-	LinearList<int> L3;
-	L3.Insert(0, 1).Insert(1, 4).Insert(2, 6);
-	LinearList<int> L4;
-	L4.Insert(0, 2).Insert(1, 3).Insert(2,5);
 
-	LinearList<int> L5;
-	L5.Alternate(L3, L4);
-	cout<<"Alernate L3 & L4 is "<<L5<<endl;
-
-	LinearList<int> L6;
-	L6.Merge(L3, L4);
-	cout<<"Merge L3 & L4 is "<<L6<<endl;
-	
-	LinearList<int> L7, L8;
-	L6.Split(L7, L8);
-	cout<<"Split of L6 "<<endl;
-	cout<<"L7: "<<L7<<endl;
-	cout<<"L8: "<<L8<<endl;
-	
-#endif
     } catch (...) {
 	cerr<<"An exception has occured"<<endl;
     }
