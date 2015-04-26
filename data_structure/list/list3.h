@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include "xcept.h"
+#include "list1.h"
 
 using namespace std;
 
@@ -97,11 +98,68 @@ public:
     void Zero() { first = 0; }
     //在链表右端添加一个元素
     Chain<T>& Append(const T& x);
+    //反序，不要分配任何新的节点
+    Chain<T>& Reverse();
+
+    /**
+     * 把一个线性表转换成单向链表
+     */
+    Chain<T>& FromList(const LinearList<T>& L);
+
+    /**
+     * 把一个单向链表转换成线性表
+     */
+    void ToList(LinearList<T>& L);
 
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针
 };
+
+template<typename T>
+Chain<T>& Chain<T>::Reverse()
+{
+    ChainNode<T> *tmp;
+    ChainNode<T> *head = NULL;
+    ChainNode<T> *p = first;
+    while(p) {
+	tmp = p->link;
+	p->link = head;
+	head = p;
+	p = tmp;
+    }	 
+    tmp = first;
+    first = last;
+    last = tmp;
+    return *this;
+}
+   
+
+template<typename T>
+Chain<T>& Chain<T>::FromList(const LinearList<T>& L)
+{
+    //Erase old data
+    Erase();
+   
+    for (int i = 1; i <= L.Length(); i++) {
+          int x;
+          if (L.Find(i, x))
+	      Insert(i-1, x);
+    }
+    
+    return *this;
+}
+
+template<typename T>
+void Chain<T>::ToList(LinearList<T>& L)
+{
+    int index = 1;
+    int x;
+    while (Find(index, x)) {
+	L.Insert(index-1, x);
+	index++;
+    }
+}
 
 /**
  * 析构函数，删掉链表中的所有函数

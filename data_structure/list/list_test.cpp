@@ -148,6 +148,22 @@ void test3()
 	}
 	cout<<endl;
 
+	/************测试单向链表与线性表之间的相互转换*****************/
+	LinearList<int> L3;
+	L3.Insert(0, 1).Insert(1, 4).Insert(2, 6);
+	cout<<"L3 "<<L3<<endl;
+
+	L = L.FromList(L3);
+	cout<<"L is "<<L<<endl;
+	cout<<"L的反序： "<<L.Reverse()<<endl;
+
+	L.Insert(0, 12).Insert(0, 45);
+	LinearList<int> L4;
+	L.ToList(L4);
+	cout<<"L4 is "<<L4<<endl;
+	
+	
+
 #endif
 #if 0
         //CircularList<int> L;
