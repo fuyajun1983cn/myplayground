@@ -14,20 +14,20 @@ template<typename T>
 class CircularList;
 
 template<typename T>
-class ChainNode
+class CircularListNode
 {
     friend CircularList<T>;
 
 private:
     T data;
-    ChainNode<T> *link;
+    CircularListNode<T> *link;
 };
 
 template<typename T>
 class CircularList
 {
 public:
-    CircularList() { first = new ChainNode<T>; first->link = first; }
+    CircularList() { first = new CircularListNode<T>; first->link = first; }
     ~CircularList();
     bool IsEmpty() const { return first == first->link; }
     int Length() const;
@@ -45,7 +45,7 @@ public:
     CircularList<T>& Append(const T& x);
 
 private:
-    ChainNode<T> *first; //指向第一个结点的指针
+    CircularListNode<T> *first; //指向第一个结点的指针
 };
 
 /**
@@ -65,7 +65,7 @@ CircularList<T>::~CircularList()
 template<typename T>
 int CircularList<T>::Length() const
 {
-    ChainNode<T> *node = first->link;
+    CircularListNode<T> *node = first->link;
     int length = 0;
 
     while(node && node != first) {
@@ -82,7 +82,7 @@ bool CircularList<T>::Find(int k, T& x) const
     if (k < 1) return false;
     if (k > Length()) return false;
 
-    ChainNode<T> *current = first->link;
+    CircularListNode<T> *current = first->link;
 
     int index = 1;
 
@@ -102,7 +102,7 @@ bool CircularList<T>::Find(int k, T& x) const
 template<typename T>
 int CircularList<T>::Search(const T& x) const
 {
-    ChainNode<T> *current = first->link;
+    CircularListNode<T> *current = first->link;
     int index = 1;
     first->data = x;
 
@@ -117,7 +117,7 @@ int CircularList<T>::Search(const T& x) const
 template<typename T>
 void CircularList<T>::Output(ostream& out) const
 {
-    ChainNode<T> *current = first->link;
+    CircularListNode<T> *current = first->link;
     while (current && current != first) {
 	out<<current->data<<" ";
 	current = current->link;
@@ -137,8 +137,8 @@ CircularList<T>& CircularList<T>::Delete(int k, T& x)
     if (k < 1 || first == first->link)
 	throw OutOfBounds();
 
-    ChainNode<T> *p = first;
-    ChainNode<T> *q = first->link;
+    CircularListNode<T> *p = first;
+    CircularListNode<T> *q = first->link;
     int index = 1;
     while (index < k && q != first) {
 	p = q;
@@ -166,14 +166,14 @@ CircularList<T>& CircularList<T>::Insert(int k, const T& x)
 {
     if (k < 0) throw OutOfBounds();
 
-    ChainNode<T> *p = first;
+    CircularListNode<T> *p = first;
     int index = 0;
     while (index < k && p->link != first) {
 	p = p->link;
 	index++;
     }
     if (index < k) throw OutOfBounds();
-    ChainNode<T> *y = new ChainNode<T>();
+    CircularListNode<T> *y = new CircularListNode<T>();
     y->data = x;
     y->link = p->link;
     p->link = y;
@@ -184,7 +184,7 @@ CircularList<T>& CircularList<T>::Insert(int k, const T& x)
 template<typename T>
 void CircularList<T>::Erase()
 {
-    ChainNode<T> *next = first->link;
+    CircularListNode<T> *next = first->link;
     while (next != first) {
         first->link = next->link;
         delete next;
@@ -195,12 +195,12 @@ void CircularList<T>::Erase()
 template<typename T>
 CircularList<T>& CircularList<T>::Append(const T& x)
 {
-    ChainNode<T> *y;
-    y = new ChainNode<T>();
+    CircularListNode<T> *y;
+    y = new CircularListNode<T>();
     y->data = x;
     y->link = first;
 
-    ChainNode<T> *p = first->link;
+    CircularListNode<T> *p = first->link;
     while (p->link != first) {
 	p = p->link;
     }
