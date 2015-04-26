@@ -2,6 +2,7 @@
 #include "list1.h"
 //#include "list3.h"
 #include "list4.h"
+#include "list5.h"
 #include "xcept.h"
 using namespace std;
 
@@ -145,7 +146,8 @@ void test3()
 
 #endif
 #if 1
-	CircularList<int> L;
+        //CircularList<int> L;
+        Double<int> L;
 	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -156,6 +158,10 @@ void test3()
 	int z;
         L.Find(1, z);
 	cout<<"First Element is "<<z<<endl;
+	L.Find(5, z);
+	cout<<"第五个元素是："<<z<<endl;
+	L.Find(3, z);
+	cout<<"第三个元素是："<<z<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"---------------删除测试---------------------"<<endl;
 	L.Delete(1, z);
@@ -168,6 +174,20 @@ void test3()
 	L.Append(5).Append(7);
 	cout<<"List is "<<L<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
+
+	cout<<"-------------异常测试-----------------"<<endl;
+	try {
+	L.Delete(8, z);
+	} catch(...) {
+	    cout<<"非法删除"<<endl;
+	}
+
+	try {
+	L.Insert(5, 7);
+	} catch (...) {
+	    cout<<"非法插入"<<endl;
+	}
+	
 
 #endif
 
