@@ -20,10 +20,32 @@ class ChainNode
     friend Chain<T>;
     friend ChainIterator<T>;
 
+public:
+    void Output(ostream& out) const;
+
 private:
     T data;
     ChainNode<T> *link;
 };
+
+template<typename T>
+void ChainNode<T>::Output(ostream& out) const
+{
+    out<<data;
+}
+
+template<typename T>
+ostream& operator<<(ostream& out, const ChainNode<T>& x)
+{
+    x.Output(out);
+    return out;
+}
+template<typename T>
+ostream& operator<<(ostream& out, const ChainNode<T> *x)
+{
+    x->Output(out);
+    return out;
+}
 
 template<typename T>
 class ChainIterator
@@ -57,6 +79,7 @@ class Chain
     friend ChainIterator<T>;
 public:
     Chain() { first = last = 0; }
+    Chain(const Chain<T>& C);
     ~Chain();
     bool IsEmpty() const { return first == 0; }
     int Length() const;
@@ -64,6 +87,8 @@ public:
     int Search(const T& x) const;
     Chain<T>& Delete(int k, T& x);
     Chain<T>& Insert(int k, const T& x);
+    const ChainNode<T>* GetFirst() const { return first; }
+    const ChainNode<T>* GetLast() const { return last; }
     void Output(ostream& out) const;
     
     //删除链表中所有节点
@@ -85,6 +110,25 @@ template<typename T>
 Chain<T>::~Chain()
 {
     Erase();   
+}
+
+template<typename T>
+Chain<T>::Chain(const Chain<T>& c)
+{
+    ChainNode<T> *current = c.first;
+    while(current){
+	ChainNode<T> *node = new ChainNode<T>();
+	node->data = current->data;
+	node->link = NULL;
+	if (current == c.first){
+	    first = node;
+	    last = node;
+	} else {
+	    last->link = node;
+	    last = node;
+	}
+	current = current->link;
+    }
 }
 
 /**

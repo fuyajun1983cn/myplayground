@@ -1,6 +1,6 @@
 #include <iostream>
 #include "list1.h"
-//#include "list3.h"
+#include "list3.h"
 #include "list4.h"
 #include "list5.h"
 #include "xcept.h"
@@ -113,13 +113,17 @@ void test2()
 void test3()
 {
     try {
-#if 0
+#if 1
 	Chain<int> L;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
 	L.Insert(0, 2).Insert(1,6).Insert(2, 7).Insert(3, 8).Insert(4,9);
 	cout<<"List is "<<L<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
+        cout<<"First Element: "<<L.GetFirst()<<endl;
+        cout<<"Last Element: "<<L.GetLast()<<endl;	
+	Chain<int> L2(L);
+	cout<<"list L2: "<<L2<<endl;
 	int z;
         L.Find(1, z);
 	cout<<"First Element is "<<z<<endl;
@@ -145,7 +149,7 @@ void test3()
 	cout<<endl;
 
 #endif
-#if 1
+#if 0
         //CircularList<int> L;
         Double<int> L;
 	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
