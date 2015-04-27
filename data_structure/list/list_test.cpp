@@ -162,6 +162,15 @@ void test3()
 	L.ToList(L4);
 	cout<<"L4 is "<<L4<<endl;
 	
+	/*************************测试两个链表之间的合并*************************/
+	Chain<int> L5;
+	L5.Insert(0, 1).Insert(1, 2).Insert(2,3);
+	Chain<int> L6;
+        L6.Insert(0,4).Insert(1,5).Insert(2,6).Insert(3,7);	
+	L.Alternate(L5, L6);
+	cout<<" L is "<<L<<endl;
+	cout<<"First Element: "<<L.GetFirst()<<endl;
+	cout<<"Last Element: "<<L.GetLast()<<endl;
 	
 
 #endif

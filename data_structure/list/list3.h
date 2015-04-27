@@ -44,7 +44,8 @@ ostream& operator<<(ostream& out, const ChainNode<T>& x)
 template<typename T>
 ostream& operator<<(ostream& out, const ChainNode<T> *x)
 {
-    x->Output(out);
+    if (x)
+        x->Output(out);
     return out;
 }
 
@@ -111,10 +112,80 @@ public:
      */
     void ToList(LinearList<T>& L);
 
+    /**
+     * 将两个链表合并，元素交替地出现在新的链表上
+     */
+    Chain<T>& Alternate(Chain<T>& a, Chain<T>& b);
+
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针
 };
+
+/**
+ * 将两个链表合并，元素交替地出现在新的链表中
+ */
+template<typename T>
+Chain<T>& Chain<T>::Alternate(Chain<T>& a, Chain<T>& b)
+{
+    //清除当前链表的结点
+    Erase();
+
+    ChainNode<T> *aCurrent = a.first;
+    ChainNode<T> *bCurrent = b.first;
+
+
+    ChainNode<T> *current = NULL;
+    while (aCurrent != NULL && bCurrent != NULL){
+	if (!current)
+	     current = aCurrent;
+	else {
+	    current->link = aCurrent;
+	    current = aCurrent;
+	}
+	 aCurrent = aCurrent->link;
+	 if (!first)
+	     first = current;
+	 current->link = bCurrent;
+	 current = bCurrent;
+	 bCurrent = bCurrent->link;
+    }
+
+    if (aCurrent == NULL && bCurrent == NULL) {
+	cout<<"1"<<endl;
+	last = current;
+    }
+    
+    while (aCurrent != NULL) {
+	if (!current) {
+	    current = aCurrent;
+	    first = current;
+	} else {
+	    current->link = aCurrent;
+	    current = aCurrent;
+	}
+	if (current == a.last)
+	    last = current;
+	aCurrent = aCurrent->link;
+    } 
+
+     while (bCurrent != NULL) {
+	 if (!current) {
+	     current = bCurrent;
+	     first = current;
+	 } else {
+	    current->link = bCurrent;
+	    current = bCurrent;
+	 }
+	if (current == b.last)
+	    last = current;
+	bCurrent = bCurrent->link;
+    }
+
+    return *this;
+}
+
+
 
 template<typename T>
 Chain<T>& Chain<T>::Reverse()
@@ -333,6 +404,7 @@ void Chain<T>::Erase()
 	delete first;
 	first = next;
     }
+    first = last = 0;
 }
 
 template<typename T>
