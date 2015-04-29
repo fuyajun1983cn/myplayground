@@ -80,10 +80,10 @@ class Chain
 {
     friend ChainIterator<T>;
 public:
-    Chain() { first = last = 0; }
+    Chain() { first = last = nullptr; }
     Chain(const Chain<T>& C);
     ~Chain();
-    bool IsEmpty() const { return first == 0; }
+    bool IsEmpty() const { return first == nullptr; }
     int Length() const;
     bool Find(int k, T& x) const;
     int Search(const T& x) const;
@@ -96,7 +96,7 @@ public:
     //删除链表中所有节点
     void Erase();
     //将链表第一个元素置空
-    void Zero() { first = 0; }
+    void Zero() { first = nullptr; }
     //在链表右端添加一个元素
     Chain<T>& Append(const T& x);
     //反序，不要分配任何新的节点
@@ -117,10 +117,128 @@ public:
      */
     Chain<T>& Alternate(Chain<T>& a, Chain<T>& b);
 
+    /**
+     * 将两个有序链表合并
+     */
+    Chain<T>& Merge(Chain<T>& a, Chain<T>& b);
+
+    /**
+     * 拆分当前链表，其中奇数位上的元素和偶数位上的函数分别置于不同的链表中
+     */
+    void Split(Chain<T>& a, Chain<T>& b);
+
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针
 };
+
+/**
+ * 将两个有序链表合并
+ */
+template<typename T>
+Chain<T>& Chain<T>::Merge(Chain<T>& a, Chain<T>& b)
+{
+    //先重置当前链表为空
+    Erase();
+    //如果链表a, b都为空,则返回空链表
+    if (a.IsEmpty() && b.IsEmpty()) {
+	return *this;
+    } else if (a.IsEmpty()) {//如果链表a为空,则直接将B链表做为当前链表
+	first = b.first;
+	last = b.last;
+	b.first = b.last = nullptr;
+	return *this;
+    } else if (b.IsEmpty()) {//如果链表b为空,则直接将A链表做为当前链表
+	first = a.first;
+	last = a.last;
+	a.first = a.last = nullptr;
+	return *this;
+    }
+    ChainNode<T> *aCurrent = a.first;
+    ChainNode<T> *bCurrent = b.first;
+    ChainNode<T> *current = nullptr;
+
+    if (a.last->data < b.first->data) {//链表a中所有的元素都比链表b中的元素小
+	first = a.first;
+	current = a.last;
+	current->link = b.first;
+	last = b.last;
+	a.first = a.last = nullptr;
+	b.first = b.last = nullptr;
+	return *this;
+    } else if (a.first->data > b.last->data) {//链表b中所有的元素都比链表a中的元素小
+	first = b.first;
+	current = b.last;
+	current->link = a.first;
+	last = a.last;
+	a.first = b.last = nullptr;
+	b.first = b.last = nullptr;
+	return *this;
+    } else {//先决定链表的头结点
+	if (aCurrent->data < bCurrent->data) {
+	    current = aCurrent;
+	    first = current;
+	    aCurrent = aCurrent->link;
+	} else {
+	    current = bCurrent;
+	    first = current;
+	    bCurrent = bCurrent->link;
+	}
+	while (aCurrent != nullptr && bCurrent != nullptr) {
+	    if (aCurrent->data < bCurrent->data) {
+		current->link = aCurrent; 
+		current = aCurrent;
+		aCurrent = aCurrent->link;
+	    } else {
+		current->link = bCurrent;
+		current = bCurrent;
+		bCurrent = bCurrent->link;
+	    }
+	}
+
+	if (aCurrent != nullptr) {
+	    current->link = aCurrent;
+	    last = a.last;
+	} else if (bCurrent != nullptr) {
+	    current->link = bCurrent;
+	    last = b.last;
+	} else {
+	    last = current;
+	}
+
+
+	//重围链表A和B为空表
+	a.first = a.last = nullptr;
+	b.first = b.last = nullptr;
+
+    }
+
+    return *this;
+
+}
+
+/**
+ * 拆分当前链表，其中奇数位上的元素和偶数位上的函数分别置于不同的链表中
+ */
+template<typename T>
+void Chain<T>::Split(Chain<T>& a, Chain<T>& b)
+{
+    if (IsEmpty())
+	return;
+
+    int index = 1;
+    ChainNode<T> *current = first;
+
+    while (current != nullptr) {
+	if (index % 2) {
+	    a.Append(current->data);//奇数位置放在链表a中
+	} else {
+	    b.Append(current->data);//偶数位位置放在链表b中
+	}
+	current = current->link;
+	index++;
+    }
+}
 
 /**
  * 将两个链表合并，元素交替地出现在新的链表中
@@ -135,8 +253,8 @@ Chain<T>& Chain<T>::Alternate(Chain<T>& a, Chain<T>& b)
     ChainNode<T> *bCurrent = b.first;
 
 
-    ChainNode<T> *current = NULL;
-    while (aCurrent != NULL && bCurrent != NULL){
+    ChainNode<T> *current = nullptr;
+    while (aCurrent != nullptr && bCurrent != nullptr){
 	if (!current)
 	     current = aCurrent;
 	else {
@@ -151,12 +269,11 @@ Chain<T>& Chain<T>::Alternate(Chain<T>& a, Chain<T>& b)
 	 bCurrent = bCurrent->link;
     }
 
-    if (aCurrent == NULL && bCurrent == NULL) {
-	cout<<"1"<<endl;
+    if (aCurrent == nullptr && bCurrent == nullptr) {
 	last = current;
     }
     
-    while (aCurrent != NULL) {
+    while (aCurrent != nullptr) {
 	if (!current) {
 	    current = aCurrent;
 	    first = current;
@@ -169,7 +286,7 @@ Chain<T>& Chain<T>::Alternate(Chain<T>& a, Chain<T>& b)
 	aCurrent = aCurrent->link;
     } 
 
-     while (bCurrent != NULL) {
+     while (bCurrent != nullptr) {
 	 if (!current) {
 	     current = bCurrent;
 	     first = current;
@@ -182,6 +299,10 @@ Chain<T>& Chain<T>::Alternate(Chain<T>& a, Chain<T>& b)
 	bCurrent = bCurrent->link;
     }
 
+     //最后将链表a,b置空
+     a.first = a.last = nullptr;
+     b.first = b.last = nullptr;
+
     return *this;
 }
 
@@ -191,7 +312,7 @@ template<typename T>
 Chain<T>& Chain<T>::Reverse()
 {
     ChainNode<T> *tmp;
-    ChainNode<T> *head = NULL;
+    ChainNode<T> *head = nullptr;
     ChainNode<T> *p = first;
     while(p) {
 	tmp = p->link;
@@ -248,7 +369,7 @@ Chain<T>::Chain(const Chain<T>& c)
     while(current){
 	ChainNode<T> *node = new ChainNode<T>();
 	node->data = current->data;
-	node->link = NULL;
+	node->link = nullptr;
 	if (current == c.first){
 	    first = node;
 	    last = node;

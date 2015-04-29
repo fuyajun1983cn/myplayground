@@ -171,6 +171,19 @@ void test3()
 	cout<<" L is "<<L<<endl;
 	cout<<"First Element: "<<L.GetFirst()<<endl;
 	cout<<"Last Element: "<<L.GetLast()<<endl;
+
+	/************************测试两个有序链表的合并***********************/
+
+	Chain<int> L7;
+	L7.Insert(0, 3).Insert(1, 9).Insert(2,10);
+	Chain<int> L8;
+        L8.Insert(0,4).Insert(1,5).Insert(2,6);	
+	L.Merge(L8, L7);
+	cout<<" L is "<<L<<endl;
+
+	L.Split(L7, L8);
+	cout<<" L7 is "<<L7<<endl;
+	cout<<" L8 is "<<L8<<endl;
 	
 
 #endif
