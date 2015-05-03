@@ -1,0 +1,321 @@
+[TOC]
+
+##Echoing Message
+>we should use *echom* in script.
+ you can use *messages* to check *echom* output
+
+
+##Setting Options
+boolean option
+set number
+set nonumber
+set number!
+set number?  "Checking option
+
+##Basic Mapping
+any mode:
+map - x
+map <space> viw
+map <c-d> dd
+
+####**mapping keys is one of the places where vim comments don't work.**
+
+normal mode:
+nmap \ dd
+
+visual mode:
+vmap \ U
+
+insert mode:
+imap <c-d> <esc>ddi
+
+**unset a mapping
+nunmap \
+
+
+nonrecursive mapping : always use nonrecursive variants as possible as
+we can
+nnoremap \ x
+inoremap \ x
+vnoremap \ x
+
+##Leader key
+set leader key:
+let mapleader = "-"
+nnoremap <leader>d dd
+###set local leader key
+let maplocalleder = "\\"
+nnoremap <localleader>d dd
+
+##Abbreviations
+abbreviations will be expaned when you type anything that's not a
+letter, number or underscore
+
+##Buffer-Local Options and Mappings
+:nnoremap           <leader>d  dd
+:nnoremap  <buffer> <leader>x  dd
+
+##Set Local Variables
+:setlocal number
+
+
+##AutoCommands
+:autocmd BufNewFile * :write
+
+*to see a list of all the events:
+:help autocmd-events
+
+:autocmd FileType python :iabbrev <buffer> iff if:<left>
+
+
+##Grouping Autocommands
+:augroup testgroup
+:    autocmd!    clear a group
+:    autocmd  BufWrite * :echom "Cats"
+:augroup END
+
+##Operator-Pending Mappings
+dw Delete  to next word
+ci( Change inside parens
+yt, Yank   until comma
+:onoremap p i(
+:onoremap il( :<c-u>normal! F)vi(<cr>
+
+**normal! doesn't recognize "special characters" link <cr>**
+the easies way to get around it is use **read**
+
+onoremap ah :<c-u>execute "normal! ?^==\\+\r:nohlsearch\rg_vk0"<cr>
+
+
+
+##Status line
+:set statusline=%f
+:set statusline+=\ -\ 
+:set statusline+=FileType:
+:set statusline+=%y
+
+##folding capabilites
+augroup filetype_vim
+    autocmd!
+    autocmd FileType vim setlocal foldmethod=marker
+augroup END
+
+
+##Variables and Options
+:let foo="bar"
+
+Options as Variables
+:set textwdith=80
+:echo &textwidth
+:let &textwidth=100
+
+local options
+:let &l:number=1
+
+Registers as Variables
+:let @a="hello"
+:echo @"
+
+perform a search in your file with /someword, 
+:echo @/
+vim will echo the search pattern
+
+##Variables Scoping
+:let b:hello="word"
+:echo b:hello
+
+##Conditions
+Multiple-Line Statements
+:echom "foo" | echom "bar"
+
+:if 1
+:    echom "ONE:
+:endif
+
+
+1. VIM will try to coerce variables when necessary. 
+2. Strings that start with a number are coerced to that number, otherwise they're coerced to 0
+3. Vim will execute the body of an if statement whne its condition evaluates to a non-zero integer,
+after all coercion takes place.
+
+:if 0
+:    echom "if"
+:elseif "nope!"
+:    echom "elseif"
+:else 
+:    echom "finally"
+:endif
+
+**Vimscript is case sensitive**
+set ignorecase
+set noignorecase
+
+Code Sample:
+:set noignorecase
+:if "foo" ==? "FOO"
+:    echom "first"
+:elseif "foo" ==? "foo"
+:    echom "second"
+:endif
+
+==? is "case-insensitive" no matter what the user has set" comparison operator.
+Code Sample:
+:set ignorecase
+:if "foo" ==# "FOO"
+:    echom "one"
+:elseif "foo" ==# "foo"
+:    echom "two"
+:endif
+
+==# is the "case-sensitive no matter what the user has set" comparison operator.
+
+
+##Functions
+**Vimscript functions must start with a capital letter if they are unscoped!**
+
+It's a convention to always capitalize the first letter of function names .
+
+Code Sample:
+:function Meow()
+:    echom "Meow!"
+:endfunction
+
+:call Meow()
+
+**if a vimscript function doesn't return a value, it implicitly return 0.**
+
+Code Sample:
+:function TextwidthIsTooWide()
+:    if &l:textwidth ># 80
+:        return 1
+:    endif
+:endfunction
+
+**up to 26 arguments can be used in a function**
+
+**a function name must be made of alphanumeric characters and '_', and must start with a capital or
+"s:"**
+
+##Function Arguments
+:function DisplayName(name)
+:    echom "Hello! My name is :"
+:    echom a:name
+:endfunction
+
+**When you write a Vimscript function that takes arguments you always need to prefix those arguments
+with a: when you use them to tell Vim that they're in the argument scope.**
+
+Varargs
+:function Varg(...)
+:    echom a:0
+:    echom a:1
+:    echo a:000
+:endfunction
+
+:call Varg("a", "b")
+
+**a:0** will be set to the number of extra arguments you were given.
+**a:000** will be set to a list containig all the extra arguments that were passed.
+
+:function Varg(foo, ...)
+:    echom a:foo
+:    echom a:0
+:    echom a:1
+:    echo a:000
+:endfunction
+
+:call Varg2("a", "b", "c")
+
+**You cann't reassign argument variables**
+
+
+##Numbers
+echo 3 / 2.0
+Vim will display 1.5
+
+##Strings
+concatenation
+:echom "Hello, " + "world"
+Vim will display 0.
+
+**Vim will not coerce strings to Floats
+:echom 10 + "10.10"
+Vim will display 20
+
+String concatenation operator "."
+:echom "Hello, " . "world"
+
+:echom 10 . "foo"
+Vim will display 10foo
+
+:echom 10.1 . "foo"
+Vim throws an error. Vim won't let you use a Float as a String when concatenating.
+
+**Special Characters**
+:echom "foo \"bar\""
+
+:echo foo\nbar
+Vim will display two lines.
+
+:echom "foo\nbar"
+Vim will display foo^@bar. ^@ is Vim's way of saying "newline character"
+
+**Literal Strings**
+:echom '\n\\'
+Using single quotes tells Vim that you want the string exactly as-is, with no escape sequences.
+
+**String functions**
+Length
+:echom strlen("foo")
+:echom len("foo")
+
+Splitting
+:echo split("one two three")
+:echo split("one,two,three",",")
+
+Joining
+:echo join(["foo", "bar"], "...")
+Vim will display foo...bar
+
+Lower and Upper Case
+:echom tolower("Foo")
+:echom toupper("Foo")
+
+##Execute
+Basic Execution
+:execute "echom 'Hello, world!'"
+
+##Normal
+Avoiding Mappings
+:normal G
+:normal! G
+normal! tell Vim move to bottom of the file even though G has been mapped.
+**When writing scripts you should always use normal!.**
+
+Special Characters
+:normal! /foo<cr>
+**normal! doesn't parse special character sequences link <cr>**
+
+##Execute Normal!
+:execute "normal! gg/foo\<cr>dd"
+normal! cann't parse <cr>, combining execute and normal! will fix teh problem.
+
+
+
+
+
+
+
+
+
+
+w word
+i inside
+t till
+
+
+
+
+
+
+
