@@ -238,6 +238,14 @@ void test3()
 	//L.Alternate(L2, L3);
 	//L.Merge(L3, L2);
 	
+	L.Reverse();
+	L2.Reverse();
+	L3.Reverse();
+
+	cout<<"Reversed L is "<<L<<endl;
+	cout<<"Reversed L2 is "<<L2<<endl;
+	cout<<"Reversed L3 is "<<L3<<endl;
+	
 	L.Erase();
 	L.Insert(0, 1);//.Insert(1, 2).Insert(2, 3).Insert(3, 4).Insert(4, 5).Insert(5,6);
         L2.Erase();
