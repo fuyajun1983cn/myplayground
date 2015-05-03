@@ -113,7 +113,7 @@ void test2()
 void test3()
 {
     try {
-#if 1
+#if 0
 	Chain<int> L;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -187,9 +187,9 @@ void test3()
 	
 
 #endif
-#if 0
-        //CircularList<int> L;
-        Double<int> L;
+#if 1
+        CircularList<int> L;
+        //Double<int> L;
 	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -229,6 +229,26 @@ void test3()
 	} catch (...) {
 	    cout<<"非法插入"<<endl;
 	}
+
+	CircularList<int> L2;
+	L2.Insert(0, 1).Insert(1, 7);
+	CircularList<int> L3;
+	L3.Insert(0, 4).Insert(1, 5).Insert(2, 6);
+
+	//L.Alternate(L2, L3);
+	//L.Merge(L3, L2);
+	
+	L.Erase();
+	L.Insert(0, 1);//.Insert(1, 2).Insert(2, 3).Insert(3, 4).Insert(4, 5).Insert(5,6);
+        L2.Erase();
+	L3.Erase();
+	L.Split(L3, L2);
+
+	cout<<"List L is "<<L<<endl;
+	cout<<"Length is "<<L.Length()<<endl;
+	cout<<"List L2 is "<<L2<<endl;
+	cout<<"List L3 is "<<L3<<endl;
+
 	
 
 #endif
