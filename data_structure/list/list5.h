@@ -27,7 +27,7 @@ template<typename T>
 class Double
 {
 public:
-    Double() { LeftEnd = RightEnd = 0; }
+    Double() { LeftEnd = RightEnd = current = nullptr; }
     ~Double();
     bool IsEmpty() const { return LeftEnd == 0; }
     int Length() const;
@@ -39,10 +39,36 @@ public:
 
     void Erase();
     Double<T>& Append(const T& x);
+
+    /**
+     * 支持在一个双向链表中进行前移和后移等操作
+     */
+    void ResetLeft() { current = LeftEnd; }
+    void ResetRight() { current = RightEnd; }
+    void Current(T& x) {
+	x = current->data;
+    }
+         
+    bool End() const { return current == RightEnd; }
+    bool Front() const { return current == LeftEnd; }
+    bool Next() { 
+	if (!current->right) 
+	    return false;
+	current = current->right;
+	return true;
+    }
+
+    bool Previous() {
+	if (!current->left)
+	    return false;
+	current = current->left;
+	return true;
+    }
     
 private:
     DoubleNode<T> *LeftEnd; //指向第一个结点的指针
     DoubleNode<T> *RightEnd; //指向最后一个结点的指针
+    DoubleNode<T> *current;//记录链表当前的位置
 };
 
 /**
@@ -52,6 +78,7 @@ template<typename T>
 Double<T>::~Double()
 {
     Erase();
+    LeftEnd = RightEnd = current = nullptr;
 }
 
 /**

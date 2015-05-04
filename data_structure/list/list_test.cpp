@@ -189,7 +189,6 @@ void test3()
 #endif
 #if 1
         CircularList<int> L;
-        //Double<int> L;
 	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -235,6 +234,7 @@ void test3()
 	CircularList<int> L3;
 	L3.Insert(0, 4).Insert(1, 5).Insert(2, 6);
 
+
 	//L.Alternate(L2, L3);
 	//L.Merge(L3, L2);
 	
@@ -258,6 +258,18 @@ void test3()
 	cout<<"List L3 is "<<L3<<endl;
 
 	
+	Double<int> DL;
+        DL.Insert(0, 1).Insert(1, 2).Insert(2, 3).Insert(3, 4).Insert(4, 5).Insert(5, 6);
+	//DL.ResetLeft();
+	DL.ResetRight();
+	int x;
+	cout<<"DL is ";
+	do {
+	    DL.Current(x);
+	    cout<<x<<" ";
+	// } while(DL.Next());
+        } while (DL.Previous());
+	cout<<endl;
 
 #endif
 
