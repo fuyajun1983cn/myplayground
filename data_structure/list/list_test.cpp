@@ -113,7 +113,7 @@ void test2()
 void test3()
 {
     try {
-#if 0
+#if 1
 	Chain<int> L;
 	cout<<"Length = "<<L.Length()<<endl;
 	cout<<"IsEmpty = "<<L.IsEmpty()<<endl;
@@ -184,10 +184,22 @@ void test3()
 	L.Split(L7, L8);
 	cout<<" L7 is "<<L7<<endl;
 	cout<<" L8 is "<<L8<<endl;
+
+
+	/**************排序***********************/
+	Chain<int> L9;
+	L9.Insert(0, 2).Insert(1, 1).Insert(2, 4).Insert(3, 3).Insert(4, 5).Insert(5, 6);
+	cout<<"L9 is "<<L9<<endl;
+	cout<<"First Element: "<<L9.GetFirst()<<endl;
+	cout<<"Last Element: "<<L9.GetLast()<<endl;
+	L9.InsertionSort();
+	cout<<"after sort, L9 is "<<L9<<endl;
+	cout<<"First Element: "<<L9.GetFirst()<<endl;
+	cout<<"Last Element: "<<L9.GetLast()<<endl;
 	
 
 #endif
-#if 1
+#if 0
         CircularList<int> L;
 	cout<<"---------------插入测试(2,6,7,8,9)----------------------"<<endl;
 	cout<<"Length = "<<L.Length()<<endl;

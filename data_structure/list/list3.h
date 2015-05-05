@@ -127,10 +127,63 @@ public:
      */
     void Split(Chain<T>& a, Chain<T>& b);
 
+    /**
+     * 排序操作
+     */
+    //插入排序
+    Chain<T>& InsertionSort();
+
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针
 };
+
+/**
+ * 排序算法
+ */
+template<typename T>
+Chain<T>& Chain<T>::InsertionSort()
+{
+    if (!first || !first->link)
+	return *this;
+
+    ChainNode<T> *p = first->link;
+    
+    last = first;
+    last->link = nullptr;
+
+    while (p != nullptr) {
+	ChainNode<T> *temp = p;
+	p = p->link;
+    
+	ChainNode<T> *prev = nullptr;
+	ChainNode<T> *cur = first;
+	
+	while (cur != nullptr) {
+	    if (temp->data > cur->data)
+		break;//find the insert pos
+	    prev = cur;
+	    cur = cur->link;
+	}
+
+	if (prev == nullptr) {
+	    temp->link = cur;
+	    first = temp;
+	} else if (cur == nullptr) {
+	    prev->link = temp;
+	    temp->link = nullptr;
+	    last = temp;
+	} else {
+	    prev->link = temp;
+	    temp->link = cur;
+	}
+
+    }
+
+   return *this;
+         
+}
+
 
 /**
  * 将两个有序链表合并
