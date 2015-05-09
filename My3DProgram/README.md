@@ -1,3 +1,0 @@
-Hello Android_Opengl_Programs_Wharehouse
-
-这个是OpenGL测试框架，用于尝试一些OpenGL小型程序， 目前实现平台包括Android， Linux
