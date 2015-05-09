@@ -48,7 +48,7 @@ let g:acp_behaviorSnipmateLength=1
 
 :iab #d #define
 :iab #i #include
-:iabbrev @@ yajun.fu@163.com
+:iabbrev @@ fuyajun1983cn@163.com
 :iabbrev ccopy Copyright 2015 Yajun Fu, all rights reserved
 :set shiftwidth=4
 :set hlsearch
@@ -80,6 +80,8 @@ nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 "add a double quotoes for a word in current cursor
 "
 noremap <leader>" viw<esc>a"<esc>hbi"<esc>lel
+
+:nnoremap <leader>g :silent execute "grep! -R " . shellescape(expand("<cWORD>")) . " ."<cr>:copen<cr>
 
 "\\\\\\\\\\\\\\\\\\\\4\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 "################Global Variable Settings###############

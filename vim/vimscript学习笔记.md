@@ -2,7 +2,7 @@
 
 ##Echoing Message
 >we should use *echom* in script.
- you can use *messages* to check *echom* output
+> you can use *messages* to check *echom* output
 
 
 ##Setting Options
@@ -298,11 +298,50 @@ Special Characters
 
 ##Execute Normal!
 :execute "normal! gg/foo\<cr>dd"
-normal! cann't parse <cr>, combining execute and normal! will fix teh problem.
+normal! cann't parse <cr>, combining execute and normal! will fix the problem.
+
+
+##Basic Regular Expressions
+>execute "normal! gg/print\<cr>"
+
+>execute "normal! G?print\<cr>"
+
+
+
+>/print .\+  
+>:execute "normal! gg/for .\\+ in .\\+:\<cr>"
+>:execute 'normal! gg/for .\+ in . \+:\<cr>'   this is has some
+problem for parsing <cr>
+>:execute "normal! gg" . '/for .\+ in .\+:' . "\<cr>"
+
+
+in this mode, with pattern \v, we can use regular expressions in
+similar way in other programming language.
+>:execute "normal! gg" . '/\vfor .+ in .+:' . "\<cr>"
+
+
+
+##Case Study: Grep Operator, Part One
+
+>:nnoremap <leader>g :silent execute "grep! -R" . shellescape(expand("<cWORD>")) . " ."<cr>:copen<cr>
 
 
 
 
+
+
+max = 10
+print "Starting"
+
+for i in range(max):
+    print "Counter:", i
+
+print "Done"
+
+
+
+
+  that's
 
 
 
