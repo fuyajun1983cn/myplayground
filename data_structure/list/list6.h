@@ -28,7 +28,11 @@ public:
     /**
      * 排序函数
      */
+    //插入排序
     IndirectList<T>& InsertionSort();
+
+    //冒泡排序
+    IndirectList<T>& BubbleSort();
 
 
 private:
@@ -167,8 +171,29 @@ IndirectList<T>& IndirectList<T>::InsertionSort()
     return *this;
 }
 
+template<typename T>
+IndirectList<T>& IndirectList<T>::BubbleSort()
+{
 
+    //find the max element
+    //
+    bool swap = false;
+    for (int j = length - 1; j > 1; j--) {
+	for (int i = 0; i < j; i++) {
+	    if (*table[i] > *table[i+1]) {
+		T* temp = table[i];
+		table[i] = table[i+1];
+		table[i+1] = temp;
+		swap = true;
+	    }
+	}
+	if (!swap) {
+	    break;
+	}
+    }
 
+    return *this;
+}
 
 
 #endif
