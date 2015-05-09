@@ -1,5 +1,8 @@
 *.o
 *~
 *.swp
+*.class
+*.hprof
+*.log
 tags
 build/
