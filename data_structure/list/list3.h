@@ -133,6 +133,7 @@ public:
     //插入排序
     Chain<T>& InsertionSort();
 
+
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针

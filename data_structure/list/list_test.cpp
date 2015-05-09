@@ -3,6 +3,7 @@
 #include "list3.h"
 #include "list4.h"
 #include "list5.h"
+#include "list6.h"
 #include "xcept.h"
 using namespace std;
 
@@ -290,10 +291,28 @@ void test3()
     }
 }
 
+
+void test4()
+{
+    IndirectList<int> L;
+    L.Insert(0, 1).Insert(1, 2).Insert(2, 3).Insert(3, 4);
+    cout<<"L is "<<L<<endl;
+
+    L.Insert(0, 10);
+    int *x;
+    IndirectListIterator<int> iter;
+    x = iter.Initialize(L);
+    while (x) {
+	cout << *x <<' ';
+	x = iter.Next();
+    }
+    cout<<endl;
+}
+
 int list_test(int argc, char *argv[])
 {
     //测试1
-    test3();
+    test4();
 
     return 0;
 }
