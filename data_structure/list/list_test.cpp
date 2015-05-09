@@ -298,7 +298,7 @@ void test4()
     L.Insert(0, 1).Insert(1, 2).Insert(2, 3).Insert(3, 4);
     cout<<"L is "<<L<<endl;
 
-    L.Insert(0, 10);
+    L.Insert(4, 10);
     int *x;
     IndirectListIterator<int> iter;
     x = iter.Initialize(L);
@@ -307,6 +307,21 @@ void test4()
 	x = iter.Next();
     }
     cout<<endl;
+
+    bool found = L.BinarySearch(6);
+    if (found)
+	cout<<"I have found it"<<endl;
+    else 
+	cout<<"I haven't found it"<<endl;
+
+
+    IndirectList<int> L2;
+    L2.Insert(0, 3).Insert(0, 1).Insert(0, 2).Insert(0, 6).Insert(0, 5).Insert(0, 4).Insert(0, 9);
+    cout<<"before sort: "<<L2<<endl;
+    L2.InsertionSort();
+    cout<<"L2 is "<<L2<<endl;
+
+    
 }
 
 int list_test(int argc, char *argv[])

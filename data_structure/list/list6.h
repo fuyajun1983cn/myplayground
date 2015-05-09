@@ -21,6 +21,16 @@ public:
     IndirectList<T>& Insert(int k, const T& x);
     void Output(ostream& out) const;
 
+    //折半查找
+    //
+    bool BinarySearch(const T& x) const;
+
+    /**
+     * 排序函数
+     */
+    IndirectList<T>& InsertionSort();
+
+
 private:
     T **table; //一维T类型指针数组
     int length, MaxSize;
@@ -120,6 +130,42 @@ ostream& operator<<(ostream& out, const IndirectList<T>& list)
     return out;
 }
 
+template<typename T>
+bool IndirectList<T>::BinarySearch(const T& x) const
+{
+    int h = length - 1;
+    int l = 0;
+    int index;
+
+    do {
+	index = (h + l) / 2;
+	if (*table[index] == x)
+	    return true;
+	else if (*table[index] > x)
+	    h = index - 1;
+	else
+	    l = index + 1;
+    }while(h != l);
+
+    return false;
+}
+
+template<typename T>
+IndirectList<T>& IndirectList<T>::InsertionSort()
+{
+    for (int i = 1; i < length; i++) {
+	T *x = table[i];
+	int j = i - 1;
+	for (; j >= 0; j--) {
+	    if (*x > *table[j])
+		break;
+	    table[j+1] = table[j];
+	}
+	table[j+1] = x;
+    }
+
+    return *this;
+}
 
 
 
