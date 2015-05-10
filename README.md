@@ -1,7 +1,19 @@
-自己编写的一些代码集合，包含学习过程中的一些小程序集合。
+# my-program-wharehouse
+**付亚军的学习代码仓库**
 
-init git repository
-irrlicht: 教程代码
-qt: learninggl Qt Shader编程  morrowland：OpenGL 实例代码
-nehe Qt实例代码
-添加插件代碼（基於qtcreator插件系統)
+**作者：** 付亚军<br>
+**邮箱：** <fuyajun1983cn@163.com><br>
+**博客：** <http://blog.csdn.net/fuyajun01/>
+
+-----
+
+- Java学习代码
+- C++学习代码
+- Qt学习代码
+- OpenGL学习代码
+- Android学习代码
+- Linux内核学习代码
+- 数据结构与算法编程实践代码
+- 自己DIY的框架代码和小工具
+- 设计模式学习代码
+- VIM学习笔记以及我的.vimrc版本维护
