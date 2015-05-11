@@ -34,6 +34,9 @@ public:
     //冒泡排序
     IndirectList<T>& BubbleSort();
 
+    //选择排序
+    IndirectList<T>& SelectionSort();
+
 
 private:
     T **table; //一维T类型指针数组
@@ -59,7 +62,7 @@ public:
     }
 
 private:
-    IndirectList<T> *l;//此处应避免double free的问题
+    IndirectList<T> *l;//此处应避免double free的问题,(当声明为栈变量时，会导致double free的情况出现)
     int index;
 };
 
@@ -179,6 +182,7 @@ IndirectList<T>& IndirectList<T>::BubbleSort()
     //
     bool swap = false;
     for (int j = length - 1; j > 1; j--) {
+	//move the max element to the end
 	for (int i = 0; i < j; i++) {
 	    if (*table[i] > *table[i+1]) {
 		T* temp = table[i];
@@ -190,6 +194,31 @@ IndirectList<T>& IndirectList<T>::BubbleSort()
 	if (!swap) {
 	    break;
 	}
+    }
+
+    return *this;
+}
+
+template<typename T>
+IndirectList<T>& IndirectList<T>::SelectionSort()
+{
+
+    for (int j = length -1; j > 0; j--) {
+	int max_index = 0;
+	//choose the max element and swap it with the end element
+	for (int i = 1; i <= j; i++) {
+	    if (*table[max_index] < *table[i]) {
+		max_index = i;
+	    }
+	}
+
+	if (max_index != j) {
+	    //swap
+	    T* temp = table[j];
+	    table[j] = table[max_index];
+	    table[max_index] = temp;
+	}
+
     }
 
     return *this;

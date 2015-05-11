@@ -319,7 +319,8 @@ void test4()
     L2.Insert(0, 3).Insert(0, 1).Insert(0, 2).Insert(0, 6).Insert(0, 5).Insert(0, 4).Insert(0, 9);
     cout<<"before sort: "<<L2<<endl;
 //    L2.InsertionSort();
-    L2.BubbleSort();
+//    L2.BubbleSort();
+    L2.SelectionSort();
     cout<<"L2 is "<<L2<<endl;
 
     
