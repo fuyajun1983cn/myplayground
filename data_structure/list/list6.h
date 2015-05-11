@@ -1,6 +1,8 @@
 #ifndef _LIST6_H
 #define _LIST6_H
-
+/**
+ * 间接寻址链表的实现
+ */
 #include <iostream>
 #include "xcept.h"
 
