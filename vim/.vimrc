@@ -33,6 +33,7 @@ Plugin 'suan/vim-instant-markdown.git'
 Plugin 'scrooloose/nerdtree.git'
 Plugin 'Lokaltog/vim-powerline'
 Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
+Plugin 'tpope/vim-markdown'
 
 call vundle#end()
 "}}}
@@ -46,6 +47,8 @@ filetype plugin indent on
 set nobackup
 set noswapfile
 set nu
+set incsearch
+set hlsearch
 set laststatus=2 "问题显示状态栏
 
 "缩进相关设置
@@ -72,7 +75,7 @@ if (g:isWindows && g:isGUI)
 " 解决consle输出乱码
   language messages zh_CN.utf-8
 
-"詹姆斯Scrollbar
+"去掉Scrollbar
   set guioptions-=r
 endif
 
@@ -94,6 +97,11 @@ endif
 "Source the vimrc after saving it
 autocmd BufWritePost $MYVIMRC source $MYVIMRC
 "END}}}
+"
+"************************特定格式文件配置**********************"
+"Start{{{
+
+"End}}}
 
 "***********************Key Mappings***************************"
 "Start{{{

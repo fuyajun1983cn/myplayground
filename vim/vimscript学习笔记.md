@@ -1,78 +1,87 @@
-[TOC]
-
 ##Echoing Message
 >we should use *echom* in script.
 > you can use *messages* to check *echom* output
 
 
 ##Setting Options
-boolean option
-set number
-set nonumber
-set number!
-set number?  "Checking option
+* boolean option 
+* set number 
+* set nonumber 
+* set number! 
+* set number?  "Checking option
 
 ##Basic Mapping
+
 any mode:
+
 map - x
+
 map <space> viw
+
 map <c-d> dd
 
 ####**mapping keys is one of the places where vim comments don't work.**
 
 normal mode:
+
 nmap \ dd
 
 visual mode:
+
 vmap \ U
 
 insert mode:
+
 imap <c-d> <esc>ddi
 
 **unset a mapping
+
 nunmap \
 
 
-nonrecursive mapping : always use nonrecursive variants as possible as
-we can
+nonrecursive mapping : always use nonrecursive variants as possible as we can
+
 nnoremap \ x
+
 inoremap \ x
+
 vnoremap \ x
 
 ##Leader key
-set leader key:
-let mapleader = "-"
-nnoremap <leader>d dd
+* set leader key:
+* let mapleader = "-"
+* nnoremap <leader>d dd
+
 ###set local leader key
-let maplocalleder = "\\"
-nnoremap <localleader>d dd
+* let maplocalleder = "\\"
+* nnoremap <localleader>d dd
 
 ##Abbreviations
-abbreviations will be expaned when you type anything that's not a
+>abbreviations will be expaned when you type anything that's not a
 letter, number or underscore
 
 ##Buffer-Local Options and Mappings
-:nnoremap           <leader>d  dd
-:nnoremap  <buffer> <leader>x  dd
+* :nnoremap           <leader>d  dd
+* :nnoremap  <buffer> <leader>x  dd
 
 ##Set Local Variables
-:setlocal number
+* :setlocal number
 
 
 ##AutoCommands
-:autocmd BufNewFile * :write
+* :autocmd BufNewFile * :write
 
-*to see a list of all the events:
-:help autocmd-events
+to see a list of all the events:
+* :help autocmd-events
 
-:autocmd FileType python :iabbrev <buffer> iff if:<left>
+* :autocmd FileType python :iabbrev <buffer> iff if:<left>
 
 
 ##Grouping Autocommands
-:augroup testgroup
-:    autocmd!    clear a group
-:    autocmd  BufWrite * :echom "Cats"
-:augroup END
+* :augroup testgroup
+* :    autocmd!    clear a group
+* :    autocmd  BufWrite * :echom "Cats"
+* :augroup END
 
 ##Operator-Pending Mappings
 dw Delete  to next word
