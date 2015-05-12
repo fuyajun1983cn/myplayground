@@ -1,4 +1,4 @@
-"**************全局变量设置***************************************"
+"*************全局变量设置***************************************"
 let g:isWindows=0
 
 if (has("win32") || has("win64"))
@@ -87,7 +87,9 @@ set autoread
 "set the mapleader
 let mapleader=','
 
-colorscheme Tomorrow-Night-Bright "选择配色方案
+if g:isGUI
+    colorscheme Tomorrow-Night-Bright "选择配色方案
+endif
 
 "Source the vimrc after saving it
 autocmd BufWritePost $MYVIMRC source $MYVIMRC
