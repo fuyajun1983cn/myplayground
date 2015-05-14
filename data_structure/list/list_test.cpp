@@ -346,6 +346,15 @@ void test5()
     c.Insert(0, 9).Insert(1, 8).Insert(2, 7);
     cout<<"Current chain is "<<c<<endl;
     cout<<"Its length is "<<c.Length()<<endl;
+
+    SimIterator<int> iter;
+    SimNode<int> *node = iter.Initialize(c);
+    while(node != nullptr) {
+        cout<<*node<<" ";
+        node = iter.Next();
+    }
+    cout<<endl;
+    
 }
 
 int list_test(int argc, char *argv[])

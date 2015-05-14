@@ -16,9 +16,19 @@ template<typename T>
 class SimChain;
 
 template<typename T>
+class SimIterator;
+
+template<typename T>
 class SimNode {
     friend SimSpace<T>;
     friend SimChain<T>;
+    friend SimIterator<T>;
+
+public:
+    void Output(ostream& out) const
+    {
+        out<<data;
+    }
 
 private:
     T data;
@@ -26,8 +36,16 @@ private:
 };
 
 template<typename T>
+ostream& operator<<(ostream& out, const SimNode<T>& node)
+{
+    node.Output(out);
+    return out;
+}
+
+template<typename T>
 class SimSpace {
     friend SimChain<T>;
+    friend SimIterator<T>;
 public:
     SimSpace(int MaxSpaceSize = 100);
     ~SimSpace() { delete []node; }
@@ -75,8 +93,10 @@ void SimSpace<T>::Deallocate(int& i)
     i = -1;
 }
 
+
 template<typename T>
 class SimChain {
+    friend SimIterator<T>;
 public:
     SimChain() { first = -1; }
     ~SimChain() { Destroy(); }
@@ -93,7 +113,33 @@ private:
     SimSpace<T> S;
 };
 
+template<typename T>
+class SimIterator {
 
+public:
+    SimIterator() {}
+    ~SimIterator() {}
+
+    SimNode<T>* Initialize(const SimChain<T>& sc)
+    {
+        list = const_cast<SimChain<T>*>(&sc);
+        index = sc.first;
+        if (index == -1)
+            return nullptr;
+        return &list->S.node[index];
+    }
+
+    SimNode<T>* Next() {
+        index = list->S.node[index].link;
+        if (index == -1)
+            return nullptr;
+        return &list->S.node[index];
+    }
+
+private:
+    SimChain<T> *list;
+    int index;
+};
 template<typename T>
 ostream& operator<<(ostream& out, const SimChain<T>& list)
 {
@@ -228,11 +274,11 @@ SimChain<T>& SimChain<T>::Insert(int k, const T& x)
     S.node[y].data = x;
 
     if (k) {
-	S.node[y].link = S.node[p].link;
-	S.node[p].link = y;
+        S.node[y].link = S.node[p].link;
+        S.node[p].link = y;
     } else {
-	S.node[y].link = first;
-	first = y;
+        S.node[y].link = first;
+        first = y;
     }
 
     return *this;
