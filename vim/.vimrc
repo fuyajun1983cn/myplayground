@@ -31,7 +31,7 @@ Plugin 'gmarik/Vundle.vim'
 
 Plugin 'suan/vim-instant-markdown.git'
 Plugin 'scrooloose/nerdtree.git'
-Plugin 'Lokaltog/vim-powerline'
+Plugin 'bling/vim-airline'
 Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
 Plugin 'tpope/vim-markdown'
 
@@ -123,10 +123,11 @@ map <C-n> :NERDTreeToggle<CR>
 
 "********************Plugin Settings*************************"
 "START{{{
-"PowerLine{
-set guifont=Powerline\ Consolas:h16
-let g:Powerline_symbols='fancy'
-"}
+"vim-airline
+let g:airline_powerline_fonts=1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
 
 "NerdTree的配置信息{
 "autocmd vimenter * NERDTree "open a NERDTree automatically when vim starts up
