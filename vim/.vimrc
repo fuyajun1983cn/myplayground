@@ -31,7 +31,9 @@ Plugin 'gmarik/Vundle.vim'
 
 Plugin 'suan/vim-instant-markdown.git'
 Plugin 'scrooloose/nerdtree.git'
+if g:isGUI
 Plugin 'bling/vim-airline'
+endif
 Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
 Plugin 'tpope/vim-markdown'
 
@@ -68,7 +70,7 @@ else
   set fileencoding=utf-8
 endif
 
-if (g:isWindows && g:isGUI)
+if g:isGUI
 " 解决菜单乱码
   source $VIMRUNTIME/delmenu.vim
   source $VIMRUNTIME/menu.vim
