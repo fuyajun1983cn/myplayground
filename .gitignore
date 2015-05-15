@@ -5,6 +5,8 @@
 *.hprof
 *.log
 *.class
+*.pyc
 dist/
 tags
 build/
+__pycache__
