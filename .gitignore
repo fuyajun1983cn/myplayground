@@ -4,5 +4,7 @@
 *.class
 *.hprof
 *.log
+*.class
+dist/
 tags
 build/

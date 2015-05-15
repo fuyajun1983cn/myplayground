@@ -1,0 +1,2 @@
+//do you have the <sys/inofity> header file.
+#cmakedefine01 HAVE_INOTIFY_H
