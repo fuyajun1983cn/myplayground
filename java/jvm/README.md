@@ -72,3 +72,8 @@ Java虚拟机中，每个类的构造方法都被视为一个名字为”<init>�
            execute the action for the opcode;
     } while (there is more to do);
 ```
+
+
+##15. 垃圾回收机制
+
+[请参考此链接](gc.md)
