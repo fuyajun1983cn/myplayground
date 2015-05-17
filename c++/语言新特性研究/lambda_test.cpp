@@ -1,6 +1,17 @@
 #include <iostream>
+#include <functional>
 
 using namespace std;
+
+/**
+ * 返回lambda函数类型
+ */
+function<int(int,int)> returnLambda()
+{
+    return [] (int x, int y) {
+        return x * y;
+    };
+}
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +33,7 @@ int main(int argc, char *argv[])
     int x = 0;
     int y = 42;
 
+    //x is passed by value, y is passed by reference
     auto qqq = [x, &y] {
         cout<< "x: "<<x<<endl;//不能修改x
         cout<< "y: "<<y<<endl;
@@ -43,5 +55,29 @@ int main(int argc, char *argv[])
     f();
     cout<<id<<endl;
 
+    auto lf = returnLambda();
+    cout<<lf(6, 7)<<endl;
+
     return 0;
 }
+
+
+/*
+ * 测试结果
+ *
+ 
+Hello, lambda
+Hello, lambda again
+Hello, Lambda
+x: 0
+y: 77
+x: 0
+y: 78
+final y: 79
+id: 0
+id: 1
+id: 2
+42
+42
+
+*/
