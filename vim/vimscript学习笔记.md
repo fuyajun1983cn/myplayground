@@ -1,6 +1,6 @@
-##Echoing Message
->we should use *echom* in script.
-> you can use *messages* to check *echom* output
+##Echoing Message  
+we should use *echom* in script.  
+ you can use *messages* to check *echom* output
 
 
 ##Setting Options
@@ -333,6 +333,89 @@ similar way in other programming language.
 ##Case Study: Grep Operator, Part One
 
 >:nnoremap <leader>g :silent execute "grep! -R" . shellescape(expand("<cWORD>")) . " ."<cr>:copen<cr>
+
+
+@@ is the "unnamed" register: the one that Vim places text into when you yank or
+delete without specify a particular register.
+
+
+##list  
+vimsscript support list has similar operation as other language such as python.
+built-in method:
+* add()
+* len()
+* get()
+* index()
+* join()
+* reverse()
+
+##loop  
+:let c=0  
+:for i in [1, 2, 3, 4]
+:    let c += i  
+:endfor
+
+:echom
+
+:let c = 1  
+:let total = 0  
+
+:while c <= 4   
+:  let total += c  
+:  let c += 1  
+:endwhile  
+
+:echom total  
+
+##Dictionary  
+:echo {'a':1, 100: 'foo',}
+
+* get()
+* has_key()
+* items()
+* keys()
+* values()
+
+
+#Toggling  
+* toggle a boolean option
+
+```
+:nnoremap <leader>N :setlocal number!<cr>
+```
+
+* toggle a non-boolean option  
+```
+nnoremap <leader>f :call FoldColumnToggle()<cr>
+function! FoldColumnToggle()
+if &foldcolumn
+setlocal foldcolumn=0
+else
+setlocal foldcolumn=4
+endif
+endfunction
+```
+* toggle other things  
+```
+nnoremap <leader>q :call QuickfixToggle()<cr>
+let g:quickfix_is_open = 0
+function! QuickfixToggle()
+if g:quickfix_is_open
+cclose
+let g:quickfix_is_open = 0
+execute g:quickfix_return_to_window . "wincmd w"
+else
+let g:quickfix_return_to_window = winnr()
+copen
+let g:quickfix_is_open = 1
+endif
+endfunction
+```
+
+
+
+
+
 
 
 
