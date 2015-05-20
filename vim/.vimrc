@@ -31,11 +31,17 @@ Plugin 'gmarik/Vundle.vim'
 
 Plugin 'suan/vim-instant-markdown.git'
 Plugin 'scrooloose/nerdtree.git'
+Plugin 'OmniCppComplete'
+Plugin 'octol/vim-cpp-enhanced-highlight'
 if g:isGUI
 Plugin 'bling/vim-airline'
 endif
-Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
+"Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
 Plugin 'tpope/vim-markdown'
+Plugin 'snipMate'
+Plugin 'google/vim-colorscheme-primary'
+Plugin 'LustyExplorer'
+Plugin 'LustyJuggler'
 
 call vundle#end()
 "}}}
@@ -48,10 +54,14 @@ filetype plugin indent on
 "取消备份
 set nobackup
 set noswapfile
+set textwidth=80
 set nu
 set incsearch
 set hlsearch
 set laststatus=2 "问题显示状态栏
+set hidden
+"autocomplete
+set completeopt=menu
 
 "缩进相关设置
 set smartindent "启用智能对齐方式
@@ -76,7 +86,6 @@ if g:isGUI
   source $VIMRUNTIME/menu.vim
 " 解决consle输出乱码
   language messages zh_CN.utf-8
-
 "去掉Scrollbar
   set guioptions-=r
 endif
@@ -91,18 +100,52 @@ set autoread
 
 "set the mapleader
 let mapleader=','
+let maplocalleader='\'
+let timeoutlen=500 "time to wait for a command
 
 if g:isGUI
-    colorscheme Tomorrow-Night-Bright "选择配色方案
+    set background=dark
+    colorscheme primary "选择配色方案
+else
+    set t_Co=256
+    set background=light
+    colorscheme primary
 endif
 
 "Source the vimrc after saving it
 autocmd BufWritePost $MYVIMRC source $MYVIMRC
+"Fast edit the .vimrc file using ,e
+nnoremap <leader>e :tabedit $MYVIMRC<CR>
 "END}}}
 "
 "************************特定格式文件配置**********************"
 "Start{{{
-
+" Markdown
+augroup ft_markdown
+    autocmd!
+    " Use <localLeader>1/2/3/4/5/6 to add headings
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>1 I# <ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>2 I## <ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>3 I### <ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>4 I#### <ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>5 I##### <ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>6 I###### <ESC>
+    " Use <LocalLeader>b to add blockquotes in normal and visual mode
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>b I> <ESC>
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>b :s/^/> /<CR>
+    " Use <localLeader>ul and <localLeader>ol to add list symbols in visual mode
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>ul :s/^/* /<CR>
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>ol :s/^/\=(line(".")-line("'<")+1).'. '/<CR>
+    " Use <localLeader>e1/2/3 to add emphasis symbols
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e1 I*<ESC>A*<ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e2 I**<ESC>A**<ESC>
+    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e3 I***<ESC>A***<ESC>
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e1 :s/\%V\(.*\)\%V/\*\1\*/<CR>
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e2 :s/\%V\(.*\)\%V/\*\*\1\*\*/<CR>
+    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e3 :s/\%V\(.*\)\%V/\*\*\*\1\*\*\*/<CR>
+    " Turn on spell
+    autocmd filetype markdown setlocal spell
+augroup END
 "End}}}
 
 "***********************Key Mappings***************************"
@@ -140,3 +183,19 @@ autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 "close vim if the only window left open is a NERDTree
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 "}
+
+"OmnicppComplete的配置信息{
+noremap<C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR>
+set tags+=/home/fuyajun/MyPlayground/tags/cpptags
+set tags+=/home/fuyajun/MyPlayground/tags/glibctags
+"set tags+=/home/fuyajun/MyPlayground/tags/qtbasetags
+
+let OmniCpp_DefaultNamespaces=["std", "_GLIBCXX_STD"]
+let OmniCpp_MayCompleteDot = 1  ".
+let OmniCpp_MayCompleteArrow = 1 "->
+let OmniCpp_MayCompleteScope = 1 "::
+let OmniCpp_SelectFirstItem = 0
+
+"vim-cpp-enhanced-higlight
+let g:cpp_class_scope_highlight = 1
+let g:cpp_experimental_template_highlight = 1
