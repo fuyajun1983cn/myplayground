@@ -412,6 +412,31 @@ endif
 endfunction
 ```
 
+###函数编程  
+Vimscript支持使用变量存储函数，但是语法有点怪。
+例如：
+```
+:let Myfunc = function("Append")
+:echo Myfunc([1,2],3)
+```
+注意，变量名的第一个字母必须是大写。
+
+函数也可以存储到一个列表中：  
+```
+:let funcs = [function("Append"), function("Pop")]
+:echo funcs[1](['a', 'b', 'c'], 1)
+```
+这次列表的变量名不需要第一个字母大写，因为它只是一个列表变量。
+
+###路径  
+* 绝对路径  
+  :echom expand('%') "当前文件的相对路径  
+  :echom expand('%:p') "当前文件的绝对路径  
+  :echom fnamemodify('foo.txt', ':p')  
+  "显示当前目录下的文件foo.txt的绝对路径，不管该文件是否存在  
+  :echo globpath('.', '*') "列出指定目录下的文件列表  
+
+
 
 
 
