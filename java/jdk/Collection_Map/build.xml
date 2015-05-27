@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<project name="test" default="execute">
+    <target name="init">
+        <mkdir dir="build/classes"/>
+        <mkdir dir="dist"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="src"
+            destdir="build/classes"
+            />
+    </target>
+
+    <target name="archive" depends="compile">
+        <jar destfile="dist/inotify.jar"
+            basedir="build/classes"/>
+    </target>
+
+    <target name="execute" depends="compile">
+        <java
+            classname="com.fyj.test.VimFileObserver"
+            classpath="build/classes">
+        </java>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+</project>
