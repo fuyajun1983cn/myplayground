@@ -38,10 +38,25 @@ Plugin 'bling/vim-airline'
 endif
 "Plugin 'chriskempson/tomorrow-theme',{'rtp':'vim'}
 Plugin 'tpope/vim-markdown'
-Plugin 'snipMate'
+"------SnipMate-------------"
+Plugin 'MarcWeber/vim-addon-mw-utils'
+Plugin 'tomtom/tlib_vim'
+Plugin 'garbas/vim-snipmate'
+" Optional:
+Plugin 'honza/vim-snippets'
+"------SnipMate------------"
+
 Plugin 'google/vim-colorscheme-primary'
+"快速管理文件和Buffer
 Plugin 'LustyExplorer'
 Plugin 'LustyJuggler'
+"SuperTab, 在插入模式下按tab键弹出自动提示窗口
+Plugin 'ervandew/supertab' 
+"Python IDE
+"Plugin 'klen/python-mode'
+Plugin 'davidhalter/jedi-vim'
+"conky
+Plugin 'file:///home/fuyajun/.vim/conky'
 
 call vundle#end()
 "}}}
@@ -58,10 +73,12 @@ set textwidth=80
 set nu
 set incsearch
 set hlsearch
+set ignorecase
+set smartcase
 set laststatus=2 "问题显示状态栏
 set hidden
 "autocomplete
-set completeopt=menu
+set completeopt=longest,menuone
 
 "缩进相关设置
 set smartindent "启用智能对齐方式
@@ -75,19 +92,19 @@ set smarttab "指定按一次backspace键就删除shiftwidth宽度
 set encoding=utf-8
 set fileencodings=utf-8,chinese,gbk,latin-1,gb2312,ucs-bom,cp936
 if g:isWindows
-  set fileencoding=chinese
+set fileencoding=chinese
 else
-  set fileencoding=utf-8
+set fileencoding=utf-8
 endif
 
 if g:isGUI
 " 解决菜单乱码
-  source $VIMRUNTIME/delmenu.vim
-  source $VIMRUNTIME/menu.vim
+source $VIMRUNTIME/delmenu.vim
+source $VIMRUNTIME/menu.vim
 " 解决consle输出乱码
-  language messages zh_CN.utf-8
+language messages zh_CN.utf-8
 "去掉Scrollbar
-  set guioptions-=r
+set guioptions-=r
 endif
 
 set foldenable "Turn on folding
@@ -104,12 +121,12 @@ let maplocalleader='\'
 let timeoutlen=500 "time to wait for a command
 
 if g:isGUI
-    set background=dark
-    colorscheme primary "选择配色方案
+set background=dark
+colorscheme primary "选择配色方案
 else
-    set t_Co=256
-    set background=light
-    colorscheme primary
+set t_Co=256
+set background=light
+colorscheme primary
 endif
 
 "Source the vimrc after saving it
@@ -122,29 +139,29 @@ nnoremap <leader>e :tabedit $MYVIMRC<CR>
 "Start{{{
 " Markdown
 augroup ft_markdown
-    autocmd!
-    " Use <localLeader>1/2/3/4/5/6 to add headings
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>1 I# <ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>2 I## <ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>3 I### <ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>4 I#### <ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>5 I##### <ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>6 I###### <ESC>
-    " Use <LocalLeader>b to add blockquotes in normal and visual mode
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>b I> <ESC>
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>b :s/^/> /<CR>
-    " Use <localLeader>ul and <localLeader>ol to add list symbols in visual mode
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>ul :s/^/* /<CR>
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>ol :s/^/\=(line(".")-line("'<")+1).'. '/<CR>
-    " Use <localLeader>e1/2/3 to add emphasis symbols
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e1 I*<ESC>A*<ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e2 I**<ESC>A**<ESC>
-    autocmd filetype markdown nnoremap <buffer> <LocalLeader>e3 I***<ESC>A***<ESC>
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e1 :s/\%V\(.*\)\%V/\*\1\*/<CR>
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e2 :s/\%V\(.*\)\%V/\*\*\1\*\*/<CR>
-    autocmd filetype markdown vnoremap <buffer> <LocalLeader>e3 :s/\%V\(.*\)\%V/\*\*\*\1\*\*\*/<CR>
-    " Turn on spell
-    autocmd filetype markdown setlocal spell
+autocmd!
+" Use <localLeader>1/2/3/4/5/6 to add headings
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>1 I# <ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>2 I## <ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>3 I### <ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>4 I#### <ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>5 I##### <ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>6 I###### <ESC>
+" Use <LocalLeader>b to add blockquotes in normal and visual mode
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>b I> <ESC>
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>b :s/^/> /<CR>
+" Use <localLeader>ul and <localLeader>ol to add list symbols in visual mode
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>ul :s/^/* /<CR>
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>ol :s/^/\=(line(".")-line("'<")+1).'. '/<CR>
+" Use <localLeader>e1/2/3 to add emphasis symbols
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>e1 I*<ESC>A*<ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>e2 I**<ESC>A**<ESC>
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>e3 I***<ESC>A***<ESC>
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>e1 :s/\%V\(.*\)\%V/\*\1\*/<CR>
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>e2 :s/\%V\(.*\)\%V/\*\*\1\*\*/<CR>
+autocmd filetype markdown vnoremap <buffer> <LocalLeader>e3 :s/\%V\(.*\)\%V/\*\*\*\1\*\*\*/<CR>
+" Turn on spell
+autocmd filetype markdown setlocal spell
 augroup END
 "End}}}
 
@@ -190,7 +207,7 @@ set tags+=/home/fuyajun/MyPlayground/tags/cpptags
 set tags+=/home/fuyajun/MyPlayground/tags/glibctags
 "set tags+=/home/fuyajun/MyPlayground/tags/qtbasetags
 
-let OmniCpp_DefaultNamespaces=["std", "_GLIBCXX_STD"]
+let OmniCpp_DefaultNamespaces=["std"]
 let OmniCpp_MayCompleteDot = 1  ".
 let OmniCpp_MayCompleteArrow = 1 "->
 let OmniCpp_MayCompleteScope = 1 "::
@@ -199,3 +216,25 @@ let OmniCpp_SelectFirstItem = 0
 "vim-cpp-enhanced-higlight
 let g:cpp_class_scope_highlight = 1
 let g:cpp_experimental_template_highlight = 1
+
+"Better navigating through omnicomplete option list
+function! OmniPopup(action)
+if pumvisible()
+    if a:action == 'j'
+        return "\<C-N>"
+    elseif a:action == 'k'
+        return "\<C-P>"
+    endif
+endif
+return a:action
+endfunction
+
+inoremap <silent>j <C-R>=OmniPopup('j')<CR>
+inoremap <silent>k <C-R>=OmniPopup('k')<CR>
+
+
+"Setting for jedi-vim
+let g:jedi#usages_command = "<leader>z"
+let g:jedi#popup_on_dot = 0
+let g:jedi#popup_select_first = 0
+map <Leader>b Oimport ipdb; ipdb.set_trace() # BREAKPOINT<C-c>
