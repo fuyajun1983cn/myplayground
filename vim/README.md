@@ -493,7 +493,23 @@ Vimscript支持使用变量存储函数，但是语法有点怪。
   let b:current_syntax = "potion"
   ```
 
-  
+###Basic Folding  
+设置fold方法  
+>setlocal foldmethod=indent
+
+常用快捷键：
+za: 收起或展开大于或等于当前行的foldlevel的所有行
+zr/zo: 展开大于或等于当前行的foldlevel的所有行
+zR/zO: 展开所有行。
+zm: 收起所有行 
+
+foldlevel  
+* 每行代码都有一个"foldlevel"，通常是0或是一个整数。-1代表一个特殊的foldlevel，通常是"undefined"，该行的foldlevel取自它的上一行或下一行的foldlevel值小的那个。
+* foldlevel为0的行不会包含在任何收起的行中。
+* foldlevel相同的相邻行收进在一起。
+* 如果foldlevel为X的收起行被收起，所有foldlevel比它大的行都会被收起。 
+
+
 
 
 
