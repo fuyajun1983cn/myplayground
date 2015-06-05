@@ -1,3 +1,10 @@
+"     _____       __   __     _             
+"    |  ___|   _  \ \ / /_ _ (_)_   _ _ __  
+"    | |_ | | | |  \ V / _` || | | | | '_ \ 
+"    |  _|| |_| |   | | (_| || | |_| | | | |
+"    |_|   \__,_|   |_|\__,_|/ |\__,_|_| |_|
+"                          |__/   
+"    Email: fuyajun1983cn@163.com
 "*************全局变量设置***************************************"
 let g:isWindows=0
 
@@ -176,6 +183,13 @@ noremap <Up> <Nop>
 noremap <Down> <Nop>
 noremap <Right> <Nop>
 noremap <Left> <Nop>
+
+"clipboard setting
+nnoremap <Leader>p "+p
+nnoremap <Leader>P "+P
+vnoremap <Leader>y "+y
+vnoremap <Leader>p "+p
+vnoremap <Leader>P "+p
 
 "NERDTree Setting
 map <C-n> :NERDTreeToggle<CR>

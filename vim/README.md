@@ -329,6 +329,8 @@ in this mode, with pattern \v, we can use regular expressions in
 similar way in other programming language.  
 >:execute "normal! gg" . '/\vfor .+ in .+:' . "\<cr>"  
 
+special regex atom: %^  ----------"beginning of file"
+
 
 
 ##Case Study: Grep Operator, Part One
@@ -509,6 +511,40 @@ foldlevel
 * foldlevel相同的相邻行收进在一起。
 * 如果foldlevel为X的收起行被收起，所有foldlevel比它大的行都会被收起。 
 
+###Autoload  
+当加载大量的插件时，Vim启动会花费大量时间，解决方案就是“autoload”，
+“autoload”将会延迟加载代码，直到真正需要使用时。
+例如，调用如下命令： 
+>:call somefile#Hello()  
+
+当运行上述命令时，跟调用普通函数不一样，如果该函数已经加载了，Vim就会直接调用它，否则，
+Vim就会在~/.vim目录或插件目录下寻找如下文件：autoload/somefile.vim。如果该文件存在，就会
+加载它，并调用该函数。而在该文件内部，函数的定义如下：
+```
+function somefile#Hello()
+    " ...
+endfunction
+```
+
+函数名可以使用多个#字符来代表子目录，例如：
+>:call myplugin#somefile#Hello() 
+
+上述函数调用会自动加载如下位置的文件：autoload/myplugin/somefile.vim,
+其内部的函数必须定义为：  
+```
+function myplugin#somefile#Hello()
+    " ...
+endfunction
+```
+总结一下：  
+1. 当执行上述调用时，首先会检查该函数名是否已经定义，如果是，则直接调用它。
+2. 否则，寻找一个合适的文件，并加载它。
+3. 然后，尝试去调用该函数，如果成功，就一切OK，如果失败，则会打印错误信息。
+
+什么内容适合写入Autoload？  
+那些不被用户直接调用的所有指令。  
+
+
 
 
 
@@ -540,6 +576,10 @@ print "Done"
 w word
 i inside
 t till
+a  a word , used in visual mode
+
+gv : reselect the previous visual selection
+
 
 
 
