@@ -29,11 +29,30 @@ public:
     {
         out<<data;
     }
+    
+    //重载new, delete操作符，所有节点将共享
+    //同一个SimSpace
+    void* operator new(size_t size, void *)
+    {
+        int i = SimSpace<T>::S.Allocate();
+        return &SimSpace<T>::S.node[i];
+    }
+
+    void operator delete(void *p, int& i)
+    {
+        SimSpace<T>::S.Deallocate(i);
+    }
+
 
 private:
     T data;
     int link;
+    //所有节点将共享一个SimSpace
+    static SimSpace<T> S;
 };
+
+template<typename T>
+SimSpace<T> SimNode<T>::S;
 
 template<typename T>
 ostream& operator<<(ostream& out, const SimNode<T>& node)
@@ -66,7 +85,7 @@ SimSpace<T>::SimSpace(int MaxSpaceSize)
     node = new SimNode<T>[NumberOfNodes];
 
     for (int i = 0; i < NumberOfNodes; i++) {
-	node[i].link = i+1;
+        node[i].link = i+1;
     }
     //链表的最后一个节点
     node[NumberOfNodes - 1].link = -1;

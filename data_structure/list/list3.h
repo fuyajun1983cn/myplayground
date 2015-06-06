@@ -133,12 +133,62 @@ public:
     //插入排序
     Chain<T>& InsertionSort();
 
+    /**
+     * 箱子排序
+     */
+#if BINSORT_TEST
+    void BinSort(int range);
+#endif
 
 private:
     ChainNode<T> *first; //指向第一个结点的指针
     ChainNode<T> *last;//指向最后一个结点的指针
 };
 
+/**
+ * 箱子排序
+ */
+#if BINSORT_TEST
+template<typename T>
+void Chain<T>::BinSort(int range)
+{// 按分数排序
+    int b; // 箱子索引号
+    ChainNode<T> **bottom, **top;
+    //箱子初始化
+    bottom = new ChainNode<T>* [range + 1];
+    top = new ChainNode<T>* [range + 1];
+
+    for (b = 0; b <= range; b++)
+        bottom[b] = 0;
+    //把节点分配到各箱子中
+
+    for (; first; first = first->link) {// 添加到箱子中
+        b = first->data;
+    if (bottom[b]) {//箱子非空
+        top[b]->link = first;
+        top[b] = first;
+    }else // 箱子为空
+        bottom [ b ] = top[b] = first;
+    }
+
+    //收集各箱子中的元素,产生一个排序链表
+    ChainNode<T> *y = 0;
+    for (b = 0; b <= range; b++)
+        if (bottom[b]) {//箱子非空
+            if (y) // 不是第一个非空的箱子
+                y->link = bottom[b];
+            else // 第一个非空的箱子
+                first = bottom[b];
+            y = top[b];
+        }
+
+    if (y) y->link = 0;
+
+    delete [] bottom;
+    delete [] top;
+}
+
+#endif
 /**
  * 排序算法
  */
