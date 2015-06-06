@@ -7,7 +7,7 @@ public class ListTest {
         Scanner scanner = new Scanner(System.in);
         String name;
         while(true) {
-            System.out.print("访客名称：");
+            System.out.print("Visitor Name:");
             name = scanner.nextLine();
             if (name.equals("quit")) {
                 break;
@@ -15,7 +15,7 @@ public class ListTest {
 
             list.add(name);
         }
-        System.out.println("访客名单：");
+        System.out.println("Visitor List:");
         foreach(list);
     }
 
@@ -26,4 +26,3 @@ public class ListTest {
         }
     }
 }
-

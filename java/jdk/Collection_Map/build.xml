@@ -1,24 +1,33 @@
 <?xml version="1.0" ?>
-<project name="test" default="execute">
+<project name="test" default="compile">
     <target name="init">
         <mkdir dir="build/classes"/>
         <mkdir dir="dist"/>
     </target>
 
     <target name="compile" depends="init">
-        <javac srcdir="src"
+        <javac srcdir="."
             destdir="build/classes"
             />
     </target>
 
-    <target name="archive" depends="compile">
-        <jar destfile="dist/inotify.jar"
-            basedir="build/classes"/>
+    <target name="ListTest" depends="compile">
+        <java
+            classname="ListTest"
+            classpath="build/classes">
+        </java>
     </target>
 
-    <target name="execute" depends="compile">
+    <target name="QueueTest" depends="compile">
         <java
-            classname="com.fyj.test.VimFileObserver"
+            classname="QueueTest"
+            classpath="build/classes">
+        </java>
+    </target>
+
+    <target name="SetTest" depends="compile">
+        <java
+            classname="SetTest"
             classpath="build/classes">
         </java>
     </target>

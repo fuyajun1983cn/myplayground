@@ -4,7 +4,7 @@ public class SetTest {
 
     public static void main(String args[]) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("请输入英文：");
+        System.out.print("Please input english words:");
         String line = scanner.nextLine();
         String[]  tokens = line.split(" ");
         Set words = new HashSet();
@@ -13,6 +13,6 @@ public class SetTest {
             words.add(token);
         }
 
-        System.out.printf("不重复的单字有%d个：%s%n", words.size(), words);
+        System.out.printf("signle word in set : %d: %s%n", words.size(), words);
     }
 }
