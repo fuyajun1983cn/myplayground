@@ -23,7 +23,7 @@ DOUBLE
 ```lisp
 > #'double
 ```
-函数是Lisp的第一类对象，跟数字和字符串一样。我们可以将其作为参数传递给其他函数，将其返回并存储在一个数据结构中等。
+函数是Lisp的第一类对象，跟数字和字符串一样。我们可以将其作为参数传递给其他函数，将其返回并存储在一个数据结构中。
 ```lisp
 > (eq #'double (car (list #'double)))
 T
@@ -106,7 +106,7 @@ T
 ```lisp
 > (sort '(1 4 2 5 6 7 3) #'<)
 (1 2 3 4 5 6 7)
-```
+
 
 > (remove-if #'evenp '(1 2 3 4 5 6 7))
 (1 3 5 7)
@@ -126,8 +126,8 @@ T
            (bark)))
 ```
 
-**变量范围**  
-***Common Lisp***是Lexically scope Lisp，而不是dynamic scope List。
+**域作用范围**  
+***Common Lisp***是静态域类型的Lisp，而不是动态域类型的Lisp。
 这两者之间的区别涉及到具体Lisp实现是怎样处理自由变量。
 * 自由变量： 没有绑定任何值的符号。
 * 绑定变量：与一个表达式绑定，通常表现形式为：函数参数，或`let`和`do`操作符绑定的变量。  
@@ -140,22 +140,88 @@ T
 ```
 其中，x是绑定变量，而y是一个自由变量。
 
-在支持动态域的Lisp函数中，在执行`scope-test`时，为了找到自由变量y的值，我们往回看调用它的函数链，没有找到，
+在支持动态域的Lisp函数中，在执行`scope-test`时，为了找到自由变量y的值，我们往回看调用它的函数链，如果找到，
 它将是函数调用过程中的y的值。如果没有找到，则取y的全局域的值。所以，如下表达式的执行结果是这样的：
 ```lisp
 > (let ((y 5))
        (scope-test 3))
 (3 5)
 ```
-但是在只支持静态域的Lisp中，如下表达式的执行结果却是这样的：  
+但是在只支持静态域的Lisp中，我们只看函数定义时，所处的环境中自由变量所绑定的值，如下表达式的执行结果却是这样的：  
 ```lisp
 > (let ((y 5))
        (scope-test 3))
 (3 7)
 ```
 
+**闭包**  
+由于***Common
+Lisp***支持静态域，所以，当我们定义的函数中包含自由变量时，系统必须保存在函数定义时，这些自由变量所绑定的值。这种函数
+与一系列变量绑定组合称为***闭包***。
+```lisp
+(defun make-adder (n)
+   #'(lambda (x) (+ x n)))
 
+>(setq add2 (make-adder 2)
+       add10 (make-adder 10))
+>(funcall add2 5)
+7
+>(funcall add10 3)
+13
+```
 
+**本地函数**  
+lambda表达式定义的函数没有名字，无法引用它。这样，我们无法使用lambda表达式来定义递归函数。
+我们要定义一个本地函数，且其是闭包的，即此函数需要引用本地定义的变量，所以该函数不能是其他地方
+通过defun定义的函数。为了支持这种需求，Lisp中定义了labels表达式，它的形式如下：
+`(<name> <parameters> . <body>)`
+在labels表达式内部，<name>指向一个造价于如下形式的函数：
+`#'(lambda <paramters> . <body>)`
 
+```lisp
+> (labels ((inc (x) (1+ x)))
+       (inc 3))
+```
+
+**Tail-Recursion**  
+递归函数就是自己调用自己的函数。如下函数不属于Tail-Recursion函数：
+```lisp
+(defun our-length (lst)
+     (if (null lst)
+        0
+        (1+ (our-length (cdr lst)))))
+
+```
+因为此函数从递归调用返回后，我们必须将结果传递给1+。
+如下函数则属于Tail-Recursion函数：
+```lisp
+(defun our-find-if (fn lst)
+    (if (funcall fn (car lst))
+        (car lst)
+        (our-find-if fn (cdr lst))))
+```
+
+**编译**  
+Lisp函数可以单独或包含在整个文件中编译。 
+```lisp
+>(defun foo (x) ( 1+ x))
+FOO
+```
+许多lisp的实现只是创建了一个解释过的函数。可以通过如下方式检查该函数是否已编译过：
+```lisp
+>(compiled-function-p #'foo)
+NIL
+```
+我们可以通过如下方式编译一个函数： 
+```lisp
+> (compile 'foo)
+FOO
+```
+
+**来自列表的函数**  
+在早期的一些Lisp方言中，函数被表示为列表。在***Common
+Lisp***中，函数不在由列表构成——好的实现会将它们编译器成本地机器码。但是，你仍然可以编写可以写程序的程序。因为
+列表是编译器的输入。   
+&#160; &#160; &#160; &#160;Lisp程序可以写Lisp程序的这个特性非常强大且重要。 Lisp宏非常强大。
 
 
