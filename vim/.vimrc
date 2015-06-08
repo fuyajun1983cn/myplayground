@@ -83,7 +83,7 @@ set hlsearch
 set ignorecase
 set smartcase
 set laststatus=2 "问题显示状态栏
-set hidden
+set hidden "useful for argdo and bufdo
 "autocomplete
 set completeopt=longest,menuone
 
