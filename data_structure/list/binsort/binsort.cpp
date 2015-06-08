@@ -62,6 +62,7 @@ void BinSort(Chain<Node>& X, int range)
     delete[] bin;
 }
     
+
 int main(int argc, const char *argv[])
 {
     Chain<Node> X;
