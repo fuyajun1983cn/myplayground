@@ -11,3 +11,8 @@ dist/
 tags
 build/
 __pycache__
+appcompat_v7
+appcompat_v7_2
+gen/
+bin/
+.metadata/

@@ -1,0 +1,23 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+    
+    <com.fyj.androidui.Topbar 
+        android:id="@+id/topbar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        custom:leftBackground = "@drawable/button"
+        custom:leftTextColor = "#0000FF"
+        custom:leftText = "Left"
+        custom:rightBackground="@drawable/button"
+        custom:rightTextColor = "#FF00FF"
+        custom:rightText = "Right"
+        custom:titleText = "这是一个标题"
+        custom:titleTextSize = "16pt"
+        custom:titleTextColor = "#FFFFFF"
+        
+        
+        ></com.fyj.androidui.Topbar>
+
+</RelativeLayout>
