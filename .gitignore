@@ -16,3 +16,5 @@ appcompat_v7_2
 gen/
 bin/
 .metadata/
+db.sqlite3
+
