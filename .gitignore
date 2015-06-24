@@ -17,4 +17,5 @@ gen/
 bin/
 .metadata/
 db.sqlite3
-
+*.html
+*.htm
