@@ -71,3 +71,30 @@ executor.execute(new Runnable() {
   lock，每个intrinsic都是可重入的。这样的锁是每-线程锁，而不是每-调用锁(如pthread)。意味着，在Java中，
   由synchronized保护起来的代码只能阻止线程间的多次访问，但是不能阻止线程内的多次访问。  
 
+
+程序代码示例：  
+* NoVisibility 当访问数据不使用同步时，会出现数据不一致性。 
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;synchronized语句块或方法不仅确保操作原子性，而且，它还有另一个
+  重要的意义：内存可见性，即一个线程对共享数据的修改能否另一个线程感知。
+
+**The Java Memory
+model要求fetch和store操作必须是原子操作。**但是，对于64位的long 和
+double的非volatile类型的变量，允许将对变量的存取操作视为两个独立的操作。所有，在多线程程序中，
+对于共享的long和double类型的变量，必须声明为`volatile`类型。  
+
+Locking能够保证原子性和可见性，而volatile只能保证可见性。 
+
+* ThreadLocal example  
+```java
+private static ThreadLocal<Connection> connectionHolder
+    = new ThreadLocal<Connection>() {
+    public Connection initialValue() {
+        return DriverManager.getConnection(DB_URL);
+    }
+};
+
+public static Connection getConnection() {
+    return connectionHolder.get();
+}
+```
+

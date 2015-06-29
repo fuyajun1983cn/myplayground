@@ -18,6 +18,13 @@
         </java>
     </target>
 
+    <target name="NoVisibility" depends="compile">
+        <java
+            classname="NoVisibility"
+            classpath="build/classes">
+        </java>
+    </target>
+
     <target name="clean" depends="init">
         <delete dir="build"/>
         <delete dir="dist"/>
