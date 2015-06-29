@@ -148,6 +148,7 @@ nnoremap <leader>e :tabedit $MYVIMRC<CR>
 augroup ft_markdown
 autocmd!
 " Use <localLeader>1/2/3/4/5/6 to add headings
+autocmd filetype markdown nnoremap <buffer> <LocalLeader>d ^I&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<ESC>
 autocmd filetype markdown nnoremap <buffer> <LocalLeader>1 I# <ESC>
 autocmd filetype markdown nnoremap <buffer> <LocalLeader>2 I## <ESC>
 autocmd filetype markdown nnoremap <buffer> <LocalLeader>3 I### <ESC>
