@@ -4,14 +4,19 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class RefreshListView extends ListView {
 
 	private View header;
 	private int headerHeight;
+	private int firstVisibleItem = -1;
+	private float currentY = 0;
 
 	public RefreshListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -29,6 +34,7 @@ public class RefreshListView extends ListView {
 		super(context);
 		// TODO Auto-generated constructor stub
 		initView(context);
+
 	}
 
 	/**
@@ -44,6 +50,47 @@ public class RefreshListView extends ListView {
 		Log.i("test", "headerHeight = " + headerHeight);
 		topPadding(-headerHeight);
 		this.addHeaderView(header);
+
+		this.setOnScrollListener(new OnScrollListener() {
+
+			/**
+			 * ListView的状态改变时触发
+			 */
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				// TODO Auto-generated method stub
+				switch (scrollState) {
+				case OnScrollListener.SCROLL_STATE_IDLE:// 空闲状态
+					// Toast.makeText(getContext(), "空闲状态",
+					// Toast.LENGTH_SHORT).show();
+					// Toast.makeText(getContext(), "触摸后流动" +
+					// view.getFirstVisiblePosition(),
+					// Toast.LENGTH_SHORT).show();
+					//firstVisibleItem = view.getFirstVisiblePosition();
+					break;
+				case OnScrollListener.SCROLL_STATE_FLING:// 正在滚动状态
+					// Toast.makeText(getContext(), "滚动状态",
+					// Toast.LENGTH_SHORT).show();
+
+					break;
+				case OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:// 触摸后开始滚动状态
+					// Toast.makeText(getContext(), "触摸后流动",
+					// Toast.LENGTH_SHORT).show();
+					break;
+				}
+			}
+
+			/**
+			 * 正在滚动 firstVisibleItem第一个Item的位置 visibleItemCount 可见的Item的数量
+			 * totalItemCount item的总数
+			 */
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+				// TODO Auto-generated method stub
+				RefreshListView.this.firstVisibleItem = firstVisibleItem;
+			}
+		});
 	}
 
 	/**
@@ -80,4 +127,23 @@ public class RefreshListView extends ListView {
 				header.getPaddingRight(), header.getPaddingBottom());
 		header.invalidate();
 	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent ev) {
+		// TODO Auto-generated method stub
+		if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+			 if (firstVisibleItem == 0)
+				 currentY = ev.getY();
+		} else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+			if (firstVisibleItem == 0) {
+				int height = -headerHeight + (int)(ev.getY() - currentY);
+				if (height < headerHeight)
+					topPadding(height);
+				else
+					topPadding(headerHeight);
+			}
+		}
+		return super.onTouchEvent(ev);
+	}
+
 }
