@@ -51,6 +51,7 @@ Plugin 'tomtom/tlib_vim'
 Plugin 'garbas/vim-snipmate'
 " Optional:
 Plugin 'honza/vim-snippets'
+Plugin 'tpope/vim-surround'
 "------SnipMate------------"
 
 Plugin 'google/vim-colorscheme-primary'

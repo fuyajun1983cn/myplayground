@@ -19,3 +19,4 @@ bin/
 db.sqlite3
 *.html
 *.htm
+push_code.sh
