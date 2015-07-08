@@ -1,6 +1,8 @@
 package com.fyj.listpullrefresh;
 
 import android.content.Context;
+import android.os.Handler;
+import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,8 +10,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class RefreshListView extends ListView {
 
@@ -17,6 +21,10 @@ public class RefreshListView extends ListView {
 	private int headerHeight;
 	private int firstVisibleItem = -1;
 	private float currentY = 0;
+	private TextView tipView = null;
+	private TextView lastUdateView = null;
+	private ImageView arrowView = null;
+	private ProgressBar progressBar = null;
 
 	public RefreshListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -50,6 +58,11 @@ public class RefreshListView extends ListView {
 		Log.i("test", "headerHeight = " + headerHeight);
 		topPadding(-headerHeight);
 		this.addHeaderView(header);
+		
+		lastUdateView = (TextView)header.findViewById(R.id.lastUpdateTime);
+		tipView = (TextView) header.findViewById(R.id.tip);
+		arrowView = (ImageView)header.findViewById(R.id.arrow);
+		progressBar = (ProgressBar)header.findViewById(R.id.progress);
 
 		this.setOnScrollListener(new OnScrollListener() {
 
@@ -139,9 +152,48 @@ public class RefreshListView extends ListView {
 				int height = -headerHeight + (int)(ev.getY() - currentY);
 				if (height < headerHeight)
 					topPadding(height);
-				else
+				else {
 					topPadding(headerHeight);
+					if (ev.getY() - currentY > 30) {
+						tipView.setText("松开后进行刷新！");
+					}
+				}
 			}
+		} else if (ev.getAction() == MotionEvent.ACTION_UP) {
+			Handler handler = new Handler();
+			handler.postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					Time time = new Time();
+					time.setToNow();
+					String currentTime = "上次更新时间" + time.month + "月" + time.monthDay + "日" + time.hour + "时" + time.minute
+							+ "分" + time.second + "秒" ;
+					lastUdateView.setText(currentTime);
+					lastUdateView.setVisibility(View.VISIBLE);
+					tipView.setVisibility(View.GONE);
+					arrowView.setVisibility(View.VISIBLE);
+					progressBar.setVisibility(View.GONE);
+				}
+			},  3000);
+			Handler handler2 = new Handler();
+			handler2.postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					topPadding(-headerHeight);
+					lastUdateView.setVisibility(View.GONE);
+					tipView.setVisibility(View.VISIBLE);
+					tipView.setText("继续下拉可以刷新!");
+					arrowView.setVisibility(View.VISIBLE);
+					progressBar.setVisibility(View.GONE);
+				}
+			}, 5000);
+			tipView.setText("正在刷新...");
+			arrowView.setVisibility(View.GONE);
+			progressBar.setVisibility(View.VISIBLE);
 		}
 		return super.onTouchEvent(ev);
 	}
