@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<project name="test" default="compile">
+    <target name="init">
+        <mkdir dir="build/classes"/>
+        <mkdir dir="dist"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="."
+            destdir="build/classes"
+            />
+    </target>
+
+    <target name="BasicTest1" depends="compile">
+        <java
+            classname="BasicTest1"
+            classpath="build/classes">
+        </java>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+</project>
