@@ -203,7 +203,31 @@ VimTip 58. Snap Between Files Using Global Marks
    :m{letter}  create a mark at the current cursor position.  
    :`{letter}  snap our cursor back
    
-    
+VimTip 59. Delete, Yank, and Put with Vim's Unnamed Register.
+
+   :xp  transpose the next two characters  
+   :ddp transpose the order of this line and its successor.
+   :yyp     
+
+VimTip 60. Grok Vim's Registers.  
+
+   :"ayiw   yank the current word into register a.  
+   :"bdd    cut the current line into register b.  
+   :"ap, "bp  paste the line from register a or b .
+   :delete c  Ex command: cut the current line into register c
+   :put c   Ex command: paste it below the current line.  
+   :""p  paste the  current line from unnamed register.  
+   :"0  Yank register 
+   :"_d{motion}  delete the specified text without saving a copy of it. 
+   :"+  System Clipboard  
+   :"*  used with middle mouse button in X11, In Windows and Mac OS X, the same
+   as "+  
+   :"%   Name of the current file  
+   :"#   Name of teh alternate file   
+   :".   Last inserted text  
+   :":   Last Ex command  
+   :"/   Last search pattern  
+
 
  
    
