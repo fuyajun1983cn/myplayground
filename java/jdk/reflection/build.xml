@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<project name="Reflection" default="compile" basedir=".">
+    <target name="init">
+        <mkdir dir="build/classes"/>
+        <mkdir dir="dist"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="."
+            destdir="build/classes"
+            />
+    </target>
+
+    <target name="ReflectionTest" depends="compile">
+        <java
+            classname="ReflectionTest"
+            classpath="build/classes">
+        </java>
+    </target>
+	
+    <target name="Invoke" depends="compile">
+        <java
+            classname="Invoke"
+            classpath="build/classes">
+        	<arg value="java.lang.System"/>
+        	<arg value="currentTimeMillis"/>
+        </java>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+</project>
