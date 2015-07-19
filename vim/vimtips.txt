@@ -227,19 +227,59 @@ VimTip 60. Grok Vim's Registers.
    :".   Last inserted text  
    :":   Last Ex command  
    :"/   Last search pattern  
+   :"=   containers that hold a block of text.
 
+VimTip 61. Replace a Visual Selection with a Register.  
 
- 
+   :ve
+   :p
+
+VimTip 62. Paste from Register.  
+
+   :<C-r>{register}   paste character-wise regions of text from Insert mode.  
+   :p paste text after the current cursor.  
+   :P paste text before the current cursor.   
+   :gp put the text before the current line. 
+   :gP put the text after the current line.  
    
+VimTip 63. Interact with the System Clipboard.  
+
+   :skip
+   
+      
+VimTip 64. Record and Execute a Macro.   
+
+   :q{register}  begin recording our keystrokes.  press q again to stop
+   recording.
+   :@{register}  execute the contents of the specifed register. 
+   :@@  repeat the macro that was invoked most recently.  
+
+VimTip 65. Normalize, Strike, Abort.  
 
 
+VimTip 66. Play Back with a Count.  
+
+   :{count}@{register}
 
 
+VimTip 67. Repeat a Change on Contiguous Lines.  
 
+   :'<,'>normal @a  tell Vim to execute the macro for each line.  
 
+VimTip 68. Append Commands to a Macro.  
 
+   :qa to recored a Macro. 
+   :qa to amend the Macro.  
 
+VimTip 69. Act Upon a Collection of Files.  
 
-    
+   :edit!  revert all of the changes we just made. 
+   :argdo normal @a  run Macro in Parallel
 
-    
+VimTip 70. Evalate an Iterator to Number Items in a List.  
+
+   :
+   
+VimTip 71. Edit the Contents of a Macro. 
+
+   :put {register}
