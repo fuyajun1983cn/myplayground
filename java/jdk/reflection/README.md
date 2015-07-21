@@ -56,3 +56,13 @@ Get the specified public constructor of this class that has arguments that match
 
 `java.lang.reflect.Proxy`类可以动态创建实现某个接口的类。  
 
+
+##注解  
+|Example|Description
+|----|----
+|@Deprecated|Marker annotation (no “data”)
+|@WarningMessage("Something about...")|Single argument
+|@TestValues( { "one", "two" } )|Array of arguments
+|@Author( first="Pat", last="Niemeyer" )|Named arguments
+
+
