@@ -27,6 +27,13 @@
         </java>
     </target>
 
+    <target name="Test" depends="compile">
+        <java
+            classname="ReflectionTestStarter"
+            classpath="build/classes">
+        </java>
+    </target>
+
     <target name="clean" depends="init">
         <delete dir="build"/>
         <delete dir="dist"/>

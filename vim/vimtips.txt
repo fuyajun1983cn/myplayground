@@ -1,0 +1,285 @@
+*vimtips.txt*
+
+VimTip 0: downloading Vim tips
+
+     If you are reading this in a help window, then you have probably already
+installed the "Tip of the Day" script, totd.vim .  Congratulations!  You can
+now replace this skeleton file with a real vimtips.txt file downloaded from
+>
+	http://www.vim.org/tips/tip_download.php
+<
+     If you have not yet installed the totd.vim plugin, check that it is in
+the plugin/ directory.  (This file should be in plugin/vimtips/ .)  Then
+either wait until the next time you start up vim, or source the plugin and get
+a tip:
+>
+	:runtime plugin/totd.vim
+	:TipOfTheDay
+
+(The usual abbreviation rules apply:  you can probably just use :Tip .)  This
+file should then show up in a help window.
+
+
+VimTip 39: Divide Your Workspace into Split Windows  
+  
+     Vim allows us to view multiple buffers side by side by dividing our
+ workspace into split windows.
+
+ <C-w>s   Split the current window  horizontally.
+ <C-w>v   Split the current window vertically. 
+ :sp {file} Split the current window horizontally. loading {file} into the new
+ window.
+ :vsp {file} Split the current window vertically. loading {file} into the new
+ window. 
+
+ Changing the Focus Between Windows:
+ <C-w>w, <C-w>h, <C-w>j, <C-w>k, <C-w>l  
+
+ Closing Windows:  
+ :cl  <C-w>c
+ :only <C-w>o
+
+ Resizing and Rearranging Windows:
+ <C-w>=  Equalize width and height of all windows.
+ <C-w>_  Maximize height of the active window.
+ <C-w>|  Maximize width of the active window. 
+ [N]<C-w>_ Set active window height to [N] rows
+ [N]<C-w>| Set active window width to [N] columns
+
+VimTip 40: Organize Your Window Layouts with Tab Pages
+   
+    :lcd {path} command lets us set the working directory locally for the current
+window.
+    :windo lcd {path} set the local working directory for all split windows.
+
+    :tabedit {filename} Open a new tab page. 
+    <C-w>T  mvoe the current window into a new tab page
+    :tabclose close the current tab page.
+    :tabonly close all but the current tab.
+
+    Switching between Tabs
+    :tabnext {N}  {N}gt  switch to tab page number {N}
+    :tabnext      gt     switch to the next tab page.
+    :tabprevious  gT     switch to the previous tab page.
+    :tabmove [N]    rearrange tab pages.
+
+VimTip 41: Open a File by Its Filepath Using ':edit'
+
+    :edit a<Tab>c<Tab>N<Tab>
+    :edit %<Tab>   % symbol is a shorthand for the filepath of the active
+    buffer. 
+    :edit %:h<Tab>  :h modifier removes the filename while preserving the rest
+    of the path.
+
+VimTip 42: Open a File by Its Filename Using ':find' 
+
+    the :find command allows us to open a file by its name without having to
+    provide a fully qualified path. 
+    but we need config 'path', 
+    :set path += app/**
+    ** wildcard matches all subdirectories beneath the app/ directory. 
+    :find Navigation.js
+
+
+VimTip 43: Explore the File System with netrw. 
+
+    explore the file system. 
+    :Explore  Open file explorer for the directory of the active buffer. 
+
+
+VimTip 44: Save Files to Nonexistent Directories.
+
+    :!mkdir -p %:h
+    :write
+
+VimTip 45: Save a File as the Super User.
+
+    :w !sudo tee % > /dev/null   tee /etc/hosts > /dev/null --> receive the
+    contents of the buffer as standard input, 
+
+VimTip 46: Keep Your Fingers on the Home Row
+
+   h, i, j , k , l 
+   
+VimTip 47: Distinguish Between Real Lines and Display Lines.
+
+    The j and k commands move down and up by real lines. whereas the gj and gk
+    commands move down and up by display lines.
+
+    :0  To first character of real line
+    :g0 To first character of display line
+    :^ To the first nonblank character of real line.
+    :g^ To first nonblank character of display line.
+    :$ To end of real line
+    :g$ To end of display line.
+
+VimTip 48: Move Word-Wise
+
+    :w Forward to start of next word
+    :b Backward to start of current/previous word
+    :e Forward to end of current/next word
+    :ge Backward to end of previous word.
+
+VimTip 49: Find by Character 
+
+    :f{char} search for the specified character, and ';' to repeat forward, and
+    ',' to repeat backward. 
+    :F{char} Backward to the previouse occurrence of {char} 
+    :t{char} Forward to the character before the next occurrence of {char}
+    :T{char} Backward to the character after the previous occurrence of {char} 
+    :; Repeate the last character-search command
+    :, Reverse the last character-search command
+
+VimTip 50: Search to Navigate
+
+   :/tak<CR>
+   :v
+   :/ge<CR>
+   :h
+   :d
+
+VimTip 51: Trace Your Selection with Precision Text Objects.
+
+   :vi}  select text inside {}
+   :a" select text including "
+   :it  inside of <xml>tags</xml>
+
+VimTip 52: Delete Around, or Change Inside
+
+   :iw Current word
+   :aw Current word plus one space
+   :is Curent sentence
+   :as current sentence plus one space
+   :ip current paragraph
+   :ap Current paragraph plus one blank line
+
+VimTip 53: Mark Your Place and Snap Back to It
+
+   :`` Position before the last jump within current file
+   :`. Location of last change
+   :`^  Location of last insertion
+   :`[ Start of last change or yank
+   :`] End of last change or yank
+   :`< Start of last visual selection
+   :`> End of last visual selection.
+
+VimTip 54: Jump Between Matching Parenthes
+
+   :% jump between opening and closing sets of parentheses. 
+
+VimTip 55: Traverse the Jump List  
+
+   :<C-o> like the back button  
+   :<C-i> like the forward button  
+   :jumps 查看jump list的内容  
+   
+   :[count]G   Jump to line number
+   ://pattern<CR>/?pattern<CR>/n/N  Jump to next/previous occurence of pattern
+   :%  Jump to matching parenthesis
+   :(/)  Jump to start of previous/next sentence  
+   :{/}  Jump to start of previous/next paragraph
+   :H/M/L Jump to top/middle/bottom of screen 
+   :gf  Jump to filename under the cursor
+   :<C-]>  Jump to definition of keyword under the cursor  
+   :'{mark}/`{mark}  
+   :<C-i> the same as <Tab>  
+   :g;  Jump back to the most recent modification in the document. 
+   :`.  mark refernces the position of the last change.
+   :`^  mark tracks the position of the cursor the last time that Insert mode
+   was stopped. 
+
+   Vim maintains a change list for each individual buffer in an editting
+   session. By contrast, a separate jump list is created for each window.  
+   
+VimTip 57. Jump to the Filename Under the Cursor. 
+
+   :gf open the filename under the cursor.
+   :set suffixesadd+=.rb  Specify a File Extension.
+  
+   :set  path?  specify directory where to find the file. 
+
+VimTip 58. Snap Between Files Using Global Marks 
+
+   :m{letter}  create a mark at the current cursor position.  
+   :`{letter}  snap our cursor back
+   
+VimTip 59. Delete, Yank, and Put with Vim's Unnamed Register.
+
+   :xp  transpose the next two characters  
+   :ddp transpose the order of this line and its successor.
+   :yyp     
+
+VimTip 60. Grok Vim's Registers.  
+
+   :"ayiw   yank the current word into register a.  
+   :"bdd    cut the current line into register b.  
+   :"ap, "bp  paste the line from register a or b .
+   :delete c  Ex command: cut the current line into register c
+   :put c   Ex command: paste it below the current line.  
+   :""p  paste the  current line from unnamed register.  
+   :"0  Yank register 
+   :"_d{motion}  delete the specified text without saving a copy of it. 
+   :"+  System Clipboard  
+   :"*  used with middle mouse button in X11, In Windows and Mac OS X, the same
+   as "+  
+   :"%   Name of the current file  
+   :"#   Name of teh alternate file   
+   :".   Last inserted text  
+   :":   Last Ex command  
+   :"/   Last search pattern  
+   :"=   containers that hold a block of text.
+
+VimTip 61. Replace a Visual Selection with a Register.  
+
+   :ve
+   :p
+
+VimTip 62. Paste from Register.  
+
+   :<C-r>{register}   paste character-wise regions of text from Insert mode.  
+   :p paste text after the current cursor.  
+   :P paste text before the current cursor.   
+   :gp put the text before the current line. 
+   :gP put the text after the current line.  
+   
+VimTip 63. Interact with the System Clipboard.  
+
+   :skip
+   
+      
+VimTip 64. Record and Execute a Macro.   
+
+   :q{register}  begin recording our keystrokes.  press q again to stop
+   recording.
+   :@{register}  execute the contents of the specifed register. 
+   :@@  repeat the macro that was invoked most recently.  
+
+VimTip 65. Normalize, Strike, Abort.  
+
+
+VimTip 66. Play Back with a Count.  
+
+   :{count}@{register}
+
+
+VimTip 67. Repeat a Change on Contiguous Lines.  
+
+   :'<,'>normal @a  tell Vim to execute the macro for each line.  
+
+VimTip 68. Append Commands to a Macro.  
+
+   :qa to recored a Macro. 
+   :qa to amend the Macro.  
+
+VimTip 69. Act Upon a Collection of Files.  
+
+   :edit!  revert all of the changes we just made. 
+   :argdo normal @a  run Macro in Parallel
+
+VimTip 70. Evalate an Iterator to Number Items in a List.  
+
+   :
+   
+VimTip 71. Edit the Contents of a Macro. 
+
+   :put {register}
