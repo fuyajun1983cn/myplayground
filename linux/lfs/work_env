@@ -1,0 +1,28 @@
+set +h
+umask 022
+LFS=/home/fuyajun/.public/MyPlayground/lfs/sysroot
+LC_ALL=POSIX
+LFS_TGT=$(uname -m)-lfs-linux-gnu
+PATH=/tools/bin:/bin:/usr/bin
+export LFS LC_ALL LFS_TGT PATH
+
+
+chroot "$LFS" /usr/bin/env -i \
+    HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
+    PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+    /bin/bash --login
+
+
+mount -v --bind /dev $LFS/dev
+mount -vt devpts devpts $LFS/dev/pts -o gid=5,mode=620
+mount -vt proc proc $LFS/proc
+mount -vt sysfs sysfs $LFS/sys
+
+if [ -h $LFS/dev/shm ]; then
+link=$(readlink $LFS/dev/shm)
+mkdir -p $LFS/$link
+mount -vt tmpfs shm $LFS/$link
+unset link
+else
+mount -vt tmpfs shm $LFS/dev/shm
+fi
