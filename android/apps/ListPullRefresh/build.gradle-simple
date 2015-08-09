@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.0'
+    }
+}
+
+apply plugin: 'android'
+
+android {
+
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            resources.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+
+    signingConfigs {
+        myConfig{
+            storeFile file("fyjcode.keystore")
+            storePassword "19831017"
+            keyAlias "fyjcode"
+            keyPassword "19831017"
+        }
+    }
+
+    buildTypes{
+        release {
+            signingConfig  signingConfigs.myConfig
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+
+}
