@@ -278,8 +278,49 @@ VimTip 69. Act Upon a Collection of Files.
 
 VimTip 70. Evalate an Iterator to Number Items in a List.  
 
-   :
+   :let i=1   "define the first value of i
+   :qa        "starting macro recording
+   :I<C-r>=i<CR>  "get the value of i in insert mode
+   <ESC>         " return back to normal mode
+   :let i += 1   " increase the value of i by one. 
+   q             "quit the macro recording
    
 VimTip 71. Edit the Contents of a Macro. 
 
    :put {register}
+   :"a{register}$   copy the content back to {regitster}
+
+VimTip 72. Tune the Case Sensitivity of Search Patterns  
+
+   :using the \c and \C items to override default case sensitivity. \c means
+   case-insensitive, \C force case sensitivity.
+   :when turn on smartcase, when we include an uppercase character in our search
+   pattern, it has the effect of canceling out the 'ignorecase' setting any
+   time.  
+
+VimTip 73. Use the \v Pattern Switch for Regex Searches.  
+
+   :\v pattern switch makes Vim's regular expression engine behave much more
+   like that of Perl.  
+   :\v switch at the start causes all subsequent characters to take on a special
+   meaning.  
+   :/\v#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})
+
+VimTip 74. Use the \V Literal Switch for Verbatim Searches  
+
+   :search for text verbatim.  Using the verynomagic search switch, we can
+   cancel out most of the special meanings attached to characters such as ., *,
+   and ?.  
+   :use the \V literal switch to enable very nomagic search.  only the backslash
+   has a special meaning. 
+   :use the \v pattern switch to search for a regular expression. 
+   :use the \V switch to search for verbatim text.   
+
+VimTip 76. Use Parentheses to Capture Submatches.  
+
+   :/\v(\w+)\_s+\1>
+
+I love Paris in the
+the springtime.
+
+

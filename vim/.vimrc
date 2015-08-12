@@ -53,6 +53,9 @@ Plugin 'garbas/vim-snipmate'
 Plugin 'honza/vim-snippets'
 Plugin 'tpope/vim-surround'
 "------SnipMate------------"
+"VIM-GRADLE
+Plugin 'tfnico/vim-gradle'
+Plugin 'easymotion/vim-easymotion'
 
 Plugin 'google/vim-colorscheme-primary'
 "快速管理文件和Buffer
@@ -185,6 +188,9 @@ noremap <Up> <Nop>
 noremap <Down> <Nop>
 noremap <Right> <Nop>
 noremap <Left> <Nop>
+
+nnoremap j gj
+nnoremap k gk
 
 "clipboard setting
 nnoremap <Leader>p "+p
