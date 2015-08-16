@@ -16,6 +16,7 @@ target_link_libraries(test ${LUA_LIBRARIES})
 add_executable(test2 test2.c)
 target_link_libraries(test2 ${LUA_LIBRARIES})
 
-
+add_executable(test3 test3.c)
+target_link_libraries(test3 ${LUA_LIBRARIES})
 
 
