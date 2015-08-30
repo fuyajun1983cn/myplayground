@@ -89,5 +89,108 @@
     * In strict mode, the identifiers eval and arguments are treated like keywords, and you are not allowed to change their value. You cannot assign a value to these iden- tifiers, declare them as variables, use them as function names, use them as function parameter names, or use them as the identifier of a catch block.
     * In strict mode, the ability to examine the call stack is restricted. argu ments.caller and arguments.callee both throw a TypeError within a strict mode function. Strict mode functions also have caller and arguments properties that throw TypeError when read. (Some implementations define these nonstandard properties on non-strict functions.)
 
+* 对象  
+  * 对象一般由属性以及属性值构成, 属性有三种类型： 
+    1. 可写的。 
+    2. 可迭代的(属性是否可以通过for/in循环返回。 
+    3. 可配置的(属性是否可以被删除或更改)。  
+  * 每个对象有三个关联的对象属性  
+    1. prototype, 对另一个被继承的对象的引用
+    2. class , 属性的类别
+    3. extensible, 标识新属性是否可以加到对象中。  
+  * 每个对象都有一个与之关联的第二个对象，第二个对象称为prototype,
+    许多对象的属性都有继承自该prototype对象。  
+    Object.prototype是一个特殊的对象，它没有与之关联的prototype对象。  
+  * Object.create()  
+    这是一个静态方法，  
+    ```javascript
+    var o1 = Object.create({x:1, y:2}); // o1 inherits properties x and y.
+    var o2 = Object.create(null);  //o2 inherits no props or methods. 
+    var o3 = Object.create(Object.prototype); // o3 is like {} or new Object().
+    ```
+  * 属性赋值的时候，会检测prototype链，以决定当前的赋值操作是否被允许。如果当前对象继承了一个只读的属性，则对该属性的赋值是被禁止的。反之，如果当前的赋值是被允许的，则会在当前的对象中创建或设置一个属性，不会改变prototype链，事实上，继承仅发生于查询属性的时候，而不是设置属性的时候，这是JavaScript的一个核心特征，它允许我们有选择性地修改继承过来的属性。针对这个规则的一个例外是，当该属性被当成setter方法的一个访问者属性时，setter方法将会被调用，而不会为当前对象创建一个新的属性。但是，setter方法也是在当前对象上进行调用，而不是定义该属性的prototype对象。  
+  * 删除属性  
+    删除属性仅删除对象本身的属性，并不会删除继承的属性。当对象的configurable属性为false时，delete无法删除该属性。   
+  * 属性测试    
+    ```javascript
+    var o = { x: 1 }
+    "x" in o;  // true: o has an own property "x"
+    "y" in o;// false: o doesn't have a property "y"
+    "toString" in o // true: o inherits a toString property
+
+    var o = { x: 1 }
+    o.hasOwnProperty("x"); // true: o has an own property x
+    o.hasOwnProperty("y"); // false: o doesn't have a property y
+    o.hasOwnProperty("toString"); // false: toString is an inherited property
+
+    var o = inherit({ y: 2 });
+    o.x = 1;
+    o.propertyIsEnumerable("x"); // true: o has an own enumerable property x
+    o.propertyIsEnumerable("y"); // false: y is inherited, not own
+    Object.prototype.propertyIsEnumerable("toString"); // false: not enumerable
+
+    var o = { x: 1 }
+    o.x !== undefined; // true: o has a property x
+    o.y !== undefined; // false: o doesn't have a property y
+    o.toString !== undefined; // true: o inherits a toString property
+
+    ```
+  * Getters和Setters属性   
+    示例：  
+    ```javascript
+    var o = {
+        // An ordinary data property
+        data_prop: value,
+
+        // An accessor property defined as a pair of functions
+        get accessor_prop() { /* function body here */ },
+        set accessor_prop(value) { /* function body here */ }
+    };
+    ```
+
+  * 以$开关的属性名，表明它是一个私有属性。   
+  * 属性描述符  
+    数据类型属性的属性描述符对象有如下名称的属性： value, writable, enumerable,
+    configurable.  而访问类型属性的属性描述符对象有如下名称的属性：set,get,
+    enumerable, configurable.  
+  * 定义一个属性  
+    Object.defineProperty()  
+    ```javascript
+    var o = {}; // Start with no properties at all
+    // Add a nonenumerable data property x with value 1.
+    Object.defineProperty(o, "x", { value : 1,
+                        writable: true,
+                        enumerable: false,
+                        configurable: true});
+
+    ```
+    同时定义多个属性  
+    ```javascript
+    var p = Object.defineProperties({}, {
+        x: { value: 1, writable: true, enumerable:true, configurable:true },
+        y: { value: 1, writable: true, enumerable:true, configurable:true },
+        r: {
+        get: function() { return Math.sqrt(this.x*this.x + this.y*this.y) },
+        enumerable:true,
+        configurable:true
+        }
+    });
+    ```
+  * 属性改变规则   
+    * If an object is not extensible, you can edit its existing own properties, but you
+    cannot add new properties to it.  
+    * If a property is not configurable, you cannot change its configurable or enumerable
+    attributes.   
+    * If an accessor property is not configurable, you cannot change its getter or setter
+    method, and you cannot change it to a data property.   
+    * If a data property is not configurable, you cannot change it to an accessor property.   
+    * If a data property is not configurable, you cannot change its writable attribute from
+    false to true , but you can change it from true to false .    
+    * If a data property is not configurable and not writable, you cannot change its value.
+    You can change the value of a property that is configurable but nonwritable, how-
+    ever (because that would be the same as making it writable, then changing the
+    value, then converting it back to nonwritable).    
+
+
 
 
