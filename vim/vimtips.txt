@@ -228,6 +228,7 @@ VimTip 60. Grok Vim's Registers.
    :":   Last Ex command  
    :"/   Last search pattern  
    :"=   containers that hold a block of text.
+   :/<C-r>u<CR>  put the content of register u into search pattern
 
 VimTip 61. Replace a Visual Selection with a Register.  
 
@@ -316,11 +317,48 @@ VimTip 74. Use the \V Literal Switch for Verbatim Searches
    :use the \v pattern switch to search for a regular expression. 
    :use the \V switch to search for verbatim text.   
 
-VimTip 76. Use Parentheses to Capture Submatches.  
+VimTip 75. Use Parentheses to Capture Submatches.  
 
    :/\v(\w+)\_s+\1>
 
-I love Paris in the
-the springtime.
+
+VimTip 76. Stake the Boundaries of a Word.  
+
+   :use < and > symbols as word boundary delimeters in very magic searches. 
+   :* and # trigger a word boundary search while g* and g% trigger a
+   non-boundary search. 
+
+VimTip 77. Stake the Boundaries of a Match.  
+
+   :\zs item marks the start of a match, \ze item matches the end of a match.  
+    
+VimTip 78. Escape Problem Characters.   
+
+   :escape({string}, {chars})  the {char} argument specifies which characters
+   must be escaped with a backslash.        
+
+VimTip 79. Meet the Search Command.
+
+   :use / key to search forward. use ? key to search backward. 
+   :repeat the last search  n for next match, N jumps to the previous match. 
+
+VimTip 80. Highlight Search Matches.  
+
+   :set hlsearch
+
+VimTip 81. Preview the First Match Before Execution.  
+
+   :set incsearch 
+   :use <C-r><C-w> autocompletion to save time.  
+
+VimTip 82. Count the Matches for the Current Pattern. 
+
+   :%s///gn  
+
+VimTip 83. Offset the Cursor to the End of a Search Match. 
+
+   ://e<CR>
+   
+
 
 

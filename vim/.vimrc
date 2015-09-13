@@ -66,6 +66,10 @@ Plugin 'ervandew/supertab'
 "Python IDE
 "Plugin 'klen/python-mode'
 Plugin 'davidhalter/jedi-vim'
+
+"Plugin vjde java development for Java
+Plugin 'cespare/vjde'
+
 "conky
 Plugin 'file:///home/fuyajun/.vim/conky'
 
@@ -181,7 +185,7 @@ augroup END
 "Start{{{
 "
 inoremap jk <esc>
-inoremap <esc> <Nop>
+"inoremap <esc> <Nop>
 
 "ban the arrow keys
 noremap <Up> <Nop>
