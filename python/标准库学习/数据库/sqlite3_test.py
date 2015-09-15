@@ -2,6 +2,7 @@
 #encoding:utf-8
 
 import os
+import sys
 import sqlite3
 
 db_filename = 'test.db'
@@ -60,4 +61,37 @@ with sqlite3.connect(db_filename) as conn:
     for colinfo in cursor.description:
         print(colinfo)
 
+#positional parameters
+project_name = sys.argv[1]
 
+with sqlite3.connect(db_filename) as conn:
+    cursor = conn.cursor()
+
+    query = """  
+    select id, priority, details, status, deadline from task
+    where project = ?
+    """
+
+    cursor.execute(query, (project_name, ))
+
+    for row in cursor.fetchall():
+        task_id, priority, details, status, deadline  =  row
+        print('%2d  {%d}  %-20s [%-8s]  (%s) ' %\
+                (task_id, priority, details, status, deadline))
+
+#named parameter
+with sqlite3.connect(db_filename) as conn:
+    cursor = conn.cursor()
+
+    query = """
+    select id, priority, details, status, deadline from task
+    where project = :project_name
+    order by deadline, priority
+    """
+
+    cursor.execute(query, {'project_name':project_name})
+
+    for row in cursor.fetchall():
+        task_id, priority, details, status, deadline = row
+        print('%2d  {%d}  %-20s [%-8s]  (%s) ' %\
+                (task_id, priority, details, status, deadline))
