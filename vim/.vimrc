@@ -59,14 +59,14 @@ Plugin 'easymotion/vim-easymotion'
 
 Plugin 'google/vim-colorscheme-primary'
 "快速管理文件和Buffer
-Plugin 'LustyExplorer'
-Plugin 'LustyJuggler'
+"Plugin 'LustyExplorer'
+"Plugin 'LustyJuggler'
 "SuperTab, 在插入模式下按tab键弹出自动提示窗口
-Plugin 'ervandew/supertab' 
+"Plugin 'ervandew/supertab' 
 "Python IDE
 "Plugin 'klen/python-mode'
-Plugin 'davidhalter/jedi-vim'
-
+"Plugin 'davidhalter/jedi-vim'
+Plugin 'Valloric/YouCompleteMe'
 "Plugin vjde java development for Java
 Plugin 'cespare/vjde'
 
