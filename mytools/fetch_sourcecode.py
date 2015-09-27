@@ -165,7 +165,13 @@ if __name__ == "__main__":
         print path
         t = FetchAndroidSourceCode(path)
         t.start()
-        t.join()
+
+    main_thread = threading.currentThread()
+    for t in threading.enumerate():
+        if t is not main_thread:
+            t.join()
+
+
    # fetch_remote_raw_file('frameworks/native/NOTICE')
     
     
