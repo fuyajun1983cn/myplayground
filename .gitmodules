@@ -4,3 +4,6 @@
 [submodule "emacs/emacs.d/colorscheme/emacs-theme-gruvbox"]
 	path = emacs/emacs.d/colorscheme/emacs-theme-gruvbox
 	url = https://github.com/greduan/emacs-theme-gruvbox.git
+[submodule "emacs/emacs.d/mode/evil"]
+	path = emacs/emacs.d/mode/evil
+	url = https://github.com/bonega/evil.git
