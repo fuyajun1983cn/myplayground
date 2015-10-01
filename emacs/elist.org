@@ -1,0 +1,70 @@
+-*- mode: org -*-
+
+* evaluate an expression
+** C-x C-e
+
+* function
+** Buffer Names
+*** buffer-name
+return file name
+*** buffer-file-name
+return full path
+** Buffers
+*** current-buffer
+*** other-buffer
+*** switch-to-buffer
+** Buffer size
+*** buffer-size
+*** point, point-min, point-max
+the size of the current buffer
+
+* function definitions
+** defun template
+(defun functoin-name (arguments ...)
+"optional documentation ..."
+(interactive argument-passing info) ; optional
+body...)
+
+*** example 
+(defun multiply-by-seven (number)
+"Multiply by server"
+(* number 7))
+** install a func
+evaluate defunc
+** make a function interactive
+(defun multiply-by-seven (number) ;interactive version
+"Multiply by seven"
+(interactive "p")  ;the "p" tells Emacs to pass the prefix argument to the function and use its value for the argument of the function.
+(message "The result is %d" (* 7 number)))
+** diffrent options for interactive
+
+** let
+create a name for a local variable
+
+in Emacs Lisp, scoping is dynamic, not lexical
+
+*** sample
+(let ((zera 'strips)
+      (tiger 'fierce))
+(message "One kind of animal has %s and another is %s. " 
+     zera tiger))
+
+** if
+(if true-or-false-test
+    action-to-carryout-if-test-is-true)
+*** sample
+(if (> number 5)
+    (message "%d is larger than 5" number))
+
+
+
+
+
+(multiply-by-seven 3)
+
+(buffer-size) 
+(point)
+(point-min)
+(point-max)
+
+(switch-to-buffer (other-buffer))(point)
