@@ -31,8 +31,13 @@ inhibit-startup-echo-area-message t)
 ;;*********加载路径设置********
 (add-to-list 'load-path "~/.emacs.d/")
 (add-to-list 'load-path "~/.emacs.d/mode/evil/")
+(add-to-list 'load-path "~/.emacs.d/mode/auto-complete/")
+(add-to-list 'load-path "~/.emacs.d/mode/popup")
+(add-to-list 'load-path "~/.emacs.d/mode/yasnippet")
 (add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/evil")
+(add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/auto-complete")
 (add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/settings")
+(add-to-list 'load-path "~/.emacs.d/settings")
 
 ;;设定不产生备份文件
 (setq make-backup-files nil)
@@ -87,7 +92,33 @@ inhibit-startup-echo-area-message t)
 ;;https://github.com/greduan/emacs-theme-gruvbox.git
 (add-to-list 'custom-theme-load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/colorscheme/emacs-theme-gruvbox")
 (add-to-list 'custom-theme-load-path "/cygdrive/e/mysoft/my-program-wharehouse/emacs/emacs.d/colorscheme/emacs-theme-gruvbox")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/colorscheme/emacs-theme-gruvbox")
 (load-theme 'gruvbox t)
+
+;;*********************************************;;
+;;                                             ;;
+;;**************auto-complete模式相关配置*******;;
+;;                                             ;;
+;;*********************************************;;
+(require 'auto-complete-config)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/mode/auto-complete/dict")
+(ac-config-default)
+(define-key ac-mode-map (kbd "M-/") 'auto-complete);;auto-complete command
+;;trigger auto-complete
+;(ac-set-trigger-key "TAB")
+(setq ac-auto-start 3);当播入3个字符的时候，开始自动补全
+;;complete menu color
+(set-face-background 'ac-candidate-face "lightgray")
+(set-face-underline 'ac-candidate-face "darkgray")
+(set-face-background 'ac-selection-face "steelblue")
+;My Dictionary
+(add-to-list 'ac-user-dictionary-files "~/.emacs.d/settings/mydic")
+
+;;YASnippet
+(require 'yasnippet)
+(setq yas-snippet-dirs '("~/.emacs.d/mode/yasnippet/snippets" "~/.emacs.d/mode/yasnippet/yasmate/snippets"))
+(yas-global-mode 1)
+	
 
 ;;*********************************************;;
 ;;                                             ;;

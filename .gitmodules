@@ -7,3 +7,12 @@
 [submodule "emacs/emacs.d/mode/evil"]
 	path = emacs/emacs.d/mode/evil
 	url = https://github.com/bonega/evil.git
+[submodule "emacs/emacs.d/mode/auto-complete"]
+	path = emacs/emacs.d/mode/auto-complete
+	url = https://github.com/auto-complete/auto-complete.git
+[submodule "emacs/emacs.d/mode/popup"]
+	path = emacs/emacs.d/mode/popup
+	url = https://github.com/auto-complete/popup-el.git
+[submodule "emacs/emacs.d/mode/yasnippet"]
+	path = emacs/emacs.d/mode/yasnippet
+	url = https://github.com/capitaomorte/yasnippet.git
