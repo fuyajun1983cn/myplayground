@@ -1,4 +1,5 @@
 -*- mode: org -*-
+#STARTUP:showall
 
 * evaluate an expression
 ** C-x C-e
@@ -56,11 +57,26 @@ in Emacs Lisp, scoping is dynamic, not lexical
 (if (> number 5)
     (message "%d is larger than 5" number))
 
+(if true-or-false-test
+    action-to-carryout-if-test-is-true
+ action-to-carryout-if-test-is-false)
+ 
+*** sample
+(if (> number 5)
+    (message "%d is larger than 5" number)
+(message "%d is not larger than 5" number))
+
+*** nil
+nil mean an empty list or false
+*** save-excursion
+save the current location of point and mark, execute the body of
+function, and then restores point and mark.
 
 
 
 
-(multiply-by-seven 3)
+
+(Multiply-by-seven 3)
 
 (buffer-size) 
 (point)

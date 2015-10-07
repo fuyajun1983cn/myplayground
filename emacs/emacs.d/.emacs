@@ -34,6 +34,8 @@ inhibit-startup-echo-area-message t)
 (add-to-list 'load-path "~/.emacs.d/mode/auto-complete/")
 (add-to-list 'load-path "~/.emacs.d/mode/popup")
 (add-to-list 'load-path "~/.emacs.d/mode/yasnippet")
+(add-to-list 'load-path "~/.emacs.d/mode/powerline")
+(add-to-list 'load-path "~/.emacs.d/colorscheme/airline-themes")
 (add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/evil")
 (add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/auto-complete")
 (add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/settings")
@@ -94,6 +96,11 @@ inhibit-startup-echo-area-message t)
 (add-to-list 'custom-theme-load-path "/cygdrive/e/mysoft/my-program-wharehouse/emacs/emacs.d/colorscheme/emacs-theme-gruvbox")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/colorscheme/emacs-theme-gruvbox")
 (load-theme 'gruvbox t)
+
+;;airline theme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/colorscheme/airline-themes")
+(require 'airline-themes)
+(load-theme 'airline-dark)
 
 ;;*********************************************;;
 ;;                                             ;;
