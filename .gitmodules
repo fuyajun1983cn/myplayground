@@ -16,3 +16,9 @@
 [submodule "emacs/emacs.d/mode/yasnippet"]
 	path = emacs/emacs.d/mode/yasnippet
 	url = https://github.com/capitaomorte/yasnippet.git
+[submodule "emacs/emacs.d/colorscheme/airline-themes"]
+	path = emacs/emacs.d/colorscheme/airline-themes
+	url = https://github.com/AnthonyDiGirolamo/airline-themes.git
+[submodule "emacs/emacs.d/mode/powerline"]
+	path = emacs/emacs.d/mode/powerline
+	url = https://github.com/milkypostman/powerline.git

@@ -68,7 +68,7 @@ Plugin 'google/vim-colorscheme-primary'
 "Plugin 'davidhalter/jedi-vim'
 Plugin 'Valloric/YouCompleteMe'
 "Plugin vjde java development for Java
-Plugin 'cespare/vjde'
+"Plugin 'cespare/vjde'
 
 "conky
 Plugin 'file:///home/fuyajun/.vim/conky'
