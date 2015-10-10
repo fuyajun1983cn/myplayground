@@ -26,7 +26,7 @@ inhibit-startup-echo-area-message t)
 (setq ido-everything t)
 
 ;;设置打开文件的缺省路径
-(setq default-directory "~/")
+(setq default-directory "~/MyPlayground")
 
 ;;*********加载路径设置********
 (add-to-list 'load-path "~/.emacs.d/")
@@ -36,9 +36,6 @@ inhibit-startup-echo-area-message t)
 (add-to-list 'load-path "~/.emacs.d/mode/yasnippet")
 (add-to-list 'load-path "~/.emacs.d/mode/powerline")
 (add-to-list 'load-path "~/.emacs.d/colorscheme/airline-themes")
-(add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/evil")
-(add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/mode/auto-complete")
-(add-to-list 'load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/settings")
 (add-to-list 'load-path "~/.emacs.d/settings")
 
 ;;设定不产生备份文件
@@ -62,9 +59,9 @@ inhibit-startup-echo-area-message t)
 (setq track-eol t) 
 
 ;;***************************************************;;
-;;                                                                                                       ;;
+;;                                                   ;;
 ;;*******************通用按键配置********************;;
-;;                                                                                                       ;;
+;;                                                   ;;
 ;;****************************************************;;
 ;;新行自动缩进
 (define-key global-map (kbd "RET") 'newline-and-indent)
@@ -92,8 +89,6 @@ inhibit-startup-echo-area-message t)
 
 ;;color-scheme gruvbox
 ;;https://github.com/greduan/emacs-theme-gruvbox.git
-(add-to-list 'custom-theme-load-path "e:/mysoft/my-program-wharehouse/emacs/emacs.d/colorscheme/emacs-theme-gruvbox")
-(add-to-list 'custom-theme-load-path "/cygdrive/e/mysoft/my-program-wharehouse/emacs/emacs.d/colorscheme/emacs-theme-gruvbox")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/colorscheme/emacs-theme-gruvbox")
 (load-theme 'gruvbox t)
 
@@ -132,10 +127,22 @@ inhibit-startup-echo-area-message t)
 ;;**************Org模式相关配置*****************;;
 ;;                                             ;;
 ;;*********************************************;;
+(setq org-default-notes-file "~/.document/notes.org")
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cb" 'org-iswitchb)
+
+;;图文混排模式
+;;(iimage-mode 1)
+(add-hook 'org-mode-hook 'org-toggle-inline-images)
+
+;;TODO keywords
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "|" "DONE(d)")
+	(sequence "Submitted" "Assigned" "Working" "|" "Resolved")))
+(setq org-log-done 'time)
+(setq org-log-done 'note)
 
 ;;*********************************************;;
 ;;                                                                                          ;;
