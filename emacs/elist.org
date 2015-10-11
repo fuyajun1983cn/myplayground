@@ -84,3 +84,4 @@ function, and then restores point and mark.
 (point-max)
 
 (switch-to-buffer (other-buffer))(point)
+

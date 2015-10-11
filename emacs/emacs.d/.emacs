@@ -35,6 +35,7 @@ inhibit-startup-echo-area-message t)
 (add-to-list 'load-path "~/.emacs.d/mode/popup")
 (add-to-list 'load-path "~/.emacs.d/mode/yasnippet")
 (add-to-list 'load-path "~/.emacs.d/mode/powerline")
+(add-to-list 'load-path "~/.emacs.d/mode/auto-java-complete")
 (add-to-list 'load-path "~/.emacs.d/colorscheme/airline-themes")
 (add-to-list 'load-path "~/.emacs.d/settings")
 
@@ -95,7 +96,7 @@ inhibit-startup-echo-area-message t)
 ;;airline theme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/colorscheme/airline-themes")
 (require 'airline-themes)
-(load-theme 'airline-dark)
+(load-theme 'airline-dark t)
 
 ;;*********************************************;;
 ;;                                             ;;
@@ -103,8 +104,8 @@ inhibit-startup-echo-area-message t)
 ;;                                             ;;
 ;;*********************************************;;
 (require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/mode/auto-complete/dict")
 (ac-config-default)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/mode/auto-complete/dict")
 (define-key ac-mode-map (kbd "M-/") 'auto-complete);;auto-complete command
 ;;trigger auto-complete
 ;(ac-set-trigger-key "TAB")
@@ -114,13 +115,23 @@ inhibit-startup-echo-area-message t)
 (set-face-underline 'ac-candidate-face "darkgray")
 (set-face-background 'ac-selection-face "steelblue")
 ;My Dictionary
-(add-to-list 'ac-user-dictionary-files "~/.emacs.d/settings/mydic")
+(add-to-list 'ac-user-dictionary-files "~/.emacs.d/settings/mydict")
 
 ;;YASnippet
 (require 'yasnippet)
-(setq yas-snippet-dirs '("~/.emacs.d/mode/yasnippet/snippets" "~/.emacs.d/mode/yasnippet/yasmate/snippets"))
+(setq yas-snippet-dirs '("~/.emacs.d/mode/yasnippet/snippets"
+			 "~/.emacs.d/mode/yasnippet/yasmate/snippets"
+			 ))
 (yas-global-mode 1)
-	
+(setq yas-prompt-functions '(yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt))
+
+
+;;
+;; Auto Java Complete
+;;
+(require 'ajc-java-complete-config)
+(add-hook 'java-mode-hook 'ajc-java-complete-mode)
+(add-hook 'find-file-hook 'ajc-4-jsp-find-file-hook)
 
 ;;*********************************************;;
 ;;                                             ;;
