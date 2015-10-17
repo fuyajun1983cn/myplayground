@@ -22,3 +22,6 @@
 [submodule "emacs/emacs.d/mode/powerline"]
 	path = emacs/emacs.d/mode/powerline
 	url = https://github.com/milkypostman/powerline.git
+[submodule "emacs/emacs.d/mode/markdown-mode"]
+	path = emacs/emacs.d/mode/markdown-mode
+	url = https://github.com/defunkt/markdown-mode.git
