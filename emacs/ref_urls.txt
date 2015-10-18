@@ -1,0 +1,3 @@
+https://github.com/winterTTr/emacs-of-winterTTr
+https://github.com/purcell/emacs.d.git
+https://github.com/redguardtoo/emacs.d.git

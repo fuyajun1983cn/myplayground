@@ -11,6 +11,7 @@ inhibit-startup-echo-area-message t)
 ;;显示行号
 (global-linum-mode 1)
 
+
 ;;取消滚动栏
 (scroll-bar-mode -1)
 
@@ -22,8 +23,8 @@ inhibit-startup-echo-area-message t)
 
 ;;IDO模式
 (ido-mode 1)
+(setq ido-everywhere t)
 (setq ido-enable-flex-matching t)
-(setq ido-everything t)
 
 ;;设置打开文件的缺省路径
 (setq default-directory "E:\\")
@@ -69,6 +70,19 @@ inhibit-startup-echo-area-message t)
 ;;剪贴板复制和粘贴设置
 (global-set-key [f8] 'copy-to-clipboard)
 (global-set-key [f9] 'paste-from-clipboard)
+
+;;
+;;放大字体: Ctrl-x Ctrl-+ 或 Ctrl-x Ctrl-=
+;;缩小字体: Ctrl-x Ctrl–
+;;重置字体: Ctrl-x Ctrl-0
+
+;; For Linux
+;;(global-set-key (kbd "<C-mouse-4>") 'text-scale-increase)
+;;(global-set-key (kbd "<C-mouse-5>") 'text-scale-decrease)
+
+;; For Windows
+(global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
+(global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 
 ;;============================================;;
 ;;                                            ;;
@@ -220,3 +234,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (require 'key-chord)
 (key-chord-mode 1)
 (key-chord-define-global "jk" 'evil-normal-state)
+
+(require 'helm-config)
+
+;;
+;;  ELPA
+;;
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("melpa" . "http://melpa.org/packages/")))
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t) ; Org-mode's repository
