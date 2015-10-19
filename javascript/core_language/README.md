@@ -48,9 +48,9 @@
   `var global = this; //Define a global variable to refer to the global object`  
   在客户端JavaScript的代码中，`Window`对象作为运行在浏览器中的所有JavaScript代码的一个全局变量而存在。  
    
-  对象比较是`by reference`，而变量变量比较是`by value`，
-  两个对象相同当且仅当它们指向相关的对象，
-  所以对象之前的比较一般使用`===`和'!==`。   
+  对象比较是`by reference`，而变量比较是`by value`，
+  两个对象相同当且仅当它们指向相同的对象，
+  所以对象之间的比较一般使用`===`和'!==`。   
 
   转换一个对象为字符串：   
   1. 先查看该对象有没有`toString()`方法，且其返回值是一个原型类型。   
@@ -191,6 +191,108 @@
     ever (because that would be the same as making it writable, then changing the
     value, then converting it back to nonwritable).    
 
+* 数组
+  1. 创建数组
+     var arr = [2,3,4]
+     var a = new Array(4)
+     var a = new Array(5, 4, 3, 2, 1, "test string")
 
+     var a1 = [,,]           //this array is [undefined, undefined, undefined]
+     var a2 = new Array(2)   //this array has no values at all
+
+  2. 数组长度
+     a = [1, 2, 3]
+     a.length
+     Object.defineProperty(a, "length", {writable:false});  //make the length property read only.
+
+  3. 添加和删除元素
+     a = []
+     a.push("zero")
+     a.push("one", "two")
+
+     a = [1, 2, 3]
+     delete a[1] //delete element in index 1
+
+     spice()
+     unshift()
+     shift()
+     pop()
+
+     forEach()
+     var data = [1, 2, 3, 4]
+     var sumOfSquares = 0;
+     data.forEach(function(x) {
+		       sumOfSquares += x * x;
+		       });
+
+
+  4. 常见的数组方法
+     join()  //将数据所有的元素转换为字符串并连接起来。
+     reverse()  //反转一个数组的元素顺序
+     sort()  //数组元素排序， 默认是按字母顺序排序，也可以传递一个比较函数来指定排序的依据
+     concat() //返回一个新的数组包含原数组和传递进来的参数
+     var a = [1, 2, 3];
+     a.concat([4,5], [6, 7])   //Returns [1, 2, 3, 4, 5, 6, 7]
+     a.concat(4, [5, [6, 7]])  //Returns [1, 2, 3, 4, 5, [6, 7]]
+
+     slice() //切分数组
+     var a = [1, 2, 3, 4, 5]
+     a.slice(0, 3)  // returns [1, 2, 3]
+     a.slice(3)   // return [4, 5]
+     a.slice(1, -1)  //returns [2, 3, 4]
+     a.slice(-3, -2)  //returns [3]
+
+     splice()  //通用的数组元素插入和删除函数
+     对数组本身进行了修改。
+     前两个参数指定要删除的元素，之后的参数指定要插入的元素。
+     var a = [1,2,3,4,5];
+     a.splice(2,0,'a','b');  // Returns []; a is [1,2,'a','b',3,4,5]
+     a.splice(2,2,[1,2],3);  // Returns ['a','b']; a is [1,2,[1,2],3,3,4,5] 
+
+     push()和pop():  让数组可以像栈一样工作。
+
+     unshift()和shift(): 跟push()和pop()函数类似，只不过操作元素的位置是数组的开始处。
+
+     toString()和toLocaleString()
+
+  5. ECMAScript 5数组方法
+     forEach()
+     data.forEach(function(v, i, a) { a[i] = v + 1; });
+
+     map()
+     a = [1, 2, 3];
+     b = a.map(function(x) { return x * x; }); // b is [1, 4, 9]
+
+     传递进来的函数必须有返回值
+
+     filter()
+     传递进来的函数必须返回true或false
+     a = [5, 4, 3, 2, 1];
+     smallvalues = a.filter(function(x) { return x < 3 });
+
+     every() 和 some()
+     传递进来的函数必须返回true或false
+     a = [1, 2, 3, 4, 5];
+     a.every(function(x) { return x < 10; }) // true, all values < 10
+     a.some(function(x) { return x % 2 === 0; }); // true, a has some even numbers.
+
+     reduce(), reduceRight()
+     a = [1,2,3,4,5]
+     sum = a.reduce(function(x,y) { return x+y }, 0);  //sum of values
+     product = a.reduce(function(x,y) { return x*y }, 1); // Product of values
+     max = a.reduce(function(x,y) { return (x>y)?x:y; }); // Largest value
+
+
+     indexOf(), lastIndexOf()
+
+     Array.isArray()
+     var isArray = Function.isArray || function(o) {
+               return typeof o === "object" &&
+		Object.prototype.toString.call(o) === "[object Array]";
+	};
+
+     
+     
+     
 
 
