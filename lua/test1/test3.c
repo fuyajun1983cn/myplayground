@@ -5,6 +5,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
+#define MAX_COLOR 256
 
 static void error(lua_State *L, const char *fmt, ...)
 {
@@ -18,7 +19,27 @@ static void error(lua_State *L, const char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
+/**
+ * table operation
+ */
+static int getfield(lua_State *L, const char *key)
+{
+   int result;
+   lua_pushstring(L, key);
+   lua_gettable(L, -2); /*get table[key] value, and pop out key*/
+   if (!lua_isnumber(L, -1)) {
+      error(L, "invalid component");
+   }
+   result = (int)lua_tonumber(L, -1) * MAX_COLOR;
+   lua_pop(L);
 
+   return result;
+} 
+     
+
+/*
+ * loading lua configuration file
+ */
 static void load(char *filename, int *width, int *height)
 {
     lua_State *L = lua_open();
