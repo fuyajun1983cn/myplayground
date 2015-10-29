@@ -41,6 +41,7 @@ evaluate defunc
 
 ** let
 create a name for a local variable
+let* : set each variable in its varlist in sequence
 
 in Emacs Lisp, scoping is dynamic, not lexical
 
@@ -71,6 +72,16 @@ nil mean an empty list or false
 *** save-excursion
 save the current location of point and mark, execute the body of
 function, and then restores point and mark.
+
+#+BEGIN_SRC emacs-lisp
+  (defun simple-beginning-of-buffer ()
+    "Move point to the beginning of buffer,
+  leave mark at previouse position"
+    (interactive)
+    (push-mark)
+    (goto-char (point-min)))
+#+END_SRC
+
 
 
 
