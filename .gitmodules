@@ -1,30 +1,24 @@
-[submodule "emacs/emacs.d/colorscheme/emacs-color-theme-solarized"]
-	path = emacs/emacs.d/colorscheme/emacs-color-theme-solarized
-	url = https://github.com/sellout/emacs-color-theme-solarized.git
-[submodule "emacs/emacs.d/colorscheme/emacs-theme-gruvbox"]
-	path = emacs/emacs.d/colorscheme/emacs-theme-gruvbox
-	url = https://github.com/greduan/emacs-theme-gruvbox.git
-[submodule "emacs/emacs.d/mode/evil"]
-	path = emacs/emacs.d/mode/evil
-	url = https://github.com/bonega/evil.git
-[submodule "emacs/emacs.d/mode/auto-complete"]
-	path = emacs/emacs.d/mode/auto-complete
-	url = https://github.com/auto-complete/auto-complete.git
-[submodule "emacs/emacs.d/mode/popup"]
-	path = emacs/emacs.d/mode/popup
-	url = https://github.com/auto-complete/popup-el.git
-[submodule "emacs/emacs.d/mode/yasnippet"]
-	path = emacs/emacs.d/mode/yasnippet
-	url = https://github.com/capitaomorte/yasnippet.git
-[submodule "emacs/emacs.d/colorscheme/airline-themes"]
-	path = emacs/emacs.d/colorscheme/airline-themes
-	url = https://github.com/AnthonyDiGirolamo/airline-themes.git
-[submodule "emacs/emacs.d/mode/powerline"]
-	path = emacs/emacs.d/mode/powerline
-	url = https://github.com/milkypostman/powerline.git
-[submodule "emacs/emacs.d/mode/markdown-mode"]
-	path = emacs/emacs.d/mode/markdown-mode
-	url = https://github.com/defunkt/markdown-mode.git
-[submodule "emacs/emacs.d/mode/auto-java-complete"]
-	path = emacs/emacs.d/mode/auto-java-complete
-	url = https://github.com/emacs-java/auto-java-complete.git
+[submodule "graphics/DirectFBTutorials"]
+	path = graphics/DirectFBTutorials
+	url = https://github.com/fuyajun1983cn/DirectFBTutorials.git
+[submodule "graphics/opengl/my-sample-engine"]
+	path = graphics/opengl/my-sample-engine
+	url = https://github.com/fuyajun1983cn/my-sample-engine.git
+[submodule "android/apps/myappdemo"]
+	path = android/apps/myappdemo
+	url = https://github.com/fuyajun1983cn/myappdemo.git
+[submodule "android/apps/bluetooth"]
+	path = android/apps/bluetooth
+	url = https://github.com/fuyajun1983cn/bluetooth.git
+[submodule "blog"]
+	path = blog
+	url = https://github.com/fuyajun1983cn/blog.git
+[submodule "android/apps/toy3d"]
+	path = android/apps/toy3d
+	url = https://github.com/fuyajun1983cn/toy3d.git
+[submodule "emacs/my_emacs.d"]
+	path = emacs/my_emacs.d
+	url = https://github.com/fuyajun1983cn/emacs.d.git
+[submodule "graphics/opengl/alfonse-gltut"]
+	path = graphics/opengl/alfonse-gltut
+	url = https://github.com/fuyajun1983cn/alfonse-gltut.git
