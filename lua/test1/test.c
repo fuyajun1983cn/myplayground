@@ -3,7 +3,9 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
-
+/**
+ * 在C中调用lua脚本
+ */
 
 int main(int argc, const char *argv[])
 {

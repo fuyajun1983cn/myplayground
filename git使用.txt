@@ -23,3 +23,12 @@ git commit -a
 
 撤销一个git提交：
 git reset --hard comm_hash_id
+
+添加子模组
+git submodule add
+https://github.com/sellout/emacs-color-theme-solarized.git
+emacs/emacs.d/colorscheme/emacs-color-theme-solarized
+
+更新并克隆子模组
+git submodule init
+git submodule update

@@ -1,0 +1,24 @@
+[submodule "graphics/DirectFBTutorials"]
+	path = graphics/DirectFBTutorials
+	url = https://github.com/fuyajun1983cn/DirectFBTutorials.git
+[submodule "graphics/opengl/my-sample-engine"]
+	path = graphics/opengl/my-sample-engine
+	url = https://github.com/fuyajun1983cn/my-sample-engine.git
+[submodule "android/apps/myappdemo"]
+	path = android/apps/myappdemo
+	url = https://github.com/fuyajun1983cn/myappdemo.git
+[submodule "android/apps/bluetooth"]
+	path = android/apps/bluetooth
+	url = https://github.com/fuyajun1983cn/bluetooth.git
+[submodule "blog"]
+	path = blog
+	url = https://github.com/fuyajun1983cn/blog.git
+[submodule "android/apps/toy3d"]
+	path = android/apps/toy3d
+	url = https://github.com/fuyajun1983cn/toy3d.git
+[submodule "emacs/my_emacs.d"]
+	path = emacs/my_emacs.d
+	url = https://github.com/fuyajun1983cn/emacs.d.git
+[submodule "graphics/opengl/alfonse-gltut"]
+	path = graphics/opengl/alfonse-gltut
+	url = https://github.com/fuyajun1983cn/alfonse-gltut.git
