@@ -22,3 +22,9 @@
 [submodule "graphics/opengl/alfonse-gltut"]
 	path = graphics/opengl/alfonse-gltut
 	url = https://github.com/fuyajun1983cn/alfonse-gltut.git
+[submodule "linux/ldd3"]
+	path = linux/ldd3
+	url = https://github.com/fuyajun1983cn/ldd3.git
+[submodule "graphics/opengl/android_opengl_programs_wharehouse"]
+	path = graphics/opengl/android_opengl_programs_wharehouse
+	url = https://github.com/fuyajun1983cn/android_opengl_programs_wharehouse.git
