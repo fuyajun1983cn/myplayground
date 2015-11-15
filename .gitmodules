@@ -12,7 +12,7 @@
 	url = https://github.com/fuyajun1983cn/bluetooth.git
 [submodule "blog"]
 	path = blog
-	url = https://github.com/fuyajun1983cn/blog.git
+	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git
 [submodule "android/apps/toy3d"]
 	path = android/apps/toy3d
 	url = https://github.com/fuyajun1983cn/toy3d.git
@@ -22,3 +22,6 @@
 [submodule "graphics/opengl/alfonse-gltut"]
 	path = graphics/opengl/alfonse-gltut
 	url = https://github.com/fuyajun1983cn/alfonse-gltut.git
+[submodule "linux/exploringBB"]
+	path = linux/exploringBB
+	url = https://github.com/derekmolloy/exploringBB.git
