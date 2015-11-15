@@ -10,9 +10,6 @@
 [submodule "android/apps/bluetooth"]
 	path = android/apps/bluetooth
 	url = https://github.com/fuyajun1983cn/bluetooth.git
-[submodule "blog"]
-	path = blog
-	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git
 [submodule "android/apps/toy3d"]
 	path = android/apps/toy3d
 	url = https://github.com/fuyajun1983cn/toy3d.git
@@ -28,3 +25,6 @@
 [submodule "linux/exploringBB"]
 	path = linux/exploringBB
 	url = https://github.com/derekmolloy/exploringBB.git
+[submodule "blog"]
+	path = blog
+	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git
