@@ -10,9 +10,6 @@
 [submodule "android/apps/bluetooth"]
 	path = android/apps/bluetooth
 	url = https://github.com/fuyajun1983cn/bluetooth.git
-[submodule "blog"]
-	path = blog
-	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git
 [submodule "android/apps/toy3d"]
 	path = android/apps/toy3d
 	url = https://github.com/fuyajun1983cn/toy3d.git
@@ -28,6 +25,12 @@
 [submodule "linux/ldd3"]
 	path = linux/ldd3
 	url = https://github.com/fuyajun1983cn/ldd3.git
+[submodule "linux/exploringBB"]
+	path = linux/exploringBB
+	url = https://github.com/derekmolloy/exploringBB.git
+[submodule "blog"]
+	path = blog
+	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git
 [submodule "graphics/opengl/android_opengl_programs_wharehouse"]
-	path = graphics/opengl/android_opengl_programs_wharehouse
-	url = https://github.com/fuyajun1983cn/android_opengl_programs_wharehouse.git
+        path = "graphics/opengl/android_opengl_programs_wharehouse"
+        url = https://github.com/fuyajun1983cn/android_opengl_programs_wharehouse.git

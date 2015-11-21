@@ -29,6 +29,11 @@ git submodule add
 https://github.com/sellout/emacs-color-theme-solarized.git
 emacs/emacs.d/colorscheme/emacs-color-theme-solarized
 
+删除子模组：
+1. 在.gitmodule删除相应信息
+2. 在.git/conf删除相应信息
+3. 删除submodule检出的路径目录下的所有文件
+
 更新并克隆子模组
 git submodule init
 git submodule update
