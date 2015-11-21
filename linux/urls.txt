@@ -1,3 +1,0 @@
-http://malideveloper.arm.com/downloads/drivers/DX910/r6p0-01rel0/DX910-SW-99006-r6p0-01rel0.tgz
-http://malideveloper.arm.com/downloads/drivers/DX910/r6p0-01rel0/DX910-SW-99002-r6p0-01rel0.tgz
-http://malideveloper.arm.com/downloads/drivers/DX910/r6p0-01rel0/DX910-SW-99003-r6p0-01rel0.tgz
