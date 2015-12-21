@@ -1,0 +1,21 @@
+
+* 链表遍历代码
+
+#+BEGIN_SRC C
+  struct fileblock *start, *cur;
+  struct fileblock **prev = &start;
+  int fd, r, size = 0;
+
+  /* buffer and stat the file */
+  fd = open(path, O_RDONLY);
+  fstat(fd, &s);
+
+  do {
+    cur = calloc(1, sizeof(struct fileblock));
+    ,*prev = cur;
+    prev = &cur->next;
+    r = read(fd, cur->data, 512);
+    if (r > 0)
+      size += r;
+   } while (r == 512);
+#+END_SRC
