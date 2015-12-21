@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="Test" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="enum_test">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/enum_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 enum_test" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="enum_test/fast">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/enum_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 enum_test/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="init_test">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/init_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 init_test" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="init_test/fast">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/init_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 init_test/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="lambda_test">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/lambda_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 lambda_test" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="lambda_test/fast">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/lambda_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 lambda_test/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="type_test">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/type_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 type_test" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="type_test/fast">
+         <Option output="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/type_test" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.8" />
+            <Add directory="/usr/include/c++/4.8/backward" />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/include/i386-linux-gnu/c++/4.8" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.8/include-fixed" />
+            <Add directory="/usr/local/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 type_test/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/语言新特性研究/enum_test.cpp">
+      </Unit>
+      <Unit filename="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/语言新特性研究/init_test.cpp">
+      </Unit>
+      <Unit filename="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/语言新特性研究/lambda_test.cpp">
+      </Unit>
+      <Unit filename="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/语言新特性研究/type_test.cpp">
+      </Unit>
+      <Unit filename="/home/fuyajun/MyPlayground/my-program-wharehouse/c++/语言新特性研究/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

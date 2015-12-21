@@ -1,5 +1,13 @@
 #include <iostream>
 #include <functional>
+#include <string>
+#include <algorithm>
+
+/**
+ * lambda expression
+ *  [capture](parameter)->return-type {body}
+ *
+ */
 
 using namespace std;
 
@@ -13,7 +21,26 @@ function<int(int,int)> returnLambda()
     };
 }
 
-int main(int argc, char *argv[])
+/*
+ * 测试结果
+ *
+
+Hello, lambda
+Hello, lambda again
+Hello, Lambda
+x: 0
+y: 77
+x: 0
+y: 78
+final y: 79
+id: 0
+id: 1
+id: 2
+42
+42
+
+*/
+void simple_lambda_test()
 {
     //simple lambda
     [] {
@@ -57,27 +84,40 @@ int main(int argc, char *argv[])
 
     auto lf = returnLambda();
     cout<<lf(6, 7)<<endl;
+}
+
+/**
+  * count how many uppercase letters a string contains.
+  *
+  */
+void count_uppercase_letters(string str)
+{
+    int Uppercase = 0;//modified by the lambda
+    const char *s = str.c_str();
+    for_each(s, s + sizeof(s), [&Uppercase] (char c) {
+        if (isupper(c)) {
+            Uppercase++;
+        }
+    });
+    cout<<Uppercase<<" uppercase letters in: "<< str<<endl;
+}
+
+/**
+ * @brief main
+ * @param argc
+ * @param argv
+ * @return
+ */
+
+int main(int argc, char *argv[])
+{
+
+  //  simple_lambda_test();
+
+    count_uppercase_letters("Hello, World");
 
     return 0;
 }
 
 
-/*
- * 测试结果
- *
- 
-Hello, lambda
-Hello, lambda again
-Hello, Lambda
-x: 0
-y: 77
-x: 0
-y: 78
-final y: 79
-id: 0
-id: 1
-id: 2
-42
-42
 
-*/
