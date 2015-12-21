@@ -1,4 +1,0 @@
-/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/CMakeFiles/enum_test.dir
-/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/CMakeFiles/init_test.dir
-/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/CMakeFiles/lambda_test.dir
-/home/fuyajun/MyPlayground/my-program-wharehouse/c++/build-语言新特性研究-Desktop-Default/CMakeFiles/type_test.dir

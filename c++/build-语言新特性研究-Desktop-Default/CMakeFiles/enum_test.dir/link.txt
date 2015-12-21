@@ -1,1 +1,0 @@
-/usr/bin/c++    -std=c++0x    CMakeFiles/enum_test.dir/enum_test.cpp.o  -o enum_test -rdynamic 

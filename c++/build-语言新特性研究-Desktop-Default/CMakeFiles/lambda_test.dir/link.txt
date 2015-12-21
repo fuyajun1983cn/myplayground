@@ -1,1 +1,0 @@
-/usr/bin/c++    -std=c++0x    CMakeFiles/lambda_test.dir/lambda_test.cpp.o  -o lambda_test -rdynamic 
