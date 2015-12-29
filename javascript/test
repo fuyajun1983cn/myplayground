@@ -1,5 +1,0 @@
-#!/bin/bash
-
-':' //; exec " command -v nodejs || command -v node " "$0"
-
-//java script代码
