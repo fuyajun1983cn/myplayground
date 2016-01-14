@@ -7,13 +7,23 @@
 
 #include "config.h"
 
-
+/* libnl 1.x compatibility code */
 #if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
+
 int main(int argc, char *argv[])
 {
   return 0;
 }
+
 #else
+
+struct nl_sock *sk;
+
+struct rtgenmsg rt_hdr = {
+  .rtgen_family = AF_UNSPEC,
+};
+
+
 /*
 
  * This function will be called for each valid netlink message received
@@ -43,19 +53,6 @@ int main(int argc, char *argv[])
 
     sk = nl_socket_alloc();
 
-
-    /*
-
-    * Notifications do not use sequence numbers, disable sequence number
-
-    * checking.
-
-    */
-
-    nl_socket_disable_seq_check(sk);
-
-
-
     /*
 
     * Define a callback function, which will be called for each notification
@@ -73,11 +70,7 @@ int main(int argc, char *argv[])
     nl_connect(sk, NETLINK_ROUTE);
 
 
-
-    /* Subscribe to link notifications group */
-
-    nl_socket_add_memberships(sk, RTNLGRP_LINK, 0);
-
+    nl_send_simple(sk, RTM_GETLINK, NLM_F_DUMP, &rt_hdr, sizeof(rt_hdr));
 
 
     /*
@@ -96,4 +89,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
 #endif
