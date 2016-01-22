@@ -2,7 +2,7 @@
 *Ubuntu内核更新
 ** 官方地址
    http://kernel.ubuntu.com/~kernel-ppa/mainline/
-** 直接下载deb包的方式安装
+** 直接通过deb包的方式安装
    1. 下载deb安装包
       #+BEGIN_SRC sh
         wget kernel.ubuntu.com/~kernel-ppa/mainline/v3.14-trusty/linux-headers-3.14.0-031400_3.14.0-031400.201403310035_all.deb
@@ -13,6 +13,18 @@
       #+BEGIN_SRC sh
         sudo dpkg -i linux-headers-3.14*.deb linux-image-3.14*.deb
       #+END_SRC
+   3. 自已编译deb安装包
+      #+BEGIN_SRC sh
+        #Build Linux Kernel 
+        sudo apt-get install kernel-package
+        cp /boot/config-`uname -r` ./.config
+        make-kpkg clean
+        sudo make-kpkg --initrd kernel_headers kernel_image
+        #Install new kernel
+        dpkp -i ../linux-headers-3.14*.deb
+        dpkg -i ../linux-image-*.deb
+      #+END_SRC
+
 
 ** 源码编译内核的基本步骤
    #+BEGIN_SRC sh
