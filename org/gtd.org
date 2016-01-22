@@ -1,0 +1,13 @@
+#+TITLE: Things That Get to Do
+#+STARTUP: hidestars
+
+* Tasks [1/6]
+- [ ] 研究emacs simple.el源代码
+   line 227
+- [X] 安装Arch Linux
+- [ ] 研究wpa_supplicant代码
+- [ ] 学习HTML5
+- [ ] 了解 Green Field 项目
+- [ ] 制作简历
+
+
