@@ -1,0 +1,10 @@
+#+TITLE: 请输入标题
+#+AUTHOR: Yajun Fu
+#+EMAIL: fuyajun1983cn AT 163 DOT com
+#+STARTUP:overview
+#+STARTUP: hidestars
+#+OPTIONS: toc:t
+* 2015
+** 2015-11 十一月
+*** 2015-11-14 星期六
+

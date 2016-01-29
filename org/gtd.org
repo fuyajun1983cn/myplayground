@@ -1,13 +1,76 @@
+#+TITLE: My GTD
+#+AUTHOR: Yajun Fu
+#+EMAIL: fuyajun1983cn AT 163 DOT com
+#+STARTUP:overview
+#+STARTUP: hidestars
+#+STARTUP: logdone
+#+PROPERTY: Effort_ALL 0:10 0:20 0:30 1:00 2:00 4:00 6:00 8:00
+#+COLUMNS: %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}
+#+OPTIONS: toc:t
+
+* Tasks [0/5]
+  :PROPERTIES:
+  :CATEGORY: Tasks
+  :END:
+
+** ☛ TODO 研究emacs源码 [0/4]
+*** ☛ TODO =simple.el= 源码研究 
+
+*** ☛ TODO =paragraphs.el= 源码研究
+
+*** ☛ TODO =loaddefs.el= 源码研究
+
+*** ☛ TODO =org.el= 源码研究
+    - 时间读取
+      1. =float-time= : 返回当前时间，也浮点数表示
+      2. =current-time= : 返回当前时间, 返回秒
+    - 文件操作
+      1. =file-truename= :如果文件名不是绝对路径，会先展开为绝对路径，
+         如果是符号链接，也跟踪到实际的文件
+      2. =file-attributes= : 返回文件的属性
+      3. =file-name-sans-extension= : 返回base name  , 如 file.x.y.z
+         --> file.x.y
+      
+   本次分析到 288行
+
+** ☛ TODO ArchLinux学习 [0/1]
+*** ☛ TODO 字符终端中文显示问题
+** ☛ TODO 博文 [0/1]
+*** ☛ TODO Linux kernel小程序快速参考 
+** ☛ TODO 扩展学习 [0/2]
+*** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
+    https://github.com/google/guice.git
+    https://github.com/google/fruit.git
+*** ☛ TODO Tool研究
+    - zsh
+    - less
+    - tmux
+    - web幻灯片 Cleaver
+** ☛ TODO 个人杂事 [0/1]
+*** ☛ TODO 简历制作 
+
+* Projects
+  :PROPERTIES:
+  :CATEGORY: Projects
+  :END:
+
+* Finicial
+  :PROPERTIES:
+  :CATEGORY: Finicial
+  :END:
+
+* Calendar
+  :PROPERTIES:
+  :CATEGORY: Calendar
+  :END:
+
+
+[[elisp:(open-encrypted-file%20"~/org/passwords.txt.bfe")][Passwords]]
+
+
+[[elisp:(open-encrypted-file%20"./personal.org.bfe")][Poersonal Affairs]]
+
+
 #+TITLE: Things That Get to Do
 #+STARTUP: hidestars
-
-* Tasks [1/6]
-- [ ] 研究emacs simple.el源代码
-   line 227
-- [X] 安装Arch Linux
-- [ ] 研究wpa_supplicant代码
-- [ ] 学习HTML5
-- [ ] 了解 Green Field 项目
-- [ ] 制作简历
-
 
