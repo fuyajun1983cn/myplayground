@@ -10,8 +10,8 @@ enum D : long { a2 = 1, b2 };  //unscoped enum with underlying type of 'long'
 int main(int argc, char *argv[])
 {
     A e = A::a;
-    B e1 = A::a
-    int x1 = A::a;
+ //   B e1 = A::a;
+//    int x1 = A::a;
 
     bool b3 = A::a <= A::b;
 

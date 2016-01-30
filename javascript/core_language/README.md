@@ -292,7 +292,45 @@
 	};
 
      
-     
-     
+* 闭包
+
+  1. 闭包不能访问外部函数的this, 除非通过变量事先保存。
+  ```javascript
+      var self = this; // Save this value in a variable for use by nested funcs.
+  ```
+  2. 闭包也不能访问外部函数的arguments,除非通过变量事先保存。
+  ```javascript
+      var outerArguments = arguments;// Save for use by nested functions
+  ```
+
+  3. It is important to remember that the scope chain associated with
+  a closure is “live.” Nested functions do not make private copies of
+  the scope or make static snapshots of the variable bindings.
+
+  ```javascript
+  // Return an array of functions that return the values 0-9
+  function constfuncs() {
+     var funcs = [];
+     for(var i = 0; i < 10; i++)
+     funcs[i] = function() { return i; };
+     return funcs;
+   }
+   var funcs = constfuncs();
+   funcs[5]() // What does this return? 10
+  ```
+  4. lexical scoping: functions are executed using the variable scope
+  that was in effect when they were defined, not the variable scope
+  that is in effect when they are invoked.
+  ```javascript
+  // This function returns a function that always returns v
+  function constfunc(v) { return function() { return v; }; }
+  // Create an array of constant functions:
+  var funcs = [];
+  for(var i = 0; i < 10; i++) funcs[i] = constfunc(i);
+  // The function at array element 5 returns the value 5.
+  funcs[5]()   // => 5
+  ```
+  5. scope chain is a list or chain of objects that defines the
+  variables that are “in scope” for that code.
 
 

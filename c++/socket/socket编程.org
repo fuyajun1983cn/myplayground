@@ -1,0 +1,411 @@
+#+TITLE: Socket编程
+#+STARTUP: hidestars
+
+
+
+* Socket介绍
+  socket是通过系统调用 =socket()= 创建的。
+  #+BEGIN_SRC c
+    fd = socket(domain, type, protocol);
+  #+END_SRC
+  
+** 通信域
+   
+*** 意义
+    - 标识一个Socket的方法
+    - 通讯的范围
+
+*** 实例
+    现代操作系统至少支持如下几种通信域：
+    1. =UNIX ( AF_UNIX )= 
+       在同一台主机上进行通信。 POSIX.1g使用 =AF_LOCAL= 做为 =AF_UNIX=
+       的同义词，不过在SUSv3中，不再使用。
+    2. =IPv4 ( AF_INET )=
+       连接到IPv4网络的主机上的两个应用程序之间的通信。
+    3. =IPv6 ( AF_INET6 )=
+       连接到IPv6网络的主机上的两个应用程序之间的通信。
+
+*** 总结
+    | 通信域   | 执行的通信    | 应用程序之间通信的方式                 | 地址格式                                  | 地址结构     |
+    |----------+---------------+----------------------------------------+-------------------------------------------+--------------|
+    | AF_UNIX  | within kernel | on same host                           | pathname                                  | sockaddr_un  |
+    | AF_INET  | via IPv4      | on hosts connected via an IPv4 network | 32-bit IPv4 address + 16-bit port number  | sockaddr_in  |
+    | AF_INET6 | via IPv6      | on hosts connected via an IPv6 network | 128-bit IPv6 address + 16-bit port number | sockaddr_in6 |
+
+** Socket系统调用  
+   主要有如下几个系统调用：
+   - =socket()=:创建一个套接字
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns file descriptor on success, or –1 on error
+       int socket(int domain , int type , int protocol );
+     #+END_SRC
+   - =bind()=:将socket绑定到某个地址
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns 0 on success, or –1 on error
+       int bind(int sockfd , const struct sockaddr * addr , socklen_t addrlen );     
+     #+END_SRC
+   - =listen=: 监听连接请求
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns 0 on success, or –1 on error
+       int listen(int sockfd , int backlog );     
+     #+END_SRC
+   - =accept=: 接受一个连接请求
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns file descriptor on success, or –1 on error
+       int accept(int sockfd , struct sockaddr * addr , socklen_t * addrlen );     
+     #+END_SRC
+   - =connect()=:与另一个套接字创建连接
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns 0 on success, or –1 on error
+       int connect(int sockfd , const struct sockaddr * addr , socklen_t addrlen );     
+     #+END_SRC
+   - =recvfrom=:接收数据报
+     #+BEGIN_SRC c
+       #include <sys/socket.h>
+       //Returns number of bytes received, 0 on EOF, or –1 on error
+       ssize_t recvfrom(int sockfd , void * buffer , size_t length , int flags ,
+       struct sockaddr * src_addr , socklen_t * addrlen );     
+     #+END_SRC
+   - =sendto=:发送数据报
+     #+BEGIN_SRC c
+       //Returns number of bytes sent, or –1 on error
+       ssize_t sendto(int sockfd , const void * buffer , size_t length , int flags ,
+       const struct sockaddr * dest_addr , socklen_t addrlen );     
+     #+END_SRC
+
+** 主要数据结构
+   - =struct sockaddr=
+     #+BEGIN_SRC c
+       struct sockaddr {
+         /* Address family (AF_* constant) */
+         sa_family_t sa_family;
+         /* Socket address (size varies
+            according to socket domain) */
+         char sa_data[14];
+       };     
+     #+END_SRC
+
+** 调用流程
+
+*** TCP
+    #+CAPTION: Overview of system calls used with stream sockets
+    [[../images/2016011501.png]]
+
+*** UDP
+    #+CAPTION: Overview of system calls used with datagram sockets
+    [[../images/2016011502.png]]
+
+* Unix Domain Socket
+
+** 相关数据结构
+   
+*** =struct sockaddr_un=
+    #+BEGIN_SRC c
+      struct sockaddr_un {
+        sa_family_t sun_family;/* Always AF_UNIX */
+        char sun_path[108];/* Null-terminated socket pathname */
+      };    
+    #+END_SRC
+
+** 需要注意的地方
+   - 不能将socket绑定到一个已经存在的路径上。
+   - 一般使用绝对路径，可以使用相对路径，但是不推荐，因为对方需要知道
+     执行 =bind= 的应用程序的当前工作目录。
+   - 一个socket可以绑定到多个路径，但是一个路径只能绑定到一个socket。
+   - 不能使用 =open= 来打开一个socket。
+   - 当socket不再需要时，可以使用 =unlink= 函数删除。
+
+** 编程实例
+
+*** TCP实例
+    #+BEGIN_SRC c :tangle us_xfr.h
+      #include <unistd.h>
+      #include <stdio.h>
+      #include <stdarg.h>
+      #include <stdlib.h>
+      #include <string.h>
+      #include <sys/un.h>
+      #include <sys/socket.h>
+      #include <errno.h>
+
+      #define SV_SOCK_PATH "/tmp/us_xfr"
+      #define BUF_SIZE 100
+
+      inline void errExit(const char *fmt, ...)
+      {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+        exit(0);
+      }
+
+      inline void errMsg(const char *fmt, ...)
+      {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+      }
+
+
+      inline void fatal(const char *fmt, ...) {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+      }
+    #+END_SRC
+
+**** tcp server
+     #+BEGIN_SRC c :tangle us_xfr_sv.c
+       #include "us_xfr.h"
+       #define BACKLOG 5
+
+       int
+       main(int argc, char *argv[])
+       {
+         struct sockaddr_un addr;
+         int sfd, cfd;
+         ssize_t numRead;
+         char buf[BUF_SIZE];
+
+         sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+         if (sfd == -1) {
+           errExit("socket");
+         }
+
+         /* Construct server socket address, bind socket to it,
+       and make this a listening socket */
+         if (remove(SV_SOCK_PATH) == -1 && errno != ENOENT)
+           errExit("remove-%s", SV_SOCK_PATH);
+
+         memset(&addr, 0, sizeof(struct sockaddr_un));
+         addr.sun_family = AF_UNIX;
+         strncpy(addr.sun_path, SV_SOCK_PATH, sizeof(addr.sun_path) - 1);
+
+         if (bind(sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1)
+           errExit("bind");
+
+         if (listen(sfd, BACKLOG) == -1)
+           errExit("listen");
+
+         for (;;) {
+           /* Accept a connection. The connection is returned on a new
+       socket, 'cfd'; the listening socket ('sfd') remains open
+       and can be used to accept further connections. */
+           cfd = accept(sfd, NULL, NULL);
+           if (cfd == -1)
+             errExit("accept");
+
+           /* Transfer data from connected socket to stdout until EOF */
+           while ((numRead = read(cfd, buf, BUF_SIZE)) > 0)
+             if (write(STDOUT_FILENO, buf, numRead) != numRead)
+               fatal("partial/failed write");
+
+           if (numRead == -1)
+             errExit("read");
+
+           if (close(cfd) == -1)
+             errMsg("close");
+         }
+       }
+     #+END_SRC
+
+**** tcp client
+     #+BEGIN_SRC c :tangle us_xfr_cl.c
+       #include "us_xfr.h"
+
+       int
+       main(int argc, char *argv[])
+       {
+         struct sockaddr_un addr;
+         int sfd;
+         ssize_t numRead;
+         char buf[BUF_SIZE];
+
+         sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+         if (sfd == -1)
+           errExit("socket");
+
+         /* Construct server address, and make the connection */
+         memset(&addr, 0, sizeof(struct sockaddr_un));
+         addr.sun_family = AF_UNIX;
+         strncpy(addr.sun_path, SV_SOCK_PATH, sizeof(addr.sun_path) - 1);
+
+         if (connect(sfd, (struct sockaddr *) &addr,
+                     sizeof(struct sockaddr_un)) == -1)
+           errExit("connect");
+
+         while ((numRead = read(STDIN_FILENO, buf, BUF_SIZE)) > 0)
+           if (write(sfd, buf, numRead) != numRead)
+             fatal("partial/failed write");
+
+         if (numRead == -1)
+           errExit("read");
+
+         exit(EXIT_SUCCESS);
+       }
+     #+END_SRC
+
+*** UDP实例
+    #+BEGIN_SRC c :tangle ud_ucase.h
+      #include <unistd.h>
+      #include <stdio.h>
+      #include <stdarg.h>
+      #include <stdlib.h>
+      #include <string.h>
+      #include <sys/un.h>
+      #include <sys/socket.h>
+      #include <ctype.h>
+      #include <errno.h>
+
+      #define SV_SOCK_PATH "/tmp/ud_ucase"
+      #define BUF_SIZE 10  /* Maximum size of messages exchanged between client to server */
+
+      inline void usageErr(const char *fmt, ...)
+      {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+        exit(0);
+      }
+
+      inline void errExit(const char *fmt, ...)
+      {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+        exit(0);
+      }
+
+      inline void errMsg(const char *fmt, ...)
+      {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+      }
+
+
+      inline void fatal(const char *fmt, ...) {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        vprintf("\n", ap);
+        va_end(ap);
+      }
+          
+    #+END_SRC
+
+**** UDP Server
+     #+BEGIN_SRC c :tangle ud_ucase_sv.c
+       #include "ud_ucase.h"
+
+       int
+       main(int argc, char *argv[])
+       {
+         struct sockaddr_un svaddr, claddr;
+         int sfd, j;
+         ssize_t numBytes;
+         socklen_t len;
+         char buf[BUF_SIZE];
+
+         sfd = socket(AF_UNIX, SOCK_DGRAM, 0);
+         if (sfd == -1)
+           errExit("socket");
+
+         /* Construct well-known address and bind server socket to it */
+
+         if (remove(SV_SOCK_PATH) == -1 && errno != ENOENT)
+           errExit("remove-%s", SV_SOCK_PATH);
+
+         memset(&svaddr, 0, sizeof(struct sockaddr_un));
+         svaddr.sun_family = AF_UNIX;
+         strncpy(svaddr.sun_path, SV_SOCK_PATH, sizeof(svaddr.sun_path) - 1);
+
+         if (bind(sfd, (struct sockaddr *) &svaddr, sizeof(struct sockaddr_un)) == -1)
+           errExit("bind");
+
+         /* Receive messages, convert to uppercase, and return to client */
+
+         for (;;) {
+           len = sizeof(struct sockaddr_un);
+           numBytes = recvfrom(sfd, buf, BUF_SIZE, 0,
+                               (struct sockaddr *) &claddr, &len);
+           if (numBytes == -1)
+             errExit("recvfrom");
+           printf("Server received %ld bytes from %s\n", (long) numBytes,
+                  claddr.sun_path);
+           for (j = 0; j < numBytes; j++)
+             buf[j] = toupper((unsigned char) buf[j]);
+           if (sendto(sfd, buf, numBytes, 0, (struct sockaddr *) &claddr, len) !=
+               numBytes)
+             fatal("sendto");
+         }
+       }
+     #+END_SRC
+
+**** UDP Client
+     #+BEGIN_SRC c :tangle ud_ucase_cl.c
+       #include "ud_ucase.h"
+
+       int
+       main(int argc, char *argv[])
+       {
+         struct sockaddr_un svaddr, claddr;
+         int sfd, j;
+         size_t msgLen;
+         ssize_t numBytes;
+         char resp[BUF_SIZE];
+
+         if (argc < 2 || strcmp(argv[1], "--help") == 0)
+           usageErr("%s msg...\n", argv[0]);
+
+         /* Create client socket; bind to unique pathname (based on PID) */
+         sfd = socket(AF_UNIX, SOCK_DGRAM, 0);
+         if (sfd == -1)
+           errExit("socket");
+
+         memset(&claddr, 0, sizeof(struct sockaddr_un));
+         claddr.sun_family = AF_UNIX;
+         snprintf(claddr.sun_path, sizeof(claddr.sun_path),
+                  "/tmp/ud_ucase_cl.%ld", (long) getpid());
+
+         if (bind(sfd, (struct sockaddr *) &claddr, sizeof(struct sockaddr_un)) == -1)
+           errExit("bind");
+
+         /* Construct address of server */
+         memset(&svaddr, 0, sizeof(struct sockaddr_un));
+         svaddr.sun_family = AF_UNIX;
+         strncpy(svaddr.sun_path, SV_SOCK_PATH, sizeof(svaddr.sun_path) - 1);
+
+         /* Send messages to server; echo responses on stdout */
+         for (j = 1; j < argc; j++) {
+           msgLen = strlen(argv[j]); /* May be longer than BUF_SIZE */
+           if (sendto(sfd, argv[j], msgLen, 0, (struct sockaddr *) &svaddr,
+                      sizeof(struct sockaddr_un)) != msgLen)
+             fatal("sendto");
+           numBytes = recvfrom(sfd, resp, BUF_SIZE, 0, NULL, NULL);
+           if (numBytes == -1)
+             errExit("recvfrom");
+           printf("Response %d: %.*s\n", j, (int) numBytes, resp);
+         }
+         remove(claddr.sun_path);  /* Remove client socket pathname */
+         exit(EXIT_SUCCESS);
+
+       }
+     #+END_SRC

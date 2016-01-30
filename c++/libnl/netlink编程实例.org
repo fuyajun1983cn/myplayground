@@ -1,0 +1,520 @@
+#+TITLE: Netlink编程实例
+#+STARTUP:hidestars
+
+* libnl 1.x兼容性代码
+  #+BEGIN_SRC c :tangle common.h
+    #ifndef __COMMON_H__
+    #define __COMMON_H__
+
+    #include <errno.h>
+    #include <stdio.h>
+    #include <string.h>
+    #include <net/if.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <stdbool.h>
+
+    #include <ctype.h>
+    #include <netlink/attr.h>
+
+    #include <netlink/genl/genl.h>
+    #include <netlink/genl/family.h>
+    #include <netlink/genl/ctrl.h>
+    #include <netlink/msg.h>
+    #include <netlink/attr.h>
+
+    #include "nl80211.h"
+    #include "ieee80211.h"
+
+    #define ETH_ALEN 6
+
+    #if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
+
+    #define nl_sock nl_handle
+
+    static inline struct nl_handle *nl_socket_alloc(void)
+    {
+            return nl_handle_alloc();
+    }
+
+    static inline void nl_socket_free(struct nl_sock *h)
+    {
+            nl_handle_destroy(h);
+    }
+
+    static inline int nl_socket_set_buffer_size(struct nl_sock *sk,
+                                                int rxbuf, int txbuf)
+    {
+            return nl_set_buffer_size(sk, rxbuf, txbuf);
+    }
+    #endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
+
+    struct nl80211_state {
+             struct nl_sock *nl_sock;
+             int nl80211_id; //family id
+           };
+
+     struct cmd {
+       uint8_t cmd;
+       int nl_flags; //netlink flags
+       int (*handler)(struct nl80211_state *state,
+                      struct nl_cb *cb,
+                      struct nl_msg *msg);
+     };
+
+    static inline void mac_addr_n2a(char *mac_addr, unsigned char *arg)
+    {
+            int i, l;
+
+            l = 0;
+            for (i = 0; i < ETH_ALEN ; i++) {
+                    if (i == 0) {
+                            sprintf(mac_addr+l, "%02x", arg[i]);
+                            l += 2;
+                    } else {
+                            sprintf(mac_addr+l, ":%02x", arg[i]);
+                            l += 3;
+                    }
+            }
+    }
+
+    static inline int mac_addr_a2n(unsigned char *mac_addr, char *arg)
+    {
+            int i;
+
+            for (i = 0; i < ETH_ALEN ; i++) {
+                    int temp;
+                    char *cp = strchr(arg, ':');
+                    if (cp) {
+                            ,*cp = 0;
+                            cp++;
+                    }
+                    if (sscanf(arg, "%x", &temp) != 1)
+                            return -1;
+                    if (temp < 0 || temp > 255)
+                            return -1;
+
+                    mac_addr[i] = temp;
+                    if (!cp)
+                            break;
+                    arg = cp;
+            }
+            if (i < ETH_ALEN - 1)
+                    return -1;
+
+            return 0;
+    }
+
+    #endif
+  #+END_SRC
+* 获取family id信息
+
+  #+BEGIN_SRC c :tangle get_family_id.c
+    #include "common.h"
+
+    int main(int argc, char *argv[])
+    {
+      int err;
+      struct nl_sock *sock = nl_socket_alloc();
+      if (!sock) {
+            fprintf(stderr, "Failed to allocate netlink socket.\n");
+            return -ENOMEM;
+      }
+      nl_socket_set_buffer_size(sock, 8192, 8192);
+
+      if (genl_connect(sock)) {
+            fprintf(stderr, "Failed to connect to generic netlink.\n");
+            err = -ENOLINK;
+            goto out_handle_destroy;
+      }
+
+      int nl80211_id = genl_ctrl_resolve(sock, "nl80211");
+      if (nl80211_id < 0) {
+            fprintf(stderr, "nl80211 not found.\n");
+            err = -ENOENT;
+            goto out_handle_destroy;
+      }
+
+      printf("NL802.11 family id: %d\n", nl80211_id);
+
+      return 0;
+
+     out_handle_destroy:
+      nl_socket_free(sock);
+      return err;
+    }
+  #+END_SRC
+
+* 获取网卡设备的编号
+
+  获取网卡设备编号的主要方式有：
+  #+BEGIN_SRC c  :tangle get_device_index.c
+    #include "common.h"
+
+    static int get_device_index1(char *name)
+    {
+      char buf[200];
+      int fd, pos;
+
+      snprintf(buf, sizeof(buf), "/sys/class/ieee80211/%s/index", name);
+      fd = open(buf, O_RDONLY);
+      if (fd < 0) {
+        printf("文件打开失败！！！\n");
+        return -1;
+      }
+      pos = read(fd, buf, sizeof(buf) - 1);
+      if (pos < 0) {
+        printf("读取文件失败!!!\n");
+        close(fd);
+        return -1;
+      }
+      buf[pos] = '\0';
+      close(fd);
+      return atoi(buf);
+    }
+
+    static int get_device_index2(const char *ifname)
+    {
+      unsigned int index = if_nametoindex(ifname);
+      if (index == 0)
+        index = -1;
+      return index;
+    }
+
+    int main(int argc, char *argv[])
+    {
+      printf(" Phy0 Index: %d\n", get_device_index1("phy0"));
+      printf(" Device Index: %d\n", get_device_index2("wlan0"));
+      return 0;
+    }
+  #+END_SRC
+
+* 发送802.11命令
+** 基本步骤
+  1. 初始化NL80211
+     #+NAME: nl80211
+     #+BEGIN_SRC c :tangle nl80211_common.c
+       #include "common.h"
+
+       
+       int nl80211_init(struct nl80211_state *state)
+       {
+               int err;
+
+               state->nl_sock = nl_socket_alloc();
+               if (!state->nl_sock) {
+                       fprintf(stderr, "Failed to allocate netlink socket.\n");
+                       return -ENOMEM;
+               }
+
+               nl_socket_set_buffer_size(state->nl_sock, 8192, 8192);
+
+               if (genl_connect(state->nl_sock)) {
+                       fprintf(stderr, "Failed to connect to generic netlink.\n");
+                       err = -ENOLINK;
+                       goto out_handle_destroy;
+               }
+
+               state->nl80211_id = genl_ctrl_resolve(state->nl_sock, "nl80211");
+               if (state->nl80211_id < 0) {
+                       fprintf(stderr, "nl80211 not found.\n");
+                       err = -ENOENT;
+                       goto out_handle_destroy;
+               }
+
+               return 0;
+
+        out_handle_destroy:
+               nl_socket_free(state->nl_sock);
+               return err;
+       }
+
+       void nl80211_cleanup(struct nl80211_state *state)
+       {
+               nl_socket_free(state->nl_sock);
+       }
+     #+END_SRC
+
+  2. 指定网络设备号
+     #+NAME: nl80211 
+     #+BEGIN_SRC c :tangle nl80211_common.c
+       static int get_device_index(const char *ifname)
+       {
+         unsigned int index = if_nametoindex(ifname);
+         if (index == 0)
+           index = -1;
+         return index;
+       }
+
+     #+END_SRC
+
+  3. 发送消息
+     #+NAME: nl80211
+     #+BEGIN_SRC c :tangle nl80211_common.c
+       static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
+                                void *arg)
+       {
+               int *ret = arg;
+               ,*ret = err->error;
+               return NL_STOP;
+       }
+
+       static int finish_handler(struct nl_msg *msg, void *arg)
+       {
+               int *ret = arg;
+               ,*ret = 0;
+               return NL_SKIP;
+       }
+
+       static int ack_handler(struct nl_msg *msg, void *arg)
+       {
+               int *ret = arg;
+               ,*ret = 0;
+               return NL_STOP;
+       }
+
+       int send_command(struct nl80211_state *state, struct cmd *cmd)
+       {
+         struct nl_cb *cb;
+         struct nl_cb *s_cb;
+         struct nl_msg *msg;
+         int err;
+
+         msg = nlmsg_alloc();
+         if (!msg) {
+           fprintf(stderr, "failed to allocate netlink message\n");
+           return 2;
+         }
+         #if _DEBUG
+         cb = nl_cb_alloc(NL_CB_DEBUG);
+         s_cb = nl_cb_alloc(NL_CB_DEBUG);
+         #else
+         cb = nl_cb_alloc(NL_CB_DEFAULT);
+         s_cb = nl_cb_alloc(NL_CB_DEFAULT);
+         #endif
+         if (!cb || !s_cb) {
+           fprintf(stderr, "failed to allocate netlink callbacks\n");
+           err = 2;
+           goto out_free_msg;
+         }
+
+         /*
+          
+           void* genlmsg_put(
+                            struct nl_msg *         msg,
+                            uint32_t        port,
+                            uint32_t        seq,
+                            int     family,
+                            int     hdrlen,
+                            int     flags,
+                            uint8_t         cmd,
+                            uint8_t         version 
+           )     
+           Parameters
+           msg     Netlink message object
+           port    Netlink port or NL_AUTO_PORT
+           seq     Sequence number of message or NL_AUTO_SEQ
+           family  Numeric family identifier
+           hdrlen  Length of user header
+           flags   Additional Netlink message flags (optional)
+           cmd     Numeric command identifier
+           version Interface version
+         ,*/
+         genlmsg_put(msg, 0, 0, state->nl80211_id, 0,
+                           cmd->nl_flags, cmd->cmd, 0);
+
+
+         NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, get_device_index("wlan0"));
+
+         err = cmd->handler(state, cb, msg);
+         if (err)
+           goto out;
+
+         nl_socket_set_cb(state->nl_sock, s_cb);
+         err = nl_send_auto_complete(state->nl_sock, msg);
+         if (err < 0)
+           goto out;
+
+         err = 1;
+
+         nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+         nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
+         nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+
+         while (err > 0) {
+           nl_recvmsgs(state->nl_sock, cb);
+         }
+
+        out:
+         nl_cb_put(cb);
+        out_free_msg:
+         nlmsg_free(msg);
+         return err;
+        nla_put_failure:
+         fprintf(stderr, "building message failed\n");
+         return 2;
+       }
+     #+END_SRC
+** 扫描命令
+   #+BEGIN_SRC c :tangle scan_test.c
+
+     #include "common.h"
+     extern int nl80211_init(struct nl80211_state *state);
+     extern void nl80211_cleanup(struct nl80211_state *state);
+     extern int get_device_index(const char *);
+
+     static int prepare_scan_req(struct nl80211_state *state, struct nl_cb *cb, struct nl_msg *msg)
+     {
+       struct nl_msg *ssids = NULL;
+       struct nl_msg *freqs = NULL;
+
+       int err = -ENOBUFS;
+       int flags = 0;
+
+       ssids = nlmsg_alloc();
+       if (!ssids) {
+         return -ENOMEM;
+       }
+
+       freqs = nlmsg_alloc();
+       if (!freqs) {
+         nlmsg_free(ssids);
+         return -ENOMEM;
+       }
+
+       //Freq 5220 MHz
+       NLA_PUT_U32(freqs, 0, 5220);
+       //SSID
+       //NLA_PUT(ssids, 1, strlen("MiBox_5G"), "MiBox_5G");
+       NLA_PUT(ssids, 1, 0, "");
+
+       //主动扫描
+       nla_put_nested(msg, NL80211_ATTR_SCAN_SSIDS, ssids);
+
+       //扫描指定的频率
+       nla_put_nested(msg, NL80211_ATTR_SCAN_FREQUENCIES, freqs);
+
+       //设置扫描标记
+       flags |= NL80211_SCAN_FLAG_FLUSH;
+       NLA_PUT_U32(msg, NL80211_ATTR_SCAN_FLAGS, flags);
+
+       err = 0;
+
+     nla_put_failure:
+       nlmsg_free(ssids);
+       nlmsg_free(freqs);
+       return err;
+     }
+
+     static struct cmd scan_req = {
+       .cmd = NL80211_CMD_TRIGGER_SCAN,
+       .nl_flags = 0,
+       .handler = prepare_scan_req,
+     };
+
+     static int print_bss_handler(struct nl_msg *msg, void *arg)
+     {
+       struct nlattr *tb[NL80211_ATTR_MAX + 1];
+       struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+       struct nlattr *bss[NL80211_BSS_MAX + 1];
+       char mac_addr[20], dev[20];
+       static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
+             [NL80211_BSS_TSF] = { .type = NLA_U64 },
+             [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
+             [NL80211_BSS_BSSID] = { },
+             [NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
+             [NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
+             [NL80211_BSS_INFORMATION_ELEMENTS] = { },
+             [NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
+             [NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
+             [NL80211_BSS_STATUS] = { .type = NLA_U32 },
+             [NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
+             [NL80211_BSS_BEACON_IES] = { },
+       };
+
+       nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+                       genlmsg_attrlen(gnlh, 0), NULL);
+
+       if (!tb[NL80211_ATTR_BSS]) {
+         fprintf(stderr, "bss info missing!\n");
+         return NL_SKIP;
+       }
+
+       if (nla_parse_nested(bss, NL80211_BSS_MAX,
+                            tb[NL80211_ATTR_BSS],
+                            bss_policy)) {
+         fprintf(stderr, "failed to parse nested attributes!\n");
+         return NL_SKIP;
+       }
+
+       if (!bss[NL80211_BSS_BSSID])
+         return NL_SKIP;
+
+       mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
+       printf("BSS %s", mac_addr);
+       if (tb[NL80211_ATTR_IFINDEX]) {
+         if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
+         printf("(on %s)", dev);
+       }
+
+       if (bss[NL80211_BSS_STATUS]) {
+         switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
+           case NL80211_BSS_STATUS_AUTHENTICATED:
+             printf(" -- authenticated");
+             break;
+           case NL80211_BSS_STATUS_ASSOCIATED:
+             printf(" -- associated");
+             break;
+           case NL80211_BSS_STATUS_IBSS_JOINED:
+             printf(" -- joined");
+             break;
+           default:
+             printf(" -- unknown status: %d",
+                     nla_get_u32(bss[NL80211_BSS_STATUS]));
+             break;
+           }
+        }
+        printf("\n");
+
+        return NL_SKIP;
+     }
+
+     static int prepare_scan_result_req(struct nl80211_state *state, struct nl_cb *cb, struct nl_msg *msg)
+     {
+       nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_bss_handler,
+                 NULL);
+     }
+
+     static struct cmd scan_result_req = {
+       .cmd = NL80211_CMD_GET_SCAN,
+       .nl_flags = 0,
+       .handler = prepare_scan_result_req,
+     };
+
+     static void send_scan_request(struct nl80211_state *nlstate)
+     {
+       send_command(nlstate, &scan_req);
+     }
+
+     static void get_scan_results(struct nl80211_state *nlstate)
+     {
+       send_command(nlstate, &scan_result_req);
+     }
+
+     int main(int argc, char *argv[])
+     {
+       struct nl80211_state nlstate;
+       int err;
+
+       err = nl80211_init(&nlstate);
+       if (err)
+         return 1;
+
+       send_scan_request(&nlstate);
+       get_scan_results(&nlstate);
+       nl80211_cleanup(&nlstate);
+       return err;
+     }
+   #+END_SRC

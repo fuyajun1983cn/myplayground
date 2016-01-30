@@ -25,9 +25,6 @@
 [submodule "linux/ldd3"]
 	path = linux/ldd3
 	url = https://github.com/fuyajun1983cn/ldd3.git
-[submodule "linux/exploringBB"]
-	path = linux/exploringBB
-	url = https://github.com/derekmolloy/exploringBB.git
 [submodule "blog"]
 	path = blog
 	url = https://github.com/fuyajun1983cn/fuyajun1983cn.github.io.git

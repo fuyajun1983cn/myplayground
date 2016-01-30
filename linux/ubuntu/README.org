@@ -1,0 +1,43 @@
+
+*Ubuntu内核更新
+** 官方地址
+   http://kernel.ubuntu.com/~kernel-ppa/mainline/
+** 直接通过deb包的方式安装
+   1. 下载deb安装包
+      #+BEGIN_SRC sh
+        wget kernel.ubuntu.com/~kernel-ppa/mainline/v3.14-trusty/linux-headers-3.14.0-031400_3.14.0-031400.201403310035_all.deb
+        wget kernel.ubuntu.com/~kernel-ppa/mainline/v3.14-trusty/linux-headers-3.14.0-031400-generic_3.14.0-031400.201403310035_i386.deb
+        wget kernel.ubuntu.com/~kernel-ppa/mainline/v3.14-trusty/linux-image-3.14.0-031400-generic_3.14.0-031400.201403310035_i386.deb
+      #+END_SRC
+   2. 安装
+      #+BEGIN_SRC sh
+        sudo dpkg -i linux-headers-3.14*.deb linux-image-3.14*.deb
+      #+END_SRC
+   3. 自已编译deb安装包
+      #+BEGIN_SRC sh
+        #Build Linux Kernel 
+        sudo apt-get install kernel-package
+        cp /boot/config-`uname -r` ./.config
+        make-kpkg clean
+        sudo make-kpkg --initrd kernel_headers kernel_image
+        #Install new kernel
+        dpkp -i ../linux-headers-3.14*.deb
+        dpkg -i ../linux-image-*.deb
+      #+END_SRC
+
+
+** 源码编译内核的基本步骤
+   #+BEGIN_SRC sh
+     #下载图形库
+     apt-get install libncurses-dev
+     #选择配置，生成.config文件
+     make menuconfig
+     #编译代码
+     make
+     #编译模块
+     make modules
+     #安装模块
+     make modules_install
+     #安装内核
+     make install
+   #+END_SRC

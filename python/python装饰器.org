@@ -1,0 +1,22 @@
+
+
+* Property装饰器的使用
+
+  #+BEGIN_SRC python
+    class Person:
+        def __init__(self, first, last):
+            self.first = first
+            self.last = last
+
+        @property
+        def full_name(self):
+            return '{} {}'.format(self.first, self.last)
+
+    p = Person('Yajun', 'Fu')
+    print(p.full_name)
+  #+END_SRC
+
+  #+RESULTS:
+  : None
+
+

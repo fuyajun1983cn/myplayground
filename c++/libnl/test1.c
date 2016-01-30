@@ -5,8 +5,15 @@
 #include <netlink/socket.h>
 #include <netlink/msg.h>
 
+#include "config.h"
 
 
+#if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
+int main(int argc, char *argv[])
+{
+  return 0;
+}
+#else
 /*
 
  * This function will be called for each valid netlink message received
@@ -89,3 +96,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif

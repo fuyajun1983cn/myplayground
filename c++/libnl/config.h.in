@@ -1,0 +1,4 @@
+#cmakedefine CONFIG_LIBNL20
+#cmakedefine CONFIG_LIBNL30
+
+#define _DEBUG @DEBUG@
