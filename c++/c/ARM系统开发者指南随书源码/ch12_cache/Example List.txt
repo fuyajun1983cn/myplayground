@@ -1,0 +1,10 @@
+Example 12.1 cacheTest.c
+Example 12.2 flushcache.s
+Example 12.3 cleancachebyway.s
+Example 12.4 cleancachebytest.s
+Example 12.5 cleancachexscale.s
+Example 12.6 cleanflushcacheregion.s
+Example 12.7 lockcachebyway.s
+Example 12.8 lockcachebyLbit.s
+Example 12.9 lockcachebyregion.s
+ 
