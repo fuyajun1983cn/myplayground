@@ -1,0 +1,399 @@
+#+TITLE: C++11编程
+#+STARTUP: overveiw
+#+STARTUP: hidestars align fold nodlcheck oddeven lognotestate
+#+STARTUP: logdone
+
+* Compiler support for C++11 (June 2014)
+
+** LLVM/clang++
+
+     Feature complete (Version 3.4). Useful error messages. Fast
+     compilation. Generated binaries competitive with others. Own
+     STL : libc++.
+
+** GCC/g++
+
+     Complete (Version 4.9). Mature code base. Own STL : libstdc++.
+
+* C++语法
+
+** C++ namespace
+
+     #+BEGIN_SRC cpp :tangle namespace.cpp
+       #include <iostream>
+       namespace UnitedKingdom
+       {
+         std::string London{"Big city"};
+       }
+       namespace UnitedStates
+       {
+         namespace KY {
+           std::string London{" in Kentucky"};
+         }
+         namespace OH {
+           std::string London{" in Ohio"};
+         }
+       }
+       int main()
+       {
+         namespace USOH=UnitedStates::OH;
+         std::cout<<"London is"<<USOH::London<<'\n';
+       }
+     #+END_SRC
+
+** The C++11 uniform initialisation syntax
+
+     Use this {} initialisation syntax when possible.
+
+     #+BEGIN_SRC cpp 
+       int I{20};
+       // define integer I and set it to 20
+       string nat{"Germany"};
+       // define and initialise a string
+       double a[4]{1.,22.1,19.3,14.1};
+       // arrays have the same syntax
+       tuple<int,int,double> x{0,0,3.14};
+       // So do tuples
+       list<string> L{"abc","def","ghi"};
+       // and lists, and ...
+       double m=0.5;
+       // this is also fine for simple
+       // variables
+       int i{}; // i=0
+       int j{5.0}; // Error! Narrowing!
+       int k=5.3; // OK. But k=5!
+     #+END_SRC
+
+** Use auto and decltype when possible
+
+     the keyword =decltype= can be used to say "some type as that one"
+
+     #+BEGIN_SRC cpp :tangle vardecl.cpp
+       #include <iostream>
+
+       int sqr(int x)
+       {
+         return x*x;
+       }
+       int main()
+       {
+         char oldchoice,choice='y';
+         int i=20;
+         double electron_mass = 0.511;
+         int mes[6]{33,22,34,0,89,3};
+         bool flag = true;
+         double *p = nullptr;
+         decltype(i) j=9;
+         auto positron_mass = electron_mass;
+         auto f = sqr;
+         //Sure, we could have written...
+         //int (*f)(int)=&sqr;
+         //but you see the point!
+         std::cout << f(j) << '\n';
+       }
+     #+END_SRC
+
+** C++ standard library strings
+
+*** Character strings
+
+**** 特点
+
+         - String of characters
+         - Knows its size
+         - Allocates and frees memory as needed
+         - No need to worry about \0
+         - Can contain \0 in the middle
+         - Simple syntax for assignment(=),  concatenation(+),
+           comparison (<,==,>)
+
+**** 测试例子
+
+        #+BEGIN_SRC cpp  :tangle stingtest.cpp
+          #include <iostream>
+          #include <string>
+
+          int main(int argc, char *argv[])
+          {
+            std::string fullname;
+            std:string name("Albert");
+            std::string surname{"Einstein"};
+
+            //Concatenation and assignment
+            fullname=name+" "+surname;
+
+            //comparison
+            if (name == "Godzillar")
+              std::cout<<"Do Something"<<std::endl;
+          }
+        #+END_SRC
+
+*** Raw string literals
+    
+**** Raw string literals
+
+         - Can contain line breaks, ’\’ characters without escaping them
+         - Very useful with regular expressions
+         - Starts with R"( and ends with )"
+         - More general form R"delim( text )delim"
+
+**** 示例
+
+         #+BEGIN_SRC cpp
+           // Instead of ...
+           string message{"The tag \"\\maketitle\" is unexpected here."};
+           // You can write ...
+           string message{R"(The tag "\maketitle" is unexpected here.)"};
+         #+END_SRC
+
+*** Converting to and from strings
+    
+**** 说明
+
+         - The standard library =string= class provides functions to
+           inter-convert with variables of type *int*, *double*.
+         - Akin to atoi,strtod and using sprintf
+
+**** 示例
+
+         #+BEGIN_SRC cpp
+           std::cout << "integer: " << std::to_sting(i) << '\n';
+           tot += std::atod(line); //String-to-double
+         #+END_SRC
+
+** Range based for loops
+
+**** 语法特性
+
+         - "Syntactic sugar" from C++11
+         - Iteration over elements of a collection
+         - Use on strings, arrays, STL lists, maps ...
+         - collections which provide a =begin()= and =end()= functions
+         - or which work well with global =begin()= and =end()= functions.
+
+**** 示例
+
+         #+BEGIN_SRC cpp
+           // Instead of ...
+           //for (size_t i=0;i<fullname.size();++i) {
+           // if (fullname[i]>’j’) blah+=fullname[i];
+           //}
+           // you could write ...
+           for (auto c : fullname) if (c>’j’) blah+=c;
+           // Loop over a linked list ...
+           std::list<double> L{0.5,0.633,0.389,0.34,0.01};
+           for (auto d : L ) {
+             std::cout << d << ’\n’;
+           }
+
+           // Loop over a small list of names ...
+           for (auto day : { "Monday", "Tuesday", "Wednesday","Thursday","Friday"}) {
+             std::cout << day << ’\n’;
+           }
+           // or a list of non contiguous integers ...
+           for (auto i : { 1,1,2,3,5,8,13,21 }) {
+             std::cout << Recs[i] << ’\n’;
+           }
+         #+END_SRC
+
+** The =constexpr= keyword
+      
+*** 语法特点
+
+       - =constexpr= is used to declare that something is possible to
+         evaluate at compile time
+       - Compiler can optimize more, because of compile time evaluations
+       - Non-trivial calculations can be done at compile time using
+         =constexpr=
+       - Things of type =constexpr= can be array sizes
+
+*** 示例
+
+        #+BEGIN_SRC cpp
+          constexpr double b=13.2;
+          constexpr double r=1.08;
+          constexpr double a=6*r*r*r*r-5*r*2*b;
+          constexpr unsigned fact(unsigned N)
+          {
+            return N<2?1:N*fact(N-1);
+          }
+          int f()
+          {
+            int indexes[fact(4)];
+          }
+        #+END_SRC
+
+** Enumerations
+     
+*** 语法特点
+
+        - C++11 supports scoped enumerators called =enum class=
+        - Must always be fully qualified when used: traffic_light::red
+          etc.
+        - No automatic conversion to int
+        - Plain enumerations =enum= are also supported.
+
+*** 示例
+
+        #+BEGIN_SRC cpp
+          enum class color { red, green, blue };
+          enum class traffic_light {
+          red,yellow,green
+          };
+          bool should_brake(traffic_light c);
+          if (should_brake(blue)) apply_brakes();
+          //Syntax error!
+          if (state==traffic_light::yellow) ...; 
+        #+END_SRC
+
+** Reference
+
+*** normal reference
+
+      - A fixed pointer with nicer syntax
+      - Use to pass arguments to functions which are supposed to modify
+        them
+      - Use references when copying the type is expensive
+      - Use =const= references to ensure that the function does not
+        modify objects it accesses by reference
+
+*** R-value references and move symantics
+
+       - Sometimes we want to be able to use references on "nameless"
+         objects.
+       -
+
+** C++ templates
+** C++ classes
+
+*** Big Five
+
+        - Default constructor
+        - Copy constructor
+        - Move constructor
+        - Assignment operator
+        - Move assignment operator
+
+*** 示例
+
+**** 自定义 
+     
+     #+BEGIN_SRC cpp
+       class cnumber {
+       public:
+         cnumber(double x, double y) : re{x}, im{y} {}
+         cnumber() = default;
+         cnumber(const cnumber &) = default;
+         cnumber(cnumber &&) = default;
+         cnumber & operator=(const cnumber &) = default;
+         cnumber & operator=(cnumber &) = default;
+       };
+     #+END_SRC
+
+**** disable一些构造函数
+
+     #+BEGIN_SRC cpp
+       class darray {
+         darray() = delete;
+         darray(const cnumber &) = delete;
+         darray(cnumber &&) = default;
+         darray & operator=(const cnumber &) = delete;
+         darray & operator=(cnumber &) = default;
+       };
+     #+END_SRC
+
+** Run-time error handling
+
+*** When there is nothing reasonable to return
+
+       #+BEGIN_SRC cpp
+         class myexception : public std::exception {
+         double x;
+         public:
+           myexception(double vl) : x(vl) {}
+           const char * what() const noexcept {
+             std::string msg=("bad parameter value ")+
+               std::to_string(x);
+             return msg.c_str();
+           }
+         };
+         double f(double x)
+         {
+           double answer=1;
+           if (x>=0 and x<10) {
+             while (x>0) {
+               answer*=x;
+               x-=1;
+             }
+           } else {
+             throw(myexception(x));
+           }
+           return answer;
+         }
+
+         try {
+           std::cout<<"Enter start point : ";
+           std::cin >> x;
+           std::cout<<"The result is "
+                    <<f(x)<<’\n’;
+          } catch (myexception ex) {
+           std::cerr<<ex.what()<<’\n’;
+         }
+       #+END_SRC
+
+** Compile time assertions
+
+*** 语法
+
+       - Prints the second argument as an error message if the first
+         argument evaluates to false.
+       - Express assumptions clearly, so that the compiler notifies
+         you when they are violated.
+
+*** 示例
+
+       #+BEGIN_SRC cpp
+         double advance(unsigned long L)
+         {
+           static_assert(sizeof(L)>=8,"long type must be at least 8 bytes)");
+           //Bit manipulation assuming "long" is at least 8 bytes
+         }
+       #+END_SRC
+
+** Lambda
+
+*** 语法
+
+       [capture](arguments)mutable−>return_type{body}
+       - 例子
+         - [ ](int a, int b)->bool{return a>b;}
+         - [=](int a)->bool{return a>somevar;}
+         - [&](int a){somevar += a;}
+         - [=,&somevar](int a){somevar+=max(a,othervar);}
+         - [a,&b]{f(a,b);}
+       - The optional keyword =mutable= allows variables captured by
+         value to be changed inside the lambda function
+       - The return type is optional if there is one return statement
+       - Function arguments field is optional if empty
+
+*** capture
+
+       [] Capture nothing
+       [=] Capture all by value (copy)
+       [=,&x] Capture all by value, except x by reference
+       [&] Capture all by reference
+       [&,x] Capture all by reference, except x by value
+
+       - A lambda with empty capture brackets is like a local
+         function, and can be assigned to a regular function
+         pointer. It is not aware of identifiers defined previously in
+         its context
+       - When you use a variable defined outside the lambda in the
+         lambda, you have to capture it
+
+
+
+
+
+
+
