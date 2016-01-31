@@ -1,0 +1,100 @@
+
+* 主要API速览   
+- =cfg80211_register== 
+  这个必须在 =regsiter_netdevice()= 之前调用   
+- =cfg80211_connect_result=
+- =cfg80211_disconnected=
+- =cfg80211_get_chandef_type=
+- =cfg80211_chandef_create=
+- =cfg80211_get_bss=
+- =cfg80211_put_bss=
+- =cfg80211_inform_bss=
+- =cfg80211_inform_bss_frame=
+- =cfg80211_find_ie=
+- =cfg80211_find_vendor_ie=
+- =cfg80211_tdls_oper_request=
+- =cfg80211_scan_done=
+- =cfg80211_rx_mgmt=
+- =cfg80211_rx_action=
+- =cfg80211_action_tx_status=
+- =cfg80211_new_sta=
+  当关联成功后，会调用此接口通知上层。
+- =cfg80211_del_sta=
+  当Deauth或Diassoc后，会调用些接口。
+- =cfg80211_michael_mic_failure=
+- =cfg80211_roamed=
+- =cfg80211_report_obss_beacon=
+- =cfg80211_ibss_joined=
+- =cfg80211_ready_on_channel=
+- =cfg80211_remain_on_channel_expired=
+
+* 主要数据结构速览  
+- =struct cfg80211_chan_def=
+- =struct cfg80211_scan_request=
+- =struct cfg80211_ibss_params=
+- =struct cfg80211_connect_params=
+- =struct cfg80211_pmksa=
+- =struct cfg80211_gtk_rekey_data=
+- =struct cfg80211_mgmt_tx_params=
+- =struct cfg80211_ap_settings=
+- =struct cfg80211_beacon_data=
+- =struct cfg80211_bitrate_mask=
+- =struct cfg80211_ops=
+  TODO:  change_station 何时会调用 
+- =struct cfg80211_bss=
+- =struct cfg80211_crypto_settings=
+
+* 主要流程
+** 数据结构
+   - =struct wiphy=
+     wireless hardware description
+   - =wireless_dev=
+     wireless device state
+
+** 设备注册    
+- =wiphy_new=  
+  Allocate wiphy and hook cfg80211 ops
+- =wiphy_register=  
+  Register the wiphy to cfg80211. Do sanity checking , set up
+  regulatory info according to the wiphy info and so on.
+- =wiphy_free=  
+  Free the allocated wiphy
+- =wiphy_unregister=  
+  Unregister the wiphy.
+
+在注册 =netdev= 之前进行，主要包含硬件的一些能力信息：
+1. bands and channels
+2. bitrates per band
+3. HT capabilites
+4. supported interface modes
+netdev结构的 =ieee80211 ptr= 指针指向注册的 =wiphy= 对象 。
+
+** regulatory enforcement  
+   Channel使用信息, 管制
+
+** station management  
+   添加，移除和修改STA。
+   Dump STA列表
+   主要的回调接口：
+   - =.add_ station=
+   - =.del_station=
+   - =.change_station=
+   - =.get_station=
+   - =.dump_station=
+
+** mesh management
+   mesh路径处理
+   读取或设置mesh参数 
+
+** virtual interface management
+   - 创建虚拟接口和移除虚拟接口
+   - 改变虚拟接口的类型
+   - 改变 =monitor= 标记
+   - 跟踪与无线设备关联的接口
+
+
+
+* 几个主要数据结构之间的关系   
+  [[./images/2016/2016012801.png]]
+
+

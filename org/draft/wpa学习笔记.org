@@ -1,0 +1,20 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 基本介绍
+     WPA（Wi-Fi Protected Access）是IEEE 802.11i的一个子集，主要有如下一些特征：
+     1. WPA支持Infrastructure模式下的两种认证的密钥管理协议： 
+        - 802.1X with pre-shared key
+        - 802.1X with EAP
+        WPA不支持IBSS模式下的使用。
+     2. 当使用WPA时，AP和STA必须使用IEEE 802.11开放认证系统。
+     3. 使用TKIP加密协议。
+     4. WPA对管理帧和控制帧不执行数据完整性校验。
+     5. WPA不支持pre-authentication来进行快速切换。
+
+     #+CAPTION: Configuration Options and Expected System Behavior
+     [[./images/2015/2015122801.png]]
+
+     

@@ -1,0 +1,26 @@
+#+TITLE: 802.11i学习笔记
+#+STARTUP: overview
+#+STARTUP: hidestars
+
+
+* 参考书籍 [fn:1]
+** 主要知识点
+*** 主要的安全问题
+      - 数据加密
+      - 防范攻击
+      - 需要设计合适的安全协议
+      - 安全思维的6大原则：
+	- Don't talk to anyone you don't know.
+	   需要确认对方身份。
+	- Accept nothing without a guarantee.
+	   确认消息没有被篡改。
+	- Treat everyone as an enemy until proved otherwise.
+	- Don't trust your friends for long.
+	- Use well-tried solutions.
+	- Watch the ground(the pile of assumptions) you are standing on for cracks.
+      - 术语
+	- key entropy： 负熵（指选定的特殊符号所产生的信息的数值量度）
+	- Authentication: 包含用户认证（确认对方的身份）和数据认证（确认接收的数据没有被篡改）。
+	- Authorization: 允许对方访问（在Authentication后）
+          
+

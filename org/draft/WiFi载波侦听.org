@@ -1,0 +1,123 @@
+#+TITLE: WiFi载波侦听机制
+#+AUTHOR: 付亚军
+#+EMAIL: fuyajun1983cn@163.com
+#+DATA: 2015-12-16
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 载波侦听
+
+    载波侦听，即Carrier Sense, 是现代Wi-Fi网络的重要组成部分。 Wi-Fi是
+    一种多重访问链路，这意味着它是被共享的，与传统的点到点的通信相比，
+    协议设计与架构上差异很大。另外，对无线媒介的访问是随机的，且这种随
+    机性是分散到整个网络上的。Wi-Fi并没有使用某种控制机制（如令牌）来
+    指定某个工作站去传输数据。
+
+    载波侦听是网络操作和效率的一个核心部分。802.11 Wi-Fi是基于CSMA/CA，
+    而802.3 Ehternet是基于CSMA/CD。 两者都需要进行CS，以检测网络媒介是否处
+    于空闲或忙碌状态。区别在于检测方式的不同。 对于Ethernet来说，当通
+    过CSMA/CD检测到网络媒介空闲时，那么可以肯定当前是可以进行数据传输
+    的，而对于Wi-Fi，通过CSMA/CA机制检测到网络媒介空闲时，只能判断当前
+    也许可以进行数据传输。
+
+* Wi-Fi载波侦听
+
+    Wi-Fi载波侦听由两个独立且不同的功能组成:
+    1. Clear Channel Assessment(CCA)
+    2. Network Allocation Vector (NAV)
+
+    CCA是一种物理载波侦听机制，它侦听无线网卡上的接收到的能量（功率）。
+    而NAV是一种虚拟载波侦听机制，主要被STA用来预订媒介访问时间。 这个
+    时间主要用于紧接着当前帧之后必须传输的帧。 
+
+    CCA与NAV的区别在于： CCA是主要侦测传输当前帧时，媒介是否处于忙碌状
+    态，而NAV主要是为传输当前帧之后的一些帧预订媒介使用时间。
+
+** Clear Channel Assessment
+
+     CCA被定义在IEEE 802.11-2007标准中，作为PMD和PLCP层的一个组成部分。
+     具体如下图所示：
+     
+     #+CAPTION: IEEE Reference Mode 
+     [[./images/2015/2015121601.jpg]]
+
+     CCA是由两个部分组成：载波侦听(CS)和能量检测(Energy Detection,
+     ED)。 
+
+*** Carrier sense
+
+       载波侦听是指接收方可以侦测和解码收到的Wi-Fi信号的前导码
+       (preamble)。 而且，当另一个Wi-Fi信号前导码检测到时，CCA必须报告
+       当前媒介状态为BUSY状态，并保持BUSY状态，时间长度为接收到的帧的
+       PLCP =Lengh= 域所指定的时间。 通常情况下，任何接收到的Wi-Fi帧，只
+       要它的PLCP头部字段可以被解析出来，都会导致CCA在传输该帧所需要时
+       间内报告媒介为BUSY状态。 
+
+       PLCP头部的 =Length= 域表示传输完整帧的MPDU负载（DSSS）所需要毫
+       秒数，或 携带在MPDU负载（OFDM）中的字节数，该字节数与 =Rate= 域
+       （识别负载所使用的调制方法）一起决定了MPDU传输所需要的时间。不
+       管使用哪种方法， =Length= 或 =Rate+Length= 域提供了接收者所需的
+       信息，以解调(de-modulate)帧并决定媒介将会忙碌多长时间。 
+
+       对于DSSS物理层，PLCP帧头部信息如下：
+
+       [[./images/2015/2015121602.jpg]]
+
+       *Note*: PLCP头部以固定的速率编码，以便接收方可以解码出正
+       确信息。 DSSS PLCP以1 Mbps速率传输，DSSS Short Preamble以2 Mbps
+       速率传输，OFDM则是以 6 Mbps速率传输。MPDU负载则以一个可变速率编
+       码，速率信息包含在 =SIGNAL/RATE= 域。 
+
+*** Energy detection (ED)
+
+        ED是指接收方基于noise floor,  ambient energy, 干涉源和不可识别
+        的Wi-Fi传输（数据被破坏，无法解码）等信息来侦测当前信道（频率
+        范围）的非Wi-Fi能量的等级（level）。 与载波侦听主要用于决定媒
+        介还会忙碌多长时间不同，ED必须对媒介的每个时隙进行采样以判断报
+        告的能量等级是否足以认为媒介是忙碌状态还是空闲状态。 这个能量
+        等级通常称为 =ED 阀值= 或 =CCA 灵敏度等级= .  一般通过载波侦听
+        解码出来的合法的Wi-Fi信号使用的 =ED阀值= 比非法的Wi-Fi信号的
+        =ED阀值= 要低些。 例如, 对大部分Wi-Fi物理层，noise的 =ED阀值=
+        必须比对应的Wi-Fi信号的 =ED阀值= 要大20 dB。 
+
+** Network Allocation Vector(NAV)
+
+       CCA主要是判断传送当前帧时，媒介是否处于BUSY状态。而NAV则是在当
+       前帧已经获得媒介访问权的情况下，为接下来的一些重要帧预订媒介继
+       续使用的时间。
+
+       NAV信息携带在802.11 MAC头部的 =Duration= 域，是MPDU负载的一部
+       分，并且是以可变速率编码的。 因此，并不是区域内所有的STA都能对
+       MPDU进行解码，因为可能SNR不够。但是，区域内所有的STA仍然能够通
+       过解码CCA机制中使用的PLCP头部信息，来判断当前媒介的使用情况。
+       由于NAV保护的关键帧使用较短的帧间间隔（如SIFS）， 这些帧仍然能
+       够先于其他STA获取媒介的使用权去传送。 并且，STA也会通过CCA载波侦听检测
+       到媒介的BUSY状态。但是，通过NAV预订媒介使用时间来保证关键帧传输不
+       被打断的保护机制就不起作用了。 
+
+       STA通过解码802.11头部信息，把 =Duration= 值取出来，并用它标记
+       媒介繁忙的时间。所以，发送方必须严格按照802.11规范中定义的规则
+       来计算NAV的值。STA（包括AP）不能预订超出规范允许的NAV值，一直
+       占用媒介。
+
+
+The following sections in the IEEE 802.11-2007 standard:
+
+PLCP Header Format in DSSS 15.2.2
+PLCP Header Format in HR-DSSS 18.2.2
+PLCP Header Format in ERP 19.3.2 (Can actually use any of the other 3 formats, depending on the situation)
+PLCP Header Format in OFDM 17.3.2
+PLCP Header Format in HT 20.3.2 (Found in the 802.11n amendment, not 802.11-2007)
+
+CCA Sensitivity in DSSS 15.4.8.4
+CCA Sensitivity in HR-DSSS 18.4.8.4
+CCA Sensitivity in ERP 19.3.5
+CCA Sensitivity in OFDM 17.3.10.5
+CCA Sensitivity in HT 20.3.22.5 (Found in the 802.11n amendment, not 802.11-2007)
+
+NAV 9.2.5.4 through 9.2.5.6, and 9.2.11
+   
+       

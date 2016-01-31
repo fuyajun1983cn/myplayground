@@ -1,0 +1,238 @@
+-*- coding: chinese-gbk-dos -*-
+#+TITLE: [802.11n  A.Survival.Guide(2012.4)].Matthew.Gast学习笔记
+#+AUTHOR: Yajun Fu
+#+EMAIL: yajun.fu AT 163 DOT com
+#+STARTUP: overview
+#+STAR速度TUP: hidestars
+#+OPTIONS: toc:t
+
+* 主要知识点  
+
+** 传输速度  
+   1. 一般实际的吞吐量是理论值的一半。
+   2. 802.11b, 最高传输速率是11Mbps， 实际吞吐率是5-6Mbps。
+   3. 802.11a/g, 最高传输速率是54Mbps, 实际吞吐率是25-30Mbps。
+
+** 802.11n的改进目标
+
+   1. 增加协议的效率，避免传输速率的提升受到协议开销的拖累。
+   2. 把事情做对比快速做出来更重要。
+   3. 传统的802.11a/b/g，链路层和物理层是独立的，改进速度多半认为是物 理层的一个任务。而改进的方法就是让信号传输更快。
+   4. 802.11n的一个技术基础就是使用了MIMO技术。在通信过程中，多径效 应1限制了传输带宽或传输速率。
+   5. 在MIMO系统中，发射器和接收器可以复用多个路径。每个路径获得不同的 数据集, 不易受到多径效应的影响 。
+   6. 使用40MHz频宽，但与其他非802.11的设备存在干扰，所以一般2.4GHz的 频段一般会禁用40MHz的频宽。
+   7. 增加效率的方法是：frame aggregation。
+   8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备 来讲，算是一个需要考量的缺点。
+
+** 物理层
+
+   1. 如何加快网络速度？
+      - 增加传输速率, 使用MIMO技术，可达150Mbps，最高可达600Mbps。
+      - 增加协议的效率，即单位时间内传输更多的数据。
+   2. MIMO
+      - 在MIMO系统中，所在天线都是同时活跃。
+   3. 提高速度
+      - 保留了20MHz的频道，但是增加了802.11a/g中未用到的子载波。
+      - 支持在40MHz的频道。
+      - 802.11有许多选项一起决定了数据传输速率
+      - 对于采用单天线的802.11n的设备，数据传输速率会得到一点提升，因 为802.11的每个信道会携带更多的subcarriers。
+      - Beamforming, 波束，可以定向传输信号， 主要是对接收方有利。
+
+** Mac层
+   
+   1. 基础
+      - 帧的大小稍微比802.11的数据帧大些。
+      - 管理帧包含了HT能力信息的元素，来表明它是一个802.11n的网络。
+      - 设备在发送数据包的过程中，需要包含HT IE信息来表明它是一个 802.11n的设备。同时，根据AP发送过来的Beacon帧的信息，来判断AP 是否支持802.11n网络。
+      - 802.11n定义了两种类型的帧：（A-MPDU）和（A-MSDU） 采用聚合帧是
+        为了把时间尽量用在传输上。另外，也需要考虑一点，就是聚合帧的大
+        小设置要合理，不能 影响小的高优先级帧。
+        - *A-MPDU*：Aggregate MAC Protocol Data Unit
+          
+          这是一种更常见的聚合帧形式，它的大小主要由PLCP限制，可以长达
+          65535字节。 每个放到聚合帧中的子帧都包含自己的MAC头和FCS，相
+          当于每个子帧都是一个独立的MAC帧。
+
+        - *A-MSDU*：Aggregate MAC Service Data Unit， take several
+          higher-layer packets and build them into a single MAC frame
+          payload.
+
+          这种聚合帧的做法是：在数据传输到物理层前，先把多个高层的数据
+          包打包成一个MAC帧。这种聚合帧从形式上看就是只有一个
+          MAC 帧。这种帧需要更多的软件上的支持，因为网络驱动必须将多个
+          高层数据包整合成单个的MAC帧的负载。
+
+          另外，这两个聚合帧可以联合使用，如A-MPDU的子帧可以是一个A-MSDU聚合帧。
+
+      - Block Acknowledgment (BA) 
+
+        802.11n接收端可以选择向包含在一个聚合中的某个帧发送一个ACK，还
+        不用向里面的每个帧都发送ACK。
+
+      - 保护机制  
+
+        802.11n设备在准备发送数据前，先发送CTS-to-Self，以便旧的设备能
+        够回避访问媒介时间。
+
+        如果检测到旧式设备，会启动RTS-CTS或CTS-to-self保护机制。
+
+        有如下的一些保护规则：
+        1. 无保护
+
+           当周围的设备都是802.11n设备时，无需进行保护措施，这种情况比
+           较少见。
+
+        2. Non-member 保护
+
+           当需要在一个网络中保护其他非802.11n设备，以阻止连接上该网络
+           上的802.11n设备的数据传输。
+
+        3. 20 MHz保护模式
+
+           种模式只针对20/40 MHz的网络，当需要在这两种带宽动态变换时。
+
+        4. Non-HT保护模式
+
+      - Security
+        
+        802.11n禁用了TKIP和WEP，使用CCMP，802.11a/b/g设备仍然允许使用
+        TKIP，一些认证过的11n设备也实现了TKIP和WEP，但是禁止它们使用
+        11n的速率。
+
+      - Clear Channel Assessment(CCA)
+
+        在准备传输数据之前，802.11n设备需要执行一个CCA，来判断当前信道是否空闲
+
+      - 省电
+
+** 频道，成帧和编码
+
+   1. 频道结构和布局
+      
+      - 频道结构与802.11a/g类似，基于OFDM，将无线信道分成若干个子负载，且想互之间正交。
+
+      - 与802.11a/g使用相同的调制和编号方案。
+
+   2. 增加无线频谱的使用
+
+      - 保留了802.11之前标准的20MHz频道，但通过增加子负载来改进频谱效率。
+
+      - 增加了4个子负载，而无需额外增加Pilot子负载。
+
+      - Pilot子负载用于频道测量和校准，是一种开销，就像MIMO增强数据 传输的效率一数, 它增强了Pilot负载操作的效率。
+
+      - 支持40Mhz的信道上操作
+
+   3. 传输:Modulation & Guard Interval
+
+      - 当一个帧传输时，有两点需要一致：
+
+        1. 发送端选择Modulation Rate和Coding，即描述怎样将数据 转变成无线电波。
+
+        2. 发送端必须选择一个Guard Interval, 802.11n需要更短的Guard
+           Interval。
+
+** 与互操作性相关的高级物理层特性
+
+** 与性能相关的高级物理层特性
+
+   802.11n由于使用了MIMO技术，从而加快了数据传输速率。 不仅如此， 在
+   一些更高级的无线芯片中，可以从MIMO天线阵列中往特定方向传输数据， 这
+   个过程称之为："beamforming" 或 BF。
+
+   - Beamforming
+
+     将无线电波能量集中于某一个方向，主要是有助于接收方更好的接收 数据，
+     对于发送方，则没有额外的好处。
+
+     1) 隐式Beamforming 
+
+       implicit beamforming devices do not use any frame exchanges
+        that are dedicated to  beamforming. Instead, devices estimate the beamforming
+       matrix from received frames, or by inference from frames(ACKs or data
+       on pilot channels) that are lost.
+
+     2) 显式Beamforming
+
+        Before transmitting, a device actively measures the channel,
+        and uses the measurement to compute the steering matrix
+        directly.
+
+        Active channel measurement: transmitting a sounding frame to
+        the beamformee, which replies with a frame that indicates how
+        the sounding frame was received. By comparing the known
+        contents of the sounding frame to a representation of its
+        contents at the receiver, the beamformer can compute the 
+        steering matrix. downside: a device must be able to send
+        channel measurements back to the beamformer.
+
+   - 影响BF性能的因素
+
+     - Channel Sounding Quality
+
+       - Including accuracy of channel estimation, compression loss of sounding feedback.
+
+       - While SNR is low, the BF performance will degrade.
+
+     - The Accuracy of Calibration (for iBF).
+
+       - iBF need extra calibration to make sure that the reciprocal assumption of baseband equivalent channel is hold.
+
+       - if calibration is failed, the steering matrix is decided
+         based on wrong channel information.
+
+   - Space-Time Block Coding (STBC)
+
+     当无线链路数量超过空中流的数目时，可以使用STBC。
+
+   - Low-Density Parity Check (LDPC) 
+
+     在802.11 关联过程中，会协商是否传递LDPC编码的帧，如果对端在
+     Beacon或Association Request帧中表明了支持LDPC，则802.11n设备只 会
+     传输LDPC编码的帧。
+
+** MU-MIMO (Multi-User MIMO) VS SU-MIMO
+
+   在同样一个时间点，可以同时向多个user传数据。
+
+   - Complexity
+     - SU: AP and STA have same/similar complexity (same number of RF chains)
+     - MU: AP has higher cost /complexity, STA has lower
+       cost/complexity
+   - Spectra Efficiency
+     - SU: serve only one station at a time. Spectral efficiency is lower
+     - MU: serve multiple stations simultaneously with higher sepctral
+       efficiency.
+   - Signal Overhead
+     - SU: higher overhead.
+     - MU: lower overhead
+   - BF matrix calculation
+     - SU: Performed in STA
+     - MU: Performed in AP, need to collect channel of all users.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+*  MLME总体分析
+
+* MLME主循环处理
+     MLME的主循环处理函数是:  =MlmeHandler= 
+     
+** 消息入队和出队接口
+    主要是通过 调用  =MlmeEnqueue= 和 =MlmeDequeue= 来将消息添加或从队
+    列中删除。
+    
+** 重要函数
+   
+*** MlmeEnqueueForRecv
+    This function is used when Recv gets a MLME message
+
+* MLME状态机
+
+** AP状态机
+
+*** AP_AUTH state machine
+     Handle authentication/de-authentication packets
+
+*** AP_ASSOC state machine 
+    Handle association/re-association/disassociation packets
+
+*** AP_SYNC state machine 
+    Handle beacon or scan behavior
+
+** STA状态机
+   
+*** CTNL
+    CNTL sends messages to other state machine to trigger actions
+    Control STA connection behavior
+
+*** SYNC
+    Handle scan or join BSS behavior
+
+*** AUTH
+    Handle authentication packets
+
+*** ASSOC 
+    Handle association/re-associate/disassociation packets
+
+
+

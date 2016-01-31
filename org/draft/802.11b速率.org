@@ -1,0 +1,41 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* 802.11b 速率 
+    802.11b 支持的速率有: 1Mbps, 2Mbps, 5.5Mbps以及11Mbps,但是这些速率
+    是如何计算出来的呢?
+** 802.11b速l率是如何计算出来的 
+
+    The different data rates have different chipping methods, with 1
+    and 2 Mbps using the Barker code and 5.5 and 11 using CCK. To
+    calculate the total throughput, you have relate chipping method to
+    the bits each data rate sends along with the symbol rate
+    (modulation symbol changes per second) they use. Both run at 11
+    Mchips/s so the symbol rates look like this:
+
+    Barker Code - 11 chip code
+
+    Symbol Rate = 11,000,000 / 11 = 1 Msps
+
+    CCK - 8 chip code
+
+    Symbol Rate = 11,000,000 / 8 = 1.375 Msps
+
+    Then you take the Number of Bits each rate transmits and multiply
+    is by the symbol rate:
+
+    1 Mbps = 1 bit x 1 Msps
+
+    2 Mbps = 2 bits x 1 Msps
+
+    5.5 Mbps = 4 bits x 1.375 Msps
+
+    11 Mbps = 8 bits x 1.375 Msps
+
+    The key here is that the symbol rate is only different between the
+    code types, not the data rates themselves. It's those extra bits
+    being sent over the same rate.

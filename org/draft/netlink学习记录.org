@@ -1,0 +1,569 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* netlink要点记录
+
+** netlink与IOCTL的对比
+    1. 都是用户空间与内核空间进行通信的一种方式。
+    2. IOCTL不能从内核空间发送异步消息到用户空间。
+    3. netlink支持内核空间与用户空间的双向通信。
+
+** netlink家族
+    netlink是一种基于socket的进程间通信协议，基于RFC3549. 它提供了用户
+    空间与内核空间以及内核模块之间的通信机制。netlink协议的主要实现文
+    件位于 =net/netlink= 目录下，主要包含有如下4个重要文件：
+    - =af_netlink.c=
+    - =af_netlink.h=
+    - =genetlink.c=
+    - =diag.c=
+    比较重要的模块主要有：
+    1. =af_netlink= : netlink kernel socket.
+    2. =genetlink= : a new generic netlink API to easily create
+       netlink messages.
+    3. =diag= : provides an API to dump and to get information about
+       the netlink sockets. 
+    可以通过 =socket()= 系统调用创建 =netlink socket= ， 类型可为：
+    =SOCK_RAW= , =SOCK_DGRAM= . 从内核空间也可以创建 =netlink socket=,
+    可以使用 =netlink_kernel_create()= 接口。不管是从用户空间创建
+    =netlink socket= 还是从内核空间创建 =netlink socket=, 最终都会调用
+    =__netlink_create()= . 
+
+    #+CAPTION: Creating a netlink socket in the kernel and in userspace
+    [[./images/2016/2016010401.png]]
+
+*** Netlink Socket库
+
+       一般使用 =libnl= 库来开发 =netlink socket= 相关的用户空间程序。
+       =libnl= 库提供了一组API来访问基于 netlink protocol 的Linux接口。
+       它主要包含如下几个库：
+       - libnl core library
+       - libnl-genl: generic netlink family
+       - libnl-route: routing family
+       - libnl-nf: netfilter family.
+
+*** =sockaddr_nl= 结构
+       该数据结构代表一个netlink socket地址。
+       #+BEGIN_SRC c
+         struct sockaddr_nl {
+           __kernel_sa_family_t nl_family; /* AF_NETLINK */
+           unsigned short nl_pad; /* zero */
+           __u32 nl_pid; /* port ID */
+           __u32 nl_groups; /* multicast groups mask */
+         };
+       #+END_SRC
+
+       数据结构说明：
+       1. =nl_family= : 该值总是为 =AF_NETLINK= 。
+       2. =nl_pad= : 该值总是为0.
+       3. =nl_pid= : 一个netlink socket的单播地址，对于内核netlink
+          socket，该值为0. 用户空间的netlink socket，通常是该进程的PID。
+       4. =nl_groups= : The multicast group(or multicast group mask)
+
+*** Kernel Netlink Socket
+       在内核网络协议栈中，创建了一些不同的netlink socket，分别处理不
+       同类型的消息。 例如处理 =NETLINK_ROUTE= ，初始化代码如下：
+       #+BEGIN_SRC c
+         static int __net_init rtnetlink_net_init(struct net *net) {
+           ...
+           struct netlink_kernel_cfg cfg = {
+             .groups = RTNLGRP_MAX,
+             .input = rtnetlink_rcv,
+             .cb_mutex = &rtnl_mutex,
+             .flags = NL_CFG_F_NONROOT_RECV,
+           };
+           sk = netlink_kernel_create(net, NETLINK_ROUTE, &cfg);
+           ...
+         }
+       #+END_SRC
+
+       socket创建时，会使用 =struct netlink_kernel_cfg= 数据结构：
+       #+BEGIN_SRC c
+         struct netlink_kernel_cfg {
+           unsigned int groups;
+           unsigned int flags;
+           void (*input)(struct sk_buff *skb);
+           struct mutex *cb_mutex;
+           void (*bind)(int group);
+         };
+         (include/uapi/linux/netlink.h)
+       #+END_SRC
+
+       数据结构说明如下：
+       - =groups= : 用于指定多播组或掩码。可以使用
+         =NETLINK_ADD_MEMBERSHIP/ NETLINK_DROP_MEMBERSHIP= socket选项
+         加入/离开一个多播组。 =libnl= 库提供了两个接口分别设置上述两
+         个标记：
+         =nl_socket_add_memberships()/nl_socket_drop_membership()= 。 
+       - =flags= : 值可以为： =NL_CFG_F_NONROOT_RECV= or
+         =NL_CFG_F_NONROOT_SEND= . 
+         当设置了 =CFG_F_NONROOT_RECV= , 非root用户可以绑定到一个多播
+         组：
+         #+BEGIN_SRC c
+           static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+           int addr_len)
+           {
+             ...
+             if (nladdr->nl_groups) {
+               if (!netlink_capable(sock, NL_CFG_F_NONROOT_RECV))
+                 return -EPERM;
+             }
+         #+END_SRC
+       - =input= : 一个回调函数，当为NULL时，内核socket将不会收到来自
+         用户空间的数据。
+       - =cb_mutex= : 可选的，可以不用定义，使用默认的 =cb_def_mutex= 
+
+       =netlink_kernel_create= 会通过 =netlink_insert()= 方法向
+       =nl_table= 中插入一个项。 =nl_lookup= 用于查询一个表项。
+
+*** 注册一个 =netlink socket= 
+       以 =rtnl_register= 方法为例子。 
+       #+BEGIN_SRC c
+         extern void rtnl_register(int protocol, int msgtype,
+                                   rtnl_doit_func,
+                                   rtnl_dumpit_func,
+                                   rtnl_calcit_func);
+       #+END_SRC
+       - =protocol= : protocol类型定义在include/linux/socket.h
+       - netlink消息类型： =RTM_NEWLINK= or =RTM_NEWNEIGH=
+       - =doit= : addition/deletion/modification回调函数。
+       - =dumpit= : 检索信息
+       - =calcit= : 计算buffer的大小。 
+
+       =rtnetlink= 模块有一个表名为: =rtnl_msg_handlers= . 该表通过协
+         议号索引。 表中的每一项本身也是一个表，通过消息类型索引。表中
+         的每个元素为一个 =rtnl_link= 实例，该结构刚好包含了这三个回调
+         函数。
+         #+CAPTION:  =__rtnl_register= 源码
+         #+BEGIN_SRC c
+           int __rtnl_register(int protocol, int msgtype,
+                               rtnl_doit_func doit, rtnl_dumpit_func dumpit,
+                               rtnl_calcit_func calcit)
+           {
+                   struct rtnl_link *tab;
+                   int msgindex;
+
+                   BUG_ON(protocol < 0 || protocol > RTNL_FAMILY_MAX);
+                   msgindex = rtm_msgindex(msgtype);
+
+                   tab = rtnl_msg_handlers[protocol];
+                   if (tab == NULL) {
+                           tab = kcalloc(RTM_NR_MSGTYPES, sizeof(*tab), GFP_KERNEL);
+                           if (tab == NULL)
+                                   return -ENOBUFS;
+
+                           rtnl_msg_handlers[protocol] = tab;
+                   }
+
+                   if (doit)
+                           tab[msgindex].doit = doit;
+
+                   if (dumpit)
+                           tab[msgindex].dumpit = dumpit;
+
+                   if (calcit)
+                           tab[msgindex].calcit = calcit;
+
+                   return 0;
+           }         
+         #+END_SRC
+
+*** 发送一个 =netlink socket= 消息
+       rtnetlink消息是通过 =rtmsg_ifinfo()= 发送的。 
+       #+CAPTION: Sending of rtnelink messages with the rtmsg_ifinfo() method
+       [[./images/2016/2016010402.png]]
+
+       - =nlmsg_net()= 分配一个 =sk_buffer= 对象
+       - =rtnl_fill_ifinfo()= 填充要发送的数据信息
+       - =rt_nl_notify()= 通过 =nlmsg_notify()= 发送消息。
+
+*** Netlink的消息格式
+
+       #+BEGIN_SRC c
+         struct nlmsghdr
+         {
+           __u32 nlmsg_len;
+           __u16 nlmsg_type;
+           __u16 nlmsg_flags;
+           __u32 nlmsg_seq;
+           __u32 nlmsg_pid;
+         };
+         (include/uapi/linux/netlink.h)
+       #+END_SRC
+
+       - =nlmsg_len= : 消息长度（包含头部）
+       - =nlmsg_type= : 消息类型， 主要包含如下4种基本的消息类型：
+         1. =NLMSG_NOOP=: 无操作，消息会被丢弃。
+         2. =NLMSG_ERROR= : 有错误发生。
+         3. =NLMSG_DONE= : 分段消息已经发送完成。
+         4. =NLMSG_OVERRUN= ：错误，数据丢失。
+            
+         此外，还可以自定义一些消息类型，消息类型值小于
+         =NLMSG_MIN_TYPE (0x10)= 会保留为控制消息使用。
+       - =nlmsg_flags= : 可为如下一些值：
+         - =NLM_F_REQUEST=
+         - =NLM_F_MULTI=
+         - =NLM_F_ACK=
+         - =NLM_F_DUMP=
+         - =NLM_F_ROOT=
+         - =NLM_F_MATCH=
+         - =NLM_F_ATOMIC= : This flag is deprecated.
+         - =LM_F_REPLACE= : Override existing entry
+         - =NLM_F_EXCL= : Do not touch entry, if it exists
+         - =NLM_F_CREATE= :  Create entry, if it does not exist.
+         - =NLM_F_APPEND= : Add entry to end of list.
+         - =NLM_F_ECHO= : Echo this request.
+       - =nlmsg_seq= : 消息序列号。
+       - =nlmsg_pid= : 发送方的 port id。 
+
+     头部消息之后紧跟着负载，负载是由一系列TLV格式包装的属性构成。
+     #+BEGIN_SRC c
+       struct nlattr {
+         __u16 nla_len;
+         __u16 nla_type;
+       };
+       (include/uapi/linux/netlink.h)
+     #+END_SRC
+     - =nla_len= : 属性值的大小
+     - =nla_type= : 主要有 =NLA_U32= , =NLA_STRING= , =NLA_NESTED= ,
+       =NLA_UNSPEC=, 可用类型的列表： include/net/netlink.h
+
+     每个netlink家族也会定义一个属性验证策略，用数据结构 =struct
+     nla_policy= 表示：
+     #+BEGIN_SRC c
+       struct nla_policy {
+         u16 type;
+         u16 len;
+       };
+       (include/uapi/linux/netlink.h)
+     #+END_SRC
+     - 当 =nla_policy= 的 =len= 值为0， 则不需要做任何验证。
+     - 对于 =NLA_STRING= 类型的属性， =len= 值为字符串的最大长度，不
+       包含未尾的NULL结束符。
+     - 对于 =NLA_UNSPEC= 类型的属性， =len= 值为负载的长度。
+     - 对于 =NLA_FLAG= 类型的属性， =len= 值未使用。
+
+** Generic Netlink协议
+
+     =netlink协议= 的一大缺点是： 协议家族的数量限制为32个(MAX_LINKS)。
+     为了支持更多的协议家族，创建了 =netlink= ， 它是一个 =netlink复用
+     器= , 家族名称为 =NETLINK_GENERIC= 。可以在 =generic netlink= 之
+     上添加新的 =netlink家族= 。 
+     =generic netlink socket= 本身的初始化（注册）如下：
+     #+BEGIN_SRC c
+       static int __net_init genl_pernet_init(struct net *net) {
+         ..
+         struct netlink_kernel_cfg cfg = {
+           .input = genl_rcv,
+           .cb_mutex = &genl_mutex,
+           .flags = NL_CFG_F_NONROOT_RECV,
+         };
+         net->genl_sock = netlink_kernel_create(net, NETLINK_GENERIC, &cfg);
+         ...
+       }
+       (net/netlink/genetlink.c)
+     #+END_SRC
+     从用户空间发往内核的 =generic netlink socket= 的消息将会由
+     =genl_rcv= 来接收和处理。 
+
+*** Generic Netlink Family
+        内核中使用 =generic netlink socket=  ， 步骤如下：
+        1. Create a =genl_family= object and register it by calling =genl_register_family()=.
+        2. Create a =genl_ops= object and register it by calling =genl_register_ops()=.
+        上述两步可以通过 =genl_register_family_with_ops()= 一步完成。 
+
+        #+CAPTION: Genl Family and Ops注册相关数据结构
+        [[./images/2016/2016010404.png]]
+
+        例如， 802.11使用 =generic netlink socket= 注册相关的处理函数：
+        #+BEGIN_SRC c
+          int nl80211_init(void)
+          {
+            int err;
+            err = genl_register_family_with_ops(&nl80211_fam,
+                                                nl80211_ops, ARRAY_SIZE(nl80211_ops));
+            ...
+          }
+          (net/wireless/nl80211.c)
+        #+END_SRC
+
+        nl80211相关定义如下：
+        #+BEGIN_SRC c
+          static struct genl_family nl80211_fam = {
+            .id = GENL_ID_GENERATE, /* don't bother with a hardcoded ID */
+            .name = "nl80211", /* have users key off the name instead */
+            .hdrsize = 0, /* no private header */
+            .version = 1, /* no particular meaning now */
+            .maxattr = NL80211_ATTR_MAX,
+            .netnsok = true,
+            .pre_doit = nl80211_pre_doit,
+            .post_doit = nl80211_post_doit,
+          };      
+        #+END_SRC
+        - =name= : 唯一的名称
+        - =id= : 动态申请 16 (GENL_MIN_ID, which is 0x10) to 1023 (GENL_MAX_ID).
+        - =hdrsize= : 私有头部的大小。
+        - =maxattr= : 所支持的属性的最大值： =NL80211_ATTR_MAX=
+        - =netnsok= : 该家族是否可以处理网络空间。
+        - =pre_doit= : 调用 =doit()= 前的一个钩子函数。
+        - =post_doit= : 调用 =doit()= 后的一个钩子函数。 
+
+        定义相关的命令：
+        #+BEGIN_SRC c
+          struct genl_ops {
+            u8 cmd;
+            u8 internal_flags;
+            unsigned int flags;
+            const struct nla_policy *policy;
+            int (*doit)(struct sk_buff *skb,struct genl_info *info);
+            int (*dumpit)(struct sk_buff *skb,
+                          struct netlink_callback *cb);
+            int (*done)(struct netlink_callback *cb);
+            struct list_head ops_list;
+          };      
+        #+END_SRC
+        - =cmd= : 命令标识。
+        - =internal_flags= : 家族定义的一些私有标记。
+        - =flags= : 操作标记。
+          - =GENL_ADMIN_PERM= : 当设置了该标记，表明该操作需要
+            =CAP_NET_ADMIN= 权限。
+          - =GENL_CMD_CAP_DO= : 当设置了该标记， 表明 =genl_ops= 结构实
+            现了 =doit()= 回调函数。
+          - =GENL_CMD_CAP_DUMP= : 当设置了该标记，表明 =genl_ops= 结构实
+            现了 =dumpit()=回调函数。
+          - =GENL_CMD_CAP_HASPOL= : 当设置了该标记， 表明 =genl_ops= 结
+            构定义了属性验证策略(nla_policy数组)。
+        - =policy= : 属性验证策略。
+        - =doit= : 标准的命令回调函数。
+        - =dumpit= : dump的回调函数。
+        - =done= : Completion callback for dumps
+        - =ops_list= : 操作列表 。
+          #+BEGIN_SRC c
+            static struct genl_ops nl80211_ops[] = {
+            {
+              ...
+              {
+                .cmd = NL80211_CMD_GET_SCAN,
+                .policy = nl80211_policy,
+                .dumpit = nl80211_dump_scan,
+              },
+              ...
+            }        
+          #+END_SRC
+
+**** 一个示例
+        注册一个Generic Netlink Family可以细分为4个步骤：
+        1. 定义Family
+           这步需要定义一个 =genl_family= 结构体实例。
+           #+BEGIN_SRC c
+             /* attributes */
+              enum {
+                    DOC_EXMPL_A_UNSPEC,
+                    DOC_EXMPL_A_MSG,
+                    __DOC_EXMPL_A_MAX,
+              };
+              #define DOC_EXMPL_A_MAX (__DOC_EXMPL_A_MAX - 1)
+              /* attribute policy */
+              static struct nla_policy doc_exmpl_genl_policy[DOC_EXMPL_A_MAX + 1] = {
+                    [DOC_EXMPL_A_MSG] = { .type = NLA_NUL_STRING },
+              };
+              /* family definition */
+              static struct genl_family doc_exmpl_gnl_family = {
+                    .id = GENL_ID_GENERATE,
+                    .hdrsize = 0,
+                    .name = "DOC_EXMPL",
+                    .version = 1,
+                    .maxattr = DOC_EXMPL_A_MAX,
+              };           
+           #+END_SRC
+           
+        2. 定义操作
+           创建一个 =genl_ops= 结构体实例。
+           #+BEGIN_SRC c
+              /* handler */
+              static int doc_exmpl_echo(struct sk_buff *skb, struct genl_info *info)
+              {
+                    /* message handling code goes here; return 0 on success, negative
+                     ,* values on failure */
+              }
+              /* commands */
+              enum {
+                    DOC_EXMPL_C_UNSPEC,
+                    DOC_EXMPL_C_ECHO,
+                    __DOC_EXMPL_C_MAX,
+              };
+              #define DOC_EXMPL_C_MAX (__DOC_EXMPL_C_MAX - 1)
+              /* operation definition */
+              static struct genl_ops doc_exmpl_gnl_ops_echo = {
+                    .cmd = DOC_EXMPL_C_ECHO,
+                    .flags = 0,
+                    .policy = doc_exmpl_genl_policy,
+                    .doit = doc_exmpl_echo,
+                    .dumpit = NULL,
+              };           
+           #+END_SRC
+
+           通过Generic Netlink发送 =DOC_EXMPL_C_ECHO= 消息都会最终通过
+           =doc_exmpl_echo= 函数处理。
+        3. 注册Family
+           通过 =genl_register_family= 注册Family:
+           #+BEGIN_SRC c
+             int rc;
+              rc = genl_register_family(&doc_exmpl_gnl_family);
+              if (rc != 0)
+                  goto failure;           
+           #+END_SRC
+           当不再需要时，也有必要进行注销操作，避免浪费内核资源。
+        4. 注册操作。
+           通过 =genl_register_ops= 注册操作：
+           #+BEGIN_SRC c
+             int rc;
+              rc = genl_register_ops(&doc_exmpl_gnl_family, &doc_exmpl_gnl_ops_echo);
+              if (rc != 0)
+                  goto failure;           
+           #+END_SRC
+
+*** 创建和发送 =Generic Netlink消息= 
+**** =Generic Header=
+       [[./images/2016/2016010403.png]]
+       其中 =genlmsghdr= 定义如下：
+       #+BEGIN_SRC c
+         struct genlmsghdr {
+           __u8 cmd;
+           __u8 version;
+           __u16 reserved;
+         };
+         (include/uapi/linux/genetlink.h)       
+       #+END_SRC
+
+       - =cmd= : 一种 =generic netlink= 消息类型，每个家族都会定义自己
+         的命令。
+       - =version= : 提供版本支持。
+       - =reserved= : 保留为后续使用。
+
+      分配一个 =generic netlink buffer= ：
+      #+BEGIN_SRC c
+        sk_buff *genlmsg_new(size_t payload, gfp_t flags)      
+      #+END_SRC
+
+      发送单播消息： =genlmsg_unicast()= . 
+      发送多播消息： =genlmsg_multicast()= , 发送多播消息到默认的网络
+      命令空间(net_init). =genlmsg_multicast_allns()= , 发送多播消息到
+      所有的网络命令空间。
+
+      在用户空间可以调用如下接口创建一个 =generic netlink socket= ， 
+      #+BEGIN_SRC c
+        socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);      
+      #+END_SRC
+**** 发送消息
+      发送一个Generic Netlink消息主要分为三步：
+      1. 创建 一个Buffer存储消息。
+         #+BEGIN_SRC c
+           struct sk_buff *skb;
+            skb = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+            if (skb == NULL)
+                goto failure;         
+         #+END_SRC
+         当事先不知道要分配多大空间时，可以传入 =NLMSG_GOODSIZE= ， 另
+         外， =genlmsg_new()= 会自动加上  Netlink和 Generic Netlink的
+         空间。
+      2. 创建消息实例。
+
+         #+BEGIN_SRC c
+            int rc;
+            void *msg_head;
+            /* create the message headers */
+            msg_head = genlmsg_put(skb, pid, seq, type, 0, flags, DOC_EXMPL_C_ECHO, 1);
+            if (msg_head == NULL) {
+                rc = -ENOMEM;
+                goto failure;
+            }
+            /* add a DOC_EXMPL_A_MSG attribute */
+            rc = nla_put_string(skb, DOC_EXMPL_A_MSG, "Generic Netlink Rocks");
+            if (rc != 0)
+                goto failure;
+            /* finalize the message */
+            genlmsg_end(skb, msg_head);
+         #+END_SRC
+         
+      3. 发送消息。
+
+         #+BEGIN_SRC c
+           int rc;
+            rc = genlmsg_unicast(skb, pid);
+            if (rc != 0)
+                goto failure;         
+         #+END_SRC
+      
+
+*** libnl-genl库
+      使用该库，可以通过 =genl_connect()= 创建一个本地的socket文件描
+      述符，并将socket绑定到 =NETLINK_GENERIC= netlink协议 。
+
+      用户空间通过 =libnl-genl= 发送一条消息的流程如下：
+      1. 创建Socket： state->nl_sock = nl_socket_alloc()
+      2. 创建 =NETLINK_GENERIC= 类型的socket，并调用 =bind()= ： genl_connect(state->nl_sock)
+      3. 解析该 netlink family name对应的family id:
+         genl_ctrl_resolve(state->nl_sock, "nl80211");
+
+*** 使用建议
+       1. make use of the Netlink attributes wherever possible.
+          - *scalar values* :  Most scalar values already have
+            well-defined attribute types; see section 4 for details.
+          - *structures* :  Structures can be represented using a nested
+            attribute with the structure fields represented as
+            attributes in the payload of the container attribute.
+          - *arrays* : Arrays can be represented by using a single
+            nested attribute as a container with several of the same
+            attribute type inside each representing a spot in the
+            array.
+       2. use unique attributes as much as possible.
+       3. don't register a single operation for a Generic Netlink
+          family and multiplex multiple sub-commands on the single
+          operation.
+       4. It is often necessary for Generic Netlink services to return
+          an ACK or error code to the client. 
+
+      参考资料： [[http://www.linuxfoundation.org/collaborate/workgroups/networking/generic_netlink_howto][generic_netlink_howto]]
+** Socket Monitoring Interface
+     =sock_diag= netlink提供了一个基于netlink的子系统用于获取socket的
+     相关信息。
+
+*** 创建
+      在内核中，创建了一个类型为 =NETLINK_SOCK_DIAG= 的netlink
+      socket. 
+      #+BEGIN_SRC c
+        static int __net_init diag_net_init(struct net *net)
+        {
+          struct netlink_kernel_cfg cfg = {
+            .input = sock_diag_rcv,
+          };
+          net->diag_nlsk = netlink_kernel_create(net, NETLINK_SOCK_DIAG, &cfg);
+          return net->diag_nlsk == NULL ? -ENOMEM : 0;
+        }
+        (net/core/sock_diag.c)
+      #+END_SRC
+      
+*** 加入监控
+      1. 定义一个 =sock_diag_handler= 
+         #+BEGIN_SRC c
+           static const struct sock_diag_handler unix_diag_handler = {
+             .family = AF_UNIX,
+             .dump = unix_diag_handler_dump,
+           };         
+         #+END_SRC
+      2. 注册该 =handler= 
+         #+BEGIN_SRC c
+           static int __init unix_diag_init(void)
+           {
+             return sock_diag_register(&unix_diag_handler);
+           }         
+         #+END_SRC
+
+** libnl编程实例
+
+*** 查询附近的AP列表
+
+     

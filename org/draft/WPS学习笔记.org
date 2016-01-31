@@ -1,0 +1,46 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* Architecture  
+
+  [[./images/2016/2016011401.png]]
+
+** 概述   
+   Wi-Fi Simple Configuration 定义 了一些新的802.11 IE。 这些IE包含在
+   Beacon，Probe Request和Probe Response帧中 。
+   这些IE的目的主要是告知其他设备执行WSC操作的能力。
+
+** Registration Protocol
+
+   协议主要有如下一些目的：
+   1. 解决基本的连接性问题。
+   2. 提供Enrollee和Registar之间的相互标识信息，启用私密配置功能。
+   3. 安全地将WLAN设置和其他的配置信息从Registar传递到Enrollee。
+   4. 建立每个设置的角色（AP，Registar和Enrollee）
+   5. 建立Extended Master Session Key EMSK，用于保护更多的应用相关的配
+      置功能。
+
+   协议工作于两个阶段：
+   1. discovery phase
+      交互Registar和Enrollee之间的描述性信息。
+      目的主要是能发现周围的Registrar设备，能使自己能被Registar发现。
+      STA enrollee会先发送 一个M1消息请求关联到Registar。
+
+   2. 第二阶段
+      该阶段会到达Credential provisioning， 在M2，M2D，M8
+      消息结束。
+      M2D： Registar不能认证Enrollee。  
+      M2： 只针对NFC等out of band传输的情况。
+      M8: 在M8中，会携带WLAN Credentials给Enrollee。
+
+* In-band Setup Using a Standalone AP/Registrar
+
+  [[./images/2016/2016011402.png]]
+
+
+
+
+  

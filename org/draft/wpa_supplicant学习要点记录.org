@@ -1,0 +1,1502 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* =wpa_supplicant= 基本架构分析
+** 模块结构图
+     #+CAPTION:  =wpa_supplicant modules=
+     [[./images/2015/2015121506.png]]
+
+** wpa_supplicant初始化分析
+*** =wpa_supplicant= 初始化执行过程
+
+     #+BEGIN_SRC plantuml :file ./images/2015/2015123004.png :cmdline -charset UTF-8
+       title wpa_supplicant初始化流程
+       @startuml
+       start
+       :os_program_init;
+       :wpa_supplicant_fd_workaround(1);
+       :解析传递进来的一些参数;
+       #Blue:wpa_supplicant_init;
+       note right: 初始化""struct wpa_global""实例
+       #Blue:wpa_supplicant_add_iface;
+       note right: 添加一个或多个网络接口, 并完成大部分初始化工作。
+       if (CONFIG_P2P) then (yes)
+       #Blue:wpas_p2p_add_p2pdev_interface;
+       note right: 添加P2P设备接口
+       endif
+       #Blue:wpa_supplicant_run;
+       note right: 运行eloop事件循环
+       :wpa_supplicant_fd_workaround(0);
+       :os_program_deinit;
+       stop
+       @enduml
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:./images/2015/2015123004.png]]
+
+*** =wpa_supplicant_init= 函数执行过程
+
+    #+BEGIN_SRC plantuml :file ./images/2016/2016011410.png :cmdline -charset UTF-8
+      title wpa_supplicant_init函数执行过程
+      start
+      :wpa_debug_open_file;
+      if (params->wpa_debug_tracing==1) then (yes)
+      :wpa_debug_open_linux_tracing;
+      endif
+      :eap_register_methods();
+      note right: 注册EAP方法
+      :保存传进来的参数;
+      :eloop_init;
+      :random_init;
+      :wpa_supplicant_global_ctrl_iface_init;
+      note right: 初始化全局控制接口
+      :wpas_notify_supplicant_initialized;
+      note right: 发布初始化完成通知
+      if (wifi display enabled) then (yes)
+      :wifi_display_init;
+      note right: 初始化Wifi Display
+      endif
+      end
+    #+END_SRC
+
+    
+     #+BEGIN_SRC plantuml :file ./images/2015/2015123002.png :cmdline -charset UTF-8
+       title: wpa_supplicant_global_ctrl_iface_init执行过程
+       :wpa_supplicant_init;
+       note right: global->ctrl_iface = wpa_supplicant_global_ctrl_iface_init(global)
+       :wpa_supplicant_global_ctrl_iface_init;
+       note right
+       注册一个socket的读事件处理(ctrl_iface_unix.c)
+       ====
+       eloop_register_read_sock(priv->sock,
+                                wpa_supplicant_global_ctrl_iface_receive,
+                                global, priv)                    
+       end note
+       :wpa_supplicant_global_ctrl_iface_receive;
+       note left : Global ctrl_iface (ctrl_iface_unix.c)
+       :wpa_supplicant_global_ctrl_iface_process;
+       if (不是P2P或WFD) then (yes)
+       :wpas_global_ctrl_iface_ifname;
+       else (no)
+       :wpas_global_ctrl_iface_redir;
+       if (P2P) then (yes)
+       :wpas_global_ctrl_iface_redir_p2p;
+       note left: 处理p2p命令
+       else (no)
+       :wpas_global_ctrl_iface_redir_wfd;
+        note right: 处理WFD命令
+       endif
+       endif 
+       :wpa_supplicant_ctrl_iface_process;
+       note right: 处理其他类型的命令
+     #+END_SRC 
+
+     #+RESULTS:
+     [[file:./images/2015/2015123002.png]]
+
+*** =wpa_supplicant_add_iface= 函数执行过程 
+     
+     #+BEGIN_SRC plantuml :file ./images/2015/2015123003.png :cmdline -charset UTF-8
+       title: 添加一个新的网络接口, 返回一个 wpa_supplicant 结构的数据对象
+       : wpa_supplicant_add_iface;
+       note right
+        添加一个新的网络接口(wpa_supplicant.c)
+        可以在""wpa_supplicant_run()""之前调用，也可以
+        在之后调用(即eloop运行起来后)
+        end note
+       #Blue:wpa_supplicant_init_iface;
+       note right: 初始化一个网络接口(wpa_supplicant.c)
+       :wpa_supplicant_ctrl_iface_init;
+       note right
+       注册一个socket读事件处理
+       ====
+       eloop_register_read_sock(priv->sock, wpa_supplicant_ctrl_iface_receive,
+                                        wpa_s, priv);
+       end note
+       :wpa_supplicant_ctrl_iface_receive;
+       :wpa_supplicant_ctrl_iface_process;
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:./images/2015/2015123003.png]]
+
+**** =wpa_supplicant_init_iface= 
+
+        初始化网络接口， 读取配置文件，初始化EAPOL状态机，初始化Driver，
+        初始化 wpa状态机等等。
+
+        #+BEGIN_SRC plantuml :file ./images/2016/2016010501.png :cmdline -charset UTF-8
+          title wpa_supplicant_init_iface初始化代码分析
+          
+          @startuml
+          start
+          :wpa_config_read;
+          note right: 读取配置文件的参数，并配置相应参数。
+          : eapol_sm_notify_portEnabled() \n eapol_sm_notify_portValid();
+          note right: 初始化RSNA Supplicant Key Management
+          : wpa_supplicant_set_driver;
+          note right: 设置驱动
+          : wpa_drv_init\nwpa_drv_set_param;
+          note right: 初始化驱动, 设置驱动参数
+          #Red: wpa_supplicant_init_wpa;
+          note right: 初始化wpa状态机
+          :wpa_sm_set_param;
+          note right: wpa状态机相关参数的设定
+          :wpa_drv_get_capa;
+          note right: 查询驱动的能力信息
+          #Blue: wpa_supplicant_driver_init;
+          note right: 初始化驱动接口参数
+          :wpa_tdls_init;
+          note right: 设置TDLS驱动接口参数
+          :wpa_drv_set_country;
+          note right: 设置国家码
+          #Green: wpas_wps_init;
+          note right: 初始化WPS
+          #Red: wpa_supplicant_init_eapol;
+          note right: EAPOL状态机初始化
+          :wpa_sm_set_eapol;
+          note right: 设置WPA状态机的EAPOL state machine pointer
+          #Blue: wpa_supplicant_ctrl_iface_init;
+          note right: 初始化控制接口
+          :gas_query_init;
+          note right: 初始化gas
+          if (iface->p2p_mgmt) then (yes)
+          #Green: wpas_p2p_init;
+          note right: 初始化p2p模块
+          endif
+          :wpa_bss_init;
+          note right: 初始化BSS表
+          if (CONFIG_EAP_PROXY) then (yes)
+          :eap_proxy_get_imsi;
+          endif
+          :pcsc_reader_init;
+          :wpas_init_ext_pw;
+          stop
+          @enduml
+        #+END_SRC
+
+** event loop
+*** eloop data structure
+
+         定义了事件循环接口，支持处理注册的超时事件（例如：过多少秒后，
+         执行某个操作）， socket事件以及信号事件等。
+
+**** eloop相关数据结构的关系
+        #+CAPTION: struct eloop_data
+        [[./images/2015/2015122901.png]]
+
+        socket主要有读、写和异常等三种。 =struct eloop_sock_table= 是
+        一个表结构，维护了当前所有的socket，针对读、写和异常分别对应一个
+        表结构。
+**** =eloop_sock=
+***** eloop sock event type
+
+            =eloop_register_sock()= 注册的socket事件类型。 
+
+            #+BEGIN_SRC c
+              typedef enum {
+                      EVENT_TYPE_READ = 0,
+                      EVENT_TYPE_WRITE,
+                      EVENT_TYPE_EXCEPTION
+              } eloop_event_type;
+            #+END_SRC
+
+            =event_sock= 主要的关注的事件是读、写和异常。
+            
+***** eloop socket event callback type
+
+            #+BEGIN_SRC c
+              /**
+               ,* eloop_sock_handler - eloop socket event callback type
+               ,*/
+              typedef void (*eloop_sock_handler)(int sock, void *eloop_ctx, void *sock_ctx);
+            #+END_SRC
+
+**** eloop event
+         通用事件
+         
+***** 回调函数
+          #+BEGIN_SRC c
+             /**
+              ,,* eloop_event_handler - eloop generic event callback type
+              ,,*/
+             typedef void (*eloop_event_handler)(void *eloop_data, void *user_ctx);
+          #+END_SRC
+
+**** eloop timeout
+        处理超时事件 
+        
+***** 回调函数
+         #+BEGIN_SRC c
+            /**
+             ,,* eloop_timeout_handler - eloop timeout event callback type
+             ,,*/
+            typedef void (*eloop_timeout_handler)(void *eloop_data, void *user_ctx);
+         #+END_SRC
+
+**** eloop signal
+        系统信号处理
+
+***** 回调函数
+          #+BEGIN_SRC c
+             /**
+              ,,* eloop_signal_handler - eloop signal event callback type
+              ,,*/
+             typedef void (*eloop_signal_handler)(int sig, void *signal_ctx);
+          #+END_SRC
+*** =eloop_init()=
+
+          初始化一个全局的event loop data。 在其他 =eloop_*= 前调用。
+
+*** 注册事件处理函数
+
+          1. register socket读、写，异常等事件
+
+             #+BEGIN_SRC c
+               /*
+                ,* Register a read socket notifier for the given file descriptor.
+                ,*/
+               int eloop_register_read_sock(int sock, eloop_sock_handler handler,
+                                            void *eloop_data, void *user_data);
+               /*
+                ,*  Register an event notifier for the given socket's file descriptor.
+                ,*/
+               int eloop_register_sock(int sock, eloop_event_type type,
+                                       eloop_sock_handler handler,
+                                       void *eloop_data, void *user_data);
+             #+END_SRC
+
+          2. 注册系统相关事件
+
+             #+BEGIN_SRC c
+               int eloop_register_event(void *event, size_t event_size,
+                                        eloop_event_handler handler,
+                                        void *eloop_data, void *user_data);
+             #+END_SRC
+
+          3. 注册超时处理函数
+
+             该函数将会在secs秒后执行。 
+             #+BEGIN_SRC c
+               int eloop_register_timeout(unsigned int secs, unsigned int usecs,
+                                          eloop_timeout_handler handler,
+                                          void *eloop_data, void *user_data);              
+             #+END_SRC
+
+          4. 注册信号处理函数
+
+             #+BEGIN_SRC c
+               int eloop_register_signal(int sig, eloop_signal_handler handler,
+                                         void *user_data);
+
+               /*
+                ,*  registers handlers for SIGINT and SIGTERM.
+                ,*/
+               int eloop_register_signal_terminate(eloop_signal_handler handler,
+                                                   void *user_data);
+             #+END_SRC
+
+*** start event loop
+    
+       #+BEGIN_SRC plantuml :file ./images/2015/2015123001.png :cmdline -charset UTF-8 
+         @startuml
+         start
+         :eloop_init;
+           note left: 该函数必须在其他的eloop_*函数之前调用
+           while (当eloop循环没有停止且\n(当前timeout链表不为空\n或当前监控的读、写和异常事件的socket数量大于0))
+           : get an entry from timeout list;
+          if (timeout列表不为空) then (yes)
+           if (预设的超时值与当前时间的差值不为0) then (yes)
+           : 更新超时值;
+           else (no)
+           : 将当前超时值置为0;
+           endif
+          else (no)
+          endif
+           :设置当前监听的已打开的文件的句柄（读，写，异常);
+           :通过select函数来捕获事件;
+           :检查是否有信号事件需要处理;
+           :检测是否有一些注册的timeout事件需要处理;
+           if (有timeout事件要处理且设\n置的处理时间已经到期) then(yes)
+           :调用timeout回调处理函数;
+           :将当前已经处理的timeout回调函数从当前timeout列表中移除;
+           else (no)
+           endif
+           :检查并处理发生的读、写和异常事件对应的处理函数。;
+           endwhile
+           end
+           @enduml
+
+       #+END_SRC
+
+       #+RESULTS:
+       [[file:./images/2015/2015123001.png]]
+
+*** 其他一些 =eloop_*= 函数速速览
+       #+BEGIN_SRC c
+         /*
+          ,* 监听发生在某个socket的读事件
+          ,*/
+         void eloop_wait_for_read_sock(int sock)
+
+         /*
+          ,* 注册一个系统信号处理函数
+          ,*/
+         int eloop_register_signal(int sig, eloop_signal_handler handler,
+                                   void *user_data)
+
+         /*
+          ,* 处理目前已经触发的系统信号
+          ,*/
+         static void eloop_process_pending_signals(void)
+
+         /*
+          ,* 处理某个触发的系统信号
+          ,*/
+         static void eloop_handle_signal(int sig)
+
+         /*
+          ,* 检查一个timeout处理函数是否已经注册
+          ,*/
+         int eloop_is_timeout_registered(eloop_timeout_handler handler,
+                                         void *eloop_data, void *user_data)
+
+         /*
+          ,*取消一个已经注册的timeout处理函数
+          ,*/
+         int eloop_cancel_timeout_one(eloop_timeout_handler handler,
+                                      void *eloop_data, void *user_data,
+                                      struct os_time *remaining)
+
+         /*
+          ,* 取消一个或多个已经注册的timeout处理函数
+          ,*/
+         int eloop_cancel_timeout(eloop_timeout_handler handler,
+                                  void *eloop_data, void *user_data)
+
+         /*
+          ,* 从timeout链表中删除一个eloop_timeout项
+          ,*/
+         static void eloop_remove_timeout(struct eloop_timeout *timeout)
+
+         /*
+          ,* 注册一个eloop_timeout项，按超时时间的大小，从小
+          ,* 到大的顺序排列
+          ,*/
+         int eloop_register_timeout(unsigned int secs, unsigned int usecs,
+                                    eloop_timeout_handler handler,
+                                    void *eloop_data, void *user_data)
+         /*
+          ,* 注册一个Socket监听对象，添加到相应的监控表中
+          ,* (read, write, exception)
+          ,*/
+         int eloop_register_sock(int sock, eloop_event_type type,
+                                 eloop_sock_handler handler,
+                                 void *eloop_data, void *user_data)
+
+         /*
+          ,* 注册一个Socket监听对象，监测它的读事件
+          ,*/
+         int eloop_register_read_sock(int sock, eloop_sock_handler handler,
+                                      void *eloop_data, void *user_data)
+
+
+       #+END_SRC
+** ctrl interface
+*** 概述
+    =wpa_supplicnat= 提供了控制接口，可以允许通过外部程序获得
+    =wpa_supplicant= 的状态信息，并对其进行管理。相应文件说明如下：
+    - =ctrl_iface.c and ctrl_iface.h=  =wpa_supplicant-side= of the
+      control interface
+    - =ctrl_iface_unix.c= UNIX domain =sockets-based= control interface
+      backend
+    - =ctrl_iface_udp.c= UDP =sockets-based= control interface backend
+    - =ctrl_iface_named_pipe.c= Windows =named pipes-based= control
+      interface backend
+    - =wpa_ctrl.c and wpa_ctrl.h= Library functions for external
+      programs to provide access to the wpa_supplicant control
+      interface
+*** 主要API
+     主要有两种类型的通信： 命令与底层主动发送的事件消息。
+     命令由请求和响应组成。 如果要监听底层主动发上来的消息，必须注册监
+     听器。
+     1. 打开与 =wpa_supplicant= 的一个连接   
+        #+BEGIN_SRC c
+          struct wpa_ctrl * wpa_ctrl_open(const char *ctrl_path);
+        #+END_SRC
+
+     2. 发送命令
+        #+BEGIN_SRC c
+          int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd,
+                               size_t cmd_len, char *reply, size_t *reply_len,
+                               void (*msg_cb)(char *msg, size_t len));
+        #+END_SRC
+
+     3. 注册控制接口的事件监听器  
+        #+BEGIN_SRC c
+          int wpa_ctrl_attach(struct wpa_ctrl *ctrl);
+        #+END_SRC
+
+     4. 接收来看控制接口的消息  
+        #+BEGIN_SRC c
+          int wpa_ctrl_recv(struct wpa_ctrl *ctrl, char *reply, size_t *reply_len);        
+        #+END_SRC
+
+     5. 检查是否有未决的事件消息  
+        #+BEGIN_SRC c
+          int wpa_ctrl_pending(struct wpa_ctrl *ctrl);        
+        #+END_SRC
+*** CMMAND
+     - PING
+     - MIB
+     - STATUS
+     - STATUS-verbose
+     - PMKSA
+     - SET <variable> <valus>
+     - LOGON
+     - LOGOFF
+     - REASSOCIATE
+     - RECONNECT
+     - PREAUTH <BSSID>
+     - ATTACH
+     - DETACH
+     - LEVEL <debug level>
+     - RECONFIGURE
+     - TERMINATE
+     - BSSID <network id> <BSSID>
+     - LIST_NETWORKS
+     - DISCONNECT
+     - SCAN
+     - SCAN_RESULTS
+     - BSS
+     - SELECT_NETWORK <network id>
+     - ENABLE_NETWORK <network id>
+     - DISABLE_NETWORK <network id>
+     - ADD_NETWORK
+     - REMOVE_NETWORK <network id>
+     - SET_NETWORK <network id> <variable> <value>
+     - GET_NETWORK <network id> <variable>
+     - SAVE_CONFIG
+
+** configuration
+
+   主要数据结构：
+   #+BEGIN_SRC c
+     struct wpa_config{
+       
+     };
+   #+END_SRC
+   函数 =wpa_config_alloc_empty(...)= 定义了所有成员的默认值，一些重要配置
+   项如下所示：
+   - =update_config= 
+     是否允许 =wpa_supplicant= 覆盖(更新)配置文件（当配置文件发生变化时）。
+   - =ctrl_interface= 
+     这是一个全局配置，指定了该参数后， =wpa_supplicant= 会打开一个控
+     制接口，外部程序可以通过此控制接口来管理 =wpa_supplicant= 。 字符
+     串的含义取决于使用的控制接口的机制。 但是，有一点，只要配置了该参
+     数，就表明启用了控制接口机制。 
+     对于 =UNIX domain sockets= ， 这是为 =Unix domain socket= 创建的
+     一个目录，用于监听来自外部程序的请求。 新创建的socket文件会在这个
+     目录中，如对于接口名称为 =wlan0= 的接口，会在 =ctrl_interface= 指
+     定的目录下创建一个socket文件： =wlan0= 。 
+     通过修改 =wpa_ctrl= 指定的目录的权限来控制访问 =wpa_supplicant=
+     ， 默认情况下， =wpa_supplicant= 默认配置为使用GID为0， 即root权
+     限。 例如：
+     #+BEGIN_SRC sh
+     # DIR=/var/run/wpa_supplicant GROUP=wheel
+     # DIR=/var/run/wpa_supplicant GROUP=0
+     # (group can be either group name or gid)
+     #+END_SRC
+
+     对于 UDP连接（Windows默认行为），该值会被忽略。 该值只是用来选择
+     将被创建的控制接口，该值可被设置为 =udp= 。( =control_interface=
+     udp) 
+
+     对于Windows的命名管道，该值用于设置访问控制接口的安全描述符。如
+     #+BEGIN_EXAMPLE
+      ctrl_interface=SDDL=D:= 。 
+     #+END_EXAMPLE
+   - =eapol_version= 
+     设置 =IEEE 802.1X/EAPOL= 的版本， =wpa_supplicant= 是基于 =IEEE
+     802.1X-2004 EAPOL version 2=  实现的，  但是为了兼容不支持
+     version 2的AP，该值默认为设置为1. 当使用MACSec时，该值应该设置
+     为3，在 =IEEE Std 802.1X-2010= 中有定义。
+   - =ap_scan= 
+     默认情况下， =wpa_supplicant= 会请求驱动执行AP扫描，然后使用扫描
+     结果来选择一个合适的AP。另一种选择就是驱动负责AP扫描并选择一个AP
+     来关联， =wpa_supplicant= 只是基于驱动给出的关联信息去处理 EAPOL
+     帧。 有如下一些取值：
+     1: wpa_supplicant initiates scanning and AP selection; if no APs
+     matching to  the currently enabled networks are found, a new
+     network (IBSS or AP mode  operation) may be initialized (if
+     configured) (default)
+
+     0: driver takes care of scanning, AP selection, and IEEE 802.11
+     association parameters; 
+      
+     2: like 0, but associate with APs using security policy and SSID
+     (but not BSSID);在这种模式下，驱动会一个一个地尝试关联配置文件中
+     指定的网络，直到关联成功。另外，每个网络必须显式地配置安全策略。
+
+     对于使用 =nl80211= 驱动接口，一般选择 =ap_scan=1= ， 在这种模式
+     下，会先逐一扫描配置文件中的网络，如果没有合适的网络，会创建一个IBSS或
+     AP模式下的网络 。当使用IBSS或AP模式，使用 =ap_scan=2= 可以强制立
+     即创建新的网络，而不管扫描结果为何。
+   - =passive_scan= 
+     是否强制被动扫描。
+     0:  Do normal scans (allow active scans) (default)
+     1:  Do passive scans.
+     如果开启被动扫描，则会降低扫描设备的速度，且会导致有些AP扫不到，
+     如隐藏SSID的AP。
+   - =user_mpm= 
+     默认情况下， =wpa_supplicnat= 会为一个Open Mesh实现MPM(Mesh
+     Peering Manager)，如果驱动实现了MPM，可以设置些值为0. 
+     0: MPM lives in the driver
+     1: wpa_supplicant provides an MPM which handles peering (default)
+   - =max_peer_links= 
+     Maximum number of mesh peering currently maintained by the STA.
+     Maximum number of peer links (0-255; default: 99)
+   - =mesh_max_inactivity= 
+     This timeout value is used in mesh STA to clean up inactive
+     stations.
+     Timeout in seconds to detect STA inactivity (default: 300
+     seconds)
+   - =cert_in_cb= 
+     This controls whether peer certificates for authentication server
+     and its certificate chain are included in EAP peer certificate
+     events.
+     This is enabled by default.
+   - =fast_reauth= 
+     快速重新认证。默认情况下，对于所有支持的EAP方法，快速重新认证是开
+     启的。
+   - =opensc_engine_path= 
+     OpenSSL Engine support, 默认情况下，没有加载任何Engine.
+   - =openssl_ciphers= 
+     OpenSSL cipher string
+   - =load_dynamic_eap=
+     Dynamic EAP methods. 当EAP方法是编译成单独的so文件时，需要配置该
+     项。默认情况下，EAP方法是静态编译到wpa_supplicant。
+   - =driver_param=
+     驱动接口参数。
+   - =country=
+     国家码
+   - =dot11RSNAConfigPMKLifetime=
+     PMKSA最大存活时间，默认是43200秒.
+   - =dot11RSNAConfigPMKReauthThreshold= 
+     重新认证的阀值(PMKSA值的百分比), 默认是70.
+   - =dot11RSNAConfigSATimeout= 
+     安全关联的超时，默认是60秒。
+   - =uuid= 
+     Universally Unique IDentifier, 如果没有配置，会根据MAC地址来产生。
+   - =device_name= 
+     设备名，字符串。
+   - =manufacturer=
+     设备生产商， 字符串。
+   - =model_name=
+     设备模式。
+   - =model_number= 
+     模式编号。
+   - =serial_number=
+     序列号。
+   - =device_type=
+     主设备类型，格式：<categ>-<OUI>-<subcateg>
+   - =os_version=
+     操作系统版本号
+   - =config_methods=
+     WPS支持的方法。
+   - =wps_cred_processing=
+     0: process received credentials internally (default)
+     1: do not process received credentials; just pass them over
+      =ctrl_iface= to external program(s)
+     2: process received credentials internally and pass them over
+     ctrl_iface to external program(s)
+   - =wps_vendor_ext_m1= 
+     Vendor attribute in WPS M1
+   - =wps_priority=
+     Priority for the networks added through WPS
+   - =bss_max_count=
+     Maximum number of BSS entries to keep in memory
+   - =autoscan= 
+     Automatic scan
+   - =filter_ssids= 
+     过滤SSID
+     0： do not filter scan results (default)
+     1： only include configured SSIDs in scan results/BSS table
+   - =ext_password_backend=
+     Password (and passphrase, etc.) backend for external storage
+   - =p2p_disabled=
+     禁用P2P功能。
+   - =p2p_go_max_inactivity=
+     检测STA是否活跃的超时值，默认是300秒。
+   - =p2p_passphrase_len=
+     GO随机产生的密码的长度，默认是8.
+   - =p2p_search_delay=
+     Extra delay between concurrent P2P search iterations
+     默认值为：500ms.
+   - =dtim_period=
+     efault value for DTIM period
+   - =beacon_int=
+     Default value for Beacon interval
+   - =ap_vendor_elements=
+     Additional vendor specific elements for Beacon and Probe Response
+     frames
+   - =ignore_old_scan_res=
+     Ignore scan results older than request
+   - =scan_cur_freq=
+     Whether to scan only the current frequency
+     0: Scan all available frequencies. (Default)
+     1: Scan current operating frequency if another VIF on the same
+     radio is already associated.
+   - =mac_addr=
+     0 = use permanent MAC address
+     1 = use random MAC address for each ESS connection
+     2 = like 1, but maintain OUI (with local admin bit set)
+   - =rand_addr_lifetime=
+     随机MAC地址的存活时间，默认是60秒。
+   - =preassoc_mac_addr=
+     MAC address policy for pre-association operations
+     0 = use permanent MAC address
+     1 = use random MAC address
+     2 = like 1, but maintain OUI (with local admin bit set)
+
+*** 相关文件
+    - =config_ssid.h= Definition of per network configuration items
+    - =config.h= Definition of the =wpa_supplicant= configuration
+    - =config.c= Configuration parser and common functions
+    - =config_file.c= Configuration backend for text files (e.g.,
+      =wpa_supplicant.conf=)
+
+** TODO Cryptographic functions
+     重点看下如何调用这些函数进行加密的
+
+** WPA supplicant
+   WPA功能代码如下：
+   - =wpa.c and wpa.h= WPA state machine and 4-Way/Group Key Handshake
+     processing
+   - =preauth.c and preauth.h= PMKSA caching and pre-authentication
+     (RSN/WPA2)
+   - =wpa_i.h= Internal definitions for WPA code; not to be included
+     to other modules.
+
+*** wpa state machine初始化
+**** L2 Packet (EAPOL包)处理
+       创建了一个链路层的套接字(=driver_nl802.11.c=)：
+       #+BEGIN_SRC c
+         drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));       
+       #+END_SRC
+       监听并处理EAPOL链路层数据包
+       #+BEGIN_SRC c
+          if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
+          {
+                  printf("Could not register read socket for eapol\n");
+                  goto failed;
+          }
+                
+       #+END_SRC
+
+       处理流程：
+        #+BEGIN_SRC plantuml :file ./images/2016/2016011801.png :cmdline -charset UTF-8
+          @startuml
+          start
+          :nl802.11驱动初始化;
+          :handle_eapol ;
+          note right
+          在802.11驱动初始化时，注册了处理EAPOL数据包的
+          回调函数handle_eapol
+          end note
+          :drv_event_eapol_rx;
+          :wpa_supplicant_event;
+          :wpa_supplicant_assoc;
+          :wpa_supplicant_rx_eapol;
+          stop
+          @enduml
+        #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016011801.png]]
+
+       1. evnets.c  
+          =EVENT_EAPOL_RX=
+          在Association之前收到EAPOL包，会先缓存起来，等到Association成
+          功后，再处理。
+       2. =wpa_supplicant.c=
+          
+
+       =wpa_supplicant_set_state=
+
+*** wpa statemachine状态变化
+     设置当前状态： =wpa_supplicant_set_state=
+     获取当前状态： =wpa_supplicant_get_state=
+
+     访问当前状态机的状态(公供wpa状态机内部调用)： 
+     1. 获取当前状态机的状态：  =wpa_sm_get_state=
+     2. 设置当前状态机的状态:  =wpa_sm_set_state= 
+
+** EAP peer
+    这个模块是个相对独立的模块，可单独使用。
+    相关文件说明如下：
+    - =eap.c and eap.h= EAP状态机和方法接口。
+    - =eap_defs.h= 通用的EAP定义
+    - =eap_i.h= EAP状态机和EAP方法的内部定义。
+    - =eap_sim_common.c and eap_sim_common.h= =EAP-SIM= 和 =EAP-AKA= 的公用代
+      码。
+    - =eap_tls_common.c and eap_tls_common.h= =EAP-PEAP, EAP-TTLS, and
+      EAP-FAST= 公用代码
+    - =eap_tlv.c and eap_tlv.h= =EAP-PEAP= 和 =EAP-FAST= 的 =EAP-TLV=
+      代码。
+    - =eap_ttls.c and eap_ttls.h= EAP-TTLS代码。
+    - =eap_pax.c, eap_pax_common.h, eap_pax_common.c=  =EAP-PAX= 代码
+    - =eap_psk.c, eap_psk_common.h, eap_psk_common.c= =EAP-PSK= 代码
+    - =eap_sake.c, eap_sake_common.h, eap_sake_common.c= =EAP-SAKE= 代
+      码
+    - =eap_gpsk.c, eap_gpsk_common.h, eap_gpsk_common.c= =EAP-GPSK= 代
+      码
+    - =eap_aka.c, eap_fast.c, eap_gtc.c, eap_leap.c, eap_md5.c,
+      eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
+      其他EAP方法实现
+
+** EAPOL supplicant
+   =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
+
+** driver interface
+   一个新的驱动的注册主要是定义一个 =wpa_driver_ops= 结构体实例。 硬件
+   的部分代码会通过这个结构体提供的一些回调函数来控制驱动/无线网卡。 
+   
+*** 基本机制研究
+
+**** 如何通过 =wpa_supplicant= 向Driver发送命令。 
+        这个流程很简单， =wap_supplicant= 是利用 =wpa_driver_ops= 注册
+        的回调函数，来向Driver下达命令， 这些回调函数实际会通过
+        netlink标准命令，将用户请求的命令传达到内核，并最终触发Driver
+        向硬件下达命令。
+
+**** =wpa_supplicant= 如休接收到底层Driver发送过来的事件   
+
+     #+BEGIN_SRC plantuml :file ./images/2016/2016012001.png :cmdline -charset UTF-8
+        title wpa_supplicant接收Driver上报事件的流程
+        @startuml
+        start
+        :global_init;
+        note right: 这个是在注册驱动提供的一个回调接口
+        :nl80211_global_init;
+        :wpa_driver_nl80211_init_nl_global;
+        :process_global_event;
+        #blue:do_process_drv_event;
+        note right: 所有Driver上报的事件会通过些接口分发处理
+        stop
+        @enduml  
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:./images/2016/2016012001.png]]
+
+*** TODO 配置加密方法（TKIP/CCMP）
+    如果是在Driver中实现的，必须提供一种配置的手段。
+
+*** TODO 漫游和扫描支持
+
+      
+*** TODO 产生WPA IE
+      WPA IE是在Driver中产生的还是在 =wpa_supplicant= 中产生的？
+      
+*** rfkill
+** l2 packets
+
+** State Machine
+   
+*** WPA/WPA2 
+*** EAPOL
+
+*** EAP
+
+* wpa_supplicant要点记录
+
+** wpa_supplicant客户端接口
+
+      #+BEGIN_SRC c
+        //创建一个wpa 控制端对象wpa_ctrl。Android 平台中，参数ctrl_path 代表
+        unix域socket 的位置
+        struct wpa_ctrl * wpa_ctrl_open(const char *ctrl_path);
+        void wpa_ctrl_close(struct wpa_ctrl *ctrl);//注销wpa_ctrl 控制对象
+        //客户端发送命令给wpa_supplicant，回复的消息保存在reply中
+        int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
+        char *reply, size_t *reply_len,void (*msg_cb)(char *msg, size_t len));
+        //打开通知事件监听功能
+        int wpa_ctrl_attach(struct wpa_ctrl *ctrl);
+        //打开通知事件监听功能的wpa_ctrl 对象能直接调用下面的函数来接收unsolicited event
+        int wpa_ctrl_recv(struct wpa_ctrl *ctrl, char *reply, size_t *reply_len);
+      #+END_SRC
+
+      wpa_supplicant会回复两种事件，一种是solicited事件（用户主动请求
+      的事件），一种是unsolicited事件（底层主动上报的事件），
+      wpa_ctrl_reply用于接受主动请求的事件回复，而msg_cb则用于接受底层
+      主动上报的事件。常见的用法是：客户端创建两个wpa_ctrl对象来简化自
+      己的逻辑处理：
+      - 一个打开了通知事件监听功能的wpa_ctrl对象将只通过wpa_ctrl_recv
+        来接收通知事件。
+
+      - 另外一个wpa_ctrl专职用于发送命令和接收回复。由于没有调用
+        wpa_ctrl_attach，故它不会收到通知事件。
+
+* =wpa_supplicant= 模块分析
+** P2P
+*** 基本连接流程
+    
+     1. 首先，P2P设备要能发现对方，会通过扫描来进行：要么在1，6，11信道
+        上主动发送Probe Request来侦测P2P设备，要么停留在某个信息侦测
+        Beacon或Probe Reqeust帧。
+     2. 在建立P2P组前，可以询问被发现的P2P设备支持哪些服务。
+     3. 当决定跟被发现的P2P设备连接时，可以邀请一个已经加一个了某个P2P
+        组的P2P设备加入一个新的P2P组，或与一个未连接的P2P设备通过GO协
+        商过程形成一个新的P2P组。
+        会经历GO-NEGOTIATION-REQUEST和GO-NEGOTIATION-RESPONSE两步交互
+        过程，一旦协商完成，发起方会发送一个
+        GO-NEGOTIATION-CONFIRMATION，然后两个设备都会切换到协商好的信道
+        上去进行通信。
+        GO会不停地发送Beacon帧，携带协商的BSSID信息，且 =group
+        formation bit= 会置为1，因为此时，P2P成组过程还没有结束。
+     4. 然后是 =Provisioning= 阶段开始，P2P Client会连接GO，通过WPS协
+        议来交换 =credentials= 信息，实质上是一些EAP消息的交互（M1~M8）  
+        当加入一个现存的P2P组时，或为了加快 =provisioning= 阶段，设备
+        可以在进行Group协商之前执行 =Provision Discovery
+        request/response= . 如果不这样，GO Negotiation会失败。必须在后
+        续重新启动协商过程。
+     5. 之后 ，会进行关联，4-way握手过程，以交换密钥。 之后，GC会向GO
+        请求一个IPv4的地址，GO需要实现DHCP服务器的功能。
+
+        为了免掉每次Group创建过程中，需要输入PIN码的麻烦，可以将P2P组
+        设为 =persistent= 的，这样它会存储 =credentials= 信息，并在适
+        当的时候重新连接 。 
+
+        http://processors.wiki.ti.com/index.php/OMAP_Wireless_Connectivity_NLCP_WiFi_Direct_Configuration_Scripts
+
+      #+CAPTION: 两个P2P设备A，B执行P2P连接时，帧交换的过程
+      #+BEGIN_SRC plantuml :file ./images/2016/2016012501.png :cmdline -charset UTF-8
+        @startuml
+        A -> B : (1)Probe requests with P2P IE on all channels.
+        note right
+        At first both devices will enter the scan phase, and send
+        Probe requests with P2P IE on all channels.
+
+        After a random time one of them will start to listen on one of the
+        social channels (1, 6 or 11) and finally receive a probe request
+        from the other station. It will reply with: Probe response with P2P IE
+        end note
+        B -> A : (2)Probe response with P2P IE
+        note right
+        Device A reports "Another device found" to the user or
+        managing application. Now an optional service discovery
+        exchange can happen:
+        end note
+        A -> B: (a) Service Discovery query
+        B -> A: (b) Service Discovery response
+        note right: Then group formation begins
+        A -> B: (3) GO Negotiation request
+        note right
+        B reports this to the user and will wait for the input,
+        which we assume to timeout in this case.
+        end note
+        B -> A: (4) GO Negotiation response (fail)
+        note right
+        Optionally, instead of having the first GO Negotiation fail,
+        the devices could have used Provision Discovery before group
+        formation, but this does not change the number of total frames
+        exchanged
+        end note
+        A -> B: (3) Provision Discovery request
+        B -> A: (4) Provision Discovery response
+        A -> B: (5) GO Negotiation request
+        note right
+        In the end we suppose the user on B has allowed the connection.
+        end note
+        B -> A: (6) GO Negotiation response (success)
+        A -> B: (7) GO Negotiation confirmation
+        note right
+        Now one device becomes GO and the other client, Let's
+        assume B is the GO
+        end note
+        B -> A: (8) GO sends beacons (formation bit = 1)
+        A -> B: (9) Authentication 1
+        B -> A: (10) Authentication 2
+        A -> B: (11) Association request
+        B -> A: (12) Association response
+        note right
+        Now the "provisioning" phase begins, which is a WPS exchange
+        of usually 8 frames. We don't go into the details of the WPS
+        protocol here.
+
+        (13) (14) (15) (16) (17) (18) (19) (20)
+
+        Next the GO starts to send beacons with the formation bit set to 0.
+
+        end note
+
+        B -> A: (21) GO beacon (formation bit = 0)
+        note right
+        The client re-authenticates and re-associates with the new credentials:
+        end note
+
+        A -> B: (22) Authentication 1
+        B -> A: (23) Authentication 2
+        A -> B: (24) Association request
+        B -> A: (25) Association response
+
+        note right
+        Now the RSN 4-way handshake begins, and again we
+        don't go into the details of RSN:
+        end note
+        B -> A: (26) ANonce
+        A -> B: (27) SNonce + MIC
+        B -> A: (28) GTK + MIC
+        A -> B: (29) ACK
+
+        @enduml
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:./images/2016/2016012501.png]]
+
+    
+    #+BEGIN_SRC plantuml :file ./images/2016/2016011802.png :cmdline -charset UTF-8
+      @startuml
+      [*] --> Scan
+
+      state Scan {
+      [*] --> p2p_scan: send probe request & receive probe response
+      p2p_scan --> Find : full channel scan finished
+      }
+
+      state Find {
+      p2p_listen --> p2p_search : dwell on social channel for random time
+      p2p_search --> p2p_listen : dwell on socail channel for random time
+      p2p_search --> GO_GROUP_FORMATION  : P2P Device Found
+      }
+
+      state GO_GROUP_FORMATION {
+      [*] --> go_negotiation
+
+      state go_negotiation {
+      go_negotiation_request --> go_negotiation_response
+      go_negotiation_response --> go_negotiation_confirmation
+      go_negotiation_confirmation  --> p2p_connect : GO is Determined, now we can do p2p_connect
+      }
+      }
+
+      state p2p_connect {
+      state association {
+      association_request --> association_response
+      association_response --> WSC_Provisioning  : ask GO for credentionals info
+      }
+
+      state WSC_Provisioning {
+      provisioning_discovery_request --> provisioning_discovery_response
+      provisioning_discovery_response --> handshake
+      }
+      
+      state handshake {
+      [*] --> PTK
+      PTK --> GTK
+      GTK --> DHCP : 4步握手结束，开始获取IP地址
+      }
+
+      state DHCP {
+      [*]  --> DHCP_request
+      DHCP_request --> DHCP_response : IP obtained
+      }
+      }
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016011802.png]]
+
+**** Driver 当GC时的交互过程：
+    1. CFG80211_PKT: RX P2P_PROVISION_REQ 11
+    2. CFG80211_PKT: TX P2P_PROVISION_RSP 11
+    3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
+    4. CFG80211_PKT: TX GO_NEGOCIACTION_RSP 11
+       这时，会启动Virutal Inferace： RTMP_CFG80211_VirtualIF_Init
+       
+    5. CFG80211_OpsRemainOnChannel   listen
+    6. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 11
+    7. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 11
+    8. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 11
+       CFG80211_VirtualIF_Open, 会出现："(ApCliIfUp) ApCli can't startup Due to CFG80211 No connect yet."
+    9. CFG80211_OpsConnect
+       80211> Connect bssid 16:f6:5a:ac:92:0e
+       APCLI Connection onGoing.....
+       AP_CLI WPS Connection onGoing.....
+       80211> APCLI CONNECTING SSID = DIRECT-si-
+       Set_ApCli_Enable_Proc::(enable = 1)
+       (ApCliIfDown) ApCli interface[0] startdown.
+       80211> APCLI CONNECTING SSID = DIRECT-si-
+       80211> CFG80211_OpsStaChg ==>
+       80211> Change STA(00:00:00:00:00:00) ==>
+       80211> CFG80211_OpsStaChg ==>
+       80211> Change STA(00:00:00:00:00:00) ==>
+       80211> CFG80211_OpsStaChg ==>
+       80211> Change STA(00:00:00:00:00:00) ==>
+       80211> CFG80211_OpsStaChg ==>
+       80211> Change STA(00:00:00:00:00:00) ==>
+       (ApCliIfUp) ApCli interface[0] startup.
+       (ApCliCtrlJoinReqAction) Start Probe Req.
+       ApCli SYNC - Start Probe the SSID  on channel =1
+       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+       = 1
+       PeerBeaconAtJoinAction HT===>Central Channel = 1, Control
+       Channel = 1,  .
+       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+       APCLI_ASSOC - Send ASSOC request...
+       ApCliPeerAssocRspSanity() found wfd ie in assoc response frame,
+       it's wfd connect.
+       APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
+       ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
+       16:f6:5a:ac:92:0e.    bP2pClient = 1
+       ApCliAssocPostProc===> 11n HT STA
+       !!! APCLI LINK UP - IF(apcli0) AuthMode(0)=OPEN,
+       WepStatus(1)=NONE !!!
+       MacTableInsertEntry - allocate entry #2, Total= 1
+       80211> CFG80211_OpsStaChg ==>
+       80211> Change STA(16:F6:5A:AC:92:0E) ==>
+       =WPS-Start=
+       Receive EAP-Packet frame, TYPE = 0, Length = 5
+       CFG80211 EAPOL Indicate_Legacy_Packet
+       CFG80211_PKT: RX ACTION Frame 1
+       CFG80211_PKT: P2P_CHECK ACTION Frame 1
+       80211> CFG80211_OpsDisconnect ==>
+       80211> ReasonCode = 3
+       AUTH - Send DE-AUTH request (Reason=3)..
+       !!! APCLI LINK DOWN - IF(apcli0)!!!   
+       =WPS-End=
+       ++++++++ ApCliLinkDown::  Keep BssTable on Channel
+       = 1. ++++++++      BSSID = [16:f6:5a:ac:92:0e].  p2p_bssid =
+       [16:f6:5a:ac:92:0e].
+       80211> CFG80211_LostGoInform ==> 
+       (ApCliIfDown) ApCli interface[0] startdown.
+
+       80211> CFG80211_OpsConnect ==>
+
+       =4-way-handshake=
+       80211> Connect bssid 16:f6:5a:ac:92:0e
+       (ApCliIfUp) ApCli interface[0] startup.
+       (ApCliCtrlJoinReqAction) Start Probe Req.
+       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+       = 1
+       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+       Scanning!!
+       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+       APCLI_ASSOC - Send ASSOC request...
+       ApCliMlmeAssocReqAction:: APCLI WPA_ASSOC_IE FROM SUPPLICANT
+       (ApCliCtrlAssocReqTimeoutAction) Assoc Req Timeout.
+
+       (ApCliIfUp) ApCli interface[0] startup.
+
+       (ApCliCtrlJoinReqAction) Start Probe Req.
+       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+       = 1
+       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+       Scanning!!
+       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+       Deauth: 7e:b2:32:e7:7c:25, 16:f6:5a:ac:92:0e
+       APCLI AUTH_RSP - receive DE-AUTH from our AP
+       APCLI AUTH - AuthTimeout
+       (ApCliIfUp) ApCli interface[0] startup.
+       (ApCliCtrlJoinReqAction) Start Probe Req.
+       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+       = 1
+       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+       Scanning!!
+
+       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+       (ApCliCtrlAuthRspAction) Auth Rsp Success.
+       APCLI_ASSOC - Send ASSOC request...
+       APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
+       ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
+       16:f6:5a:ac:92:0e.    bP2pClient = 1
+
+       !!! APCLI LINK UP - IF(apcli0) AuthMode(7)=WPA2PSK,
+       WepStatus(6)=AES !!!
+
+       MacTableInsertEntry - allocate entry #2, Total= 1
+
+       Receive EAPOL-Key frame, TYPE = 3, Length = 95
+       CFG80211 EAPOL Indicate_Legacy_Packet
+       80211> CFG80211_OpsKeyAdd ==>
+       AsicAddSharedKeyEntry BssIndex=8, KeyIdx=1
+
+       !!!P2P Group STARTED
+
+       DHCP
+       DHCP_DISCOVER
+       DHCP_OFFER
+       DHCP_REQUEST
+       DHCP_ACK
+    
+**** Driver当GO时的交互过程：
+       1. P2P Listen  
+          CFG80211_PKT: ROC CHANNEL_LOCK 11
+          CFG80211_PKT: TX ProbeRsp Frame 11
+          CFG80211_PKT: TX ProbeRsp Frame 11
+
+       2. Receive P2P Invite
+          CFG80211_PKT: RX P2P_INVITE_REQ 11
+          CFG80211_PKT: TX P2P_INVITE_RSP 11
+
+       3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
+
+       4. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 1
+
+       5. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 1
+
+       6. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 1
+
+       7. GroupNegotiatioCFG80211_VirtualIF_Open: ===> 8,p2p-p2p0-2
+          rocessMessage   (ApCliIfUp) ApCli can't startup Due to
+          CFG80211 No connect yet.
+          ==> RTMP_CFG80211_VirtualIF_CancelP2pClient.
+          ==> RTMP_CFG80211_VirtualIF_CancelP2pClient HIT.
+          80211> Change to IFTYPE_AP 3!
+          80211> Change the Interface to AP Mode
+          80211> CFG80211_OpsStaDel ==>
+          Deauthenticate all stations!
+
+       8. 80211> Set the channel in AP Mode
+          80211> CFG80211DRV_OpsBeaconSet ==> 1
+          New AP BSSID 7e:b2:32:e7:7c:25
+          CFG80211_PKT: TX ProbeRsp Frame 11
+          AUTH - MBSS(0), Rcv AUTH seq#1, Alg=0, Status=0 from
+          [wcid=255]86:38:38:b0:7f:ee
+          AUTH_RSP - Send AUTH response (SUCCESS)...
+          ASSOC - MBSS(0), receive ASSOC request from
+          86:38:38:b0:7f:ee
+          SSOC - Send ASSOC response (Status=0)...
+          =WPS=
+          ####### Send L2 Frame Mac=86:38:38:b0:7f:ee
+          CFG80211_PKT: RX ACTION Frame 11
+          CFG80211 EAPOL Indicate_Legacy_Packet
+
+       9. P2P_GROUP_STARTED_STR
+          ASSOC - receive DIS-ASSOC(seq-1765) request from
+          86:38:38:b0:7f:ee, reason=8
+          
+          AUTH_RSP - Send AUTH response (SUCCESS)...
+          ASSOC - Send ASSOC response (Status=0)...
+          =4-way handshake=
+          ####### Send L2 Frame Mac=86:38:38:b0:7f:ee
+
+**** Action帧的接收与发送
+         
+         #+CAPTION: 接收Action帧的流程
+         #+BEGIN_SRC plantuml :file ./images/2016/2016012901.png :cmdline -charset UTF-8
+           title  wpa_supplican处理公共Action帧的流程
+           @startuml
+           start
+           :process_bss_event;
+           note right: nl80211_init_bss时，会注册回调函数: process_bss_event
+           :mlme_event;
+           note right: 当收到NL80211_CMD_FRAME, NL80211_CMD_FRAME_TX_STATUS时处理
+           :mlme_event_mgmt;
+           note right: 收到Action帧 NL80211_CMD_FRAME
+           :wpa_supplicant_event;
+           note right: 传递EVENT_RX_ACTION事件
+           #Blue:wpas_p2p_rx_action;
+           note right: 收到p2p Action帧时的入口函数
+           :p2p_rx_action;
+           :p2p_rx_action_public;
+           note right: WLAN_PA_VENDOR_SPECIFIC
+           :p2p_rx_p2p_action;
+           note right
+           主要处理：
+           1. P2P_GO_NEG_REQ
+           2. P2P_GO_NEG_RESP
+           3. P2P_GO_NEG_CONF
+           4. P2P_INVITATION_REQ
+           5. P2P_INVITATION_RESP
+           6. P2P_PROV_DISC_REQ
+           7. P2P_PROV_DISC_RESP
+           8. P2P_DEV_DISC_REQ
+           9. P2P_DEV_DISC_RESP
+           end note
+           stop
+           @enduml
+         #+END_SRC
+
+**** Action帧的发送
+
+        Action帧发送后，Driver会反馈发送的状态，即发送成功与否。
+
+        通过 =struct p2p_cfg= 的回调接口： =send_action= ， 实际注册的
+        函数为： =wpas_send_action= , 该函数会调用
+        =offchannel_send_action= ，并注册了回调函数 :
+        =wpas_p2p_send_action_tx_status= ， 通过该接口，将发送Action帧
+        的结果反馈上来。底层是通过  =EVENT_TX_STATUS= 消息来通知的，通
+        过调用 =offchannel_send_action_tx_status= 来回调注册的函数。
+        
+        #+BEGIN_SRC plantuml :file ./images/2016/2016012902.png :cmdline -charset UTF-8
+          @startuml
+          start
+          :wpa_supplicant_event;
+          note right: 收到EVENT_TX_STATUS事件
+          :offchannel_send_action_tx_status;
+          :wpas_p2p_send_action_tx_status
+          note right: 注册的pending_action_tx_status_cb
+          :p2p_send_action_cb;
+          note right: 在这个函数中，会调用不同的状态反馈回调函数
+          stop
+          @enduml
+        #+END_SRC
+
+         
+*** p2p管理
+
+   当 =wpa_s->drv_flags= & =WPA_DRIVER_FLAGS_P2P_MGMT= 为真时，代表相关的P2P
+   管理操作会由Driver去实现。上层对P2P的一些操作，最终会透过netlink发
+   送给Driver。
+
+   当然，如果Driver并没有实现p2p管理的相关工作，则会在
+   =wpa_supplicant= 这层来做。目前从代码看来，p2p管理相关的工作没有放到Driver中去做。
+
+   =wpa_supplicant= 在文件 =p2p_supplicant.c= 这个文件中注册了许多p2p管理相关
+   的函数接口。
+*** socket control interface
+    - =p2p_find=  
+      | Command                                                    | Description                                            |
+      |------------------------------------------------------------+--------------------------------------------------------|
+      | p2p_find [timeout (seconds)] [type <social \ progressive>] | Enables discovery – start sending probe request frames | 
+
+      当接受到 =p2p_find= 命令时，会进入入口函数： =p2p_ctrl_find= ，
+      此时会决定两个参数：
+      1. 扫描的类型
+      2. 延时扫描的时间，即等待多久后，进行p2p find的动作。
+
+      接下来会进入 =wpas_p2p_find= 函数，如果当前的SSID的模式为
+      =WPAS_MODE_P2P_GO= 或 =WPAS_MODE_P2P_GROUP_FORMATION= ， 会停止
+      p2p find的动作。 
+
+      然后，会清掉一些未决的Action帧的传输动作。 如果P2P管理的功能实现
+      在 driver 层，则直接进入 函数： =wpa_drv_p2p_find= ， 通过
+      NL80211触发Driver直接 p2p find动作。 否则，则会进入 =p2p_find=
+      ， 在此之前，会取消规划的扫描动作。 
+
+      这些函数会准备执行 p2p find 所需要的一些参数 ，然后调用到
+      p2p->cfg->p2p_scan 回调接口。 它有三种返回值：
+      - 0: 扫描请求发磅成功，设置扫描超时时间。
+      - 1: 扫描请求失败，会等待上一个扫描动作完成后，再进行尝试，当前
+        P2P状态机置为： =P2P_SEARCH_WHEN_READY= , 表示有个未决的扫描动
+        作。相关函数： =p2p_search_pending=
+        =p2p_other_scan_completed= 
+      - 其他值： 扫描请求失败。 
+
+      在 =p2p_supplicant.c= 文件中，定义了p2p 初始化的函数，里面有定义
+      对应的回调接口： =wpas_p2p_scan= 。  在该函数中，会通过
+      =wpa_drv_scan= 将扫描请求发送给Driver， 并指定扫描结果的处理回回
+      调接口： =wpas_p2p_scan_res_handler= 
+  
+    - =p2p_stop_find=
+      | Command       | Description                                                                       |
+      |---------------+-----------------------------------------------------------------------------------|
+      | p2p_stop_find | Stops discovery, or whatever you are doing (listen mode, connection process etc.) |
+    - =p2p_connect=
+      | Command                                                                   | Description                                                                    |
+      |---------------------------------------------------------------------------+--------------------------------------------------------------------------------|
+      |                                                                           | GO_intent – initiate connection to another device (using entered group intent) |
+      | P2p_connect <device address> <PBC \ PIN> [GO_intent=<0-15> \ auth \ join] | Auth – WPS authorize incoming connection                                       |
+      |                                                                           | Join – connect to an existing GO                                               |
+      |                                                                           | No input – initiate connection using default GO intent                         |
+
+      这个命令直接会入口函数是 =p2p_ctrl_connect= ， 在解析
+      =p2p_connect= 命令的参数后， 会进入  =wpas_p2p_connect= ，里面会
+      执行一些重要的步骤：
+      - =wpas_p2p_add_group_interface= 创建P2P虚拟接口
+      - =wpas_p2p_auth_go_neg= 只确认协商时使用的信息信息
+      - =wpas_p2p_start_go_neg= 开始 GO NEGOTIATION。
+
+        =p2p_connect_send=
+
+    - =p2p_listen=
+      | Command                        | Description        |
+      |--------------------------------+--------------------|
+      | P2p_listen [timeout (seconds)] | Enable listen mode |
+    - =p2p_group_remove=
+      | Command                      | Description                                                                      |
+      |------------------------------+----------------------------------------------------------------------------------|
+      | P2p_group_remove <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
+    - =p2p_group_add=
+      | Command                      | Description                                                                      |
+      |------------------------------+----------------------------------------------------------------------------------|
+      | P2p_group_add                | Become an autonomous GO                                                          |
+      | P2p_group_remove <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
+    - =p2p_prov_disc=
+      
+    - =p2p_get_passphrase=
+    - =p2p_serv_disc_req=
+    - =p2p_serv_disc_cancel_req=
+    - =p2p_serv_disc_resp=
+    - =p2p_service_update=
+    - =p2p_serv_disc_external=
+    - =p2p_service_flush=
+    - =p2p_service_add=
+    - =p2p_service_del=
+    - =p2p_reject=
+    - =p2p_invite=
+      | Command                    | Description               |
+      |----------------------------+---------------------------|
+      | p2p_invite <cmd> [address] | Send invitation to device |
+    - =p2p_peers=
+      | Command                | Description                                                                            |
+      |------------------------+----------------------------------------------------------------------------------------|
+      | P2p_peers [discovered] | Shows list of discovered peers (with ‘discovered’ – shows only fully discovered peers) |
+    - =p2p_peer=
+      | Command            | Description                                      |
+      |--------------------+--------------------------------------------------|
+      | P2p_peer <address> | Show detailed information about discovered peers |
+    - =p2p_set=
+    - =p2p_flush=
+      | Command   | Description                                          |
+      |-----------+------------------------------------------------------|
+      | P2p_flush | Flush p2p_state, and clears the discovered peer list |
+    - =p2p_presence_req=
+    - =p2p_ext_listen=
+*** nl80211 (p2p)
+    - =NL80211_CMD_REMAIN_ON_CHANNEL=
+    - =NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL=
+      This indicates to the device that it should stay on a given
+      channel for a given time, to implement a P2P listen phase. Can
+      also be canceled, since it is also used to implement off-channel
+      TX for group negotiation or invitation
+    - =NL80211_CMD_FRAME (previously NL80211_CMD_ACTION)=
+      传输一个管理帧。
+    - =NL80211_CMD_REGISTER_FRAME=
+      通过nl80211，用户程序可以注册接收指定类型的管理帧。
+*** 错误总结
+      当Associate  Request失败后，会尝试5次
+
+** bgscan (roaming)
+
+    WPA_Supplicant has a module that is called 'bgscan' which features
+    a mode called 'simple'. This module can be configured to perform
+    periodic background scans when the signal level drops under a
+    certain level and when it finds a stronger AP during the scan it
+    can 'roam' when the difference between the AP's is significant
+    enough.
+
+    I also found that this module was compiled, present and
+    functioning by default. The only missing piece is that the
+    configuration line in the wpa_supplicant.conf is missing
+    preventing the bgscan module from loading. I added the line into
+    the section for the relevant network:
+
+    bgscan="simple:120:-75:600"
+
+    The syntax for the configuration line is as follows and it should
+    be placed in the network section rather than the global section:
+
+    bgscan="simple:<short bgscan interval in seconds>:<signal strength
+    threshold>:<long interval>"
+
+    My bgscan simple line implies that if the signal is
+    stronger/better than -75db it will perform a bgscan every 10
+    minutes, if the signal is worse it will perform a scan every 2
+    minutes.
+
+    This is what a successful 'roam' looks like:
+    #+BEGIN_EXAMPLE
+    D/wpa_supplicant(  716): bgscan simple: Request a background scan
+D/wpa_supplicant(  716): Scan requested (ret=0) - scan timeout 30 seconds
+D/wpa_supplicant(  716): nl80211: Event message available
+D/wpa_supplicant(  716): nl80211: Scan trigger
+D/wpa_supplicant(  716): nl80211: Event message available
+D/wpa_supplicant(  716): nl80211: Scan aborted
+D/wpa_supplicant(  716): wlan0: Event SCAN_RESULTS (3) received
+D/wpa_supplicant(  716): nl80211: Associated on 2412 MHz
+D/wpa_supplicant(  716): nl80211: Associated with 68:7f:74:75:1c:7e
+D/wpa_supplicant(  716): nl80211: Received scan results (2 BSSes)
+D/wpa_supplicant(  716): nl80211: Survey data missing
+D/wpa_supplicant(  716): nl80211: Scan results indicate BSS status with 68:7f:74:75:1c:7e as associated
+D/wpa_supplicant(  716): wlan0: BSS: Start scan result update 527
+D/wpa_supplicant(  716): wlan0: BSS: Add new id 97 BSSID 00:1e:2a:21:f7:3d SSID 'pakjebakmeel24'
+D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+D/wpa_supplicant(  716): wlan0: New scan results available
+D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+D/wpa_supplicant(  716): bgscan simple: scan result notification
+D/wpa_supplicant(  716): wlan0: Selecting BSS from priority group 2
+D/wpa_supplicant(  716): wlan0: 0: 00:1e:2a:21:f7:3d ssid='pakjebakmeel24' wpa_ie_len=0 rsn_ie_len=20 caps=0x431 level=-71
+D/wpa_supplicant(  716): wlan0:    selected based on RSN IE
+D/wpa_supplicant(  716): wlan0:    selected BSS 00:1e:2a:21:f7:3d ssid='pakjebakmeel24'
+D/wpa_supplicant(  716): wlan0: Considering within-ESS reassociation
+D/wpa_supplicant(  716): wlan0: Current BSS: 68:7f:74:75:1c:7e level=-79
+D/wpa_supplicant(  716): wlan0: Selected BSS: 00:1e:2a:21:f7:3d level=-71
+D/wpa_supplicant(  716): wlan0: Saving prev AP info for roaming recovery - SSID ID: 1 BSSID: 68:7f:74:75:1c:7e
+D/wpa_supplicant(  716): wlan0: Request association: reassociate: 0  selected: 00:1e:2a:21:f7:3d  bssid: 68:7f:74:75:1c:7e  pending: 00:00:00:00:00:00  wpa_state: COMPLETED
+I/wpa_supplicant(  716): wlan0: EPBUG: Going to authenticate
+    #+END_EXAMPLE
+
+    https://android.googlesource.com/platform/external/wpa_supplicant_8/+/ics-plus-aosp/wpa_supplicant/bgscan_simple.c
+
+** SME
+
+* 参考资料
+[1]  http://en.wikipedia.org/wiki/Extensible_Authentication_Protocol
+维基百科关于EAP各种方法的一个简单介绍。
+[2]  http://hostap.epitest.fi/wpa_supplicant/devel/
+wpa_supplicant官方开发文档。读者可以简单浏览一下。
+wpa_ssid结构体介绍
+[3]  802.11-2012 附录M.4 “Suggested pass-phrase-to-PSK mapping”
+该节介绍了passphrase转换成PSK的方法，甚至还有伪代码实现。感兴趣的读者不妨结合WPAS中的代码来研究它。
+[4]  802.11-2012 第8.4.2.27.2节“Cipher suites”
+[5]  802.11-2012 第8.4.2.27.3节“AKM suites”
+上述两小节分别介绍了Cipher和AKM suites的情况。注意，其中定义的取值定义是指在RSN IE中的取值，和代码中定义的宏不是一回事。
+[6]  802.11-2012 第12章“Fast BSS Transition”
+官方文档。不过难度较大，建议读者阅读“Secure Roaming in 802.11 Networks”一书后再去看它。提醒，此书是笔者目前阅读到的关于Wi-Fi Roaming相关知识介绍最完整的一本。
+[7]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第6章“How IEEE 802.11 WEP Works and Why It Doesn't”
+关于WEP介绍的章节。另外，对安全感兴趣的读者请仔细阅读此书。
+[8]  http://www.codealias.info/technotes/opportunistic_pmk_pre-caching
+关于Opportunistic PMK Caching的简单介绍。
+[9]  Secure Roaming in 802.11 Networks第8章“Opportunistic Key Caching”一节
+相比[8]而言，这一节对OKC有更为详尽的介绍。
+wpa_supplicant结构体介绍
+[10]  802.11无线网络权威指南（第二版）第七章“802.11：RSN、TKIP与CCMP”，P171-P172
+[11]  802.11-2012 第11.4.2.4节“TKIP countermeasures procedures”
+上述两个参考资料介绍了TKIP countermeasures的处理方式。请读者先阅读[10]。
+[12]  http://www.cisco.com/en/US/docs/solutions/Enterprise/Mobility/vowlan/41dg/vowlan_ch5.html
+[13]  Secure Roaming in 802.11 Networks第5.2.5节“Background Scanning”
+Background Scan技术的介绍。
+[14]  http://network.chinabyte.com/359/12453859.shtml
+[15]  http://www.docin.com/p-365323002.html
+和GAS以及802.11u相关的一些介绍。
+wpa_supplicant_init_iface分析之三
+[16]  http://www.mjmwired.net/kernel/Documentation/rfkill.txt
+[17]  http://lwn.net/Articles/335382/
+这两篇资料介绍了rfkill相关的信息。感兴趣的读者不妨仔细阅读它们。
+[18]  http://wenku.baidu.com/view/c74758d280eb6294dd886c53.html
+RFC2863 3.1.13“IfAdminStatus and IfOperStatus”一节描述了IfOperStatus的取值情况及相关说明。
+[19]  http://wireless.kernel.org/en/developers/Documentation/nl80211/kerneldoc
+linux wireless kernel官方网站中nl80211内核部分的一些解释。
+EAP模块分析
+[20]  http://tools.ietf.org/pdf/rfc4137.pdf
+RFC4137文档的PDF版。相比TXT版而言，它用图来描述状态机的状态切换。
+EAPOL模块分析
+[21]  802.1X 2004版
+WPAS中的802.1X实现是基于802.1X 2004版。相比2010版而言，笔者觉得2004版的内容更具条理性。尤其是其关于EAPOL各状态机的描述非常清晰。
+EAPOL-Key交换流程分析
+[22]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第10章“WPA and RSN Key Hierarchy”
+[23]  802.11-2012 第11.6“Keys and key distribution”
+这两篇参考资料对Pairwise Key和Group Key以及4-Way Handshake、Group Key Handshake都有详细的介绍。
+[24]  wireless.kernel.org/en/users/Documentation/WoWLAN
+[25]  msdn.microsoft.com/en-us/library/windows/hardware/ff571052(v=vs.85).aspx
+这两篇文章对WoWLAN有一番介绍。读者可简单阅读它们。
+
+
+
+
+entropy
+
+
+

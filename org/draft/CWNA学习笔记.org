@@ -1,0 +1,2636 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="http://orgmode.org/worg/style/worg.css" type="text/css" />
+
+
+* 第一章 无线标准、组织和基础概述  
+
+** 要点记录
+ 
+*** 无线设备受管制的地方
+    1. 频率
+    2. 功率
+    3. 传输方式
+
+*** 一些机构名称
+    - IEEE
+
+      制定标准，确保不同厂商设备之间的兼容性和互操作性
+
+    - IETF(Internet Engineering Task Force)
+
+      制定RFC文档，其中许多也成为了无线网络和安全方面的国际标准。
+
+    - WiFi Alliance
+
+      负责执行Wi-Fi产品的认证测试。
+
+*** 无线网络使用受管制的领域
+    - 频率
+    - 带宽
+    - IR（Intentional Radiator)的最大功率
+    - 等效全向辐射功率的最大值
+    - 使用于室内还是室外
+    - 频谱共享规则
+
+*** 5代WiFi技术 
+
+| Wi-Fi技术 | 频段          | 最大速率传输率 |
+|-----------+---------------+----------------|
+| 802.11a   | 5 GHz         | 54 Mbps        |
+| 802.11b   | 2.4 GHz       | 11 Mbps        |
+| 802.11g   | 2.4 GHz       | 54 Mbps        |
+| 802.11n   | 2.4 GHz, 5GHz | 450 Mbps       |
+| 802.11ac  | 5 GHz         | 1.3 Gbps       |
+    
+*** 网络架构
+    - Core Layer
+
+      本层不对数据包进行路由或操作，只执行高速交换， 确保数据包快速和
+      可靠传输。
+
+    - Distribution Layer
+
+      本层将数据传输路由到不同的虚拟LAN和子网之间。
+
+    - Access Layer
+
+      负责将数据最终传递给用户。
+
+*** 通信基础
+
+    - 载波信号
+
+      一个信号如果要传递有效信息，必须要对其进行调整，使其能分辨出0，1
+      信息，对信号进行调整的方法称为调制（Modulation).对一个信号波的振幅，
+      频率和相位进行调整可以产生一个载波信号。
+
+    - 信号调制技术
+      1. ASK
+
+         通过振幅的变化来携带数据信息，最容易受干扰的影响。
+
+      2. FSK
+
+         通过频率的变化来携带数据信息。
+
+      3. PSK
+
+         通过相位的变化来携带数据信息，802.11网络中使用此调制技术比较
+         广泛。
+
+*** WiFi学习资源
+    - [[www.wi-fi.org][WiFi联盟]]
+    - [[www.cwnp.com][CWNP]]
+    - [[http://www.revolutionwifi.net/][Andrew vonNagy's blog]]
+    - iGoogle Group: WiFi
+
+      
+* 第二章 无线射频基础
+
+** 射频(Radio Frequency, RF)信号的定义
+
+   物理层的核心是射频传输。
+
+   射频信号刚开始是由信号发送器产生的一种交流电信号，这种交流电信号通
+   过铜导线（同轴线缆），以电磁波的形式通过天线发射出去。
+
+** 射频的特征
+   
+   每个射频信号具备如下几个特征：
+
+   - 波长
+
+     射频信号一个周期传输的距离。
+
+     一般人认为更高频率的电磁波信号，波长更小，信号衰减速度比低频率，波长
+     较长的电磁波要快。而实际上，RF信号的频率和波长属性并不会导致信号
+     衰减，而距离才是导致信号衰减的主要原因。 
+
+     所有天线都有一个接收功率的有效区域，称为孔径(apertune), 更高频率
+     的天线接收较低频率的信号所需要要的RF能量要小些。
+
+     尽量波长和频率不会造成衰减，但给人的感觉就是较小波长的高频率信号
+     比较短波长的低频率信号衰减更快。所以，当无线链路其他情况一样的条
+     件下，使用5G无线电波的Wi-Fi设备会比使用2.4G无线电波的设备拥有较小
+     的传输距离和较小的覆盖范围。
+
+     Site Survey: 测试设备的信号覆盖范围的一个过程。
+
+   - 频率
+
+     一个RF信号一秒钟出现的周期次数即为信号的频率，单位Hz。波长与频率
+     成反比。
+
+   - 振幅
+
+     RF信号的一个非常重要的属性，可描述为信号的强度。振幅会由于信号的
+     衰减而变化，但是信号的波长和频率却是保持不变的。
+
+   - 相位
+
+     一般是用于描述信号之间的关系。
+
+** 射频的行为
+
+   - 波传播(Wave propagation)
+
+     RF信号传输的过程，即远离发送方天线的过程。
+
+   - 吸收(Absorption)
+
+     RF最常见的行为是吸收。如果一个信号并没有从一个物体中反射回来，而
+     是通过了该物体，则认为发生了100%的信号吸收。
+
+     不同材料的物体对信号的吸收情况不一样。砖和混凝土结构的墙面会吸收
+     相当多的信号，而干燥的墙面则会相对吸收少些信号。比如2.4G信号通过
+     一个砖墙后，还剩下1/16的信号强度，但是如果通过普通的墙面，则仅损
+     失大概1/2的信号强度。水也是一种媒介，会吸收大部分信号。
+
+   - 反射(Reflection)
+
+     当一个无线电波碰到一个比它大的光滑的物体时，电磁波会反转到另一个
+     方向传播，这种行为称为反射。一般金属制造的物体都会反射电磁波。
+
+     当反射的信号与原始信号会产生传输的时间差，即deplay spread，会导致
+     intersymbol干涉，从而导致数据被破坏以及Layer 2数据重传。
+
+     反射是802.11a/b/g WLAN无线设备性能差的一个主要原因之一。因为反射
+     会产生多径效应，多径效应会降低接收到的信号的强度和质量，甚至会导
+     致数据破坏或信号归零。
+
+     802.11n和802.11ac无线电波利用了MIMO天线阵列和高级的信号处理技术，
+     可以利用多径效应，发掘出它的优势，并应用在数据传输上。
+
+   - 散射(Scattering)
+
+     百度百科：散射是指由传播介质的不均匀性引起的光线向四周射去的现象。
+     如一束光通过稀释后的牛奶后为粉红色，而从侧面和上面看，却是浅蓝色
+     的。
+
+   - 折射(Refraction)
+
+     当一个RF信号通过不同密度的媒介时，会导致电波波的方向发生改变，这
+     种现象称为折射。折射一般是由于大气条件产生的。
+
+     三种最常见的折射原因为：水蒸气，空气温度的变化以及空气压力的变化。
+
+   - 衍射(Diffraction)
+
+     衍射是指信号经过一个障碍物体时，传播路径发生了变化，没有碰到障碍
+     物的其他电波仍然保持原来的传播路径和方向。 衍射现象会导致在障碍物
+     的背面产生一个区域称为RF阴影区，这块区域要么完全收不到电波信号，
+     要么只能收到比较弱的电波信号。
+
+   - 衰减(Loss (attenuation))
+
+     指信号强度或振幅降低了。在无线通信过程的有线部分，即RF线缆，AC电
+     流信号会损失强度，因为同轴线缆和其他连接器件有电子阻抗。
+
+   - 自由空间路径损耗(Free space path loss)
+
+     即便排除上述的一些因素，根据物理定律，一个无线电波在向因周传播过
+     程中，随着距离越来越远，信号强度也会越来越弱，直到接收器无法感知
+     到该信号的存在。
+
+   - 多径(Multipath)
+
+     由于上述存在的反射，散射，折射，衍射等现象，会导致相同的信号存在
+     多条传输路径。
+
+   - 增益(Gain (amplification))
+
+     加大信号的振幅或信号强度。有两种类型的增益：主动增益和被动增益。
+
+     收发器和RF放大器是主动增益设备，而天线是被增益设备。
+
+
+* 第三章 无线射频组件、测量与数学原理 
+  
+** RF通信的组件
+
+   data send path:
+   Transmitter --> Antenna Cable --> Intentional radiator(IR) --> EIRP
+
+   #+CAPTION: RF components
+   [[./images/2015/2015120202.png]]
+      
+*** Transmitter(发射机)
+
+    The transmitter is the initial component in the creation of the
+    wireless medium. The computer hands the data off to the
+    transmitter, and it is the transmitter’s job to begin the RF
+    communication.
+
+    The transmitter takes the data provided and modifies the AC
+    signal by using a modulation technique to encode the data into the
+    signal.
+
+    被调制后的AC信号现在已经变成一个载波信号，包含（承载）了要传输的数
+    据。载波信号接着被直接传输到天线或通过线缆传输到天线。
+
+    总结来看，Transmitter的主要作用是：
+    1. 产生某个特定频率的信号。
+    2. 决定原始信号的振幅，或者说是Transmitter的功率级别，信号波的振幅
+       越大，Transmitter所需要的功率就越大。当然，这个功率要受到管理当
+       局的管制。
+
+*** Antenna(天线)
+
+    天线提供了两个功能：
+    1. When connected to the transmitter, it collects the AC signal
+       that it receives from the transmitter and directs, or radiates,
+       the RF waves away from the antenna in a pattern specific to
+       the antenna type.
+
+    2. When connected to the receiver, the antenna takes the RF waves
+       that it receives through the air and directs the AC signal to
+       the receiver.
+
+       接收方将收到的AC Signal转换成比特和字节。
+
+    isotropic radiator: 全方向等同辐射器，即在各个方向发射信号的强度是
+    等同的。太阳是一个很好的例子。但是，生产出完成符合isotropic
+    radiator要求的天线是有困难的，所以天线本身的结构也会影响各个方向上
+    的信号传输。一般来说，有两种方法来增加天线的输出功率：
+    1. 在Transmitter端使用更强的功率去产生信号。
+    2. 使天线将信号聚集于某个方向会范围输出。
+
+*** Receiver(接收器)
+
+    The receiver is the fi nal component in the wireless medium.The
+    receiver takes the carrier signal that is received from the
+    antenna and translates the modulated signals into 1s and 0s.
+
+*** Intentional Radiator
+
+    定义： a device that intentionally generates and emits radio
+    frequency energy by radiation or induction.
+
+    根据定义描述，这是一种专门设计用来产生RF的装置，它包含了：
+    1. transmitter
+    2. all cables and connector
+    3. any other equipment(grounding, lighting arrestors, amplifiers,
+       attenuators and so forth)
+
+    IR的功率量测点是在提供给天线输入的连接点处。功率大小一般用mW或
+    dBm(decibels relative to 1 milliwatt，伏特分贝)来表示。
+
+*** Equivalent Isotropically Radiated Power
+
+    Equivalent isotropically radiated power (EIRP) is the highest RF
+    signal strength that is transmitted from a particular antenna.
+
+    一般天线具备定向或聚集从IF传过来的RF信号能量的功能，EIRRP是从天线
+    输出的一个功率，它可以放大输入进来的RF信号，所以EIRP的输出功率也是
+    受到管制的一个指标。
+
+*** Units of Power and Comparison
+
+**** Units of power (absolute)
+     1. watt (W)
+     2. milliwatt (mW)
+     3. decibels relative to 1 milliwatt (dBm)
+        当功率为1 mW时，dBm值为0。
+        dBm = 10 X log10(PmW)
+        所以，100mW功率相当于+20 dBm。
+        大部分802.11无线电波的信号功率为1mW到100mW，由于信号传播过程中
+        的损耗，收到的信号功率一般低于1mW，-40dBm已经是收到的比较强的
+        信号了。
+
+
+**** Units of comparison (relative)
+     1. decibel (dB)  描述功率的改变
+     2. decibels relative to an isotropic radiator (dBi)  一般用来衡量
+        天线增益, 即天线的信号相对输出强度。
+     3. decibels relative to a half-wave dipole antenna(偶极天线) (dBd)
+        a dBd value is the increase in gain of an antenna when it is
+        compared to the signal of a dipole antenna.
+
+        A standard dipole antenna has a dBi value of 2.14. If an
+        antenna has a value of 3 dBd, this means that it is 3 dB
+        greater than a dipole antenna.
+
+        3 dBd = 2.14 dBi + 3 = 5.14 dBi
+
+     Remember the 6 dB rule: +6 dB doubles the distance of the usable
+     signal;–6 dB halves the distance of the usable signal.
+     
+** RF Mathematics
+
+*** Rule of 10s and 3s
+    - For every 3 dB of gain (relative), double the absolute power
+      (mW).
+      3 dB gain = mW * 2
+    - For every 3 dB of loss (relative), halve the absolute power
+      (mW).
+      3 dB loss = mW / 2
+    - For every 10 dB of gain (relative), multiply the absolute power
+      (mW) by a factor of 10.
+      10 dB gain = mW * 10
+    - For every 10 dB of loss (relative), divide the absolute power
+      (mW) by a factor of 10.
+      10 dB loss = mW / 10
+
+** Noise Floor
+   背景干扰信号， 来源很多，比如：附近802.11设备传输的信号，未调制过的
+   来自其他类型设备的干扰波等。背景干扰信号的振幅随着环境的不同，也不
+   一样。在2.4 G ISM信道，背景干扰信号强度可能为-100dBm，然后，在RF环
+   境下，背景干扰信号强度可能为-90dBm。一般情况下，5G信道干扰信号强度
+   要小些，因为5G 频段相对没有2.4G拥挤。
+
+** 信噪比(SNR)
+   SNR是衡量信号质量的一个指标。SNR是接收到的信号强度与背景干扰信号强
+   度之间的差值，不是比率。例如，无线设备接收到的信号强度为-85dBm，而
+   背景干扰信号的强度为-100dBm，则SNR值为15dB。
+
+   SNR值大于或等于25 dB时，则认为信号质量很好，而当SNR低于10 dB时，则
+   认为信号质量很差。 
+
+** 接收到的信号强度指示(RSSI)
+
+   Receive sensitivity: the power level of an RF signal required to be
+   successfully received by the receiver radio.
+
+   在Wlan设置中，Receive Sensitivity通常被定义为网络速度的一个功能。
+   Wi-Fi厂商一般指定各种速率下Receive Sensitity阀值。对于一个接收器来
+   说，要支持更高速度，就需要更多的功率。不同的速率采用不同的信号调制
+   技术和编码方法。更高速率下的编码方法更容易出现数据被破坏。
+
+   The 802.11-2012 standard defines the received signal strength
+   indicator (RSSI) as a relative metric used by 802.11 radios to
+   measure signal strength (amplitude). The 802.11 RSSI measurement
+   parameter can have a value from 0 to 255. The RSSI value is
+   designed to be used by the WLAN hardware manufacturer as a relative
+   measurement of the RF signal strength that is received by an 802.11
+   radio. RSSI metrics are typically mapped to receive sensitivity
+   thresholds expressed in absolute dBm values.
+
+   Received signal strength indicator (RSSI) metrics (vendor example)
+   | RSSI | Receive sensitivity threshold      | Signal strength (%) | Signal-to-noise ratio | Signal quality (%) |
+   |------+------------------------------------+---------------------+-----------------------+--------------------|
+   |<l>  | <l5> |<l>  |<l> |<l>|
+   |   30 | –30                            dBm |                100% | 70  dB                |               100% |
+   |   25 | –41                            dBm |                 90% | 60  dB                |               100% |
+   |   20 | –52                            dBm |                 80% | 43  dB                |                90% |
+   |   21 | –52                            dBm |                 80% | 40  dB                |                80% |
+   |   15 | –63                            dBm |                 60% | 33  dB                |                50% |
+   |   10 | –75                            dBm |                 40% | 25  dB                |                35% |
+   |    5 | –89                            dBm |                 10% | 10  dB                |                 5% |
+   |    0 | –110                           dBm |                  0% | 0  dB                 |                 0% |
+   
+
+** Link budget
+
+   When radio communications are deployed, a link budget is the sum of
+   all the planned and expected gains and losses from the transmitting
+   radio, through the RF medium, to the receiver radio.
+
+   The purpose of link budget calculations is to guarantee that the
+   final received signal amplitude is above the receiver sensitivity
+   threshold of the receiver radio.
+
+** Fade margin/system operating margin
+
+   Fade margin is a level of desired signal above what is required. 
+   如果一个接收器的Receive Sensitity是-80 dBm，即只要接收到的信号强度
+   大于-80 dBm，则数据传输就能成功。但问题是，由于信号传输过程中，会受
+   到一些外部干扰导致接收到的信号强度出现波动，为了应对这种波动的特点，
+   通常会规划Receive Sensitity值以上的10 dB到25 dB大小的缓冲区值区间，
+   这个区间值就是Fade Margin。对于Fade Margin为10 dB的情况，这时设定的
+   Receive Sensitity的阀值为-70 dBm。
+
+   
+* 第四章 无线射频信号与天线理论 :noexport:
+  
+** Azimuth and Elevation Charts (Antenna Radiation Envelopes)
+  
+   方位角和仰角(Azimuth Charts & Elevation Charts): radiation
+   patterns, These radiation patterns are created in controlled
+   environments where the results cannot be skewed by outside infl
+   uences and represent the signal pattern that is radiated by a
+   particular model of antenna. These charts are commonly known as
+   polar charts(极坐标图) or antenna radiation envelopes().
+
+   方位角： The azimuth chart, labeled H-plane, shows the top-down
+   view of the radiation pattern of the antenna. 正北方向的平面顺时针
+   旋转到和天线所在平面重合所经历的角度。
+
+   仰角：The elevation chart, labeled E-plane, shows the side view of
+   the radiation pattern of the antenna. 
+
+   天线极化图：
+
+   
+
+   
+
+   
+
+
+* 第五章 IEEE 802.11 标准
+
+** Original IEEE 802.11 standard
+
+     发布于1997年，称为IEEE Std 802.11-1997. 只定义和规范802.11设备物
+     理层和MAC的数据链路子层的行为。
+
+     PHY任务组定义了如下三个最初的物理层规范：
+     1. Infrared (IR)  红外线，一种基于光的媒介。
+     2. Frequency Hopping Spread Spectrum (FHSS)  
+
+        无线频率信号通常分为窄波或扩频信号。 当RF信号以比所需要带宽更
+        宽的带宽传输数据时，该信号就可以认为是扩频信号。 ISM 2.402 GHz
+        ~ 2.480 GHz
+     3. Direct Sequence Spread Spectrum (DSSS)
+
+        使用固定信道的一种扩频技术。 ISM 2.4 GHz ~ 2.4835 GHz
+
+     it is important to understand that an 802.11 DSSS (Clause 16)
+     radio cannot communicate with an 802.11 FHSS (Clause 14) radio.
+
+     Date Rates: 1 ~ 2M bps ,  a data rate is the speed and not actual
+     throughput.
+
+** IEEE 802.11-2007 ratified amendments
+
+*** 802.11b-1999
+
+       1. Clause 17 of the 802.11-2012 standard.
+       2. The Physical layer medium is High-Rate DSSS (HR-DSSS)
+       3. Frequency Space: 2.4 GHz to 2.4835 GHz ISM band.
+       4. 为了2.4G提高数据传输率，使用了不同的扩频和编码技术：CCK（Complementary Code Keying）。
+       5. 支持1， 2， 5.5， 11Mbps的速率。
+
+*** 802.11a-1999
+
+       1. operate in 5GHz Frequency, using an RF technology called
+          Orthogonal Frequency Division Multiplexing (OFDM).
+       2. 支持6, 9, 12, 18, 24, 36, 48, 54速率。
+       3. 不能与legacy802.11设备，802.11b, 802.11g的设备通信。
+       4. 802.11a can coexist in the same physical space with 802.11,
+          802.11b, or 802.11g devices because these devices transmit
+          in separate frequency ranges.
+       5. 802.11a最初是想运行于三个不同的100MHz未受控的5G频段，这些频
+          段称为Unlicensed National Information Infrastructure
+          (U-NII)， 即U-NII-1, U-NII-2, U-NII-3. 
+
+*** 802.11g-2003
+
+       1. use new technology called Extended Rate Physical(ERP).
+       2. 传输频段：2.4GHz ~ 2.4835GHz.
+       3. 与前代产品保持兼容。 
+
+       #+CAPTION: Original 802.11 amendments comparison
+       |                            | 802.11 legacy    | 802.11b                                  | 802.11g                                                                                                                                                     | 802.11a                                                                            |
+       |----------------------------+------------------+------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------|
+       | Frequency                  | 2.4 GHz ISM band | 2.4 GHz ISM band                         | 2.4 GHz ISM band                                                                                                                                            | 5 GHz U-NII-1, U-NII-2, and U-NII-3 bands                                          |
+       | Spread spectrum technology | FHSS or DSSS     | HR-DSSS   PBCC is optional.              | ERP: ERP-OFDM and ERP-DSSS/CCK are mandatory. ERP-PBCC and DSSSOFDM are optional.                                                                           | OFDM                                                                               |
+       | Data rates                 | 1, 2 Mbps        | DSSS: 1, 2 Mbps HR-DSSS: 5.5 and 11 Mbps | ERP-DSSS/CCK: 1, 2, 5.5, and 11 Mbps   ERP-OFDM: 6, 12, and 24 Mbps are mandatory.  Also supported are 9, 18, 36, 48, and 54 Mbps. ERP-PBCC: 22 and 33 Mbps | 6, 12, and 24 Mbps are mandatory.   Also supported are 9, 18, 36, 48, and 54 Mbps. |
+       | Backward compatibility     | N/A              | 802.11 DSSS only                         | 802.11b HR-DSSS and  802.11 DSSS                                                                                                                            | None                                                                               |
+       | Ratified                   | 1997             | 1999                                     | 2003                                                                                                                                                        | 1999                                                                               |
+
+*** 802.11d-2001
+    
+       增加了802.11设备用于其他国家的一些规范(欧美及日本以后的国家)，如Contry Code信息，会包
+       含在Beacons和Probe Response帧中。 
+
+*** 802.11h-2003
+
+      该规范定义了DFS（动态频率改变）和TPC(传输功率控制)的行为。主要目
+      的是让运行于5G的802.11设备能自动侦测雷达信号，并避开雷达使用的
+      信道，防止干扰雷达设备的使用。
+
+*** 802.11i-2004
+
+      无线安全解决方案的三大关键部分：
+      1. data privacy（加密）
+      2. data integrity（防止被篡改）
+      3. authentication（身份验证）
+
+      802.11标准一开始定义了两种认证方法：
+      1. Open System (任何人都可以通过验证)
+      2. Shared Key（存在安全隐患）
+
+      802.11i又称为RSN，提供了更强的数据加密机制和身份验证机制。主要的
+      改善体现在：
+      1. Data Privacy
+
+         使用更强的加密方法CCMP，它采用的是AES算法。
+         同时也定义了一个可选的加密方法TKIP，使用RC4算法，主要是为了兼
+         容旧的WEP加密方式的设备。
+
+      2. Data Integrity
+
+         为了保证接收到的数据没有被篡改，WEP使用的方法叫做
+         Initialization Check Value (ICV). TKIP使用的方法叫做Message
+         Integrity Check (MIC). CCMP使用了强化版的MIC。另外，在所有的
+         802.11帧最后，都包含32-bit的CRC即FCS信息，用来保护帧负载的完
+         整性。
+
+      3. Authentication
+
+         802.11i定义了两种认证方法：
+         - 802.1X with EAP methods
+
+         - PSK(Preshared Keys)
+
+      4. RSN
+
+         定义了一整套方法，包含：认证建立，安全关联协商，为STA和AP动态
+         产生加密密钥等。
+
+         Wi-Fi Protected Access 2 (WPA2):  802.11i security amendment.
+         WPA version 1: a preview of 802.11i.
+
+*** 802.11j-2004
+
+      The main goal set out by the IEEE Task Group j (TGj) was to
+      obtain Japanese regulatory approval by enhancing the 802.11 MAC
+      and 802.11a PHY to additionally operate in Japanese 4.9 GHz and
+      5 GHz  bands. 
+
+*** 802.11e-2005
+
+      The 802.11e amendment defines the layer 2 MAC  methods needed
+      to meet the QoS requirements for time-sensitive applications
+      over IEEE 802.11 WLANs.  
+
+      Wi-Fi Multimedia (WMM): a “mirror” of 802.11e. 
+
+** IEEE 802.11-2012 ratified amendments
+
+*** 802.11r-2008
+
+      The 802.11r-2008 amendment is known as the fast basic service
+      set transition (FT) amendment. The technology is more often
+      referred to as fast secure roaming because it defines faster
+      handoffs when roaming occurs between cells in a WLAN using the
+      strong security defined by a robust secure network (RSN).
+
+*** 802.11k-2008
+
+       定义了一些Radio Resource Measurement的方法。如下是一些主要的
+       Radio Resource Measurement：
+       1. Transmit Power Control (TPC)
+
+          802.11h定义了5G下的TPC的使用，这里主要定义了其他频段下TPC的
+          使用。
+
+       2. Client Statistics
+
+          向AP回馈SNR，信号强度和数据传输速率等信息。
+
+       3. Neighbor Reports
+
+          提供附近其他AP的一些信息，使得STA有能力判断是否可以漫游到其
+          他AP上。802.11k向STA反馈一些RF环境相关信息，便于STA更好地做
+          出漫游的选择。
+
+*** 802.11y-2008
+
+      The objective of the IEEE Task Group y (TGy) was to standardize
+      the mechanisms required to allow high-powered, shared 802.11
+      operations with other non-802.11 devices in the 3650 MHz–3700
+      MHz licensed band in the United States.
+
+*** 802.11w-2009
+
+      提供一种安全的方式去传送管理帧，防止管理帧被窃听。802.11w帧也
+         称为强健管理帧。
+
+*** 802.11n-2009
+
+      增强2.4G和5G的吞吐量。定义了一种新的操作，叫做HT（High
+      Throughput），对PHY和MAC进行了加强以支持高达600Mbps的数据传输率，
+      聚合吞吐率达到100Mbps以上。
+
+      HT无线使用了MIMO+OFDM技术。与802.11a/b/g设备兼容。
+
+*** 802.11p-2010
+
+       加强802.11标准规范以支持Intelligent Transportation Systems
+       (ITS) applications。以更好地 支持高速移动下的数据传输。
+
+       802.11p is also known as Wireless Access in Vehicular
+      Environments (WAVE) and is a possible foundation for a US
+      Department of Transportation project called Dedicated Short
+      Range Communications (DSRC).
+
+*** 802.11z-2010
+
+      The purpose of IEEE Task Group z (TGz) was to establish and
+      standardize a Direct Link Setup (DLS) mechanism to allow
+      operation with non-DLS-capable access points.
+
+      DLS allows client stations to bypass the access point and
+      communicate with direct frame exchanges.
+
+*** 802.11u-2011
+
+      主要解决802.11网络与其他外部网络之间的问题。
+
+      The 802.11u-2011 amendment is the basis for the Wi-Fi Alliance’s
+      Hotspot 2.0 specifi cation and its Passpoint certifi cation.
+
+*** 802.11v-2011
+
+      802.11v provides for an exchange of information that can
+      potentially ease the configuration of client stations
+      wirelessly from a central point of management. 802.11v-2011 defi
+      nes Wireless Network Management (WNM)
+
+*** 802.11s-2011
+
+      The 802.11s amendment proposes the use of a protocol for
+      adaptive, autoconfiguring systems that support broadcast,
+      multicast, and unicast traffi cover a multihop mesh WDS.
+
+** Post-2012 ratified amendments
+
+*** 02.11ae-2012
+
+      The 802.11ae amendment specifies enhancements to QoS
+      management.
+
+*** 802.11aa-2012
+     
+       The 802.11aa amendment specifies QoS enhancements to the
+       802.11 Media Access Control (MAC) for robust audio and video
+       streaming for both consumer and enterprise applications.
+
+*** 802.11ad-2012
+
+      The 802.11ad amendment defines Very High Throughput (VHT)
+      enhancements using the much higher unlicensed frequency band of
+      60 GHz.
+
+*** 802.11ac-2013
+
+      The 802.11ac-2013 amendment defines Very High Throughput (VHT)
+      enhancements below 6 GHz. The technology will only be used in
+      the 5 GHz frequency bands where 802.11a/n radios already
+      operate.
+
+      mainly improvements are:
+      1. Wider Channels
+
+         802.11ac brings us the capability of 80 MHz and 160 MHz
+         channels.
+
+      2. New Modulation
+         
+          802.11ac will provide the capability to use 256-QAM
+         modulation, which has the potential to provide a 30 percent
+         increase in speed.
+
+      3. More Spatial Streams
+
+         802.11ac radios could be built to transmit and receive up to
+         eight spatial streams.
+
+      4. Improved MIMO and Beamforming
+
+         MU-MIMO, transmit a signal to multiple client stations on the
+         same channel simultaneously if the client stations are in
+         different physical areas.
+
+*** 802.11af-2014
+
+      The 802.11af amendment allows the use of wireless in the newly
+      opened TV white space (TVWS) frequencies between 54 MHz and 790
+      MHz.
+
+** IEEE 802.11 draft amendments
+
+*** 802.11ah
+
+      The 802.11ah draft amendment defi nes the use of Wi-Fi in
+      frequencies below 1 GHz.
+
+*** 802.11ai
+
+       The goal of the 802.11ai draft amendment is to provide a fast
+       initial link setup (FILS). This technology could allow a STA to
+       establish a secure link setup in less than 100 ms.
+
+*** 802.11aj
+
+      The 802.11aj draft amendment is to provide modifications to the
+      IEEE 802.11ad-2012 amendment’s PHY and MAC layer to provide
+      support for operating in the Chinese Milli-Meter Wave (CMMW)
+      frequency bands.
+
+*** 802.11ak
+
+      The 802.11ak draft amendment is also referred to as General Link
+      (GLK). The task group is exploring enhancement to 802.11 links
+      for use in bridged networks.
+
+*** 802.11aq
+
+      enables delivery of network service information prior to the
+      association of stations on an 802.11 network.
+
+** Review Questions:
+
+   1. An ERP (802.11g) network mandates support for which two spread
+      spectrum technologies?   
+
+    =A. ERP-OFDM=   
+
+     B. FHSS   
+
+     C. ERP-PBCC   
+
+    =D. ERP-DSSS/CCK=   
+
+     E. CSMA/CA    
+
+   2. The 802.11-2012 standard using an ERP-DSSS/CCK radio supports
+      which data rates?
+
+     A. 3, 6, and 12 Mbps
+      
+     B. 6, 9, 12, 18, 24, 36, 48, and 54 Mbps
+
+     C. 6, 12, 24, and 54 Mbps
+
+     D. 6, 12, and 24 Mbps
+
+     =E. 1, 2, 5.5, and 11 Mbps=
+
+   3. Which types of devices were defined in the original 802.11
+      standard? (Choose all that  apply.)
+
+     A. OFDM
+
+     =B. DSSS=
+
+     C. HR-DSSS
+
+     =D. IR=
+
+     =E. FHSS=
+
+     F. ERP
+
+   4. Which 802.11 amendment defines wireless mesh networking
+      mechanisms?
+
+     A. 802.11n
+
+     B. 802.11u
+
+     =C. 802.11s=
+
+     D. 802.11v
+
+     E. 802.11k
+
+   5. A robust security network (RSN) requires the use of which
+      security mechanisms? (Choose  all that apply.)
+
+     A. 802.11x
+
+     B. WEP
+
+     C. IPsec
+
+     =D. CCMP/AES=
+
+     E. CKIP
+
+     =F. 802.1X=
+
+   6. An 802.11a radio card can transmit on the __  frequency and uses
+      __ spread   spectrum technology.
+
+     A. 5 MHz, OFDM
+
+     B. 2.4 GHz, HR-DSSS
+
+     C. 2.4 GHz, ERP-OFDM
+
+     =D. 5 GHz, OFDM=
+
+     E. 5 GHz, DSSS
+
+   7. What are the required data rates of an OFDM station?
+
+     A. 3, 6, and 12 Mbps
+
+     B. 6, 9, 12, 18, 24, 36, 48, and 54 Mbps
+
+     C. 6, 12, 24, and 54 Mbps
+
+     =D. 6, 12, and 24 Mbps=
+
+     E. 1, 2, 5.5, and 11 Mbps
+ 
+   8. When implementing an 802.1X/EAP RSN network with a VoWiFi
+      solution, what is needed  to avoid latency issues during
+      roaming?
+
+     A. Inter-Access Point Protocol
+
+     =B. Fast BSS Transition=
+
+     C. Distributed Coordination Function
+
+     D. Roaming Coordination Function
+
+     E. Lightweight APs
+
+   9. Which new technologies debuted in the 802.11ac-2013 amendment?
+      (Choose all that apply.)
+
+     A. MIMO
+
+     =B. MU-MIMO=
+
+     =C. 256-QAM=
+
+     D. 40 MHz channels
+
+     =E. 80 MHz channels=
+
+   10. What is the primary reason that OFDM (802.11a) radios cannot
+       communicate with ERP  (802.11g) radios?
+
+     A. 802.11a uses OFDM, and 802.11g uses DSSS.
+
+     B. 802.11a uses DSSS, and 802.11g uses OFDM.
+
+     C. 802.11a uses OFDM, and 802.11g uses CCK.
+
+     =D. 802.11a operates at 5 GHz, and 802.11g operates at 2.4 GHz.=
+
+     E. 802.11a requires dynamic frequency selection, and 802.11g does  not.
+
+   11. What two technologies are used to prevent 802.11 radios from
+       interfering with radar and  satellite transmissions at 5 GHz?
+
+     =A. Dynamic frequency selection=
+
+     B. Enhanced Distributed Channel Access
+
+     C. Direct sequence spread spectrum
+
+     D. Temporal Key Integrity Protocol
+
+     =E. Transmit power control=
+
+   12. Which 802.11 amendments provide for throughput of 1 Gbps or
+       higher? (Choose all that  apply.)
+
+     A. 802.11aa
+
+     B. 802.11ab
+
+     =C. 802.11ac=
+
+     =D. 802.11ad=
+
+     E. 802.11ae
+
+     F. 802.11af
+
+   13. As defined by the 802.11-2012 standard, which equipment is
+       compatible? (Choose all that  apply.)
+
+     =A. ERP and HR-DSSS=
+
+     B. HR-DSSS and FHSS
+
+     C. OFDM and ERP
+
+     =D. 802.11a and 802.11h=
+
+     =E. DSSS and HR-DSSS=
+
+   14. Maximum data rates of are permitted using OFDM radios.
+
+     A. 108 Mbps
+
+     B. 22 Mbps
+
+     C. 24 Mbps
+
+     =D. 54 Mbps=
+
+     E. 11 Mbps
+
+   15. What are the security options available as defined in the
+       original IEEE Std 802.11-1999  (R2003)? (Choose all that
+       apply.)
+
+     A. CCMP/AES
+
+     =B. Open System authentication=
+
+     C. Preshared keys
+
+     =D. Shared Key authentication=
+
+     =E. WEP=
+
+     F. TKIP
+
+   16. The 802.11u-2011 amendment is also known as what?
+
+     =A. Wireless Interworking with External Networks (WIEN)=
+
+     B. Wireless Local Area Networking (WLAN)
+
+     C. Wireless Performance Prediction (WPP)
+
+     D. Wireless Access in Vehicular Environments (WAVE)
+
+     E. Wireless Access Protocol (WAP)
+
+   17. The 802.11-2012 standard defines which two technologies for
+       quality of service (QoS) in a WLAN?
+
+     =A. EDCA=
+
+     B. PCF
+
+     =C. Hybrid Coordination Function Controlled Channel Access=
+
+     D. VoIP
+
+     E. Distributed Coordination Function
+
+     F. VoWiFi
+
+   18. The 802.11h amendment (now part of the 802.11-2012 standard)
+       introduced what two major changes for 5 GHz radios?
+
+     =A. U-NII-2 Extended=
+
+     B. IAPP
+
+     =C. Radar detection=
+
+     D. Transmit Frequency Avoidance
+
+     E. Frequency hopping spread spectrum
+
+   19. The 802.11b amendment defined which PHY?
+
+     =A. HR-DSSS=
+
+     B. FHSS
+
+     C. OFDM
+
+     D. PBCC
+
+     E. EIRP
+
+   20. Which layers of the OSI model are referenced in the 802.11
+       standard? (Choose all that   apply.)
+
+     A. Application
+
+     =B. Data-Link=
+
+     C. Presentation
+
+     =D. Physical=
+
+     E. Transport
+
+     F. Network
+       
+
+* 第六章 无线网络与扩频技术 
+
+** Industrial, Scientific, and Medical Bands
+
+     ISM的频率范围为， 这些范围由ITU-T定义：
+     - 902 MHz – 928 MHz (26 MHz wide)   Insdustrial Band
+
+     - 2.4 GHz – 2.5 GHz (100 MHz wide)    Scientific Band
+
+       无线电波使用如下一些频段：
+
+       1. 802.11 (FHSS radios or DSSS radios)
+
+       2. 802.11b (HR-DSSS radios)
+
+       3. 802.11g (ERP radios)
+
+       4. 802.11n (HT radios)
+
+     - 5.725 GHz – 5.875 GHz (150 MHz wide)   Medical Band
+
+** Unlicensed National Information Infrastructure Bands
+
+     The IEEE 802.11a amendment designated WLAN transmissions within
+     the frequency space of the three 5 GHz bands, each with four
+     channels. These frequency ranges are known as the Unlicensed
+     National Information Infrastructure (U-NII) bands.
+
+     802.11a定义了三组频率：U-NII-1， U-NII-2，U-NII-3， 802.11h在此基
+     础上又增加了12个可用信道，称为U-NII-2-Extended。目前在5G U-NII频
+     段进行数据传输的WiFi无线电波采用了如下一些技术：
+     
+     - 802.11a (OFDM radios)
+     - 802.11n (HT radios)
+     - 802.11ac (VHT radios)
+
+*** U-NII-1 (Lower Band)
+
+      spans from 5.150 GHz to 5.250 GHz(100 MHz), 有4个20MHz带宽的信道。
+
+*** U-NII-2 (Middle Band)
+
+      spans from 5.250 GHz to 5.350 GHz（100 MHz）， 也是有4个20MHz带
+      宽的信道。运行于此频段的WiFi设备必须支持DFS。
+
+*** U-NII-2 Extended
+
+      spans from 5.470 GHz to 5.725 GHz(255 MHz)， 12个20MHz带宽的信道。
+      运行于此频段的WiFi设备必须支持DFS。
+
+*** U-NII-3 (Upper Band)
+
+      spans from 5.725 GHz to 5.850 GHz（125 MHz）。 5 个20MHz的信道，
+
+*** Future U-NII Bands
+
+      #+CAPTION: The new 5 GHz U-NII bands
+      | Old Name         | New Name | Frequency        | Channels    |
+      |------------------+----------+------------------+-------------|
+      | U-NII-1          | U-NII-1  | 5.15 – 5.25 GHz  | 4 channels  |
+      | U-NII-2          | U-NII-2A | 5.25 – 5.35 GHz  | 5 channels  |
+      |                  | U-NII-2B | 5.35 – 5.47 GHz  | 6 channels  |
+      | U-NII-2 Extended | U-NII-2C | 5.47 – 5.725 GHz | 13 channels |
+      | U-NII-3          | U-NII-3  | 5.725 – 5.85 GHz | 5 channels  |
+      |                  | U-NII-4  | 5.85 – 5.925 GHz | 4 channels  |
+
+      
+** Narrowband and Spread Spectrum
+
+     有两种主要的RF传输技术：narrowband, spread spectrum。
+     narrowband需要更高的功率发射信号，且易受干扰。
+
+** Multipath Interference
+
+     =delay spread:= the delay between the main signal and the refl
+     ected signal
+
+     =intersymbol interference (ISI):= If the delay spread is too
+     great, data from the reflected signal may interfere with the
+     same data stream from the main signal
+
+     Prior to 802.11n and 802.11ac MIMO technology, multipath had
+     always been a concern.会影响性能和吞吐量。
+
+** Frequency Hopping Spread Spectrum
+
+     used by 802.11 legacy device, 提供了1， 2Mbps的传输速率。
+     the way FHSS works is that it transmits data by using a small
+     frequency carrier space, then hops to another small frequency
+     carrier space and transmits data, then to another frequency, and
+     so on. FHSS适合用于narrowband传输中。
+
+*** Hopping Sequence
+
+      FHSS radios use a predefined hopping sequence (also called a
+      hopping pattern or hopping set) comprising a series of small
+      carrier frequencies, or hops.
+
+     The 802.11 standard defi nes hopping sequences that can be confi
+     gured on an FHSS access point, and the hopping sequence
+     information is delivered to client stations via the beacon
+     management frame.
+
+*** Dwell Time
+
+      Dwell time is a defi ned amount of time that the FHSS system
+      transmits on a specific frequency before it switches to the next
+      frequency in the hop set.
+
+*** Hop Time
+
+      a measurement of the amount of time it takes for the transmitter
+      to change from one frequency to another.
+
+*** Modulation
+
+      FHSS使用GFSK(Gaussian frequency shift keying)来编码数据。
+
+** Direct Sequence Spread Spectrum
+
+       DSSS支持2.4G下1，2Mbps速率。801.11b提出了HR-DSSS技术，支持5.5
+       Mbps和11Mbps的速率。802.11b设备 兼容802.11 DSSS设备。
+
+       DSSS is set to one channel. The data that is being transmitted is
+       spread across the range of frequencies that make up the
+       channel. The process of spreading the data across the channel is
+       known as /data encoding/.
+
+*** DSSS Data Encoding
+
+       由于802.11无线传输容易受到干扰，从而导致数据被破坏，为了降低数
+       据传输过程中由于RF干扰导致接收到的数据被破坏而无法恢复，每个有
+       效数据比特位会被编码并作为多个比特位进行传输。
+
+       The task of adding additional, redundant information to the
+       data is known as /processing gain/.
+
+       The system converts the 1 bit of data into a series of bits
+       that are referred to as /chips/.
+
+       例如，如下编码方式：
+       Binary data 1 = 1 0 1 1 0 1 1 1 0 0 0
+       Binary data 0 = 0 1 0 0 1 0 0 0 1 1 1
+
+       This process of converting a single data bit into a sequence is
+       often called /spreading/ or /chipping/.
+
+*** Modulation
+
+      After the data has been encoded using a chipping method, the
+      transmitter needs to modulate the signal to create a carrier
+      signal containing the chips.
+
+      #+CAPTION: DSSS and HR-DSSS encoding and modulation overview
+      |         | Data rate (Mbps) | Encoding      | Chip length | Bits encoded | Modulation |
+      |---------+------------------+---------------+-------------+--------------+------------|
+      | DSSS    |                1 | Barker coding |          11 |            1 | DBPSK      |
+      | DSSS    |                2 | Barker coding |          11 |            1 | DQPSK      |
+      | HR-DSSS |              5.5 | CCK coding    |           8 |            4 | DQPSK      |
+      | HR-DSSS |               11 | CCK coding    |           8 |            8 | DQPSK           |
+
+        
+*** Packet Binary Convolutional Code
+
+       Packet Binary Convolutional Code (PBCC) is a modulation
+       technique that supports data rates of 5.5, 11, 22, and 33 Mbps
+
+*** Orthogonal Frequency Division Multiplexing
+
+      OFDM is not a spread spectrum technology, even though it has
+      similar properties to spread spectrum, such as low transmit
+      power and using more bandwidth than is required to transmit
+      data. Because of these similarities, OFDM is often referred to
+      as a spread spectrum technology even though technically that
+      reference is incorrect. OFDM actually transmits across 52
+      separate, closely and precisely spaced frequencies, often
+      referred to as /subcarriers/
+
+** Throughput vs. Bandwidth
+
+     Wireless communication is typically performed within a
+     constrained set of frequencies known as a frequency band. This
+     frequency band is the /bandwidth/.
+
+     Data encoding and modulation determine data rates, which are
+     sometimes also referred to as /data bandwidth/.
+
+     Because of the half-duplex nature of the medium and the overhead
+     generated by CSMA/CA, the actual aggregate throughput is
+     typically 50 percent or less of the data rates for 802.11a/b/g
+     legacy transmissions, and 60-70 percent of the data rates for
+     802.11n/ac transmissions.
+
+
+* 第七章 无线局域网拓扑结构
+
+** Wireless networking topologies
+
+** 802.11 topologies
+
+** 802.11 configuration modes
+   
+*** Wireless wide area network (WWAN)
+
+    GPRS, CDMA, TDMA, LET, GSM
+
+*** Wireless Metropolitan Area Network (WMAN)
+
+    802.16,  WiMax: a last-mile data-delivery solution.
+
+*** Wireless Personal Area Network (WPAN)
+
+    Bluetooth, Infrared, ZigBee, IEEE 802.15
+
+*** Wireless Local Area Network (WLAN)
+
+    802.11
+
+** 802.11 Topologies
+
+*** Access Point
+
+    半双工方式收发数据。
+
+*** Client Station
+    
+    STA必须与AP一样去竞争半双工RF媒介的使用权。
+
+*** Integration Service
+
+    enables delivery of MSDUs between the distribution system (DS) and
+    a non-IEEE-802.11 LAN via a portal.
+
+*** Distribution System
+
+    a /distribution system/ (DS) that is used to interconnect a set of
+    basic service sets (BSSs) via integrated LANs to create an
+    extended service set。 
+
+    The DS consists of two main components:
+    
+    1. Distribution System Medium (DSM)
+       A logical physical medium used to connect access points is
+       known as a distribution system medium (DSM).  802.3 medium是一
+       个例子。
+
+    2. Distribution System Services (DSS)
+
+       通常构建上AP里面，以软件的形式存在。 使用802.11头部的Layer 2层
+       的地址，将Layer3~7的信息转发到Integration Service或其他的无线
+       STA。
+
+*** Wireless Distribution System
+
+    The 802.11-2012 standard defines a mechanism for wireless
+    communication using a four-MAC-address frame format.
+
+    The standard describes such a frame format but does not describe
+    how such a mechanism or frame format would be used. This mechanism
+    is known as a /wireless distribution system (WDS)/.
+
+    WDS examples: bridging, repeaters, mesh networks.
+
+*** Service Set Identifier
+
+    The service set identifi er (SSID) is a logical name used to
+    identify an 802.11 wireless network.  不超过32个字符。
+
+*** Basic Service Set
+
+    The basic service set (BSS) is the cornerstone topology of an
+    802.11 network. The communicating devices that make up a BSS
+    consist of one AP radio with one or more client stations.
+
+*** Basic Service Set Identifier
+
+    AP的48比特（6字节）的MAC地址，也称为BSSID。
+
+*** Basic Service Area
+
+    The physical area of coverage provided by an access point in a BSS
+    is known as the basic /service area (BSA)/.
+
+*** Extended Service Set
+
+    An extended service set is two or more basic service sets
+    connected by a distribution system medium.
+
+*** Independent Basic Service Set
+
+    The radios that make up an IBSS network consist solely of client
+    stations (STAs), and no access point is deployed.
+
+*** Mesh Basic Service Set
+
+    When access points support mesh functions, they may be deployed
+    where wired network access is not possible
+
+    The mesh functions are used to provide wireless distribution of
+    network traffic, and the set of APs that provide mesh
+    distribution form a mesh basic service set (MBSS).
+
+*** QoS Basic Service Set
+
+    Quality of service (QoS) mechanisms can be implemented within all
+    of the 802.11 service sets.
+
+** 802.11 Configuration Modes
+
+*** Access Point Modes
+
+    default is root mode. 
+
+    =Bridge Mode=   The AP radio is converted into a wireless
+    bridge. This typically adds extra MAC-layer intelligence to the
+    device and gives the AP the capability to learn and maintain
+    tables about MAC addresses from the wired side of the network.
+
+    =Workgroup Bridge Mode=  The AP radio is transformed into a
+    workgroup bridge which provides wireless backhaul for connected
+    802.3 wired clients. Repeater Mode The AP radio performs as a
+    repeater AP which extends the coverage area of a portal AP on the
+    same channel.
+
+    =Mesh Mode=  The AP radio operates as a wireless backhaul radio
+    for a mesh environment. Depending on the vendor, the backhaul
+    radio may also allow for client access.
+
+    =Scanner Mode= The AP radio is converted into a sensor radio,
+    allowing the AP to integrate into a wireless intrusion detection
+    system (WIDS) architecture. An AP in scanner mode is in a
+    continuous listening state while hopping between multiple
+    channels. Scanner mode is also often referred to as monitor mode.
+
+*** Client Station Modes
+
+    - infrastructure mode
+    - Ad Hoc mode
+
+      
+* 第八章 802.11媒介访问
+
+** CSMA/CA vs. CSMA/CD
+
+   由于802.11媒介是半双工的方式进行数据传输，所以不能采用Ethernet中
+   使用的CSMA/CD方法主动去检测是否有冲突发生。802.11会通过CSMA/CA的方
+   式来判断是否有其他STA在进行数据传输，确保任何时刻，只有一个STA在使
+   用媒介进行传输。
+
+   如果检测到其他STA在进行数据传输，当前STA会随机选择一个退避时间，并
+   进行等待，在等待期间，也会随时监测是否有其他STA在进行数据传输。
+   CSMA/CA只是确保任何时刻只有一个802.11设备在进行数据传输，但是仍然无
+   法避免冲突的产生，所以，在802.11规范中，定义了DCF功能，来作为媒介访
+   问方法去确保冲突最小化。
+
+** Collision Detection
+
+   802.11的单播帧必须得到确认。 802.11n和802.11ac可以使用帧聚合，对聚
+   合帧可以使用 Block确认帧。绝大多数的单播帧都需要得到确认，多播或组
+   播帧不需要得到确认。单播帧的任何部分的内容被破坏的话，通过CRC都能够
+   检测出来，这样接收方就不会发送Ack帧给发送方。 发送方如果收到不确认
+   帧，就会假设发送失败，之后会对该帧进行重传。 
+
+   #+CAPTION: Unicast acknowledgment
+   [[./images/2015/2015113049.png]]
+
+** Distributed Coordination Function
+
+   DCF是802.11规范中要求必须实现的功能，其他两个可选的功能是：PCF和
+   HCF。
+
+   DCF的主要组成部分为：
+   
+   1. Interframe space
+   2. Duration/ID field
+   3. Carrier sense
+   4. Random backoff timer
+
+*** Interframe Space (IFS)
+
+    /Interframe space (IFS)/ is a period of time that exists between
+    transmissions of wireless frames. There are six types of
+    interframe spaces, which are listed here in order of shortest to
+    longest:
+    1. Reduced interframe space (RIFS), highest priority
+    2. Short interframe space (SIFS), second highest priority
+    3. PCF interframe space (PIFS), middle priority
+    4. DCF interframe space (DIFS), lowest priority
+    5. Arbitration interframe space (AIFS), used by QoS stations
+    6. Extended interframe space (EIFS), used after receipt of
+       corrupted frames
+
+    上述的帧间间隔实际的时间大小取决于网络的传输速度。 
+
+    #+CAPTION: SIFS and DIFS
+    [[./images/2015/2015113050.png]]
+
+*** Duration/ID Field
+
+    该值的大小范围为：0 ~ 32,767。 该域的值表示RF媒体还需要保持多久忙
+    碌状态，其他的STA才能竞争使用RF媒介。 
+
+    在大部分情况下，Duration/ID域的值是代表一个媒介占用时间的值， 用
+    于重置其他STA的网络分配向量（NAV）的值。 在极少情况下，如PS-Poll
+    帧中，Duration/ID的值作为使用传统电源管理的STA的一个ID值。
+
+*** Carrier Sense
+
+    对于802.11 CSMA/CA设备，在进行数据传输之前，需要执行一下载波侦听，
+    用于检查当前媒介是否处于忙碌状态。主要有两种方法：
+
+    1. 虚拟载波侦听。
+
+       虚拟载波侦听使用了一种计时器机制，称之为 /network allocation
+       vector(NAV)/ 。 NAV计时器会根据上一次帧传输的 =Duration= 值，
+       预测接下来需要占用媒介的时间。
+
+       当802.11设备没有进行数据传输时，它会进行监听，当它监听到从其他
+       STA传送过来的帧时，会查看帧的头部信息，看Duration/ID域是否包含
+       =Duration= 值或一个ID值。 当它表示一个 =Duration= 值时，监听帧
+       的这个设备会将自己的NAV计时器设置为读到的值，然后启用计时器倒
+       数，直到计时器的值变为0。 在此之前，该STA都不能去竞争媒介的访
+       问权。 
+
+       #+CAPTION: Virtual carrier sense
+       [[./images/2015/2015113051.png]]
+
+    2. 物理载波侦听。
+
+       Physical carrier sensing is performed constantly by all
+       stations that are not transmitting or receiving. When a
+       station performs a physical carrier sense, it is actually
+       listening to the channel to see whether any other transmitters
+       are taking up the channel.
+
+       虚拟载波侦听工作在Layer 2， 而物理载波侦听工作于Layer 1。 两种
+       载波方式可以同时运行。
+
+       Clear Channel Assessment(CCA):  
+       1. determine whether a frame transmission is inbound for a station to receive.
+
+       2. determine whether the medium is busy before transmitting.
+
+*** Random Backoff Timer
+    
+    802.11 STA会在一个竞争窗口(CW)时间竞争媒介的使用权，该窗口期称为
+    /backoff time/ 。 工作站选择一个不超过CW值的随机数， 然后再乘以时
+    隙时间slot，slot的值跟具体的物理层有关（DSSS、OFDM等）。
+
+    当启动backoff计时器后，只要在某个时隙时间内，媒介上没有数据传输，
+    计时器的值就会减掉一个时隙时间。如果物理载波或虚拟载波侦听机制检
+    测到媒介处于忙碌状态，那么该计时器就会暂停。 当媒介空闲时间大于
+    DIFS, AIFS或EIFS，backoff计时器会重新倒计时。 一次不成功的传输会
+    导致CW的大小成指数倍增长。
+
+    如下是退避机制的一个例子：
+    1. An OFDM station selects a random number from a contention
+       window of 0–15. For this example, the number chosen is 4.
+    2. The station multiplies the random number of 4 by a slot time of 9μs.
+    3. The random backoff timer has a value of 36μs (4 slots).
+    4. For every slot time during which there is no medium activity,
+       the backoff time is decremented by a slot time.
+    5. The station decrements the backoff timer until the timer is zero.
+    6. The station transmits if the medium is clear.
+
+    #+CAPTION: Contention window length
+    [[./images/2015/2015113052.png]]
+    
+** Point Coordination Function
+
+   这是一种Polling的方式。 AP充当点协调者的功能。 PCF只用于一个BSS内
+   部。 不能用于Ad Hoc网络（IBSS）， 因为没有AP存在。
+
+   AP和STA都要支持PCF功能，才能使用PCF机制。
+
+   目前，暂时没有实现上述机制的产品面世。 
+
+** Hybrid Coordination Function
+
+   HCF结合了DCF和PCF的功能，并进行了加强，创造了两个访问信道的方法：
+   1. Enhanced Distributed Channel Access (EDCA)
+   2. HCF Controlled Channel Access (HCCA)
+
+   DCF和PCF允许802.11传输单个帧，之后，仍然需要继续竞争媒介去传输下一
+   帧。HCF允许一个802.11设备在媒介传输时，发送多个帧。 当支持HCF的设
+   备竞争媒介时，它会分配到一段时间，去发送帧，这段时间称为 /transmit
+   opportunity (TXOP)/ 。 在此期间，它可以传输多个帧。 在传输这些帧时，
+   使用SIFS。
+
+** Block Acknowledgment
+
+   A Block ACK improves channel efficiency by aggregating several
+   acknowledgments into one single acknowledgment frame.
+
+** Wi-Fi Multimedia
+
+   The 802.11e amendment defi ned the layer 2 MAC methods needed to
+   meet the QoS requirements for time-sensitive applications over
+   IEEE 802.11 wireless LANs. The Wi-Fi Alliance introduced the Wi-Fi
+   Multimedia (WMM) certifi cation as a partial mirror of 802.11e
+   amendment.
+
+** Airtime Fairness
+
+      在802.11媒介访问过程中，每个设备都需要竞争使用媒介传输数据。 对
+      于每个设备来说， 竞争机会均等。 当一个速率高的设备与一个速率低
+      的设备同时出现在一个网络中竞争使用媒介时，会降低高速率设备的网
+      络吞吐量。 为了解决这样的问题，提出了 =Airtime Fairness= ，主要
+      思想是时间分配均等，而不是竞争机会均等, 这样保证了高速率的设备
+      能够较快地完成数据传输，不会受到低速率设备的影响。
+
+
+* 第九章 802.11 MAC 架构
+
+** Data-Link Layer
+
+     802.11数据链路层分为两个子层：
+     1. Upper Layer： Logical Link Control (LLC)， 对所有的基于802的网
+        络都是相同的。
+     2. Lower Layer： Media Access Control (MAC) ， 802.11规范主要定义
+        在MAC子层的操作。
+
+*** MAC Service Data Unit
+
+       MSDU数据包含来自LLC以及Layer3-7层的数据，即MSDU负载包含IP包和一
+       些LLC数据。
+
+       802.11控制帧和管理帧不携带上层信息，只有数据帧才携带MSDU负载。
+
+       MSDU负载的最大值为：2,304字节。
+
+*** MAC Protocol Data Unit
+
+       组成部分如下图所示 ，其中Frame Body可能被加密。
+
+       #+CAPTION: 802.11 MPDU
+       [[./images/2015/2015120101.png]]
+
+       
+** Physical Layer
+
+     物理层也分为两个子层：
+     1. Upper Layer： Physical Layer Convergence Procedure (PLCP)
+
+        PLCP会MAC子层的帧打包成PLCP协议数据单元准备传输。
+
+     2. Lower Layer： Physical Medium Dependent (PMD)
+
+        PMD子层进行调制并将数据按比特位进行传输。
+
+*** PLCP Service Data Unit
+
+       PSDU是MPDU物理层的视角，它们仅仅是相同数据在不同OSI层上的展现。
+
+*** PLCP Protocol Data Unit
+
+       当PLCP接收到PSDU，会进行传输前的准备， 并创建PPDU。 PLCP会为
+       PSDU增加一段前导码和PHY头部信息。前导码的作用主要是为了发送方与
+       接收方之间的同步。当PPDU创建后，PMD子层会将PPDU数据调制成比特位
+       传输出去。
+
+       数据链路层到物理层流通的过程：
+
+       #+CAPTION: Data-Link and Physical layers
+       [[./images/2015/2015120102.png]]
+       
+** 802.11 and 802.3 Interoperability
+
+      802.11标准定义Integration Service（IS）可以使MSDU在DS与非802.11
+      LAN之间通过Portal进行传输，其中Portal通常是一个AP或者WLAN控制器。
+      用更简单的话说，IS是一种帧格式的传输方式。
+
+      IS的主要任务是： 
+      
+      1. 去除802.11帧的头部和尾部。
+      2. 将MSDU的负载放到802.3以太网帧的内部。
+
+      通常IS将帧在802.11和802.3媒介之间传输。当然，也可以将MSDU在
+      802.11与其他类型的媒介之间进行传输，如手机数据网。
+
+** Three 802.11 Frame Types
+   
+      总共有三种类型的帧：管理帧，　控制帧和数据帧。
+
+*** Management Frames
+
+    　管理帧又称为 /Management MAC Protocol Data Unit (MMPDU)/ 。 管理
+    帧并不携带上层的信息，它只携带Layer2的IE。 802.11总共定义了14种管
+    理帧：
+
+       - ssociation request
+       - ciation response
+       - sociation request
+       - Reassociation response
+       - Probe request
+       - Probe response
+       - Beacon
+       - Announcement traffic indication message (ATIM)
+       - Disassociation
+       - Authentication
+       - Deauthentication
+       - Action
+       - Action No ACK
+       - Timing advertisement
+
+*** Control Frames
+
+      控制帧主要是辅助数据帧的传输。主要用于清空信道，获取信道以及提供
+      单播帧的确认。它们只包含头部信息。
+
+      下面是802.11定义的9种控制帧：
+
+       - Power Save Poll (PS-Poll)
+       - Request to send (RTS)
+       - Clear to send (CTS)
+       - Acknowledgment (ACK)
+       - Contention Free-End (CF-End) [PCF Only]
+       - CF-End + CF-ACK [PCF Only]
+       - Block ACK Request (BlockAckReq) [HCF Only]
+       - Block ACK (BlockAck) [HCF Only]
+       - Control wrapper
+
+*** Data Frames
+
+       数据帧是实际从上层协议传送下来的数据， Layer3~7 MSDU负载通常被
+       加密。 802.11定义了15种数据帧：
+
+       - Data (simple data frame)
+       - Null function (no data)
+       - Data + CF-ACK [PCF only]
+       - Data + CF-Poll [PCF only]
+       - Data + CF-ACK + CF-Poll [PCF only]
+       - CF-ACK (no data) [PCF only]
+       - CF-Poll (no data) [PCF only]
+       - CF-ACK + CF-Poll (no data) [PCF only]
+       - QoS Data [HCF]
+       - QoS Null (no data) [HCF]
+       - QoS Data + CF-ACK [HCF]
+       - QoS Data + CF-Poll [HCF]
+       - Qos Data + CF-ACK + CF-Poll [HCF]
+       - QoS CF-Poll (no data) [HCF]
+       - QoS CF-ACK + CF-Poll (no data) [HCF]
+
+** Beacon Management Frame
+
+     Beacon管理帧是最重要的一种帧，它是无线网络的心跳。 一个BSS中的AP
+     会发送Beacon帧，STA则监听Beacon帧。 每个Beacon帧带有时间戳信息，
+     可用于STA与AP之间的同步， Beacon帧的主要信息如下图所示：
+
+     #+CAPTION: Beacon frame contents
+     [[./images/2015/2015120103.png]]
+
+**** Passive Scanning
+     
+        在被动扫描中，STA监听从AP发送过来的Beacon帧。
+        
+        #+CAPTION: Passive scanning
+        [[./images/2015/2015120104.png]]
+       
+        STA主动发送Probe Request请求，然后监控AP的Probe Response帧。
+
+        #+CAPTION: Active scanning
+        [[./images/2015/2015120105.png]]
+
+** Authentication
+
+      802.11下的Authentication相当于“插上网线”的步骤， 主要是认证双方
+      是否合法的802.11设备，仅此而已。
+
+      802.11定义了两种不同的认证方式：
+      1. Open System Authentication (not used any more)
+      2. Shared Key Authentication (used for backward compatibility)
+
+**** Open System Authentication
+
+        It is essentially an exchange of hellos between the client and
+        the AP。 
+
+**** Shared Key Authentication
+
+       Steps:
+
+       1. The client station sends an authentication request to the AP.
+       2. The AP sends a cleartext challenge to the client station in
+          an authentication response.
+       3. The client station then encrypts the cleartext challenge and
+          sends it back to the AP in the body of another
+          authentication request frame.
+       4. The AP then decrypts the station’s response and compares it
+          to the challenge text. If they match, the AP will respond by
+          sending a fourth and final authentication frame the station,
+          confirming the success. If they do not match, the AP will
+          respond negatively. If the AP cannot decrypt the challenge,
+          it will also respond negatively.
+
+       如果认证成功，则相同的Static WEP key也会被用于加密数据帧。
+
+       这种方式有缺陷， 更安全的方案是PSK和802.1X/EAP。
+
+** Association
+
+     当STA与AP进行完Auth交互后，下一步就是与AP关联。当一个STA与AP关联
+     后，它就成为了一个BSS中的成员。这样STA就可以通过AP将数据发送到DS
+     媒介。
+
+     STA通过发送Assocation Request来请求加入一个BSS， AP通过发送
+     Association Response给STA，拒绝或同意STA的加入。
+
+*** Authentication and Association States
+
+      #+CAPTION: Authentication and association states
+      [[./images/2015/2015120201.png]]
+      
+*** Basic and Supported Rates
+
+      AP可以设置 =基本速率集= 和 =可支持的速率集= 。 每个与AP关联的STA必
+      须表明它支持AP的 =基本速率集= ，否则就会被AP拒绝关联。 而 =可支
+      持的速率集=  是AP建议的一些速率，STA可以不支持。 
+
+      HR-DSSS (802.11b)支持的速率集为：1, 2, 5.5, and 11 Mbps  
+
+      ERP (802.11g)支持的速率集为： 1, 2, 5.5, 6, 9, 12, 18, 24, 36,
+      48和54 Mbps。 
+
+*** Roaming
+
+      漫游：在保持上层连接不中断的情况下，STA从一个AP转到另一个AP所在
+      的BSS中。
+
+      漫游的决定是由STA来决定。一个STA可以同时与多个AP进行Auth交互，但
+      是只能与其中一个AP关联。 
+
+      当漫游发生后，旧AP与新AP之间也需要通过DS媒介来交互一些信息，即新
+      AP要通知旧的AP, 与旧AP关联的STA目前准备与新的AP关联,请转发一些发往STA的数据给新的AP,并进行一些清理动
+      作， 将之前为之缓存的数据发给新的AP。
+
+*** Reassociation
+
+      当一个STA发生漫游后，就会发送Reassociation Request给新的AP，
+      Reassociation是指重新关联到无线网络的SSID，而不是指重新关联到某
+      个AP。
+
+      #+CAPTION: Reassociation process
+      [[./images/2015/2015120203.png]]
+
+*** Disassociation
+
+      Disassociation是一个通知，并不是请求，通信双方必须接收，不能拒绝。
+      AP和STA都可以发送。
+
+*** Deauthentication
+    
+      Deauthentication也是一个通知，通信双方必须接收，不能拒绝，AP和
+      STA都可以发送。
+
+** ACK Frame
+
+     ACK帧是802.11 CSMA/CA机制的一个核心组件，每个单播帧都必须通过ACK
+     帧来确认发送是否成功。ACK帧主要用于发送过程的确认动作。 
+
+** Fragmentation
+
+     802.11支持帧分片， 分片是将一个大的帧分成较小的帧，这些较小的帧也
+     是一个个802.11帧，都包含MAC Header信息，可以单独传输，并需要ACK确
+     认。
+
+     传输过程使用SIFS。在网络环境比较好的情况下，数据帧分片会降低网络
+     吞吐量，因为增加了网络传输的开销。但是，在网络环境比较差的情况下，
+     数据传输错误率较高的情况下，数据帧分片则会改善网络吞吐量。
+
+     #+CAPTION: Frame fragmentation
+     [[./images/2015/2015120204.png]]
+
+** Protection Mechanism
+
+    在同一个BSS中存在802.11b  802.11g 或者802.11n, 802.11ac设备时，支
+    持更高速率的设备会启用保护机制。
+
+*** RTS/CTS
+
+       Request to send/clear to send (RTS/CTS) is a mechanism that
+       performs a NAV distribution and helps prevent collisions from
+       occurring.
+
+       RTS/CTS都会使监听它们的工作站更新NAV的值。
+
+       RTS/CTS主要用于两种情况：
+
+       1. 隐藏结点。
+       2. 当一个BSS中同时存在802.11b/g/n设备。
+
+*** CTS-to-Self
+
+      CTS-to-Self is used strictly as a protection mechanism for
+      mixed-mode environments. One of the benefits of using
+      CTS-to-Self over RTS/CTS as a protection mechanism is that the
+      throughput will be higher because fewer frames are being sent.
+
+      想比RTS/CTS，开销要小点。一般AP会使用CTS-to-Self作为保护机制。
+      STA也可以选择CTS-to-Self作为保护机制。
+
+** Data Frames
+
+     空数据帧一般用于通知AP当前STA处于省电状态。
+
+** Power Management
+     
+*** Active Mode
+
+      处于非省电状态，对于直接接电源的STA，应该配置为Active Mode。
+
+*** Power Save Mode
+
+      当STA处于省电状态时，应该将Power Management位置为1. 
+
+*** Traffic Indication Map
+
+      当关联到某个AP的STA进入省电模式时，它会发送一个Null数据帧，这个
+      帧的Power Management位会被置为1， AP收到后，就知道该STA进入省电
+      状态，随后就会为它缓存发往该STA的帧。AP通过AID来跟踪该STA。当AP
+      传递下一个Beacon帧时，会在TIM域中显示该STA是否有缓存帧。TIM域保
+      存了所有在AP中缓存帧的STA列表，且会一直显示，直到缓存帧全部发送
+      完成。
+
+      Beacon帧传送的频率是预知的，这个时间称为 /target beacon
+      transmission time (TBTT)/ 。 STA知道什么时候Beacon会到来，但是一
+      般不必醒过来监听每个Beacon帧，可以选择隔几个Beacon帧听一次，这个
+      时间是由 /Listen Interval/ 来指定的。 
+
+      当STA听到AP发送过来的Beacon帧，它会Check  TIM域对应的比特位是否
+      为1， 如果为1，则说明AP会为该STA缓存帧。 STA通过PS-Poll向AP请求
+      缓存的数据帧。 AP会将缓存帧不停发送给STA直到全部发送完毕。之后，
+      STA可以继续进入PS状态。
+
+      
+*** Delivery Traffic Indication Message
+
+       除了单播数据，网络中也会存在多播数据和广播数据，由于多播和广播
+       数据是针对所有STA的，BSS需要提供一种方法以确保所有STA都能及时醒
+       来接收这些帧。 /DTIM/ 用于确保当BSS中有设备发送广播或单播数据时，
+       所有具备Power Management功能的STA都能及时醒来接收。 DTIM是一种
+       特别类型的TIM，通过Beacon帧来传递。
+
+       =DTIM Interval= 决定了DTIM Beacon传输的频率。为3时，表示每3个
+       Beacon帧，会传递一次DTIM信息。 每个 TIM会有一个倒数计数器，来指
+       定下一个DTIM何时到达，当TIM的倒数计数器值为0时，表示当前的TIM是
+       DTIM。
+
+       只要BSS中有任何一个STA进入休眠状态，AP都会缓存广播或多播帧。 缓
+       存的广播或多播帧会使用AID 0保存。 AP会在每次发送DTIM帧后，发送
+       广播和多播数据（如果有的话）。
+
+*** Announcement Traffic Indication Message
+
+       在一个IBSS网络，没有中心的AP。 一个STA进入PS模式时，需要通知其
+       他的STA自己已经进入PS Mode状态，其他STA会缓存发往该STA的帧。
+
+       所有的STA都必须周期性地醒来，相互通知是否有STA缓存了发住其他STA
+       的帧。这个期间，所有STA都必须是Active状态，相互交换的信息的时间
+       段称为
+       /announcement traffic  indication message (ATIM) window/ 。在
+       ATIM Window期间， 只能传输如下的控制帧和管理帧： Beacon, RTS,
+       CTS, ACK和ATIM帧。  如
+       果一个STA1缓存了另一个STA2的帧，STA1会发送一个ATIM帧给STA2， 该
+       ATIM单播帧告诉STA2必须保持活跃状态直到下一个ATIM Window结束，这样它
+       才能接收缓存的数据。 任何缓存其他STA数据的STA或收到ATIM帧的STA
+       都必须保持活跃状态，其他的STA则可以进入PS模式。
+
+       一旦ATIM Window结束，所有未休眠的STA会经历CSMA/CA过程去交换未发
+       送的数据。 如果某个STA本次无法发送缓存的数据，需要在下一个ATIM
+       Window再发送一个ATIM帧，然后在ATIM Window结束后，再次经历一个
+       CSMA/CA过程重新发送数据。 
+       
+       
+*** WMM Power Save and U-APSD
+
+       #+CAPTION: Legacy power management
+       [[./images/2015/2015120801.png]]
+
+
+       WMM-PS uses a trigger mechanism to receive buffered unicast
+       traffic based on WMM access categories.
+
+       #+CAPTION: WMM-PS
+       [[./images/2015/2015120802.png]]
+
+       The advantages of this enhanced power-management method include
+       the following:
+
+       1. Applications now control the power-save behavior by setting
+          doze periods and sending trigger frames. VoWiFi phones will
+          obviously send triggers to the AP frequently during voice
+          calls, whereas a laptop radio using a data application will
+          have a longer doze period.
+
+       2. The trigger and delivery method eliminates the need for
+          PS-Poll frames.
+
+       3. The client can request to download buffered traffic and does
+          not have to wait for a beacon frame.
+
+       4. All the downlink application traffic is sent in a faster
+          frame burst during the AP’s TXOP.
+
+       使用的前提：
+       
+       1. The client is Wi-Fi CERTIFIED for WMM-PS.
+       2. The AP is Wi-Fi CERTIFIED for WMM-PS.
+
+*** 802.11n Power Management
+
+       802.11n定义了两个新的Power-Management方法：
+       
+       1. spatial multiplexing power save (SM power save).
+
+          The purpose of SM power save is to enable a MIMO 802.11n
+          device to power down all but one of its radio chains.
+
+       2. power save multi-poll (PSMP)
+
+          defined for use for HT (802.11n) radios。 
+
+
+
+
+
+
+
+    
+* 第十章 WLAN 架构
+
+** Wireless LAN client devices
+     NIC + Driver + utilities
+*** 802.11 Radio form factors
+      802.11 无线芯片可以用于客户端NIC和AP设备中，这些网卡芯片以多种形
+      式与主芯片连接：外置的PCMCIA和USB，或内置集成到主芯片中。
+**** External Wi-Fi radios
+        - PCMCIA
+        - USB
+        - SDCARD
+**** Internal Wi-Fi Radios
+        - Mini PCI
+
+*** 802.11 Radio chipsets
+      A group of integrated circuits designed to work together is
+      often marketed as a /chipset/. 
+*** Client utilities
+      提供用户配置网卡的软件工具。
+
+*** Management, control and data planes
+      Telecommunication networks are often defi ned as three logical
+      planes of operation:
+      - *Management Plane* The /management/ plane is defi ned by
+        administrative network management, administration, and
+        monitoring.
+      - *Control Plane* The /control plane/ consists of control or
+        signaling information and is often defined as network
+        intelligence or protocols.
+      - *Data Plane* The /data plane/, also known as the user plane, is
+        the location in a network where user traffi c is actually
+        forwarded. 
+
+** WLAN architecture
+
+*** Autonomous WLAN architecture
+      /autonomous AP/ are often referred to as fat APs: a standalone
+      WLAN portal device where all three planes of operation existed
+      and operated on the edge of the network architecture.
+      An autonomous access point typically encompasses both the 802.11
+      protocol stack and the 802.3 protocol stack.
+*** Centralized network management systems
+      In the centralized WLAN architecture, autonomous APs have been
+      replaced with /controller-based access points/, also known as
+      lightweight APs or thin APs.
+**** WLAN Controller
+      At the heart of the centralized WLAN architecture model is the
+      WLAN controller
+      
+*** Cloud networking
+
+*** Centralized WLAN architecture
+
+*** Distributed WLAN architecture
+
+*** Unified WLAN architecture
+
+*** Hybrid architecture
+
+** Specialty WLAN infrastructure
+
+*** Wireless workgroup bridge
+
+*** Wireless LAN bridges
+
+*** Enterprise WLAN router
+
+*** Wireless LAN mesh access points
+
+*** WLAN array
+
+*** Virtual AP system
+
+*** Real-time location systems
+
+*** VoWiFi
+
+* 第十一章 WLAN布署与垂直市场       :noexport:
+  
+* 第十二章 WLAN 问题处理与设计 
+  
+* 第十三章 802.11网络安全架构
+
+** 802.11 security basics
+     802.11无线网络安全主要包含如下5个要素：
+     1. Data privacy and integrity
+     2. Authentication, authorization, and accounting (AAA)
+     3. Segmentation
+     4. Monitoring
+     5. Policy
+
+*** Data privacy and integrity
+
+      基于WLAN网络的开放性特点，为了保护数据私密性，必须对数据进行加密。
+      主要有加密方式：
+      1. WEP
+         使用RC算法
+      2. TKIP
+         使用RC算法
+      3. CCMP
+         使用AES算法
+
+*** Authentication, authorization, and accounting (AAA)
+
+      - =Authentication（认证）=
+        对身份和私密信息进行验证，如用户名和密码信息。
+      - =Authorization（授权）=
+        决定设备或用户是否有权访问网络资源。必须在认证完成后。
+      - =Accounting=
+        对用户或设备使用网络资源的行为进行跟踪记录。
+
+*** Segmentation
+    
+      对已经授权访问网络资源的用户再次进行一个分组，便于为不同的用户或
+      设备提供不同安全等级的网络服务。
+
+*** Monitoring and policy
+
+      监测网络攻击。
+      
+** Legacy 802.11 security
+
+*** Legacy authentication
+
+      最初802.11定义了两种认证方法：
+      1. 开放系统认证
+      2. 共享密钥认证
+
+      802.11中提到的 =认证= ，不是通常认为的对连接到网络上的用户的身份
+      进行验证，更多的是指对能力的认证，即验证双方都是合法的802.11设备。
+
+**** Open System authentication
+
+       1. The client sends an authentication request.
+       2. The access point then sends an authentication response.
+
+**** Shared Key authentication
+
+       1. The client station sent an authentication request to the access point.
+       2. The access point sent a cleartext challenge to the client
+          station in an authentication response.
+       3. The client station encrypted the cleartext challenge and
+          sent it back to the access point in the body of another
+          authentication request frame.
+       4. The access point decrypted the station’s response and
+          compared it to the challenge text:
+          - If they matched, the access point would respond by sending
+            a fourth and final authentication frame to the station
+            confirming the success.
+          - If they did not match, the access point would respond
+            negatively. If the access point could not decrypt the
+            challenge, it would also respond negatively.
+
+       Shared Key认证过程看起来比Open system认证过程要安全些，但是实际
+       上，一旦截获认证过程中加密明文的Shared Key，则之后所有的数据帧
+       都会被解密。所有Shared Key认证方式已经被废除，不建议使用了。目
+       前，最新的标准建议使用更安全的认证方法： =802.1X/EAP= 。
+
+*** Static WEP encryption
+
+      有线等效加密是Layer-2层的加密方法，使用RC4作为流加密器。最初的
+      802.11标准只定义了64-位的WEP作为可支持的加密方法，之后，128-位的
+      WEP也被定义为一种可支持的加密方法。WEP的三个目标如下：
+      1. Confidentiality（机密性）
+         在数据传输前，进行加密。
+      2. Access Control（访问控制）
+         STA必须与AP拥有相同 的WEP Key。
+      3. Data Integrity（数据完整性）
+         在加密前，会对数据计算一个ICV（integrity check value）值，以
+         防止数据被修改。
+
+      64-位的WEP使用一个40-位的静态密钥，再加上 一个由驱动选择的24-位
+      的数字组成。 该24-位的数字，称为 /initialization vector (IV)/ 。
+      是明文发送的，并且每帧发送时，这个IV值不一样。 不过，这个IV值的
+      空间只有6,777,216个不同的值，所以会出现重复使用IV这个值的情况。
+      128-位WEP加密使用104-位静态密钥加上一个24-位的IV。
+
+      #+CAPTION: Static WEP encryption key and initialization vector
+      [[./images/2015/2015121001.png]]
+
+      =WEP的工作过程=
+      
+      #+CAPTION: WEP encryption process
+      [[./images/2015/2015121002.png]]
+
+      1. WEP runs a cyclic redundancy check (CRC) on the plaintext
+         data that is to be encrypted and then appends the integrity
+         check value (ICV) to the end of the plaintext data.
+      2. A 24-bit cleartext initialization vector (IV) is then
+         generated and combined with the static secret key.
+      3. WEP then uses both the static key and the IV as seeding
+         material through a pseudorandom algorithm that generates
+         random bits of data known as a keystream. 
+         These pseudorandom bits are equal in length to the plaintext
+         data that is to be encrypted.
+      4. The pseudorandom bits in the keystream are then combined with
+         the plaintext data bits by using a Boolean XOR process.
+         The end result is the WEP ciphertext, which is the encrypted
+         data.
+      5. The encrypted data is then prefixed with the cleartext IV.
+
+*** MAC filters
+    
+      由于MAC地址的唯一性特点，可以通过MAC地址过滤来限制设备是否允许关
+      联当前AP等等，具体过滤规则802.11规范中并没有说明，与具体厂商实现
+      有关。
+
+*** SSID cloaking(隐藏SSID)
+
+      当AP设置了禁止广播SSID后，它发出的Beacon帧中SSID字段就是空的，这
+      样，STA不能通过被动扫描的方式发现设备。主设备进行主动扫描，即使
+      发出一个Null Probe Request，AP虽然会回一个Probe Response，但是它
+      的SSID值是空的，有些厂商设计的行为可以是直接丢弃这种Null probe
+      request请求。当然，对于定向的Probe Request，如果SSID指定为当前的
+      AP设置的SSID，则会被允许进行Association操作。
+
+      不过，Layer-2层的抓包工具，是可以通过抓包发现AP的隐藏SSID，因为SSID是明
+      文的。
+
+** Robust security
+
+     802.11i定义了两种认证方法：
+     1. 802.1X/EAP authentication
+        通常用于企业环境
+     2. Preshared Key（PSK） or a passphrase.
+        通常用于家庭环境或小型办公环境
+
+     CCMP/AES是默认的加密方法，TKIP/RC4是可选的加密方法。
+
+     #+CAPTION: Security standards and certifications comparison
+     [[./images/2015/2015121003.png]]
+        
+*** Robust security network (RSN)
+
+      802.11标准定义了：
+      1. RSN（robust security network）
+      2. RSNA（robust security network associations）
+
+      两个STA必须相互认证并关联，同时通过4-Way握手过程创建动态加密密钥。
+      两个STA之间的关联过程称之为RSNA。
+
+      RSN网络只允许创建RSNA。一个网络是否为RSN网络可以从 /RSN
+      Information Element (IE)./ 域得知，该信息一般携带于Beacon、Probe
+      Response、Association Request、Reassociation Request帧中。通过这
+      个信息可以得知每个STA加密套件的能力。
+
+      Pre-RSN和RSN机制可以同时存在于一个BSS中。
+
+      A transition security network (TSN) supports RSN-defi ned
+      security, as well as legacy security such as WEP, within the
+      same BSS, although most vendors do not support a TSN.
+
+*** Authentication and authorization
+
+      Authentication：the verification of user identity and　
+      credentials.
+      Authorization involves whether a device or user is granted
+      access to　network resources and services.
+
+      在进行Authorization之前，必须通过了Authentication。　
+    
+*** PSK authentication
+
+      最新的802.11标准定义了认证和密钥管理服务（AKM）. AKM服务同时要求
+      认证过程和加密密钥的产生和管理。
+
+      AKMP（authentication and key management protocol (AKMP)）在
+      802.1X中可以是 PSK也可以是EAP协议。
+
+      WPA/WPA2-Personal使用PSK认证，而WPA/WPA2-Enterprise使用
+      802.1X/EAP认证方案。
+
+      WPA/WPA2-Personal可以让终端用户输入一个ASCII字符串，作为密码，大
+      小从8到63个字符大小。实际上，在技术背后，存在一个密码映射到PSK这
+      样的一个过程。
+
+      Wi-Fi联盟称呼PSK认证的标准名称为：WPA-Personal or WPA2-Personal。
+      不过，不同厂商还有其他的一些称呼：WPA/WPA2-Passphrase,
+      WPA/WPA2-PSK, and WPA/WPA2-Preshared Key.
+
+*** Proprietary PSK authentication
+
+       专有的PSK认证是由厂家自己定义的方法，以应对字典攻击。标准的PSK
+       认证方法中，所有的设备拥有相同的PSK，而厂家特有的方法可以允许每
+       个设备拥有唯一的PSK。
+
+       #+CAPTION: Proprietary PSK
+       [[./images/2015/2015121004.png]]
+     
+*** 802.1X/EAP framework
+
+      802.11X标准是一种基于端口访问控制的标准。在执行认证过程时，需要
+      一套协议，EAP就是用于用户认证的协议，它是Layer-2层的认证协议。
+
+      802.1X/EAP solution requires that both the supplicant and the
+      authentication server support the same type of EAP. The
+      authenticator must be configured for 802.1X/EAP authentication
+      but does not care which EAP type passes through. The
+      authenticator and the supplicant must support the same type of
+      encryption.
+
+      #+CAPTION: 802.1X/EAP authentication
+      [[./images/2015/2015121005.png]]
+
+*** Dynamic encryption-key generation
+
+      尽管802.1X/EAP框架没有要求加密，但是建议进行加密。802.1X/EAP的目
+      的是认证和授权，它的一个副产物就是动态加密密钥的产生和分发。 
+
+*** 4-Way Handshake
+
+      对于两个RSN设备，相互之间在建立认证和关联过程的同时，也需要通过
+      一个4-Way握手过程来产生一个动态加密密钥。
+
+      RSNA使用了一个动态密钥管理方法，用来创建5个单独的密钥。 其中，包
+      含GMK(Group Master Key)和PMK(Pairwise Master Key)密钥的创建。PMK
+      是从802.1X/EAP认证过程中产生的，也可以在PSK认证过程中产生。这些
+      Master key做为最终密钥产生时所需要的Seeding Material。 最终的加
+      密密钥称为PTK（Pairwise Transient Key）和GTK（Group Temporal
+      Key）。PTK用来加密和解密单播数据，GTK用来加密和解密广播和多播数
+      据。
+
+      不管使用PSK或是802.1X/EAP，4-Way握手过程一定会发生，并且，当STA
+      从一个BSS漫游到另一个BSS时，新的4-Way握手过程会产生，以生成新的
+      加密和解密密钥。
+
+*** WPA/WPA2-Personal
+
+      当使用PSK认证时，有一个公式用来将passphase(用户输入的密码或AP设
+      置的密码)转换成PMK， 用于在4-Way握手过程中产生动态加密解密密钥。
+
+*** TKIP encryption
+
+      对WEP加密方法的一个改良，仍然使用RC4算法，
+
+      802.11n设备不允许使用WEP加密方法，当启用HT或VHT时，也允许使用
+      TKIP加密方法。
+
+*** CCMP encryption
+
+      最新的加密方法，802.11n之后的设备默认使用该加密方法。
+
+** Traffic segmentation
+   
+*** VLANs
+
+      Virtual local area networks (VLANs) are used to create separate
+      broadcast domains in a layer 2 network and are often used to
+      restrict access to network resources without regard to physical
+      topology of the network.
+
+      a WLAN environment, individual SSIDs can be mapped to individual
+      VLANs, and users can be segmented by the SSID/VLAN pair, all
+      while communicating through a single access point.
+
+      #+CAPTION: Wireless VLANs
+      [[./images/2015/2015121006.png]]
+
+*** RBAC
+
+      Role-based access control (RBAC) is another approach to
+      restricting system access to authorized users.
+
+** Infrastructure security
+        
+*** Physical security
+       
+*** Interface security
+
+** VPN wireless security
+
+   
+*** Layer 3 VPNs
+
+*** SSL VPN
+
+*** VPN deployment
+
+*** Guest WLAN security
+
+*** Captive portal
+
+
+    
+    
+* Ch14 Wireless Attacks, Intrusion Monitoring, and Policy           :noexport:
+  
+* Ch15 Radio Frequency Site Survey Fundamentals                     :noexport:
+  
+* 第十六章 Site Survey Systems and Devices
+  
+* 第十七章 Power over Ethernet(PoE)                                 :noexport:
+  
+* 第十八章 802.11n
+
+** 802.11n-2009 amendment
+   
+     802.11n-2009定义了HT， 无线通信可以结合MIMO技术和OFDM技术。 MIMO
+     技术提高了吞吐量和通信范围。802.11n向后与802.11a/b/g保持兼容。
+     802.11n可使用在2.4G和5G。
+
+** Wi-Fi Alliance certification
+   
+      
+      Wi-Fi联盟针对802.11n有一个厂商认证项目称为WiFi CERTIFIED n。
+      802.11n的产品必须通过一些强制测试项和可选项。所有认证过的802.11n
+      设备必须支持Wi-Fi多媒体的QoS机制和WPA/WPA2的安全机制。
+
+** MIMO
+     
+     MIMO是支持802.11n物理层的核心和灵魂。对于传统的802.11设备，多径是
+     一个会导致信号衰减或数据破坏的问题，但是，对于802.11n设备，多径效
+     应却是一个可利用的现象，802.11n就是充分利用多径效应来提高网络吞吐
+     量的。
+
+     MIMO信号发射端发射的信息会通过多条路径到达MIMO信号接收端，MIMO信
+     号接收端会使用高级的DSP技术挑选出原始的传输信号。
+
+     通过使用SM（spatial multiplexing）方法传输多个数据流，可以利用多
+     径提供更好的吞吐量。MIMO系统也可以同时使用多条天线来提供更好的传
+     输和接收差异， 这可以增大传输范围和可靠性。
+
+     有许多传输和接收差异的技术：
+     1. Space-time block coding (STBC) and cyclic shift diversity
+        (CSD) are transmit diversity techniques where the same
+        transmit data is sent out of multiple antennas.
+        STBC技术只能用于802.11n设备之间，而CSD技术可以用于802.11n设备
+        和其他类型的设备。
+     2. Transmit beamforming (TxBF) is a technique where the same
+        signal is transmitted over multiple antennas and the antennas
+        act like a phased array.
+     3. Maximal ratio combining (MRC) is a type of receive diversity
+        technique where multiple received signals are combined, thus
+        improving sensitivity.
+
+     空间利用和差异化技术是利用多径的重要技术。
+
+     #+CAPTION: MIMO operation and multipath
+     [[./images/2015/2015121101.png]]
+
+*** Radio chains
+
+      A radio chain is defi ned as a single radio and all of its
+      supporting architecture, including mixers, amplifi ers, and
+      analog/digital converters.
+
+      一个MIMO系统包含多个Radio Chain，每个Radio Chain都有自己的天线。
+      一个MIMO系统是以发送端和接收端使用的Radio Chain为特征的。一个
+      2X3MIMO系统代表有三个Radio Chain由2个发送端和3个接收端使用。
+
+      #+CAPTION: 2×3 and 3×3 MIMO
+      [[./images/2015/2015121102.png]]
+
+*** Spatial multiplexing (SM)
+
+      A MIMO radio also has the ability to send independent unique
+      data streams. Each independent data stream is known as a
+      =spatial stream=. 每个单独的Spatial Stream包含的数据可以跟其他的
+      Radio Chain传送的数据不一样。 
+
+      Each stream will also travel a different path, because there is
+      at least a half-wavelength of space between the multiple
+      transmitting antennas. The fact that the multiple streams follow
+      different paths to the receiver because of the space between the
+      transmitting antennas is known as /spatial diversity/.
+
+      Sending multiple independent streams of unique data using
+      spatial diversity is often also referred to as spatial
+      multiplexing (SM) or spatial diversity multiplexing (SDM).
+
+      描述MIMO能力的格式： 3×3:2
+      第一个数字代表TX数量，第二个数字代表RX数量，第三个代表发送或
+      接收的唯一的数据流数量。
+
+      #+CAPTION: Multiple spatial streams
+      [[./images/2015/2015121103.png]]
+
+      当一个STA加入一个BSS时，STA会将MIMO能力信息告知给AP。
+
+*** MIMO diversity
+
+      Antenna diversity (both receive and transmit) is a method of
+      using multiple antennas to survive the negative effects of
+      multipath.
+
+      接收端从收到的信号中，提取信号最强的。使用多根天线增加了信号被接
+      收到的概率，从而降低数据破坏的概率，实际效果是信号传输距离变长了。
+
+*** Space-time block coding (STBC)
+
+       Space-time block coding (STBC) is a method where the same
+       information is transmitted on two or more antennas. It is a
+       type of transmit diversity.
+
+       当天线数量超过spatial streams数量时，可以使用STBC。STBC并不能增
+       加数据传输速率，但是可以增强接收端在SNR较小的时候可以检测到信号。
+       无线信号系统的接收灵敏度增强了。STBC主要用于802.11n设备之间的数
+       据传输。
+
+*** Cyclic shift diversity (CSD)
+
+       另一种比较重要的Transmit Diversity技术，可以用于802.11n设备与传
+       统802.11设备之间的数据传输。
+
+*** Transmit beamforming (TxBF)
+
+       802.11n标准中定义的一种可选的物理层能力。Transmit beamforming
+       can be used when there are more transmitting antennas than
+       there are spatial data streams.
+
+       接收端通过调整信号的相位，得到一个较高振幅的信号，提高了SNR，增
+       大了数据传输距离。
+
+** HT channels
+
+*** 20 MHz non-HT and HT channels
+
+        802.11n (HT) radios also use the same OFDM technology and have
+        the capability of using either 20 MHz channels or 40 MHz
+        channels. The 20 MHz channels used by HT radios have four
+        extra subcarriers and can carry a little more data than a
+        non-HT OFDM channel.
+
+        #+CAPTION: 20 MHz non-HT (802.11a/g) channel
+        [[./images/2015/2015121104.png]]
+
+        #+CAPTION: 20 MHz HT (802.11n) channel
+        [[./images/2015/2015121105.png]]
+
+*** 40 MHz channels
+
+        #+CAPTION: 40 MHz HT (802.11n) channel
+        [[./images/2015/2015121106.png]]
+
+        40MHz的信道是由两个相邻的20MHz信道合并的，其中一个为主信道，另
+        一个为辅信道。
+    
+*** 40 MHz Intolerant
+
+        2.4G频段，只有一个不重叠的40 MHz的信道。 一个在2.4G使用40 MHz信道宽
+        度的AP会影响周围其他的AP，如果该AP运行在2.4G，并使用20 MHz信道
+        宽度， 如1， 6 ， 11信道。默认情况下，802.11 STA和AP在2.4G频段
+        传输数据时会使用20 MHz的信道宽度。 它们也可以通过802.11n管理帧
+        告知周围其他设备它们是 /Forty MHz Intolerant/ 。 当2.4G下使用
+        40 MHz信道宽度的AP收到这样的管理帧后，会自动切回到20 MHz的信道
+        宽度。对于运行于5G下的AP，则没有这样的要求。
+
+*** Guard interval (GI)
+
+       For digital signals, data is modulated onto the carrier signal
+       in bits or collections of bits called /symbols/.
+
+       802.11a/g radios use an 800-nanosecond guard interval (GI)
+       between OFDM symbols. The =guard interval= is a period of time
+       between symbols that accommodates the late arrival of symbols
+       over long paths.
+
+       In a multipath environment, symbols travel different paths, and
+       therefore some symbols arrive later. A “new” symbol may arrive
+       at a receiver before a “late” symbol has been completely
+       received. This is known as /intersymbol interference (ISI)/ and
+       often results in data corruption.
+
+       =delay spread= is the time differential between multiple paths
+       of the same signal. 通过delay spread的大小为50 ns ~ 100 ns, 最
+       多不超过200 ns. Guard interval通常是2到4倍delay spread的大小。
+
+       #+CAPTION: Guard interval
+       [[./images/2015/2015121107.png]]
+       
+       GI的主要作用是防止 =Inter symbol inerference=.
+    
+*** Modulation and coding scheme (MCS)
+
+       802.11n data rates are defined with a modulation and coding
+       scheme (MCS) matrix.
+
+*** HT PHY
+
+       MSDU是Layer3~7层的负载。 MPDU是整个802.11帧的技术名称。当MPDU转
+       到物理层后，前导码和PHY头部信息加入到MPDU，产生了 /Physical
+       Layer Convergence Procedure Protocol Data Unit (PPDU)./
+       前导码的作用是使用一些比特位同步两个802.11无线信号传输。PHY头部
+       的主要目的是使用一个Signal域显示要花多长时间去传输802.11帧
+       （MPDU），并通知接收方当前传输MPDU使用的MCS（速率）。 
+
+       #+CAPTION: 802.11n PPDU formats
+       [[./images/2015/2015121108.png]]
+
+*** Non-HT legacy
+
+       Support for the non-HT legacy format is mandatory for 802.11n
+       radios, and transmissions can occur in only 20 MHz channels.
+
+*** HT Mixed
+
+       The HT Mixed format is also considered mandatory, and
+       transmissions can occur in both 20 MHz and 40 MHz channels.
+
+       When a 40 MHz channel is used, all broadcast traffic must be
+       sent on a legacy 20 MHz channel so as to maintain
+       interoperability with the 802.11a/g non-HT clients.
+
+*** HT Greenfield
+
+      Greenfield format is optional, and the HT radios can transmit
+      by using both 20 MHz and 40 MHz channels..
+
+      这种模式不能兼容802.11a/b/g设备，也没有要求使用保护机制。
+
+** HT MAC
+
+     针对MAC逻辑链路子层， 也提供了一些机制来增强吞吐量，改进电源管理
+     功能： 使用帧聚合。 
+
+*** A-MSDU
+
+       802.11设备传输帧时，使用竞争机制来获取媒介使用权，这样会产生一
+       些通信开锁，且是无法避免的。 为了降低通信开销，802.11n引入了两
+       个新的帧聚合方法来帮助降低开销。 
+
+       第一种方法是： /Aggregate MAC Service Data Unit(A-MSDU)/ 。 
+
+       #+CAPTION: A-MSDU
+       [[./images/2015/2015121109.png]]
+     
+*** A-MPDU
+
+      The second method of frame aggregation is known as /Aggregate
+      MAC Protocol Data Unit (A-MPDU)/.
+
+      #+CAPTION: A-MPDU
+      [[./images/2015/2015121110.png]]
+
+*** Block Acknowledgment
+
+      A-MSDU只需要 一个ACK，但是，A-MPDU需要对其中的每个MPDU进行确认，
+      这是通过 /multiple traffi c ID block acknowledgment (MTBA)
+      frame/ 来完成的，它实际上是一个A-MPDU的Block ACK帧。 
+
+*** RIFS
+
+       802.11n引入了一个更短的帧间间隔 /reduced interframe space
+       (RIFS)/ 。 
+
+*** HT power management
+
+      1. spatial multiplexing power save(SM power save)
+      2. Power Save Multi Poll (PSMP)
+
+** HT operation
+
+*** 20/40 channel operation
+
+       Several rules apply for the operation of 20 MHz and 40 MHz
+       stations within the same HT 20/40 basic service set:
+
+      - The 802.11n access point must declare 20-only or 20/40 support
+        in the beacon management frame.
+
+      -  802.11n client stations must declare 20-only or 20/40 in the
+         association or reassociation frames.
+
+      - Client stations must reassociate when switching between
+        20-only and 20/40 modes.
+
+      -  If 20/40-capable stations transmit by using a single 20 MHz
+         channel, they must transmit on the primary channel and not
+         the secondary channel.
+
+*** HT protection modes (0–3)
+
+       在Beacon帧中，有一个HT Protection的域，它有4个可能的值0~3. 保护
+       模式会动态变化，取决于周围的设备或者关联的HT AP。使用的保护机制
+       主要有：RTS/CTS, CTS-to-Self, Dual-CTS或者其他的保护方法。 
+
+       4种保护模式：
+       1) Mode 0—Greenfield (No Protection) Mode
+           This mode is referred to as Greenfield because only HT
+          radios are in use.
+
+       2) Mode 1—HT Nonmember Protection Mode
+           在该模式下，BSS中所有的STA都必须是HT STA.
+
+       3) Mode 2—HT 20 MHz Protection Mode
+           the 20/40-capable HT stations must use protection when
+          transmitting on a 40 MHz channel in order to prevent the 20
+          MHz–only HT stations from transmitting at the same time. 
+
+       4) Mode 3—Non-HT Mixed Mode
+           This protection mode is used when one or more non-HT
+          stations are associated to the HT access point.
+
+*** RTS/CTS and CTS-to-self
+
+
+* 第十九章 Very High Throughput (VHT) and 802.11ac
+  
+* Bring Your Own Device (BYOD)                                      :noexport:
