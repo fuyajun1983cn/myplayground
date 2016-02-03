@@ -28,3 +28,6 @@
 [submodule "graphics/opengl/android_opengl_programs_wharehouse"]
         path = "graphics/opengl/android_opengl_programs_wharehouse"
         url = https://github.com/fuyajun1983cn/android_opengl_programs_wharehouse.git
+[submodule "dotfiles/emacs/emacs.d"]
+	path = dotfiles/emacs/emacs.d
+	url = https://github.com/fuyajun1983cn/emacs.d.git
