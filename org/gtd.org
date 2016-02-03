@@ -37,10 +37,13 @@
 *** ☛ TODO 字符终端中文显示问题
 ** ☛ TODO 博文 [0/1]
 *** ☛ TODO Linux kernel小程序快速参考 
-** ☛ TODO 扩展学习 [0/2]
+** ☛ TODO 扩展学习 [0/3]
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
+*** ☛ TODO Notepad++插件研究 [0/2]
+**** ☛ TODO 编译环境
+**** ☛ TODO 示例插件研究
 *** ☛ TODO Tool研究
     - zsh
     - less

@@ -13,9 +13,6 @@
 [submodule "android/apps/toy3d"]
 	path = android/apps/toy3d
 	url = https://github.com/fuyajun1983cn/toy3d.git
-[submodule "emacs/my_emacs.d"]
-	path = emacs/my_emacs.d
-	url = https://github.com/fuyajun1983cn/emacs.d.git
 [submodule "graphics/opengl/alfonse-gltut"]
 	path = graphics/opengl/alfonse-gltut
 	url = https://github.com/fuyajun1983cn/alfonse-gltut.git
