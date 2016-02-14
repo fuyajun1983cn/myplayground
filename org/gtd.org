@@ -8,7 +8,7 @@
 #+COLUMNS: %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}
 #+OPTIONS: toc:t
 
-* Tasks [0/5]
+q* Tasks [0/5]
   :PROPERTIES:
   :CATEGORY: Tasks
   :END:
@@ -37,13 +37,15 @@
 *** ☛ TODO 字符终端中文显示问题
 ** ☛ TODO 博文 [0/1]
 *** ☛ TODO Linux kernel小程序快速参考 
-** ☛ TODO 扩展学习 [0/3]
+*q* ☛ TODO 扩展学习 [0/3]
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
-*** ☛ TODO Notepad++插件研究 [0/2]
+**q* ☛ TODO Notepad++插件研究 [0/2]
 **** ☛ TODO 编译环境
 **** ☛ TODO 示例插件研究
+     https://github.com/mpcabd/PyNPP.git
+       
 *** ☛ TODO Tool研究
     - zsh
     - less
