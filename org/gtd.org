@@ -15,9 +15,9 @@
 
 ** ☛ TODO 研究emacs源码 [0/4]
 *** ☛ TODO =simple.el= 源码研究 
-
+    
 *** ☛ TODO =paragraphs.el= 源码研究
-
+    
 *** ☛ TODO =loaddefs.el= 源码研究
 
 *** ☛ TODO =org.el= 源码研究
@@ -41,9 +41,10 @@
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
-*** ☛ TODO Notepad++插件研究 [0/2]
+*** ☛ TODO Notepad++插件研究 [0/3]
 **** ☛ TODO 编译环境
 **** ☛ TODO 示例插件研究
+**** ☛ TODO 编写显示emacs org文件插件
 *** ☛ TODO Tool研究
     - zsh
     - less

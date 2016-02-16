@@ -1,5 +1,23 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-
+* 内核模块
 * 内核线程
-
-* 文件读写
+* 文件操作
+** read and write (UART)
+** blocking read and write
+** polling
+** mmap
+** ioctl
+* kfifo
+* completion
+* interrupt
+* tasklet
+* timer
+* work
+* simple single misc device file (miscdevice, misc_register)
+* debugfs
+* platform_driver and platform_device in another module
+* simple UART driver on port 0x3f8 with IRQ 4
