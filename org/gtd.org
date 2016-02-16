@@ -42,16 +42,19 @@
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
 *** ☛ TODO Notepad++插件研究 [0/3]
+**** ☛ TODO 编写显示emacs org文件插件
 **** ☛ TODO 编译环境
 **** ☛ TODO 示例插件研究
-**** ☛ TODO 编写显示emacs org文件插件
+     https://github.com/mpcabd/PyNPP.git
+       
 *** ☛ TODO Tool研究
     - zsh
     - less
     - tmux
     - web幻灯片 Cleaver
-** ☛ TODO 个人杂事 [0/1]
-*** ☛ TODO 简历制作 
+** ☛ TODO 个人杂事 [1/1]
+*** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
+
 
 * Projects
   :PROPERTIES:
