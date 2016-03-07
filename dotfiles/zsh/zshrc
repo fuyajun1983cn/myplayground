@@ -87,4 +87,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias e="emacsclient --no-wait --alternate-editor=emacs"
-
+if [ "$TERM" = "linux" ]; then  
+# 此处使用了别名,如此当我们退出fbterm后便能够简单的通过命令  
+# fbterm重新启动fbterm了,而不用再指定LANG.  
+alias fbterm='LANG=zh_CN.UTF-8 fbterm'  
+fbterm  
+fi  
