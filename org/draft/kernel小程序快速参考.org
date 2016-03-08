@@ -5,8 +5,78 @@
 
 * 内核模块
 * 内核线程
+  =kthread_run=
 * 文件操作
-** read and write (UART)
+** 文件读写准备
+   #+BEGIN_SRC c
+     mm_segment_t orig_fs;
+
+     orig_fs = get_fs();
+     set_fs(KERNEL_DS);
+
+     /* file read and write **/
+
+
+     set_fs(orig_fs);
+   #+END_SRC
+** 打开文件
+   #+BEGIN_SRC c
+     struct file * open_file(char *path, int flag, int mode)
+     {
+       struct file *file_ptr = NULL;
+
+       file_ptr = filp_open(path, flag, 0);
+       if (IS_ERR(file_ptr)) {
+         printk(KERN_WARNING "open file failed, reason: %s\n", PTR_ERR(file_ptr));
+       }
+
+       return file_ptr;
+     }
+   #+END_SRC
+** 关闭文件
+   #+BEGIN_SRC c
+     int close_file(struct file* file)
+     {
+       filp_close(file, NULL);
+       return 0;
+     }
+   #+END_SRC
+** Seek文件
+   #+BEGIN_SRC c
+     void file_seek(struct file* file, int offset)\
+     {
+       file->f_pos = offset;
+     }
+   #+END_SRC
+** read
+   #+BEGIN_SRC c
+     int file_read(struct file *file, char *buffer, int len)
+     {
+       if (file->f_op && file->f_op->read)
+         return file->f_op->read(file, buffer, len, &file->f_pos);
+       else {
+         printk(KERN_WARNING "no file read method\n");
+         return -1
+       }
+
+       return 0;
+     }
+   #+END_SRC
+** write
+   #+BEGIN_SRC c
+     int file_write(struct file *file, char *buffer, int len)
+     {
+      
+       if (file->f_op && file->f_op->write)
+         return file->f_op->write(file, buffer, len, &file->f_pos);
+       else {
+         printk(KERN_WARNING "no file write method\n");
+         return -1
+       }
+
+       return 0;
+     }
+   #+END_SRC
 ** blocking read and write
 ** polling
 ** mmap
