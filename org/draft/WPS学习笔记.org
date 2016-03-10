@@ -27,7 +27,7 @@
    1. discovery phase
       交互Registar和Enrollee之间的描述性信息。
       目的主要是能发现周围的Registrar设备，能使自己能被Registar发现。
-      STA enrollee会先发送 一个M1消息请求关联到Registar。
+      STA enrollee会先发送一个M1消息请求关联到Registar。
 
    2. 第二阶段
       该阶段会到达Credential provisioning， 在M2，M2D，M8
@@ -36,11 +36,107 @@
       M2： 只针对NFC等out of band传输的情况。
       M8: 在M8中，会携带WLAN Credentials给Enrollee。
 
+*** Timeout处理  
+
+    Recommended timeout values are: retransmission timeout = 5
+    seconds, individual message processing timeout = 15 seconds,
+    overall timeout for the entire protocol to complete = 2 minutes.  
+
+
+
 * In-band Setup Using a Standalone AP/Registrar
 
   [[./images/2016/2016011402.png]]
 
+** Setup Steps
+
+   1. The Enrollee sends its Discovery data in a probe request to a
+      Wi-Fi Simple Configuration AP. The AP or wireless Registrar
+      responds with its own Discovery data in the probe response.
+   2. The user is prompted to enter the Enrollee’s device password
+      into the AP/Registrar using a keypad interface or an out-of-band
+      channel.
+   3. The Enrollee connects and initiates 802.1X using the identity
+      “WFASimpleConfig-Enrollee-1-0”.
+   4. The Enrollee and Registrar exchange messages M1-M8 to provision
+      the Enrollee.
+   5. The Enrollee disassociates and reconnects, using its new WLAN
+      authentication Credential.
+
+** P2P EAP WSC交互过程
+
+   - EAPOL-Start
+     EAPOL: SUPP_PAE entering state CONNECTING 
+     EAPOL: txStart
+   - EAPOL-Packet (EAPOL-Reqeust/Identity)(接收) 
+     RX EAPOL   
+     EAPOL: SUPP_PAE entering state RESTART
+     EAP: EAP entering state INITIALIZE
+     EAP: EAP entering state IDLE
+     EAPOL: SUPP_PAE entering state AUTHENTICATING
+     EAPOL: SUPP_BE entering state REQUEST
+     EAP: EAP entering state RECEIVED
+     EAP: Received EAP-Request id=75 method=1 vendor=0 vendorMethod=0
+     EAP: EAP entering state IDENTITY
+   - EAPOL-Packet (EAPOL-Response/Identity)(发送)
+     EAP: EAP entering state SEND_RESPONSE
+     EAP: EAP entering state IDLE
+     EAPOL: SUPP_BE entering state RESPONSE
+     TX EAPOL
+     EAPOL: SUPP_BE entering state RECEIVE
+   - EAPOL-Packet (EAPOL-Request/Start)（接收）
+     EAPOL: Received EAP-Packet frame
+     EAPOL: SUPP_BE entering state REQUEST
+     EAP: EAP entering state RECEIVED
+     EAP: Received EAP-Request id=76 method=254 vendor=14122
+     vendorMethod=1(建议一个方法)
+     EAP: EAP entering state GET_METHOD
+     EAP: Initialize selected EAP method: vendor 14122 method 1 (WSC)
+     EAP-WSC: Fragment size limit 1398
+     EAP: EAP entering state METHOD
+     EAP-WSC: Received packet: Op-Code 1 Flags 0x0 Message Length 0
+     EAP-WSC: Received start
+     EAP-WSC: WAIT_START -> MESG
+     EAP-WSC: MESG -> MESG
+     EAP-WSC: Generating Response
+     EAP-WSC: Sending out 406 bytes (message sent completely)
+     EAP-WSC: MESG -> MESG
+     EAP: method process -> ignore=FALSE methodState=MAY_CONT
+     decision=FAIL
+     EAP: EAP entering state SEND_RESPONSE
+     EAP: EAP entering state IDLE
+     EAPOL: SUPP_BE entering state RESPONSE
+      EAPOL: SUPP_BE entering state RECEIVE  (M1已经发送出去)
+   - EAPOL Packet (EAPOL-Request/M2)
+     EAPOL: Received EAP-Packet frame
+     EAPOL: SUPP_BE entering state REQUEST
+     EAP: EAP entering state RECEIVED
+     EAP: Received EAP-Request id=77 method=254 vendor=14122
+     vendorMethod=1
+     EAP: EAP entering state METHOD
+     EAP-WSC: Received packet: Op-Code 4 Flags 0x0 Message Length 0
+     WPS: Received WSC_MSG(解析WSC-MSG)
+     
 
 
 
-  
+
+wps->p2p_dev_addr
+                           p2p_get_go_dev_addr
+eap_init -->　eap_wsc_init　-------------------> wps_init --> 
+
+
+struct wps_registrar *reg = wpa_s->ap_iface->bss[0]->wps->registrar;
+
+reg->p2p_dev_addr
+
+wps_registrar_button_pushed  (wps_registrar.c)
+
+if (p2p_dev_addr)
+   os_memcpy(reg->p2p_dev_addr, p2p_dev_addr, ETH_ALEN);
+else
+   os_memset(reg->p2p_dev_addr, 0, ETH_ALEN);
+
+
+
+

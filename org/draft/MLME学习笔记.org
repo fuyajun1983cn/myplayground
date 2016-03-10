@@ -3,10 +3,31 @@
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-*  MLME总体分析
+* MLME总体分析
 
+** 概述
+
+*** 处理接收到的管理帧 =STAHandleRxMgmtFrame rtmp_data.c=
+    
+** 附加信息
+   - pAd->ApCfg.MBSSID[] is the main structure for restoring BSS info
+     of P2P GO/SoftAP (BSSID, key, beacon content)
+   - CFG80211_OpsKeyAdd(), CFG80211_OpsKeyDel() are the functions in driver for maintaining security keys
+   - CFG80211DRV_OpsBeaconSet() is called while
+     - hostapd starts the SoftAP on uap0
+     - Wpa_supplicant starts P2P GO on p2p0
+   - BeaconUpdateExec() is called periodically for updating TIM IE in beacon
+   - CFG80211_PacketSend() is hooked as the Tx entry function while initializing a virtual interface
+   - APHandleRxMgmtFrame(), handle management frame such as broadcast
+     probe request.
+   - get_netdev_from_bssid() is called for recognizing an Rx packet is belonging to which net device (ra0, p2p0, or uap0)
+   - MacTableReset() and AsicDelWcidTab() are called while AP-liked interface is starting or stopping
+     - The entry for the already connected STAs of P2P GO or SoftAP will be flushed and then disconnect
+
+** 将数据包发往上层处理
+   在 =cmm_mat.c= 中有定义 =MATProtoTb= ，用于相关协议数据包
 * MLME主循环处理
-     MLME的主循环处理函数是:  =MlmeHandler= 
+  MLME的主循环处理函数是:  =MlmeHandler= 
      
 ** 消息入队和出队接口
     主要是通过 调用  =MlmeEnqueue= 和 =MlmeDequeue= 来将消息添加或从队
@@ -35,15 +56,35 @@
 *** CTNL
     CNTL sends messages to other state machine to trigger actions
     Control STA connection behavior
+    总共有8个状态：
+    1. =CNTL_WAIT_OID_LIST_SCAN=
+    2. =CNTL_WAIT_ASSOC=
+    3. =CNTL_WAIT_AUTH2=
+    4. =CNTL_WAIT_AUTH=
+    5. =CNTL_WAIT_JOIN=
+    6. =CNTL_WAIT_DISASSOC=
+    7. =CNTL_WAIT_OID_DISASSOC=
+    8. =CNTL_IDLE=
 
 *** SYNC
     Handle scan or join BSS behavior
+    总共有3个状态：
+    1. =SCAN_LISTEN=
+    2. =JOIN_WAIT_BEACON=
+    3. =SYNC_IDLE=
 
 *** AUTH
     Handle authentication packets
+    总共有3个状态：
+    1. =AUTH_WAIT_SEQ4=
+    2. =AUTH_WAIT_SEQ2=
+    3. =AUTH_REQ_IDLE=
 
 *** ASSOC 
     Handle association/re-associate/disassociation packets
+    总共有2个状态：
+    1. =ASSOC_IDLE=
+    2. =ASSOC_WAIT_RSP=
 
 
 

@@ -7,7 +7,59 @@
 ** 模块结构图
      #+CAPTION:  =wpa_supplicant modules=
      [[./images/2015/2015121506.png]]
+** 全局数据结构  
+*** =struct wpa_supplicant= 
+*** =struct wpa_global=
+*** =struct nl80211_global=
+    #+BEGIN_SRC c
+      struct nl80211_global {
+              struct dl_list interfaces;
+              int if_add_ifindex;
+              u64 if_add_wdevid;
+              int if_add_wdevid_set;
+              struct netlink_data *netlink;
+              struct nl_cb *nl_cb;
+              struct nl_handle *nl;
+              int nl80211_id;   //family id for nl802.11
+              int ioctl_sock; /* socket for ioctl() use */
 
+              struct nl_handle *nl_event;
+      };    
+    #+END_SRC
+    其中 =nl_event= 接收Driver上报的事件。
+    =nl= 用于 =wpa_supplicant= 向Driver下一些 netlink 命令。
+*** =struct wpa_driver_nl80211_data= 
+*** =struct i802_bss=
+    #+BEGIN_SRC c
+      struct i802_bss {
+              struct wpa_driver_nl80211_data *drv;
+              struct i802_bss *next;
+              int ifindex;
+              u64 wdev_id;
+              char ifname[IFNAMSIZ + 1];
+              char brname[IFNAMSIZ];
+              unsigned int beacon_set:1;
+              unsigned int added_if_into_bridge:1;
+              unsigned int added_bridge:1;
+              unsigned int in_deinit:1;
+              unsigned int wdev_id_set:1;
+
+              u8 addr[ETH_ALEN];
+
+              int freq;
+              int if_dynamic;
+
+              void *ctx;
+              struct nl_handle *nl_preq, *nl_mgmt;
+              struct nl_cb *nl_cb;
+
+              struct nl80211_wiphy_data *wiphy_data;
+              struct dl_list wiphy_list;
+      };    
+    #+END_SRC
+    =struct nl_mgmt= 注册管理帧，如Action帧. 在设置设备模式
+    =wpa_driver_nl80211_set_mode= 的时候，
+    =wpa_supplicant= 会向Driver注册一些Action帧。
 ** wpa_supplicant初始化分析
 *** =wpa_supplicant= 初始化执行过程
 
@@ -809,210 +861,178 @@
    
 *** WPA/WPA2 
 *** EAPOL
-
 *** EAP
 
-* wpa_supplicant要点记录
 
-** wpa_supplicant客户端接口
-
-      #+BEGIN_SRC c
-        //创建一个wpa 控制端对象wpa_ctrl。Android 平台中，参数ctrl_path 代表
-        unix域socket 的位置
-        struct wpa_ctrl * wpa_ctrl_open(const char *ctrl_path);
-        void wpa_ctrl_close(struct wpa_ctrl *ctrl);//注销wpa_ctrl 控制对象
-        //客户端发送命令给wpa_supplicant，回复的消息保存在reply中
-        int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
-        char *reply, size_t *reply_len,void (*msg_cb)(char *msg, size_t len));
-        //打开通知事件监听功能
-        int wpa_ctrl_attach(struct wpa_ctrl *ctrl);
-        //打开通知事件监听功能的wpa_ctrl 对象能直接调用下面的函数来接收unsolicited event
-        int wpa_ctrl_recv(struct wpa_ctrl *ctrl, char *reply, size_t *reply_len);
-      #+END_SRC
-
-      wpa_supplicant会回复两种事件，一种是solicited事件（用户主动请求
-      的事件），一种是unsolicited事件（底层主动上报的事件），
-      wpa_ctrl_reply用于接受主动请求的事件回复，而msg_cb则用于接受底层
-      主动上报的事件。常见的用法是：客户端创建两个wpa_ctrl对象来简化自
-      己的逻辑处理：
-      - 一个打开了通知事件监听功能的wpa_ctrl对象将只通过wpa_ctrl_recv
-        来接收通知事件。
-
-      - 另外一个wpa_ctrl专职用于发送命令和接收回复。由于没有调用
-        wpa_ctrl_attach，故它不会收到通知事件。
-
-* =wpa_supplicant= 模块分析
+* =wpa_supplicant= 功能模块分析
 ** P2P
+*** 数据结构分析与初始化流程 
+**** 主要数据结构
+     
+**** 初始化流程
+     当Driver支持一个非网络接口的P2P Device接口时,
+     #+BEGIN_SRC c
+       /* Driver supports a dedicated interface for P2P Device */
+       #define WPA_DRIVER_FLAGS_DEDICATED_P2P_DEVICE           0x20000000     
+     #+END_SRC
+     先做 =wpa_drv_if_add= ，然后进行 =wpa_supplicant_add_iface= 。
+     否则，则从 =wpa_supplicant_add_iface= 开始执行。
+
+     #+BEGIN_SRC plantuml :file ./images/2016/2016020101.png :cmdline -charset UTF-8
+       @startuml
+       :wpa_supplicant_add_iface;
+       :wpa_supplicant_init_iface;
+       if (iface->p2p_mgmt = 1) then(yes)
+       :wpas_p2p_init;
+       endif
+       :初始化struct p2p_config;
+       note right: 注册了与p2p相关的一些回调函数
+       :p2p_init
+       note right: 初始化了一个struct p2p_data数据结构
+       @enduml
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:./images/2016/2016020101.png]]
+
+     在 =p2p_init= 函数中，同时也注册了一个 循环超时检测函数
+     =p2p_expiration_timeout= ，这个函数会周期性检查当前P2P Peers端是
+     否处于活跃状态（当我们是GO的时候，需要做这样的检查，以维护peer
+     device list列表）
+
 *** 基本连接流程
-    
-     1. 首先，P2P设备要能发现对方，会通过扫描来进行：要么在1，6，11信道
-        上主动发送Probe Request来侦测P2P设备，要么停留在某个信息侦测
-        Beacon或Probe Reqeust帧。
-     2. 在建立P2P组前，可以询问被发现的P2P设备支持哪些服务。
-     3. 当决定跟被发现的P2P设备连接时，可以邀请一个已经加一个了某个P2P
-        组的P2P设备加入一个新的P2P组，或与一个未连接的P2P设备通过GO协
-        商过程形成一个新的P2P组。
-        会经历GO-NEGOTIATION-REQUEST和GO-NEGOTIATION-RESPONSE两步交互
-        过程，一旦协商完成，发起方会发送一个
-        GO-NEGOTIATION-CONFIRMATION，然后两个设备都会切换到协商好的信道
-        上去进行通信。
-        GO会不停地发送Beacon帧，携带协商的BSSID信息，且 =group
-        formation bit= 会置为1，因为此时，P2P成组过程还没有结束。
-     4. 然后是 =Provisioning= 阶段开始，P2P Client会连接GO，通过WPS协
-        议来交换 =credentials= 信息，实质上是一些EAP消息的交互（M1~M8）  
-        当加入一个现存的P2P组时，或为了加快 =provisioning= 阶段，设备
-        可以在进行Group协商之前执行 =Provision Discovery
-        request/response= . 如果不这样，GO Negotiation会失败。必须在后
-        续重新启动协商过程。
-     5. 之后 ，会进行关联，4-way握手过程，以交换密钥。 之后，GC会向GO
-        请求一个IPv4的地址，GO需要实现DHCP服务器的功能。
 
-        为了免掉每次Group创建过程中，需要输入PIN码的麻烦，可以将P2P组
-        设为 =persistent= 的，这样它会存储 =credentials= 信息，并在适
-        当的时候重新连接 。 
+**** 一般连接过程
+     
+      1. 首先，P2P设备要能发现对方，会通过扫描来进行：要么在1，6，11信道
+         上主动发送Probe Request来侦测P2P设备，要么停留在某个信息侦测
+         Beacon或Probe Reqeust帧。
+      2. 在建立P2P组前，可以询问被发现的P2P设备支持哪些服务。
+      3. 当决定跟被发现的P2P设备连接时，可以邀请一个已经加一个了某个P2P
+         组的P2P设备加入一个新的P2P组，或与一个未连接的P2P设备通过GO协
+         商过程形成一个新的P2P组。
+         会经历GO-NEGOTIATION-REQUEST和GO-NEGOTIATION-RESPONSE两步交互
+         过程，一旦协商完成，发起方会发送一个
+         GO-NEGOTIATION-CONFIRMATION，然后两个设备都会切换到协商好的信道
+         上去进行通信。
+         GO会不停地发送Beacon帧，携带协商的BSSID信息，且 =group
+         formation bit= 会置为1，因为此时，P2P成组过程还没有结束。
+      4. 然后是 =Provisioning= 阶段开始，P2P Client会连接GO，通过WPS协
+         议来交换 =credentials= 信息，实质上是一些EAP消息的交互（M1~M8）  
+         当加入一个现存的P2P组时，或为了加快 =provisioning= 阶段，设备
+         可以在进行Group协商之前执行 =Provision Discovery
+         request/response= . 如果不这样，GO Negotiation会失败。必须在后
+         续重新启动协商过程。
+      5. 之后 ，会进行关联，4-way握手过程，以交换密钥。 之后，GC会向GO
+         请求一个IPv4的地址，GO需要实现DHCP服务器的功能。
 
-        http://processors.wiki.ti.com/index.php/OMAP_Wireless_Connectivity_NLCP_WiFi_Direct_Configuration_Scripts
+         为了免掉每次Group创建过程中，需要输入PIN码的麻烦，可以将P2P组
+         设为 =persistent= 的，这样它会存储 =credentials= 信息，并在适
+         当的时候重新连接 。 
 
-      #+CAPTION: 两个P2P设备A，B执行P2P连接时，帧交换的过程
-      #+BEGIN_SRC plantuml :file ./images/2016/2016012501.png :cmdline -charset UTF-8
-        @startuml
-        A -> B : (1)Probe requests with P2P IE on all channels.
-        note right
-        At first both devices will enter the scan phase, and send
-        Probe requests with P2P IE on all channels.
+         http://processors.wiki.ti.com/index.php/OMAP_Wireless_Connectivity_NLCP_WiFi_Direct_Configuration_Scripts
 
-        After a random time one of them will start to listen on one of the
-        social channels (1, 6 or 11) and finally receive a probe request
-        from the other station. It will reply with: Probe response with P2P IE
-        end note
-        B -> A : (2)Probe response with P2P IE
-        note right
-        Device A reports "Another device found" to the user or
-        managing application. Now an optional service discovery
-        exchange can happen:
-        end note
-        A -> B: (a) Service Discovery query
-        B -> A: (b) Service Discovery response
-        note right: Then group formation begins
-        A -> B: (3) GO Negotiation request
-        note right
-        B reports this to the user and will wait for the input,
-        which we assume to timeout in this case.
-        end note
-        B -> A: (4) GO Negotiation response (fail)
-        note right
-        Optionally, instead of having the first GO Negotiation fail,
-        the devices could have used Provision Discovery before group
-        formation, but this does not change the number of total frames
-        exchanged
-        end note
-        A -> B: (3) Provision Discovery request
-        B -> A: (4) Provision Discovery response
-        A -> B: (5) GO Negotiation request
-        note right
-        In the end we suppose the user on B has allowed the connection.
-        end note
-        B -> A: (6) GO Negotiation response (success)
-        A -> B: (7) GO Negotiation confirmation
-        note right
-        Now one device becomes GO and the other client, Let's
-        assume B is the GO
-        end note
-        B -> A: (8) GO sends beacons (formation bit = 1)
-        A -> B: (9) Authentication 1
-        B -> A: (10) Authentication 2
-        A -> B: (11) Association request
-        B -> A: (12) Association response
-        note right
-        Now the "provisioning" phase begins, which is a WPS exchange
-        of usually 8 frames. We don't go into the details of the WPS
-        protocol here.
+       #+CAPTION: 两个P2P设备A，B执行P2P连接时，帧交换的过程
+       #+BEGIN_SRC plantuml :file ./images/2016/2016012501.png :cmdline -charset UTF-8
+         @startuml
+         A -> B : (1)Probe requests with P2P IE on all channels.
+         note right
+         At first both devices will enter the scan phase, and send
+         Probe requests with P2P IE on all channels.
 
-        (13) (14) (15) (16) (17) (18) (19) (20)
+         After a random time one of them will start to listen on one of the
+         social channels (1, 6 or 11) and finally receive a probe request
+         from the other station. It will reply with: Probe response with P2P IE
+         end note
+         B -> A : (2)Probe response with P2P IE
+         note right
+         Device A reports "Another device found" to the user or
+         managing application. Now an optional service discovery
+         exchange can happen:
+         end note
+         A -> B: (a) Service Discovery query
+         B -> A: (b) Service Discovery response
+         note right: Then group formation begins
+         A -> B: (3) GO Negotiation request
+         note right
+         B reports this to the user and will wait for the input,
+         which we assume to timeout in this case.
+         end note
+         B -> A: (4) GO Negotiation response (fail)
+         note right
+         Optionally, instead of having the first GO Negotiation fail,
+         the devices could have used Provision Discovery before group
+         formation, but this does not change the number of total frames
+         exchanged
+         end note
+         A -> B: (3) Provision Discovery request
+         B -> A: (4) Provision Discovery response
+         A -> B: (5) GO Negotiation request
+         note right
+         In the end we suppose the user on B has allowed the connection.
+         end note
+         B -> A: (6) GO Negotiation response (success)
+         A -> B: (7) GO Negotiation confirmation
+         note right
+         Now one device becomes GO and the other client, Let's
+         assume B is the GO
+         end note
+         B -> A: (8) GO sends beacons (formation bit = 1)
+         A -> B: (9) Authentication 1
+         B -> A: (10) Authentication 2
+         A -> B: (11) Association request
+         B -> A: (12) Association response
+         note right
+         Now the "provisioning" phase begins, which is a WPS exchange
+         of usually 8 frames. We don't go into the details of the WPS
+         protocol here.
 
-        Next the GO starts to send beacons with the formation bit set to 0.
+         (13) (14) (15) (16) (17) (18) (19) (20)
 
-        end note
+         Next the GO starts to send beacons with the formation bit set to 0.
 
-        B -> A: (21) GO beacon (formation bit = 0)
-        note right
-        The client re-authenticates and re-associates with the new credentials:
-        end note
+         end note
 
-        A -> B: (22) Authentication 1
-        B -> A: (23) Authentication 2
-        A -> B: (24) Association request
-        B -> A: (25) Association response
+         B -> A: (21) GO beacon (formation bit = 0)
+         note right
+         The client re-authenticates and re-associates with the new credentials:
+         end note
 
-        note right
-        Now the RSN 4-way handshake begins, and again we
-        don't go into the details of RSN:
-        end note
-        B -> A: (26) ANonce
-        A -> B: (27) SNonce + MIC
-        B -> A: (28) GTK + MIC
-        A -> B: (29) ACK
+         A -> B: (22) Authentication 1
+         B -> A: (23) Authentication 2
+         A -> B: (24) Association request
+         B -> A: (25) Association response
 
-        @enduml
-      #+END_SRC
+         note right
+         Now the RSN 4-way handshake begins, and again we
+         don't go into the details of RSN:
+         end note
+         B -> A: (26) ANonce
+         A -> B: (27) SNonce + MIC
+         B -> A: (28) GTK + MIC
+         A -> B: (29) ACK
 
-      #+RESULTS:
-      [[file:./images/2016/2016012501.png]]
+         @enduml
+       #+END_SRC
 
-    
-    #+BEGIN_SRC plantuml :file ./images/2016/2016011802.png :cmdline -charset UTF-8
-      @startuml
-      [*] --> Scan
+       #+RESULTS:
+       [[file:./images/2016/2016012501.png]]
 
-      state Scan {
-      [*] --> p2p_scan: send probe request & receive probe response
-      p2p_scan --> Find : full channel scan finished
-      }
+**** 收到Invitation Request的交互过程
+     1. 当前设置处于 =P2P_Find= 阶段时，如果收到 =Invitation Request=
+        Action帧，即 =P2P: Received Invitation Request from
+        86:38:38:b0:ff:ee (freq=2462)= ，则首先会解析该Action帧携带的一些
+        信息，然后将该设备添加到设备列表中，并报告有新的设备发现。
+     2. 创建一个p2p接口。 
+        =P2P: Create a new interface p2p-p2p0-0 for the group=
+        =nl80211: Create interface iftype 9 (P2P_GO)=
+     3. 发送 =Invitation Response= Action帧给对端。并回调
+        =p2p_inviation_resp_cb= , 它会调用 =wpas_invitation_received=
+        。
+     4. 调用 =p2p_stop_find= 。
 
-      state Find {
-      p2p_listen --> p2p_search : dwell on social channel for random time
-      p2p_search --> p2p_listen : dwell on socail channel for random time
-      p2p_search --> GO_GROUP_FORMATION  : P2P Device Found
-      }
 
-      state GO_GROUP_FORMATION {
-      [*] --> go_negotiation
 
-      state go_negotiation {
-      go_negotiation_request --> go_negotiation_response
-      go_negotiation_response --> go_negotiation_confirmation
-      go_negotiation_confirmation  --> p2p_connect : GO is Determined, now we can do p2p_connect
-      }
-      }
-
-      state p2p_connect {
-      state association {
-      association_request --> association_response
-      association_response --> WSC_Provisioning  : ask GO for credentionals info
-      }
-
-      state WSC_Provisioning {
-      provisioning_discovery_request --> provisioning_discovery_response
-      provisioning_discovery_response --> handshake
-      }
-      
-      state handshake {
-      [*] --> PTK
-      PTK --> GTK
-      GTK --> DHCP : 4步握手结束，开始获取IP地址
-      }
-
-      state DHCP {
-      [*]  --> DHCP_request
-      DHCP_request --> DHCP_response : IP obtained
-      }
-      }
-
-      @enduml
-    #+END_SRC
-
-    #+RESULTS:
-    [[file:./images/2016/2016011802.png]]
 
 **** Driver 当GC时的交互过程：
     1. CFG80211_PKT: RX P2P_PROVISION_REQ 11
@@ -1248,12 +1268,14 @@
           :wpas_p2p_send_action_tx_status
           note right: 注册的pending_action_tx_status_cb
           :p2p_send_action_cb;
-          note right: 在这个函数中，会调用不同的状态反馈回调函数
+          note right: 在这个函数中，会调用不同的状态注册的回调函数
           stop
           @enduml
         #+END_SRC
 
-         
+        #+RESULTS:
+        [[file:./images/2016/2016012902.png]]
+
 *** p2p管理
 
    当 =wpa_s->drv_flags= & =WPA_DRIVER_FLAGS_P2P_MGMT= 为真时，代表相关的P2P
@@ -1265,6 +1287,12 @@
 
    =wpa_supplicant= 在文件 =p2p_supplicant.c= 这个文件中注册了许多p2p管理相关
    的函数接口。
+
+*** Go创建
+    入口函数： =wpa_driver_nl80211_set_ap= 
+    两个相关的NL80211命令：
+    - =NL80211_CMD_NEW_BEACON=
+    - =NL80211_CMD_SET_BSS=
 *** socket control interface
     - =p2p_find=  
       | Command                                                    | Description                                            |
@@ -1408,40 +1436,50 @@
 
     This is what a successful 'roam' looks like:
     #+BEGIN_EXAMPLE
-    D/wpa_supplicant(  716): bgscan simple: Request a background scan
-D/wpa_supplicant(  716): Scan requested (ret=0) - scan timeout 30 seconds
-D/wpa_supplicant(  716): nl80211: Event message available
-D/wpa_supplicant(  716): nl80211: Scan trigger
-D/wpa_supplicant(  716): nl80211: Event message available
-D/wpa_supplicant(  716): nl80211: Scan aborted
-D/wpa_supplicant(  716): wlan0: Event SCAN_RESULTS (3) received
-D/wpa_supplicant(  716): nl80211: Associated on 2412 MHz
-D/wpa_supplicant(  716): nl80211: Associated with 68:7f:74:75:1c:7e
-D/wpa_supplicant(  716): nl80211: Received scan results (2 BSSes)
-D/wpa_supplicant(  716): nl80211: Survey data missing
-D/wpa_supplicant(  716): nl80211: Scan results indicate BSS status with 68:7f:74:75:1c:7e as associated
-D/wpa_supplicant(  716): wlan0: BSS: Start scan result update 527
-D/wpa_supplicant(  716): wlan0: BSS: Add new id 97 BSSID 00:1e:2a:21:f7:3d SSID 'pakjebakmeel24'
-D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
-D/wpa_supplicant(  716): wlan0: New scan results available
-D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
-D/wpa_supplicant(  716): bgscan simple: scan result notification
-D/wpa_supplicant(  716): wlan0: Selecting BSS from priority group 2
-D/wpa_supplicant(  716): wlan0: 0: 00:1e:2a:21:f7:3d ssid='pakjebakmeel24' wpa_ie_len=0 rsn_ie_len=20 caps=0x431 level=-71
-D/wpa_supplicant(  716): wlan0:    selected based on RSN IE
-D/wpa_supplicant(  716): wlan0:    selected BSS 00:1e:2a:21:f7:3d ssid='pakjebakmeel24'
-D/wpa_supplicant(  716): wlan0: Considering within-ESS reassociation
-D/wpa_supplicant(  716): wlan0: Current BSS: 68:7f:74:75:1c:7e level=-79
-D/wpa_supplicant(  716): wlan0: Selected BSS: 00:1e:2a:21:f7:3d level=-71
-D/wpa_supplicant(  716): wlan0: Saving prev AP info for roaming recovery - SSID ID: 1 BSSID: 68:7f:74:75:1c:7e
-D/wpa_supplicant(  716): wlan0: Request association: reassociate: 0  selected: 00:1e:2a:21:f7:3d  bssid: 68:7f:74:75:1c:7e  pending: 00:00:00:00:00:00  wpa_state: COMPLETED
-I/wpa_supplicant(  716): wlan0: EPBUG: Going to authenticate
+      D/wpa_supplicant(  716): bgscan simple: Request a background scan
+      D/wpa_supplicant(  716): Scan requested (ret=0) - scan timeout 30 seconds
+      D/wpa_supplicant(  716): nl80211: Event message available
+      D/wpa_supplicant(  716): nl80211: Scan trigger
+      D/wpa_supplicant(  716): nl80211: Event message available
+      D/wpa_supplicant(  716): nl80211: Scan aborted
+      D/wpa_supplicant(  716): wlan0: Event SCAN_RESULTS (3) received
+      D/wpa_supplicant(  716): nl80211: Associated on 2412 MHz
+      D/wpa_supplicant(  716): nl80211: Associated with 68:7f:74:75:1c:7e
+      D/wpa_supplicant(  716): nl80211: Received scan results (2 BSSes)
+      D/wpa_supplicant(  716): nl80211: Survey data missing
+      D/wpa_supplicant(  716): nl80211: Scan results indicate BSS status with 68:7f:74:75:1c:7e as associated
+      D/wpa_supplicant(  716): wlan0: BSS: Start scan result update 527
+      D/wpa_supplicant(  716): wlan0: BSS: Add new id 97 BSSID 00:1e:2a:21:f7:3d SSID 'pakjebakmeel24'
+      D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+      D/wpa_supplicant(  716): wlan0: New scan results available
+      D/wpa_supplicant(  716): CTRL_IFACE monitor send - hexdump(len=39): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+      D/wpa_supplicant(  716): bgscan simple: scan result notification
+      D/wpa_supplicant(  716): wlan0: Selecting BSS from priority group 2
+      D/wpa_supplicant(  716): wlan0: 0: 00:1e:2a:21:f7:3d ssid='pakjebakmeel24' wpa_ie_len=0 rsn_ie_len=20 caps=0x431 level=-71
+      D/wpa_supplicant(  716): wlan0:    selected based on RSN IE
+      D/wpa_supplicant(  716): wlan0:    selected BSS 00:1e:2a:21:f7:3d ssid='pakjebakmeel24'
+      D/wpa_supplicant(  716): wlan0: Considering within-ESS reassociation
+      D/wpa_supplicant(  716): wlan0: Current BSS: 68:7f:74:75:1c:7e level=-79
+      D/wpa_supplicant(  716): wlan0: Selected BSS: 00:1e:2a:21:f7:3d level=-71
+      D/wpa_supplicant(  716): wlan0: Saving prev AP info for roaming recovery - SSID ID: 1 BSSID: 68:7f:74:75:1c:7e
+      D/wpa_supplicant(  716): wlan0: Request association: reassociate: 0  selected: 00:1e:2a:21:f7:3d  bssid: 68:7f:74:75:1c:7e  pending: 00:00:00:00:00:00  wpa_state: COMPLETED
+      I/wpa_supplicant(  716): wlan0: EPBUG: Going to authenticate
     #+END_EXAMPLE
 
     https://android.googlesource.com/platform/external/wpa_supplicant_8/+/ics-plus-aosp/wpa_supplicant/bgscan_simple.c
 
+** WPS
+   在P2P GO与GC关联后，会进行WPS交互过程。交互时的一些信息会透过
+   Association Request携带的IE信息来提供，如果底层驱动上报的
+   Association Request中相关的IE信息为空，则WPS过程将会终止。
 ** SME
 
+   #+BEGIN_SRC c
+     /* Driver provides separate commands for authentication and association (SME in
+      ,* wpa_supplicant). */
+     #define WPA_DRIVER_FLAGS_SME            0x00000020   
+   #+END_SRC
+   
 * 参考资料
 [1]  http://en.wikipedia.org/wiki/Extensible_Authentication_Protocol
 维基百科关于EAP各种方法的一个简单介绍。
@@ -1500,3 +1538,6 @@ entropy
 
 
 
+
+
+wpa_supplicant_global_ctrl_iface_process

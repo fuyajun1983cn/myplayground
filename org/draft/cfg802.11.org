@@ -3,22 +3,30 @@
 - =cfg80211_register== 
   这个必须在 =regsiter_netdevice()= 之前调用   
 - =cfg80211_connect_result=
+  通知上层当前的关联状态。
 - =cfg80211_disconnected=
 - =cfg80211_get_chandef_type=
 - =cfg80211_chandef_create=
 - =cfg80211_get_bss=
 - =cfg80211_put_bss=
 - =cfg80211_inform_bss=
+  2.6.31后，优先使用此接口
 - =cfg80211_inform_bss_frame=
 - =cfg80211_find_ie=
 - =cfg80211_find_vendor_ie=
 - =cfg80211_tdls_oper_request=
 - =cfg80211_scan_done=
+  通知上层，扫描动作停止。
 - =cfg80211_rx_mgmt=
+  通知上层，接收到未处理的管理帧
 - =cfg80211_rx_action=
+  通知上层，接收到未处理的Action帧
 - =cfg80211_action_tx_status=
+  通知上层，Action帧的发送状态
 - =cfg80211_new_sta=
-  当关联成功后，会调用此接口通知上层。
+  当关联成功后，会调用此接口通知上层添加了新的关联工作站。
+  驱动在处理对方的Association Request后，如果成功回应了Association
+  Response，会通过该接口通知上层，有新的STA创建。
 - =cfg80211_del_sta=
   当Deauth或Diassoc后，会调用些接口。
 - =cfg80211_michael_mic_failure=
@@ -27,8 +35,18 @@
 - =cfg80211_ibss_joined=
 - =cfg80211_ready_on_channel=
 - =cfg80211_remain_on_channel_expired=
+- =wiphy_new= 
+  会创建 =struct cfg80211_registered_device= 结构实例，并初始化其
+  =wdev_list= 链表。这个链表是由 =struct wireless_dev= 类型元素组成。 
 
-* 主要数据结构速览  
+
+* 主要数据结构速览 
+- =struct wireless_dev= 
+  无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
+  指向这个数据结构。
+
+- =struct cfg80211_registered_device=
+
 - =struct cfg80211_chan_def=
 - =struct cfg80211_scan_request=
 - =struct cfg80211_ibss_params=
@@ -43,6 +61,87 @@
   TODO:  change_station 何时会调用 
 - =struct cfg80211_bss=
 - =struct cfg80211_crypto_settings=
+- =struct ieee80211_iface_combination=
+  #+BEGIN_SRC c
+    static const struct ieee80211_iface_limit ra_p2p_sta_go_limits[] = 
+    {
+            {
+                    .max = 3,
+                    .types = BIT(NL80211_IFTYPE_STATION)| BIT(NL80211_IFTYPE_AP),
+            },
+            {
+                    .max = 1,
+                    .types = BIT(NL80211_IFTYPE_P2P_GO) | BIT(NL80211_IFTYPE_P2P_CLIENT),
+            },
+    };
+  #+END_SRC
+- =struct ieee80211_iface_limit= 
+  #+BEGIN_SRC c
+    static const struct ieee80211_iface_combination 
+    ra_iface_combinations_p2p[] = {
+            {
+                    .num_different_channels = 1,
+                    .max_interfaces = 3,
+                    //.beacon_int_infra_match = true,
+                    .limits = ra_p2p_sta_go_limits,
+                    .n_limits = 1,//ARRAY_SIZE(ra_p2p_sta_go_limits),
+            },
+    };
+
+    static const struct ieee80211_iface_combination 
+    ra_iface_combinations_p2p_GO[] = {
+            {
+                    .num_different_channels = 1,
+                    .max_interfaces = 3,
+                    //.beacon_int_infra_match = true,
+                    .limits = ra_p2p_sta_go_limits,
+                    .n_limits = ARRAY_SIZE(ra_p2p_sta_go_limits),
+            },
+    };
+  #+END_SRC
+
+  在调用 =wiphy_register= 之前，可以将上述信息设置到 =struct wiphy= 的
+  =iface_combinations= 和 =n_iface_combinations= 。
+- =struct ieee80211_mgmt=  
+  管理帧，相关API有：
+  - =ieee80211_is_mgmt=
+
+  - =ieee80211_is_probe_resp=
+
+  - =ieee80211_is_disassoc=
+
+  - =ieee80211_is_deauth=
+
+  - =ieee80211_is_action=
+
+  - =cfg80211_rx_mgmt=
+    向上层报告有未处理的管理帧收到。
+
+- =struct cfg80211_bss=
+  BSS信息
+
+- =struct station_info=
+  描述STA相关的信息， 其中 =filled= 可以告知 =nl80211= 层，上报上来的
+  消息包含哪些IE。 如 =STATION_INFO_ASSOC_REQ_IES= 表明当前上报上来的
+  Association Request会包含相关的IE信息。
+  #+BEGIN_SRC c
+    VOID CFG80211OS_NewSta(IN PNET_DEV pNetDev, IN const PUCHAR mac_addr, IN const PUCHAR assoc_frame, IN UINT32 assoc_len)
+    {
+            struct station_info sinfo;
+            struct ieee80211_mgmt *mgmt;
+
+            NdisZeroMemory(&sinfo, sizeof(sinfo));
+
+            sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
+
+            mgmt = (struct ieee80211_mgmt *) assoc_frame;
+            sinfo.assoc_req_ies_len = assoc_len - 24 - 4;
+            sinfo.assoc_req_ies = mgmt->u.assoc_req.variable;
+
+            return cfg80211_new_sta(pNetDev, mac_addr, &sinfo, GFP_KERNEL);
+    }  
+  #+END_SRC
+
 
 * 主要流程
 ** 数据结构
@@ -50,6 +149,34 @@
      wireless hardware description
    - =wireless_dev=
      wireless device state
+   - =struct net_device_ops=
+     在Linux 2.6.31内核版本后，在注册设备时，如下几个回调接口一般需要
+     被定义：
+     1. =ndo_open=
+     2. =ndo_stop=
+     3. =ndo_start_xmit=
+     4. =ndo_do_ioctl=
+     5. =ndo_get_stats=
+        可选，获取状态信息
+     6. =ethtool_ops=
+        获取驱动信息的回调函数
+     7. =ndo_validate_addr=
+   - =struct net_device_stats=
+   - =struct ieee80211_rate=
+     支持的速率定义
+   - =struct ieee80211_channel=
+     信道定义, =IEEE80211_CHAN_RADAR= 用于判断当前信道是否需要回避雷达。
+   - =struct ieee80211_supported_band=
+     频段定义：2.4G(=IEEE80211_BAND_2GHZ=), 5G(=IEEE80211_BAND_5GHZ=)等 
+** 频段和速率的定义
+   1. 信道定义的定义
+      =center_freq, hw_value, max_power, max_antenna_gain= 这个值的定
+      义。需要用到信道与频率之间的映射函数： =ieee80211_channel_to_frequency=
+   2. 初始化所支持的速率
+      定义 =struct ieee80211_rate= 数组
+   3. 频段定义
+      包含的信息有：支持的信道数，支持的速率，以及HT Capability相关信
+      息。
 
 ** 设备注册    
 - =wiphy_new=  
@@ -61,13 +188,89 @@
   Free the allocated wiphy
 - =wiphy_unregister=  
   Unregister the wiphy.
-
+  
 在注册 =netdev= 之前进行，主要包含硬件的一些能力信息：
 1. bands and channels
 2. bitrates per band
 3. HT capabilites
 4. supported interface modes
-netdev结构的 =ieee80211 ptr= 指针指向注册的 =wiphy= 对象 。
+netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对象 。
+
+#+BEGIN_SRC c
+  /**
+   ,* 注册一个wireless device的过程
+   ,*/
+
+  static struct wireless_dev *CFG80211_WdevAlloc(
+          IN CFG80211_CB                                  *pCfg80211_CB,
+          IN CFG80211_BAND                                *pBandInfo,
+          IN VOID                                                 *pAd,
+          IN struct device                                *pDev)
+  {
+          struct wireless_dev *pWdev;
+          ULONG *pPriv;
+
+
+          /*
+           ,* We're trying to have the following memory layout:
+           ,*
+           ,* +------------------------+
+           ,* | struct wiphy                       |
+           ,* +------------------------+
+           ,* | pAd pointer                        |
+           ,* +------------------------+
+           ,*/
+          pWdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+
+
+          //struct cfg80211_ops
+          pWdev->wiphy = wiphy_new(&CFG80211_Ops, sizeof(ULONG *)); 
+
+          /* keep pAd pointer, Your Private data */
+          pPriv = (ULONG *)(wiphy_priv(pWdev->wiphy));
+          ,*pPriv = (ULONG)pAd;
+
+          set_wiphy_dev(pWdev->wiphy, pDev);
+
+          //设置wiphy相关的域
+          pWdev->wiphy->features |= NL80211_FEATURE_INACTIVITY_TIMER;
+
+          //初始化Channel信息
+          /*
+           ,* struct wiphy
+           ,* struct ieee80211_channel
+           ,* struct ieee80211_rate
+           ,* struct ieee80211_supported_band
+           ,*/
+
+
+          wiphy_register(pWdev->wiphy);
+
+          
+  }
+#+END_SRC
+
+#+TITLE：注册网络设备相关函数
+#+BEGIN_SRC c
+  struct net_device *device = alloc_etherdev(privDataSize);
+
+  struct net_device_ops *pNetDevOps = NULL;
+
+  device->netdev_ops = pNetDevOps;
+
+  //分配一个接口名
+  dev_get_by_name(...)
+
+  //cfg80211 register
+
+  //注册
+  if (rtnl_locked)
+    ret = register_netdevice(pNetDev);
+  else
+    ret = register_netdev(pNetDev);
+
+
+#+END_SRC
 
 ** regulatory enforcement  
    Channel使用信息, 管制
@@ -98,3 +301,5 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =wiphy= 对象 。
   [[./images/2016/2016012801.png]]
 
 
+
+wireless_send_event

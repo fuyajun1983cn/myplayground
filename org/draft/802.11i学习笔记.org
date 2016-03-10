@@ -5,6 +5,54 @@
 
 * 参考书籍 [fn:1]
 ** 主要知识点
+*** 802.11i协议学习
+**** 常见缩略语
+     - EAPOL-Key confirmation key (KCK)
+       A key used to integrity-check an EAPOL-Key frame, 用于完整性检
+       测。
+     - EAPOL-Key encryption key (KEK)
+       A key used to encrypt the Key Data field in an EAPOL-Key
+       frame.
+     - 4-Way Handshake
+       A pairwise key management protocol defined by this
+       amendment. It confirms mutual possession of a pairwise master
+       key (PMK) by two parties and distributes a group temporal key
+       (GTK).
+     - Group Key Handshake
+       A group key management protocol defined by this amendment. It
+       is used only to issue a new group temporal key (GTK) to peers
+       with whom the local station (STA) has already formed security associations.
+     - group master key (GMK)
+       An auxiliary key that may be used to derive a group temporal key (GTK).
+     - group temporal key (GTK)
+       A random value, assigned by the broadcast/multicast source,
+       which is used to protect broadcast/multicast medium access
+       control (MAC) protocol data units (MPDUs) from that source. The
+       GTK may be derived from a group master key (GMK).
+     - group temporal key security association (GTKSA)
+       The context resulting from a successful group temporal key
+       (GTK) distribution exchange via either a Group Key Handshake or
+       a 4-Way Handshake.
+     - pairwise master key (PMK)
+       The highest order key used within this amendment. The PMK may
+       be derived from an Extensible Authentication Protocol (EAP)
+       method or may be obtained directly from a preshared key (PSK).
+     - pairwise master key security association (PMKSA)
+       The context resulting from a successful IEEE 802.1X
+       authentication exchange between the peer and Authentication
+       Server (AS) or from a preshared key(PSK).
+     - pairwise transient key (PTK)
+       A value that is derived from the pairwise master key (PMK),
+       Authenticator address (AA), Supplicant address (SPA),
+       Anthenticator nonce (ANonce), and Supplicant nonce (SNonce)
+       using the pseudo-random function (PRF) and that is split up
+       into as many as five keys, i.e., temporal encryption key, two
+       temporal message integrity code (MIC) keys, EAPOL-Key
+       encryption key (KEK), EAPOL-Key confirmation key (KCK).
+     - pairwise transient key security association (PTKSA)
+       The context resulting from a successful 4-Way Handshake
+       exchange between the peer and Authenticator. 
+
 *** 主要的安全问题
       - 数据加密
       - 防范攻击

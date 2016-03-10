@@ -1,0 +1,284 @@
+
+* 概述
+  在如下两种情况下，会创建 =sk_buff=
+  1. 当应用程序将数据传递给 =socket= 时。
+  2. 当数据包到达网络适配器时。
+  包只会拷贝两次：
+  1. 通过显式地从用户空间拷贝到内核空间。
+  2. 数据传入网络适配器，或从网络适配器中读取。（一般是通过DMA）
+* 数据结构
+** =struct sk_buff= 解析
+   参考文章： [[http://vger.kernel.org/~davem/skb.html][SKB数据结构解读]]
+   #+BEGIN_SRC c
+     struct sk_buff {
+             /* These two members must be first. */
+             //这两个成员主要实现链表的一些操作
+             //数据包可以存在在多个不同类型的链表和队列中，
+             //比如TCP 套接字发送队列
+             struct sk_buff          *next;
+             struct sk_buff          *prev;
+
+             //which list the packet is on
+             struct sk_buff_head     *list;
+
+             //与SKB关联的socket
+             struct sock             *sk;
+
+             //记录数据包的时间戳，计算该值比较消耗资源，仅在必要的时候才需要计算
+             //该值。通过调用 net_enable_timestamp() 记录数据的时间戳
+             // 调用 net_disable_timestamp() 来取记录数据的时间戳。
+             //时间戳通常用于Sniffer数据包，也可用于实现一些 socket 选项，一些
+             //netfilter模块也会使用该值。
+             struct timeval          stamp;
+
+             //这三个成员主要用于跟踪与该数据包关联的设备，
+             //由于数据包在通过虚拟接口的过程中，skb->dev的值会发生变化，所以需要额外的两个指针
+             //来跟踪当前数据包关联的设备。
+             //So if we are receiving a packet from a device which is part of a bonding
+             //device instance, initially 'skb->dev' will be set to point the real underlying
+             //bonding slave. When the packet enters the networking (via 'netif_receive_skb()')
+             //we save 'skb->dev' away in 'skb->real_dev' and update 'skb->dev' to point to the bonding device.
+             //Likewise, the physical device receiving a packet always records itself in 'skb->input_dev'.
+             //In this way, no matter how many layers of virtual devices end up being decapsulated,
+             //'skb->input_dev' can always be used to find the top-level device that actually
+             //received this packet from the network.
+             struct net_device       *dev;
+             struct net_device       *input_dev;
+             struct net_device       *real_dev;
+
+             //各种协议层的头部信息
+             union {
+                     struct tcphdr   *th;
+                     struct udphdr   *uh;
+                     struct icmphdr  *icmph;
+                     struct igmphdr  *igmph;
+                     struct iphdr    *ipiph;
+                     struct ipv6hdr  *ipv6h;
+                     unsigned char   *raw;
+             } h;
+
+             union {
+                     struct iphdr    *iph;
+                     struct ipv6hdr  *ipv6h;
+                     struct arphdr   *arph;
+                     unsigned char   *raw;
+             } nh;
+
+             union {
+                     unsigned char   *raw;
+             } mac;
+
+             //This member is the generic route for the packet.
+             //It tells us how to get the packet to it's destination.
+             //Note that routes are used for both input and output.
+             struct  dst_entry       *dst;
+
+             //Here we store the security path traversed by the packet, if any. 
+             struct  sec_path        *sp;
+
+             //SKB control block, It is an opaque storage area usable by protocols,
+             //and even some drivers, to store private per-packet information.
+             char                    cb[40];
+
+             //包的总长度是len
+             //SKB是由一个线性的数据缓冲区以及一个或多个页缓冲区构成，如果有页缓冲区，则
+             //页缓冲区中的总字节数是：data_len。所以线性缓冲区的长度为skb->len - skb->data_len，
+             //或者直接调用 skb_headlen()。
+             // mac_len记录了MAC头部的长度。
+             //csum: 为数据包的check sum。 
+             unsigned int            len,
+                                     data_len,
+                                     mac_len,
+                                     csum;
+
+             //local_df: 由IPV4 protocol使用
+             //cloned: 判断该SKB是否是拷贝的, 拷贝的SKB之间共享数据区。
+             //nohdr: support of TCP Segmentation Offload ('TSO' for short).
+             //pkt_type: 数据包的类型
+             //ip_summed: describes what kind of checksumming assistence the card has provided for a receive packet.
+             unsigned char           local_df,
+                                     cloned:1,
+                                     nohdr:1,
+                                     pkt_type,
+                                     ip_summed;
+
+             //QoS相关
+             __u32                   priority;
+
+
+             //protocol: 数据包接收的协议类型  eth_type_trans
+             //security: IPSec相关
+             unsigned short          protocol,
+                                     security;
+
+             //这两个成员主要用于socket buffer统计
+             void                    (*destructor)(struct sk_buff *skb);
+             ...
+             unsigned int            truesize;
+
+
+             //引用计数
+             atomic_t                users;
+
+             //These four pointers provide the core management of the linear packet data area of an SKB.
+             unsigned char           *head,
+                                     ,*data,
+                                     ,*tail,
+                                     ,*end;
+   #+END_SRC
+** =skb_data= 
+   首先看下SKB数据区的布局
+   [[./images/2016/2016030801.png]]
+*** 新建一个SKB
+    通过调用如下函数来新建一个SKB。
+    #+BEGIN_SRC c
+      skb = alloc_skb(len, GFP_KERNEL);    
+    #+END_SRC
+    下图是一个SKB刚创建时的布局：
+    [[./images/2016/2016030802.png]]
+*** 调用 =skb_reserve= 
+    当调用如下函数时，
+    #+BEGIN_SRC c
+      skb_reserve(skb, header_len);
+    #+END_SRC
+    SKB的布局如下：
+    [[./images/2016/2016030803.png]]
+*** 添加用户数据
+    当往这个SKB中添加一些数据后，
+    #+BEGIN_SRC c
+      unsigned char *data = skb_put(skb, user_data_len);
+      int err = 0;
+      skb->csum = csum_and_copy_from_user(user_pointer, data,
+                                          user_data_len, 0, &err);
+      if (err)
+              goto user_fault;    
+    #+END_SRC
+    这个时间，SKB的布局如下：
+    [[./images/2016/2016030804.png]]
+*** 添加UDP头部信息
+    当往里面添加UDP头部信息后，
+    #+BEGIN_SRC c
+      struct inet_sock *inet = inet_sk(sk);
+      struct flowi *fl = &inet->cork.fl;
+      struct udphdr *uh;
+
+      skb->h.raw = skb_push(skb, sizeof(struct udphdr));
+      uh = skb->h.uh
+      uh->source = fl->fl_ip_sport;
+      uh->dest = fl->fl_ip_dport;
+      uh->len = htons(user_data_len);
+      uh->check = 0;
+      skb->csum = csum_partial((char *)uh,
+                               sizeof(struct udphdr), skb->csum);
+      uh->check = csum_tcpudp_magic(fl->fl4_src, fl->fl4_dst,
+                                    user_data_len, IPPROTO_UDP, skb->csum);
+      if (uh->check == 0)
+              uh->check = -1;    
+    #+END_SRC
+    此时SKB布局如下：
+    [[./images/2016/2016030805.png]]
+*** 添加IPv4头部信息
+    #+BEGIN_SRC c
+      struct rtable *rt = inet->cork.rt;
+      struct iphdr *iph;
+
+      skb->nh.raw = skb_push(skb, sizeof(struct iphdr));
+      iph = skb->nh.iph;
+      iph->version = 4;
+      iph->ihl = 5;
+      iph->tos = inet->tos;
+      iph->tot_len = htons(skb->len);
+      iph->frag_off = 0;
+      iph->id = htons(inet->id++);
+      iph->ttl = ip_select_ttl(inet, &rt->u.dst);
+      iph->protocol = sk->sk_protocol; /* IPPROTO_UDP in this case */
+      iph->saddr = rt->rt_src;
+      iph->daddr = rt->rt_dst;
+      ip_send_check(iph);
+
+      skb->priority = sk->sk_priority;
+      skb->dst = dst_clone(&rt->u.dst);    
+    #+END_SRC
+    这时，SKB的布局如下： 
+    [[./images/2016/2016030806.png]]
+
+    
+* 主要API
+
+** =dev_alloc_skb(size) : sk_buff*=
+   [[./images/2016/2016030807.png]]
+** =skb_clone=
+   Creates a new =sk_buff=, but not the packet data.
+   Pointers in both =sk_buffs= point to the same packet data space.
+   [[./images/2016/2016030814.png]]
+** =skb_cloned=
+   Is the buffer a clone.
+** =skb_set_tail_pointer=
+** =skb_tail_pointer= 获取TAIL指针
+** =skb_end_pointer=
+** =skb_push=
+   Inserts data in front of the packet data space, need to check the headroom size.
+   [[./images/2016/2016030811.png]]
+** =skb_put=
+   Appends data to the end of the packet, need to ensure the tailroom is sufficient.
+   [[./images/2016/2016030809.png]]
+** =skb_pull=
+   Truncates len bytes at the beginning of a data.
+   [[./images/2016/2016030812.png]]
+** =skb_reserve=
+   Increases headroom by len bytes, this is only allowed for an empty buffer.
+   [[./images/2016/2016030808.png]]
+** =skb_trim=
+   Trim skb to len bytes.
+   [[./images/2016/2016030810.png]]
+** =dev_alloc_skb= 内存分配 
+** =dev_kfree_skb_any= 释放
+** =skb_shinfo=  share info
+** =skb_headlen=  header length
+** =skb_tailroom=
+** =skb_headroom=
+** =skb_copy_expand= 
+   alloc a new skb and copy the packet
+   用于扩展当前的 =skb_buffer= 的使用空间。 
+** =skb_copy= 
+   Creates a copy of the =sk_buff=, copying both the =sk_buff= structure and the packet data.
+   Used when the caller wishes to modify the packet data.
+   [[./images/2016/2016030813.png]]
+** =skb_copy_to_linear_data=
+** =skb_copy_from_linear_data=
+   Use memcpy() to copy skb->data.
+** =kfree_skb=
+   Decrements reference count for skb. If null, free the memory.
+   Used by the kernel in non-interrupt context, =not meant to be used by drivers=.
+** =dev_kfree_skb=
+   For use by drivers in non-interrupt context.
+** =dev_kfree_skb_irq=
+   For use by drivers in interrupt context.
+** =dev_kfree_skb_any=
+   For use by drivers in any context.
+* Pass Package to Upper Layer
+  驱动通过 =net_rx= 来通知内核有数据包需要提交给上层处理。
+  #+BEGIN_SRC c
+    /* pass the packet to upper layer */
+    struct skb_buffer *pOSPkt;
+    ...
+    pOSPkt->pkt_type = PACKET_OTHERHOST;
+    pOSPkt->protocol = eth_type_trans(pOSPkt, pOSPkt->dev);
+    pOSPkt->ip_summed = CHECKSUM_NONE;
+    netif_rx(pOSPkt);
+  #+END_SRC
+* 初始化一个 =skb_buffer= 
+  初始化时，主要有如下几个步骤
+  #+BEGIN_SRC c
+    struct sk_buff *pOSPkt;
+
+    pOSPkt = RTPKT_TO_OSPKT(pRxPacket);
+
+    pOSPkt->dev = pNetDev;
+    pOSPkt->data = pData;
+    pOSPkt->len = DataSize;
+    skb_set_tail_pointer(pOSPkt, pOSPkt->len);
+  #+END_SRC
+
+  
+  
