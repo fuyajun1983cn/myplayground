@@ -1,5 +1,134 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-
+* 内核模块
 * 内核线程
+  =kthread_run=
+  #+BEGIN_SRC c
+    //内核任务描述
+    typedef struct _OS_TASK_ {
+      char task_name[256];
+      void *priv;
+      unsigned long task_status;
+      struct task_struct *kthread_struct;
+      wait_queue_head_t kthread_q;
+      unsigned char kthread_running;
+    } OS_TASK;
+  #+END_SRC
+* 文件操作
+** 文件读写准备
+   #+BEGIN_SRC c
+     mm_segment_t orig_fs;
 
-* 文件读写
+     orig_fs = get_fs();
+     set_fs(KERNEL_DS);
+
+     /* file read and write **/
+
+
+     set_fs(orig_fs);
+   #+END_SRC
+** 打开文件
+   #+BEGIN_SRC c
+     struct file * open_file(char *path, int flag, int mode)
+     {
+       struct file *file_ptr = NULL;
+
+       file_ptr = filp_open(path, flag, 0);
+       if (IS_ERR(file_ptr)) {
+         printk(KERN_WARNING "open file failed, reason: %s\n", PTR_ERR(file_ptr));
+       }
+
+       return file_ptr;
+     }
+   #+END_SRC
+** 关闭文件
+   #+BEGIN_SRC c
+     int close_file(struct file* file)
+     {
+       filp_close(file, NULL);
+       return 0;
+     }
+   #+END_SRC
+** Seek文件
+   #+BEGIN_SRC c
+     void file_seek(struct file* file, int offset)\
+     {
+       file->f_pos = offset;
+     }
+   #+END_SRC
+** read
+   #+BEGIN_SRC c
+     int file_read(struct file *file, char *buffer, int len)
+     {
+       if (file->f_op && file->f_op->read)
+         return file->f_op->read(file, buffer, len, &file->f_pos);
+       else {
+         printk(KERN_WARNING "no file read method\n");
+         return -1
+       }
+
+       return 0;
+     }
+   #+END_SRC
+** write
+   #+BEGIN_SRC c
+     int file_write(struct file *file, char *buffer, int len)
+     {
+      
+       if (file->f_op && file->f_op->write)
+         return file->f_op->write(file, buffer, len, &file->f_pos);
+       else {
+         printk(KERN_WARNING "no file write method\n");
+         return -1
+       }
+
+       return 0;
+     }
+   #+END_SRC
+** blocking read and write
+** polling
+** mmap
+** ioctl
+* kfifo
+* completion
+* interrupt
+* tasklet
+* 时间与计时器
+** 获取时间
+   #+BEGIN_SRC c
+     //1. 获取启动时间
+     #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32))
+     struct timespec ts;
+     unsigned long long boot_time;
+     //...
+     get_monotonic_boottime(&ts);
+     boot_time = ts.tv_sec;
+     toot_time *= USEC_PER_SEC;
+     boot_time += ts.tv_nsec/NSEC_PER_USEC;
+     #else
+     struct timeval tv;
+     unsigned long long boot_time;
+     //...
+     do_gettimeofday(&tv);
+     boot_time = ((unsigned long long)tv.tv_sec * 1000000) + tv.tv_usec;
+     #endif
+
+   #+END_SRC
+* 工作队列
+  #+BEGIN_SRC c
+    struct work_struct * work_item;
+    void (*pFunc)(unsigned long data);
+    INIT_WORK(work_item, pFunc);
+    schedule_work(...)
+  #+END_SRC
+* simple single misc device file (miscdevice, misc_register)
+* debugfs
+* platform_driver and platform_device in another module
+* simple UART driver on port 0x3f8 with IRQ 4
+* 文件系统
+  #+BEGIN_SRC c
+  flush_dcache_range(...)
+  #+END_SRC
