@@ -4,6 +4,7 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 内核模块
+* 通知链
 * 内核线程
   =kthread_run=
   #+BEGIN_SRC c
@@ -125,10 +126,20 @@
     schedule_work(...)
   #+END_SRC
 * simple single misc device file (miscdevice, misc_register)
-* debugfs
 * platform_driver and platform_device in another module
 * simple UART driver on port 0x3f8 with IRQ 4
 * 文件系统
   #+BEGIN_SRC c
   flush_dcache_range(...)
   #+END_SRC
+* 内核文件系统
+** procfs
+** sysctl
+   #+BEGIN_SRC c
+     ctl_table
+
+     register_sysctl_table
+     unregister_sysctl_table
+   #+END_SRC
+** sysfs
+** debugfs
