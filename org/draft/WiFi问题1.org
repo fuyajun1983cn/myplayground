@@ -1,0 +1,80 @@
+
+* 问题描述
+   客户平台的网卡从一家厂商的芯片更换为另一家的芯片，结果出现WiFi
+   Miracast无法连接成功的情况。
+* 问题分析
+   初步信息调查：
+   1. 客户平台内核版本为： 3.1.10
+   2. 实测发现，当平台作GC时，连接没有问题。
+   3. 分析手机端和平台端的 =wpa_supplicant.log= ，有如下一些发现：
+      - 平台端如下Log异常：
+        [[./images/2016/2016031101.png]]
+        Associaite Request中没有包含RSN IE等相关信息，这是P2P连接过程
+        中，所必须。
+      - 手机端有如下Log异常：
+        #+BEGIN_EXAMPLE
+           03-03 16:06:08.252 I/wpa_supplicant(  864): p2p0: WPS-M2D dev_password_id=0 config_error=12
+           03-03 16:06:08.255 D/wpa_supplicant(  864): EAPOL: txSuppRsp
+          03-03 16:06:08.255 D/wpa_supplicant(  864): TX EAPOL: dst=06:3d:98:a6:29:34
+          03-03 16:06:08.255 D/wpa_supplicant(  864): TX EAPOL - hexdump(len=78): 01 00 00 4a 02 4d 00 4a fe 00 37 2a 00 00 00 01 02 00 10 4a 00 01 10 10 22 00 01 0d 10 1a 00 10 ...
+          03-03 16:06:08.256 D/wpa_supplicant(  864): EAPOL: SUPP_BE entering state RECEIVE
+          03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Terminate connection due to WPS PBC session overlap
+          03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Group Formation failed with 06:3d:98:a6:29:34
+          03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Clear timeout (state=PROVISIONING)
+          03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: State PROVISIONING -> IDLE
+          03-03 16:06:08.256 I/wpa_supplicant(  864): P2P-GROUP-FORMATION-FAILURE 
+        #+END_EXAMPLE
+
+    =config_error=  的值为 12， 其意义为：　
+      =WPS_CFG_MULTIPLE_PBC_DETECTED= ，这个是GO在处理M1信息时，带上的。
+   4. 根据双方的Log， GO在处理GC发送过来的M1消息后，回复了M2D信息给GC，
+      从而中断了WPS的交互过程。从如下代码入手分析：
+      [[./images/2016/2016031102.png]]
+      函数 =wps_registrar_p2p_dev_addr_match= 中进行地址过滤时，发现了
+      线索：
+      [[./images/2016/2016031103.png]]
+      正常情况下， =reg->p2p_dev_addr= 的值应该与 =wps->p2p_dev_addr=
+      的值一致，但是从出错Log中发现 =wps->p2p_dev_addr= 的值为0。  
+      而 wps 相关的初始化是在 =eap_wsc_init= 在调用了 =wps_init= 来进
+      行初始化的。  如下图所示 ：
+      [[./images/2016/2016031104.png]]
+      有个条件引起来我们的注意：
+      =sm->assoc_p2p_ie=  
+      是否因为这个为NULL，导致 =wps_init= 初始化时， =p2p_dev_addr=  没有
+      得到幅值？
+   5. 分析 =wpa_supplicant= 处理Associate Request的函数代码：
+      在函数 =hostapd_notif_assoc= 里面，会解析 Associate Request 携带
+      的IE信息， 代码如下：  
+      [[./images/2016/2016031105.png]]
+
+      可以发现，并结合之前的Log发现， WPS， RSN， WPA等 IE信息都为空。
+      所有有理由 怀疑Driver送上来的Associate Request中就没有包含这些IE
+      信息， IE信息为空！！！
+   6. Driver层确认
+       在Driver处理Association Request的地方， 加一些打印Log确认收到的
+      IE是否为空，结果发现，Driver有收到这些IE信息的。 Driver在处理完
+      Associate Request后，如果OK，会送回一个Associate Response给对方
+      ，并调用 =cfg80211_new_sta= 将Associate Request事件通知到上层。
+      应该在这个地方可能将IE信息漏掉了。 
+
+* 解决方法
+   由于定位到问题的原因是：驱动在调用 =cfg80211_new_sta= 时，没有将 如
+   下标记设置：
+   
+   #+BEGIN_SRC c
+     struct station_info sinfo;
+     struct ieee80211_mgmt *mgmt;
+
+     NdisZeroMemory(&sinfo, sizeof(sinfo));
+
+     //因为这个标记没有置上，导致nl80211模块处理IE信息时，
+     //将assoc_req IE给过滤掉了, 正解就是要让这名执行。
+      sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
+
+      mgmt = (struct ieee80211_mgmt *) assoc_frame;
+      sinfo.assoc_req_ies_len = assoc_len - 24 - 4;
+     sinfo.assoc_req_ies = mgmt->u.assoc_req.variable;
+
+     return cfg80211_new_sta(pNetDev, mac_addr, &sinfo, GFP_KERNEL);
+
+   #+END_SRC

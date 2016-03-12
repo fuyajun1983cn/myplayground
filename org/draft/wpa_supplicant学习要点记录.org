@@ -1472,6 +1472,59 @@
    在P2P GO与GC关联后，会进行WPS交互过程。交互时的一些信息会透过
    Association Request携带的IE信息来提供，如果底层驱动上报的
    Association Request中相关的IE信息为空，则WPS过程将会终止。
+   在GO协议完成后，会开始WPS协商的过程。
+
+   #+BEGIN_SRC plantuml :file ./images/2016/2016031007.png :cmdline -charset UTF-8
+     @startuml
+     :wpas_go_neg_completed;
+     if (当前设备协商的角色是GO？) then (是)
+     :wpas_start_wps_go;
+     else (否)
+     :wpas_start_wps_enrollee;
+     endif
+     @enduml
+   #+END_SRC
+
+*** Enrollee
+    此时双方会通过 P2P 接口地址进行交互。WPS具体使用的方式有PBC或者PIN
+    的方式。
+
+    #+BEGIN_SRC plantuml :file ./images/2016/2016031008.png
+      :wpas_start_wps_enrollee;
+      if (use WPS ?) then (yes)
+      :wpas_wps_start_pbc;
+      else (no)
+      :wpas_wps_start_pin;
+      endif
+    #+END_SRC
+
+    下面我们主要看下WPS的交互过程：
+    1. =wpas_wps_add_network=
+       添加一个新的SSID， 设置其 =key_mgmt= 的值为 WPS， =eap= 值为WSC，
+       =identity=  为 =WSC_ID_ENROLLEE= 。
+    2. =wpa_config_set(ssid, "phase1", "\"pbc=1\"", 0)=
+       设置网络参数： phase1的值。
+    3. 注册WPS协商超时处理函数
+       WPS超时时间为120秒。
+    4. =wpas_wps_reassoc=
+       它会执行如下几个重要动作：
+       - 如果当前有连接到某个SSID，则断开。
+       - 标记所有其他的网络为禁用状态，以触发重新关联动作。
+       - 请求一次扫描， 专门扫描GO所在的频率。
+         会构建WPS IE携带上Probe Request中。
+    5. 等待扫描结果
+       获得扫描结果后，会通过 =wpas_select_network_from_last_scan= 连
+       接GO对应的SSID。 向GO发送关联请求。
+    6. =wpa_supplicant_associate=
+       向Driver发送Association Request的命令。然后调用
+       =wpa_supplicant_rsn_supp_set_config= 通知 =wpa_sm= 状态机配置已
+       经发生更改。 最后调用 =wpa_supplicant_initiate_eapol= 初始化
+       =eapol_sm= 配置。
+    7. 收到到Associate Response信息， =wpa_supplicant_event_assoc=
+       成功关联上GO后，开始了WPS的交互过程。 GC首先发一笔：
+       =eapol_sm_txStart= 将 =IEEE802_1X_TYPE_EAPOL_START= 包发出去。
+
+
 ** SME
 
    #+BEGIN_SRC c

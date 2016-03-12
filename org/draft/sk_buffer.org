@@ -22,6 +22,8 @@
              struct sk_buff_head     *list;
 
              //与SKB关联的socket
+             //当数据的源地址和目的地址任何一个都不是本机时，该值为NULL
+            //例如本机只是转发数据包
              struct sock             *sk;
 
              //记录数据包的时间戳，计算该值比较消耗资源，仅在必要的时候才需要计算
@@ -29,6 +31,7 @@
              // 调用 net_disable_timestamp() 来取记录数据的时间戳。
              //时间戳通常用于Sniffer数据包，也可用于实现一些 socket 选项，一些
              //netfilter模块也会使用该值。
+             //一般记录的是数据接收到的时间。
              struct timeval          stamp;
 
              //这三个成员主要用于跟踪与该数据包关联的设备，
@@ -81,7 +84,7 @@
              char                    cb[40];
 
              //包的总长度是len
-             //SKB是由一个线性的数据缓冲区以及一个或多个页缓冲区构成，如果有页缓冲区，则
+             //SKB是由一个线性的数据缓冲区(main bufer) for head)以及一个或多个页缓冲区(fragments)构成，如果有页缓冲区，则
              //页缓冲区中的总字节数是：data_len。所以线性缓冲区的长度为skb->len - skb->data_len，
              //或者直接调用 skb_headlen()。
              // mac_len记录了MAC头部的长度。
@@ -107,17 +110,27 @@
 
 
              //protocol: 数据包接收的协议类型  eth_type_trans
-             //security: IPSec相关
+             //  Since each protocol has its own function handler for the processing of
+             //incoming packets, this field is used by the driver to inform the layer above it what handler to use.
+             //Each driver calls netif_rx to invoke the handler for the upper network layer, so the protocol
+             //field must be initialized before that function is invoked.
+             //security: IPSec相关, no longer used.
              unsigned short          protocol,
                                      security;
 
              //这两个成员主要用于socket buffer统计
+             // destructor 通常被初始化为删除Buffer时执行的一些操作。当该Buffer不属于任何socket
+             //时，该函数指针为空。否则通常初始化为： sock_rfree或sock_wfree。
              void                    (*destructor)(struct sk_buff *skb);
              ...
+
+             //这个代码Buffer总的大小，包含struct sk_buff结构体本身。
              unsigned int            truesize;
 
 
              //引用计数
+             //增加引用计数： skb_get
+             //减少引用计数： kfree_skb
              atomic_t                users;
 
              //These four pointers provide the core management of the linear packet data area of an SKB.
@@ -126,6 +139,18 @@
                                      ,*tail,
                                      ,*end;
    #+END_SRC
+** =skb_buff_head=
+     #+BEGIN_SRC c
+       struct sk_buff_head {
+         /* These two members must be first. */
+         struct sk_buff * next;
+         struct sk_buff * prev;
+         _ _u32 qlen; //元素的个数 
+         spinlock_t lock;
+       };
+     #+END_SRC
+    它与 =skb_buff= 的关系如下： 
+    [[./images/2016/2016031001.png]]
 ** =skb_data= 
    首先看下SKB数据区的布局
    [[./images/2016/2016030801.png]]
@@ -201,38 +226,146 @@
     #+END_SRC
     这时，SKB的布局如下： 
     [[./images/2016/2016030806.png]]
+** =skb_shared_info=
+     该数据结构的定义如下：
+     #+BEGIN_SRC c
+       struct skb_shared_info {
+         //represents the number of "users" of the data block
+         atomic_t dataref;
+         //nr_frags, frag_list, and frags are used to handle IP fragments
+         //tso_size and tso_seqs 用于TCP segmentation
+         unsigned int nr_frags;
+         unsigned short tso_size;
+         unsigned short tso_seqs;
+         struct sk_buff *frag_list;
+         skb_frag_t frags[MAX_SKB_FRAGS];
+       };     
+     #+END_SRC
+     访问该结构信息：
+     #+BEGIN_SRC c
+       #define skb_shinfo(SKB) ((struct skb_shared_info *)((SKB)->end))
 
-    
+       skb_shinfo(skb)->dataref++;
+     #+END_SRC
+  
 * 主要API
 
-** =dev_alloc_skb(size) : sk_buff*=
-   [[./images/2016/2016030807.png]]
-** =skb_clone=
-   Creates a new =sk_buff=, but not the packet data.
-   Pointers in both =sk_buffs= point to the same packet data space.
-   [[./images/2016/2016030814.png]]
-** =skb_cloned=
-   Is the buffer a clone.
+** 分配内存
+     分配内存包含两个部分的内存分配：one for the buffer and one for
+     the =sk_buff= structure
+     
+*** =alloc_skb=
+         基本的逻辑如下面代码所示 ：
+        #+BEGIN_SRC c
+          skb = kmem_cache_alloc(skbuff_head_cache, gfp_mask & ~_ _GFP_DMA);
+          ... ... ...
+          size = SKB_DATA_ALIGN(size);
+          data = kmalloc(size + sizeof(struct skb_shared_info), gfp_mask);        
+        #+END_SRC
+         分配后，内存分配情况如下：
+         [[./images/2016/2016031003.png]]
+*** =dev_alloc_skb(size) : sk_buff*=
+         该函数用于中断上下文中，代码实现如下所示： 
+         #+BEGIN_SRC c
+           static inline struct sk_buff *dev_alloc_skb(unsigned int length)
+           {
+             return _ _dev_alloc_skb(length, GFP_ATOMIC);
+           }
+
+           static inline
+           struct sk_buff *_ _dev_alloc_skb(unsigned int length, int gfp_mask)
+           {
+             struct sk_buff *skb = alloc_skb(length + 16, gfp_mask);
+             if (likely(skb))
+               skb_reserve(skb, 16);
+             return skb;
+           }
+         #+END_SRC
+         [[./images/2016/2016030807.png]]
+** 释放内存
+      主要有两个函数： =kfree_skb=,  =dev_kfree_skb= , =dev_kfree_skb=
+      会调用 =kfree_skb= 。
+*** =dev_kfree_skb_any= 释放
+*** =dev_kfree_skb=
+    For use by drivers in non-interrupt context.
+*** =kfree_skb=
+    Decrements reference count for skb. If null, free the memory.
+    Used by the kernel in non-interrupt context, =not meant to be used
+    by drivers=.
+    该函数的执行逻辑如下图所示 ：
+    #+BEGIN_SRC plantuml :file ./images/2016/2016031006.png :cmdline -charset UTF-8
+      title kfree_skb function
+      @startuml
+      start
+      :Decrement skh refcnt (skb-users);
+      if (Is skb refcnt = 0 ?) then (yes)
+      if (Is skb in a list?) then (yes)
+      :Print warning msg (likely to be a bug);
+      else (no)
+      endif
+      if (Is skb->destructor initialized?) then (yes)
+      :Execute desctructor;
+      else (no)
+      endif
+      else (no)
+      :Return;
+      stop
+      endif
+      if (Is skb cloned?) then (yes)
+      :Decrement refcnt on data (dataref);
+      if (Is refcnt dataref = 0?) then (yes)
+      :Free the main buffer and any fragments;
+      else (no)
+      endif
+      else (no)
+      :Free the main buffer and any fragments;
+      endif
+      :Return skb to the cache;
+      stop
+      @enduml
+     #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016031006.png]]
+
+*** =dev_kfree_skb_irq=
+    For use by drivers in interrupt context.
+*** =dev_kfree_skb_any=
+    For use by drivers in any context.
+** 复制和拷贝
+*** =skb_clone=
+    Creates a new =sk_buff=, but not the packet data.
+    Pointers in both =sk_buffs= point to the same packet data space.
+    [[./images/2016/2016030814.png]]
+*** =skb_cloned=
+    Is the buffer a clone.
 ** =skb_set_tail_pointer=
 ** =skb_tail_pointer= 获取TAIL指针
 ** =skb_end_pointer=
-** =skb_push=
-   Inserts data in front of the packet data space, need to check the headroom size.
-   [[./images/2016/2016030811.png]]
-** =skb_put=
-   Appends data to the end of the packet, need to ensure the tailroom is sufficient.
-   [[./images/2016/2016030809.png]]
-** =skb_pull=
-   Truncates len bytes at the beginning of a data.
-   [[./images/2016/2016030812.png]]
-** =skb_reserve=
-   Increases headroom by len bytes, this is only allowed for an empty buffer.
-   [[./images/2016/2016030808.png]]
+** Buffer Management
+     下图为如下几个函数的操作Buffer的行为：
+     [[./images/2016/2016031002.png]]
+*** =skb_push=
+    Inserts data in front of the packet data space, need to check the headroom size.
+    [[./images/2016/2016030811.png]]
+*** =skb_put=
+    Appends data to the end of the packet, need to ensure the tailroom is sufficient.
+    [[./images/2016/2016030809.png]]
+*** =skb_pull=
+    Truncates len bytes at the beginning of a data.
+    [[./images/2016/2016030812.png]]
+*** =skb_reserve=
+    Increases headroom by len bytes, this is only allowed for an empty buffer.
+    [[./images/2016/2016030808.png]]
+
+    下图是执行 =skb_reserve(skb, 2)= 的一个示例：　
+    [[./images/2016/2016031004.png]]
+
+    下图是数据从TCP到链路层过程中，Buffer指针的变化过程：　
+    [[./images/2016/2016031005.png]]
 ** =skb_trim=
    Trim skb to len bytes.
    [[./images/2016/2016030810.png]]
-** =dev_alloc_skb= 内存分配 
-** =dev_kfree_skb_any= 释放
 ** =skb_shinfo=  share info
 ** =skb_headlen=  header length
 ** =skb_tailroom=
@@ -247,15 +380,6 @@
 ** =skb_copy_to_linear_data=
 ** =skb_copy_from_linear_data=
    Use memcpy() to copy skb->data.
-** =kfree_skb=
-   Decrements reference count for skb. If null, free the memory.
-   Used by the kernel in non-interrupt context, =not meant to be used by drivers=.
-** =dev_kfree_skb=
-   For use by drivers in non-interrupt context.
-** =dev_kfree_skb_irq=
-   For use by drivers in interrupt context.
-** =dev_kfree_skb_any=
-   For use by drivers in any context.
 * Pass Package to Upper Layer
   驱动通过 =net_rx= 来通知内核有数据包需要提交给上层处理。
   #+BEGIN_SRC c
