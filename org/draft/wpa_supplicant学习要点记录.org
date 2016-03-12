@@ -580,8 +580,9 @@
      默认情况下， =wpa_supplicant= 会请求驱动执行AP扫描，然后使用扫描
      结果来选择一个合适的AP。另一种选择就是驱动负责AP扫描并选择一个AP
      来关联， =wpa_supplicant= 只是基于驱动给出的关联信息去处理 EAPOL
-     帧。 有如下一些取值：
-     1: wpa_supplicant initiates scanning and AP selection; if no APs
+     帧。 有如下一些取值：  
+
+     1: =wpa_supplicant= initiates scanning and AP selection; if no APs
      matching to  the currently enabled networks are found, a new
      network (IBSS or AP mode  operation) may be initialized (if
      configured) (default)
@@ -599,14 +600,19 @@
      即创建新的网络，而不管扫描结果为何。
    - =passive_scan= 
      是否强制被动扫描。
+
      0:  Do normal scans (allow active scans) (default)
+
      1:  Do passive scans.
+
      如果开启被动扫描，则会降低扫描设备的速度，且会导致有些AP扫不到，
      如隐藏SSID的AP。
    - =user_mpm= 
      默认情况下， =wpa_supplicnat= 会为一个Open Mesh实现MPM(Mesh
      Peering Manager)，如果驱动实现了MPM，可以设置些值为0. 
+     
      0: MPM lives in the driver
+
      1: wpa_supplicant provides an MPM which handles peering (default)
    - =max_peer_links= 
      Maximum number of mesh peering currently maintained by the STA.
@@ -630,7 +636,7 @@
      OpenSSL cipher string
    - =load_dynamic_eap=
      Dynamic EAP methods. 当EAP方法是编译成单独的so文件时，需要配置该
-     项。默认情况下，EAP方法是静态编译到wpa_supplicant。
+     项。默认情况下，EAP方法是静态编译到 =wpa_supplicant= 。
    - =driver_param=
      驱动接口参数。
    - =country=
@@ -660,9 +666,12 @@
    - =config_methods=
      WPS支持的方法。
    - =wps_cred_processing=
+
      0: process received credentials internally (default)
+
      1: do not process received credentials; just pass them over
       =ctrl_iface= to external program(s)
+
      2: process received credentials internally and pass them over
      ctrl_iface to external program(s)
    - =wps_vendor_ext_m1= 
@@ -703,24 +712,29 @@
      1: Scan current operating frequency if another VIF on the same
      radio is already associated.
    - =mac_addr=
+
      0 = use permanent MAC address
+
      1 = use random MAC address for each ESS connection
+
      2 = like 1, but maintain OUI (with local admin bit set)
    - =rand_addr_lifetime=
      随机MAC地址的存活时间，默认是60秒。
    - =preassoc_mac_addr=
+
      MAC address policy for pre-association operations
+
      0 = use permanent MAC address
+
      1 = use random MAC address
+
      2 = like 1, but maintain OUI (with local admin bit set)
 
-*** 相关文件
     - =config_ssid.h= Definition of per network configuration items
     - =config.h= Definition of the =wpa_supplicant= configuration
     - =config.c= Configuration parser and common functions
     - =config_file.c= Configuration backend for text files (e.g.,
-      =wpa_supplicant.conf=)
-
+      =wpa_supplicant=.
 ** TODO Cryptographic functions
      重点看下如何调用这些函数进行加密的
 
@@ -849,21 +863,15 @@
     如果是在Driver中实现的，必须提供一种配置的手段。
 
 *** TODO 漫游和扫描支持
-
-      
 *** TODO 产生WPA IE
       WPA IE是在Driver中产生的还是在 =wpa_supplicant= 中产生的？
       
 *** rfkill
 ** l2 packets
-
 ** State Machine
-   
 *** WPA/WPA2 
 *** EAPOL
 *** EAP
-
-
 * =wpa_supplicant= 功能模块分析
 ** P2P
 *** 数据结构分析与初始化流程 
@@ -1489,7 +1497,7 @@
     此时双方会通过 P2P 接口地址进行交互。WPS具体使用的方式有PBC或者PIN
     的方式。
 
-    #+BEGIN_SRC plantuml :file ./images/2016/2016031008.png
+    #+BEGIN_SRC plantuml :file ./images/2016/2016031008.png :cmdline -charset UTF-8
       :wpas_start_wps_enrollee;
       if (use WPS ?) then (yes)
       :wpas_wps_start_pbc;
@@ -1497,6 +1505,9 @@
       :wpas_wps_start_pin;
       endif
     #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016031008.png]]
 
     下面我们主要看下WPS的交互过程：
     1. =wpas_wps_add_network=
