@@ -114,6 +114,9 @@
       end
     #+END_SRC
 
+    #+RESULTS:
+    [[file:./images/2016/2016011410.png]]
+
     
      #+BEGIN_SRC plantuml :file ./images/2015/2015123002.png :cmdline -charset UTF-8
        title: wpa_supplicant_global_ctrl_iface_init执行过程
@@ -229,6 +232,9 @@
           stop
           @enduml
         #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016010501.png]]
 
 ** event loop
 *** eloop data structure
@@ -895,7 +901,7 @@
        endif
        :初始化struct p2p_config;
        note right: 注册了与p2p相关的一些回调函数
-       :p2p_init
+       :p2p_init;
        note right: 初始化了一个struct p2p_data数据结构
        @enduml
      #+END_SRC
@@ -1043,131 +1049,136 @@
 
 
 **** Driver 当GC时的交互过程：
-    1. CFG80211_PKT: RX P2P_PROVISION_REQ 11
-    2. CFG80211_PKT: TX P2P_PROVISION_RSP 11
-    3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
-    4. CFG80211_PKT: TX GO_NEGOCIACTION_RSP 11
-       这时，会启动Virutal Inferace： RTMP_CFG80211_VirtualIF_Init
-       
-    5. CFG80211_OpsRemainOnChannel   listen
-    6. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 11
-    7. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 11
-    8. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 11
-       CFG80211_VirtualIF_Open, 会出现："(ApCliIfUp) ApCli can't startup Due to CFG80211 No connect yet."
-    9. CFG80211_OpsConnect
-       80211> Connect bssid 16:f6:5a:ac:92:0e
-       APCLI Connection onGoing.....
-       AP_CLI WPS Connection onGoing.....
-       80211> APCLI CONNECTING SSID = DIRECT-si-
-       Set_ApCli_Enable_Proc::(enable = 1)
-       (ApCliIfDown) ApCli interface[0] startdown.
-       80211> APCLI CONNECTING SSID = DIRECT-si-
-       80211> CFG80211_OpsStaChg ==>
-       80211> Change STA(00:00:00:00:00:00) ==>
-       80211> CFG80211_OpsStaChg ==>
-       80211> Change STA(00:00:00:00:00:00) ==>
-       80211> CFG80211_OpsStaChg ==>
-       80211> Change STA(00:00:00:00:00:00) ==>
-       80211> CFG80211_OpsStaChg ==>
-       80211> Change STA(00:00:00:00:00:00) ==>
-       (ApCliIfUp) ApCli interface[0] startup.
-       (ApCliCtrlJoinReqAction) Start Probe Req.
-       ApCli SYNC - Start Probe the SSID  on channel =1
-       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-       = 1
-       PeerBeaconAtJoinAction HT===>Central Channel = 1, Control
-       Channel = 1,  .
-       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-       APCLI_ASSOC - Send ASSOC request...
-       ApCliPeerAssocRspSanity() found wfd ie in assoc response frame,
-       it's wfd connect.
-       APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
-       ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
-       16:f6:5a:ac:92:0e.    bP2pClient = 1
-       ApCliAssocPostProc===> 11n HT STA
-       !!! APCLI LINK UP - IF(apcli0) AuthMode(0)=OPEN,
-       WepStatus(1)=NONE !!!
-       MacTableInsertEntry - allocate entry #2, Total= 1
-       80211> CFG80211_OpsStaChg ==>
-       80211> Change STA(16:F6:5A:AC:92:0E) ==>
-       =WPS-Start=
-       Receive EAP-Packet frame, TYPE = 0, Length = 5
-       CFG80211 EAPOL Indicate_Legacy_Packet
-       CFG80211_PKT: RX ACTION Frame 1
-       CFG80211_PKT: P2P_CHECK ACTION Frame 1
-       80211> CFG80211_OpsDisconnect ==>
-       80211> ReasonCode = 3
-       AUTH - Send DE-AUTH request (Reason=3)..
-       !!! APCLI LINK DOWN - IF(apcli0)!!!   
-       =WPS-End=
-       ++++++++ ApCliLinkDown::  Keep BssTable on Channel
-       = 1. ++++++++      BSSID = [16:f6:5a:ac:92:0e].  p2p_bssid =
-       [16:f6:5a:ac:92:0e].
-       80211> CFG80211_LostGoInform ==> 
-       (ApCliIfDown) ApCli interface[0] startdown.
 
-       80211> CFG80211_OpsConnect ==>
+     #+BEGIN_EXAMPLE
+       1. CFG80211_PKT: RX P2P_PROVISION_REQ 11
+       2. CFG80211_PKT: TX P2P_PROVISION_RSP 11
+       3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
+       4. CFG80211_PKT: TX GO_NEGOCIACTION_RSP 11
+          这时，会启动Virutal Inferace： RTMP_CFG80211_VirtualIF_Init
+          
+       5. CFG80211_OpsRemainOnChannel   listen
+       6. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 11
+       7. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 11
+       8. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 11
+          CFG80211_VirtualIF_Open, 会出现："(ApCliIfUp) ApCli can't startup Due to CFG80211 No connect yet."
+       9. CFG80211_OpsConnect
+          80211> Connect bssid 16:f6:5a:ac:92:0e
+          APCLI Connection onGoing.....
+          AP_CLI WPS Connection onGoing.....
+          80211> APCLI CONNECTING SSID = DIRECT-si-
+          Set_ApCli_Enable_Proc::(enable = 1)
+          (ApCliIfDown) ApCli interface[0] startdown.
+          80211> APCLI CONNECTING SSID = DIRECT-si-
+          80211> CFG80211_OpsStaChg ==>
+          80211> Change STA(00:00:00:00:00:00) ==>
+          80211> CFG80211_OpsStaChg ==>
+          80211> Change STA(00:00:00:00:00:00) ==>
+          80211> CFG80211_OpsStaChg ==>
+          80211> Change STA(00:00:00:00:00:00) ==>
+          80211> CFG80211_OpsStaChg ==>
+          80211> Change STA(00:00:00:00:00:00) ==>
+          (ApCliIfUp) ApCli interface[0] startup.
+          (ApCliCtrlJoinReqAction) Start Probe Req.
+          ApCli SYNC - Start Probe the SSID  on channel =1
+          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+          = 1
+          PeerBeaconAtJoinAction HT===>Central Channel = 1, Control
+          Channel = 1,  .
+          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+          APCLI_ASSOC - Send ASSOC request...
+          ApCliPeerAssocRspSanity() found wfd ie in assoc response frame,
+          it's wfd connect.
+          APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
+          ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
+          16:f6:5a:ac:92:0e.    bP2pClient = 1
+          ApCliAssocPostProc===> 11n HT STA
+          !!! APCLI LINK UP - IF(apcli0) AuthMode(0)=OPEN,
+          WepStatus(1)=NONE !!!
+          MacTableInsertEntry - allocate entry #2, Total= 1
+          80211> CFG80211_OpsStaChg ==>
+          80211> Change STA(16:F6:5A:AC:92:0E) ==>
+          =WPS-Start=
+          Receive EAP-Packet frame, TYPE = 0, Length = 5
+          CFG80211 EAPOL Indicate_Legacy_Packet
+          CFG80211_PKT: RX ACTION Frame 1
+          CFG80211_PKT: P2P_CHECK ACTION Frame 1
+          80211> CFG80211_OpsDisconnect ==>
+          80211> ReasonCode = 3
+          AUTH - Send DE-AUTH request (Reason=3)..
+          !!! APCLI LINK DOWN - IF(apcli0)!!!   
+          =WPS-End=
+          ++++++++ ApCliLinkDown::  Keep BssTable on Channel
+          = 1. ++++++++      BSSID = [16:f6:5a:ac:92:0e].  p2p_bssid =
+          [16:f6:5a:ac:92:0e].
+          80211> CFG80211_LostGoInform ==> 
+          (ApCliIfDown) ApCli interface[0] startdown.
 
-       =4-way-handshake=
-       80211> Connect bssid 16:f6:5a:ac:92:0e
-       (ApCliIfUp) ApCli interface[0] startup.
-       (ApCliCtrlJoinReqAction) Start Probe Req.
-       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-       = 1
-       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-       Scanning!!
-       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-       APCLI_ASSOC - Send ASSOC request...
-       ApCliMlmeAssocReqAction:: APCLI WPA_ASSOC_IE FROM SUPPLICANT
-       (ApCliCtrlAssocReqTimeoutAction) Assoc Req Timeout.
+          80211> CFG80211_OpsConnect ==>
 
-       (ApCliIfUp) ApCli interface[0] startup.
+          =4-way-handshake=
+          80211> Connect bssid 16:f6:5a:ac:92:0e
+          (ApCliIfUp) ApCli interface[0] startup.
+          (ApCliCtrlJoinReqAction) Start Probe Req.
+          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+          = 1
+          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+          Scanning!!
+          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+          APCLI_ASSOC - Send ASSOC request...
+          ApCliMlmeAssocReqAction:: APCLI WPA_ASSOC_IE FROM SUPPLICANT
+          (ApCliCtrlAssocReqTimeoutAction) Assoc Req Timeout.
 
-       (ApCliCtrlJoinReqAction) Start Probe Req.
-       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-       = 1
-       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-       Scanning!!
-       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-       Deauth: 7e:b2:32:e7:7c:25, 16:f6:5a:ac:92:0e
-       APCLI AUTH_RSP - receive DE-AUTH from our AP
-       APCLI AUTH - AuthTimeout
-       (ApCliIfUp) ApCli interface[0] startup.
-       (ApCliCtrlJoinReqAction) Start Probe Req.
-       SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-       = 1
-       ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-       Scanning!!
+          (ApCliIfUp) ApCli interface[0] startup.
 
-       APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-       APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-       (ApCliCtrlAuthRspAction) Auth Rsp Success.
-       APCLI_ASSOC - Send ASSOC request...
-       APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
-       ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
-       16:f6:5a:ac:92:0e.    bP2pClient = 1
+          (ApCliCtrlJoinReqAction) Start Probe Req.
+          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+          = 1
+          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+          Scanning!!
+          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+          Deauth: 7e:b2:32:e7:7c:25, 16:f6:5a:ac:92:0e
+          APCLI AUTH_RSP - receive DE-AUTH from our AP
+          APCLI AUTH - AuthTimeout
+          (ApCliIfUp) ApCli interface[0] startup.
+          (ApCliCtrlJoinReqAction) Start Probe Req.
+          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
+          = 1
+          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
+          Scanning!!
 
-       !!! APCLI LINK UP - IF(apcli0) AuthMode(7)=WPA2PSK,
-       WepStatus(6)=AES !!!
+          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
+          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
+          (ApCliCtrlAuthRspAction) Auth Rsp Success.
+          APCLI_ASSOC - Send ASSOC request...
+          APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
+          ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
+          16:f6:5a:ac:92:0e.    bP2pClient = 1
 
-       MacTableInsertEntry - allocate entry #2, Total= 1
+          !!! APCLI LINK UP - IF(apcli0) AuthMode(7)=WPA2PSK,
+          WepStatus(6)=AES !!!
 
-       Receive EAPOL-Key frame, TYPE = 3, Length = 95
-       CFG80211 EAPOL Indicate_Legacy_Packet
-       80211> CFG80211_OpsKeyAdd ==>
-       AsicAddSharedKeyEntry BssIndex=8, KeyIdx=1
+          MacTableInsertEntry - allocate entry #2, Total= 1
 
-       !!!P2P Group STARTED
+          Receive EAPOL-Key frame, TYPE = 3, Length = 95
+          CFG80211 EAPOL Indicate_Legacy_Packet
+          80211> CFG80211_OpsKeyAdd ==>
+          AsicAddSharedKeyEntry BssIndex=8, KeyIdx=1
 
-       DHCP
-       DHCP_DISCOVER
-       DHCP_OFFER
-       DHCP_REQUEST
-       DHCP_ACK
+          !!!P2P Group STARTED
+
+          DHCP
+          DHCP_DISCOVER
+          DHCP_OFFER
+          DHCP_REQUEST
+          DHCP_ACK
+     #+END_EXAMPLE
     
 **** Driver当GO时的交互过程：
+     #+BEGIN_EXAMPLE
+                  
        1. P2P Listen  
           CFG80211_PKT: ROC CHANNEL_LOCK 11
           CFG80211_PKT: TX ProbeRsp Frame 11
@@ -1218,8 +1229,9 @@
           ASSOC - Send ASSOC response (Status=0)...
           =4-way handshake=
           ####### Send L2 Frame Mac=86:38:38:b0:7f:ee
+     #+END_EXAMPLE
 
-**** Action帧的接收与发送
+**** Action帧的接收
          
          #+CAPTION: 接收Action帧的流程
          #+BEGIN_SRC plantuml :file ./images/2016/2016012901.png :cmdline -charset UTF-8
@@ -1255,6 +1267,9 @@
            stop
            @enduml
          #+END_SRC
+
+         #+RESULTS:
+         [[file:./images/2016/2016012901.png]]
 
 **** Action帧的发送
 
@@ -1305,7 +1320,7 @@
     - =p2p_find=  
       | Command                                                    | Description                                            |
       |------------------------------------------------------------+--------------------------------------------------------|
-      | p2p_find [timeout (seconds)] [type <social \ progressive>] | Enables discovery – start sending probe request frames | 
+      | =p2p_find= [timeout (seconds)] [type <social \ progressive>] | Enables discovery – start sending probe request frames | 
 
       当接受到 =p2p_find= 命令时，会进入入口函数： =p2p_ctrl_find= ，
       此时会决定两个参数：
@@ -1338,12 +1353,12 @@
     - =p2p_stop_find=
       | Command       | Description                                                                       |
       |---------------+-----------------------------------------------------------------------------------|
-      | p2p_stop_find | Stops discovery, or whatever you are doing (listen mode, connection process etc.) |
+      | =p2p_stop_find= | Stops discovery, or whatever you are doing (listen mode, connection process etc.) |
     - =p2p_connect=
       | Command                                                                   | Description                                                                    |
       |---------------------------------------------------------------------------+--------------------------------------------------------------------------------|
-      |                                                                           | GO_intent – initiate connection to another device (using entered group intent) |
-      | P2p_connect <device address> <PBC \ PIN> [GO_intent=<0-15> \ auth \ join] | Auth – WPS authorize incoming connection                                       |
+      |                                                                           | =GO_intent= – initiate connection to another device (using entered group intent) |
+      | =P2p_connect= <device address> <PBC \ PIN> [ =GO_intent= =<0-15> \ auth \ join] | Auth – WPS authorize incoming connection                                       |
       |                                                                           | Join – connect to an existing GO                                               |
       |                                                                           | No input – initiate connection using default GO intent                         |
 
@@ -1359,16 +1374,16 @@
     - =p2p_listen=
       | Command                        | Description        |
       |--------------------------------+--------------------|
-      | P2p_listen [timeout (seconds)] | Enable listen mode |
+      | =P2p_listen= [timeout (seconds)] | Enable listen mode |
     - =p2p_group_remove=
       | Command                      | Description                                                                      |
       |------------------------------+----------------------------------------------------------------------------------|
-      | P2p_group_remove <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
+      | =P2p_group_remove= <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
     - =p2p_group_add=
       | Command                      | Description                                                                      |
       |------------------------------+----------------------------------------------------------------------------------|
-      | P2p_group_add                | Become an autonomous GO                                                          |
-      | P2p_group_remove <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
+      | =P2p_group_add=              | Become an autonomous GO                                                          |
+      | =P2p_group_remove= <interface> | Remove device from group, return to device mode if acting as GO or autonomous GO |
     - =p2p_prov_disc=
       
     - =p2p_get_passphrase=
@@ -1384,20 +1399,20 @@
     - =p2p_invite=
       | Command                    | Description               |
       |----------------------------+---------------------------|
-      | p2p_invite <cmd> [address] | Send invitation to device |
+      | =p2p_invite= <cmd> [address] | Send invitation to device |
     - =p2p_peers=
       | Command                | Description                                                                            |
       |------------------------+----------------------------------------------------------------------------------------|
-      | P2p_peers [discovered] | Shows list of discovered peers (with ‘discovered’ – shows only fully discovered peers) |
+      | =P2p_peers= [discovered] | Shows list of discovered peers (with ‘discovered’ – shows only fully discovered peers) |
     - =p2p_peer=
       | Command            | Description                                      |
       |--------------------+--------------------------------------------------|
-      | P2p_peer <address> | Show detailed information about discovered peers |
+      | =P2p_peer= <address> | Show detailed information about discovered peers |
     - =p2p_set=
     - =p2p_flush=
       | Command   | Description                                          |
       |-----------+------------------------------------------------------|
-      | P2p_flush | Flush p2p_state, and clears the discovered peer list |
+      | =P2p_flush= | Flush p2p_state, and clears the discovered peer list |
     - =p2p_presence_req=
     - =p2p_ext_listen=
 *** nl80211 (p2p)
@@ -1416,7 +1431,7 @@
 
 ** bgscan (roaming)
 
-    WPA_Supplicant has a module that is called 'bgscan' which features
+    =WPA_Supplicant= has a module that is called 'bgscan' which features
     a mode called 'simple'. This module can be configured to perform
     periodic background scans when the signal level drops under a
     certain level and when it finds a stronger AP during the scan it
@@ -1492,6 +1507,9 @@
      endif
      @enduml
    #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016031007.png]]
 
 *** Enrollee
     此时双方会通过 P2P 接口地址进行交互。WPS具体使用的方式有PBC或者PIN

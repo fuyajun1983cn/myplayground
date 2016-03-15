@@ -1,0 +1,24 @@
+#+STARTUP: overview
+#+TITLE: WiFi案例4 -- 固件升级后，手机出现奇怪现象
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* 问题描述
+  固件升级后，一些手机出现奇怪的现象。 它们会连接到网络，然后断开并显
+  示定位网络服务的信息。这个过程是可重复的。
+
+* 问题分析
+  数据包抓取结果如下：
+  
+  [[./images/2016/2016031404.png]]
+
+  如上图红色标记，Duration的值太大，有点异常，一般情况下，应该只有几十
+  毫秒。
+
+* 解决方法
+  这个问题最后查出是手机Firmware代码的Bug，导致在处理与802.11n的AP交互时，
+  出现Duration值异常的情况。这会影响周围所有的WiFi设备，而不仅仅是这个
+  手机。

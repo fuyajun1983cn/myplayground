@@ -1,0 +1,29 @@
+#+STARTUP: overview
+#+TITLE: WiFi案例3 -- 在某个特定区域WiFi性能很差
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 问题描述
+  客户报怨仓库某个指定的区域WiFi性能很差，WiFi速率很慢。如下是抓包过程
+  中，某个数据帧的情况：
+
+  [[./images/2016/2016031401.png]]
+
+* 问题分析
+  从上述抓包的信息来看，有两个信息值得注意：
+  1. 信号干扰
+  2. 重传
+  上述数据包是一个重传的数据包。 在Channel 6上重传概率大于30%。 
+  
+  [[./images/2016/2016031402.png]]
+
+  从WiSpy工具查看信号干扰情况，发现Channel 1～6 干扰很严重。
+  
+  [[./images/2016/2016031403.png]]
+
+* 解决方法
+
+  有发现周围有一个老旧的摄像机在周围，然而没有使用，但是通电着。这个摄
+  像机对Channel 1～6之间的信号干扰很大，导致出现较高的数据重传率。

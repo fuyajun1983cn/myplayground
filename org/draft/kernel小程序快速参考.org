@@ -4,7 +4,83 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 内核模块
+** 概述
+   内核会为每个模块在如下路径下创建一个目录： =/sys/modules/=
+** 模块参数
+   #+BEGIN_SRC c
+     module_param(multicast_filter_limit, int 0444);
+     module_param(max_interrupt_work, int, 0444);
+     module_param(debug, int, 0444);   
+   #+END_SRC
+* Userspace Helpers
+  有时内核需要调用一个用户空间的程序运行。 
+** =call_usermodehelper=
+   内核函数 =request_module= 调用了上述方法。
 * 通知链
+  通知链存在的目的就是方便内核不同模块之间的消息传递， 仅限于内核子系
+  统之间的通信。
+  每个通知链包含 =passive side(the notified)= 和 =active side(the
+  notifier)= ，即所谓的 =publish-and-subscribe= 模型。 
+** 声明与定义
+   1. =struct notifier_block= 
+      #+BEGIN_SRC c
+        struct notifier_block
+        {
+          int (*notifier_call)(struct notifier_block *self, unsigned long, void *);
+          struct notifier_block *next;
+          int priority;
+        };      
+      #+END_SRC
+      其中 =nofifier_call= 是注册的回调函数。
+** 注册
+   | Operation | Function Prototype                                                                  |
+   | 注册      | int notifier_chain_register(struct notifier_block **list, struct notifier_block*n)  |
+   |           | Wrappers                                                                            |
+   |           | inetaddr_chain register_inetaddr_notifier                                           |
+   |           | inet6addr_chainregister_inet6addr_notifier                                          |
+   |           | netdev_chain register_netdevice_notifier                                            |
+   | 注销      | int notifier_chain_unregister(struct notifier_block **nl, struct notifier_block *n) |
+   |           | Wrappers:                                                                           |
+   |           | inetaddr_chain unregister_inetaddr_notifier                                         |
+   |           | inet6addr_chainunregister_inet6addr_notifier                                        |
+   |           | netdev_chain unregister_netdevice_notifier                                          |
+   | 通知      | int notifier_call_chain(struct notifier_block **n, unsigned long val, void*v)       |
+
+** 在通知链上产生消息
+   通过调用 =notifier_call_chain= 来产生通知链。
+   #+BEGIN_SRC c
+     int notifier_call_chain(struct notifier_block **n, unsigned long val, void *v)
+     {
+       int ret = NOTIFY_DONE;
+       struct notifier_block *nb = *n;
+       while (nb)
+         {
+           ret = nb->notifier_call(nb, val, v);
+           if (ret & NOTIFY_STOP_MASK)
+             {
+               return ret;
+             }
+           nb = nb->next;
+         }
+       return ret;
+     }   
+   #+END_SRC
+
+** 代码示例
+   #+BEGIN_SRC c
+     static struct notifier_block fib_inetaddr_notifier = {
+       .notifier_call = fib_inetaddr_event,
+     };
+     static struct notifier_block fib_netdev_notifier = {
+       .notifier_call = fib_netdev_event,
+     };
+     void _ _init ip_fib_init(void)
+     {
+       ... ... ...
+       register_netdevice_notifier(&fib_netdev_notifier);
+       register_inetaddr_notifier(&fib_inetaddr_notifier);
+     }   
+   #+END_SRC
 * 内核线程
   =kthread_run=
   #+BEGIN_SRC c
