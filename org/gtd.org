@@ -62,7 +62,9 @@
 *** ✔ DONE 英文简历制作
     CLOSED: [2016-03-07 一 16:15]
 *** ☛ TODO 简历优化
-
+** 读书计划 [0/1]
+*** ☛ TODO 突破思维的障碍
+    DEADLINE: <2016-03-31 四>
 * Projects
   :PROPERTIES:
   :CATEGORY: Projects
