@@ -104,7 +104,7 @@
 ** 通知一个数据包的到来
    
 *** 通过调用 =netif_rx= 来通知内核
-    一般的焉得逻辑如下：
+    一般的逻辑如下：
     #+BEGIN_SRC c
       skb = dev_alloc_skb(pkt_len + 5);
       ... ... ...
@@ -122,4 +122,29 @@
       }    
     #+END_SRC
 *** 利用NAPI新机制
+    NAPI与旧机制的不同点主要有两个地方：
+    1. 驱动必须提供poll方法。
+    2. 调用调用帧的接口
+       #+BEGIN_SRC c
+         //直接调用此接口通知内核收到数据帧
+         netif_rx_schedule(...);
+
+         //或通过分为如下两个调用
+         netif_rx_schedule_prep(...)
+         __netif_rx_schedule(...)
+       #+END_SRC
+    当收到类型的Driver都会将接收帧的设备加入到 =poll_list= 队列中，并
+    调度 =NET_RX_SOFTIRQ= 软中断执行。 最终会被 =net_rx_action=。 两者
+    之间的差异如下图所示：
+    [[./images/2016/2016032301.png]]
+** =netif_rx= 函数流程图
+   =netif_rx_ni= 是非中断环境下运行的版本。
+   [[./images/2016/2016032302.png]]
+** 下半部处理
+   处理 =NET_RX_SOFTIRQ= 软中断消息函数 =net_rx_action= 。
+   对于NAPI驱动来说，它会调用driver注册的poll函数。
+   [[./images/2016/2016032303.png]] 
+   在 =net_dev_init= 初始化阶段， 会注册poll函数为 =process_backlog= 。
+   =netif_receive_skb= 是处理帧的具体函数。
+
 * 发送数据

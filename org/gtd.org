@@ -58,6 +58,9 @@
 *** ☛ TODO 尽管去做——无压的工作艺术
       NEXT: 从108页开始读 第五章
 *** ☛ TODO Learn More Study Less
+** 技术修炼
+*** 读书计划 [0/1]
+**** ☛ TODO Understanding Linux Network Internals
 ** 编程语言捂热计划
 *** C++
 **** cpluff
