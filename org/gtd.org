@@ -13,80 +13,82 @@
   :CATEGORY: Tasks
   :END:
 
-** 研究emacs源码 [0/4]
-*** ☛ TODO =simple.el= 源码研究 
-    
-*** ☛ TODO =paragraphs.el= 源码研究
-    
-*** ☛ TODO =loaddefs.el= 源码研究
+** eamcs
+*** 研究emacs源码 [0/4]
+**** ☛ TODO =simple.el= 源码研究 
+     
+**** ☛ TODO =paragraphs.el= 源码研究
+     
+**** ☛ TODO =loaddefs.el= 源码研究
 
-*** ☛ TODO =org.el= 源码研究
-    - 时间读取
-      1. =float-time= : 返回当前时间，也浮点数表示
-      2. =current-time= : 返回当前时间, 返回秒
-    - 文件操作
-      1. =file-truename= :如果文件名不是绝对路径，会先展开为绝对路径，
-         如果是符号链接，也跟踪到实际的文件
-      2. =file-attributes= : 返回文件的属性
-      3. =file-name-sans-extension= : 返回base name  , 如 file.x.y.z
-         --> file.x.y
-      
-   本次分析到 288行
+**** ☛ TODO =org.el= 源码研究
+     - 时间读取
+       1. =float-time= : 返回当前时间，也浮点数表示
+       2. =current-time= : 返回当前时间, 返回秒
+     - 文件操作
+       1. =file-truename= :如果文件名不是绝对路径，会先展开为绝对路径，
+          如果是符号链接，也跟踪到实际的文件
+       2. =file-attributes= : 返回文件的属性
+       3. =file-name-sans-extension= : 返回base name  , 如 file.x.y.z
+          --> file.x.y
+       
+    本次分析到 288行
 
+*** 插件使用
+**** Hydra
+       NEXT：https://github.com/abo-abo/hydra
 ** ArchLinux学习 [0/1]
 *** ☛ TODO 字符终端中文显示问题
     - NEXT： 编译Linux内核，打开frame buffer的支持
-** Freemind工具研究
 ** 博文 [0/1]
 *** ☛ TODO Linux kernel小程序快速参考
     - NEXT: 准备第一版
-** 扩展学习 [0/3]
+** 扩展学习 [2/3]
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
-*** ☛ TODO Notepad++插件研究 [1/3]
-**** ☛ TODO 编写显示emacs org文件插件
-**** ✔ DONE 编译环境
-     CLOSED: [2016-02-28 日 12:55]
-**** ☛ TODO 示例插件研究
-     https://github.com/mpcabd/PyNPP.git
-     - NEXT: 完成一个可用的模块上传
-       
-*** ☛ TODO Tool研究
-    - zsh
-    - less
-    - tmux
-    - web幻灯片 Cleaver
 ** 个人杂事 [2/3]
 *** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
 *** ✔ DONE 英文简历制作
     CLOSED: [2016-03-07 一 16:15]
 *** ☛ TODO 简历优化
-** 读书计划 [0/1]
+** 读书计划 [0/4]
 *** ☛ TODO 突破思维的障碍
-    DEADLINE: <2016-03-31 四>
-* Projects
-  :PROPERTIES:
-  :CATEGORY: Projects
-  :END:
-
-* Finicial
-  :PROPERTIES:
-  :CATEGORY: Finicial
-  :END:
-
-* Calendar
-  :PROPERTIES:
-  :CATEGORY: Calendar
-  :END:
-
-
-[[elisp:(open-encrypted-file%20"~/org/passwords.txt.bfe")][Passwords]]
-
-
-[[elisp:(open-encrypted-file%20"./personal.org.bfe")][Poersonal Affairs]]
-
-
-#+TITLE: Things That Get to Do
-#+STARTUP: hidestars
-
+*** ☛ TODO 大脑使用说明书
+*** ☛ TODO 尽管去做——无压的工作艺术
+      NEXT: 从108页开始读 第五章
+*** ☛ TODO Learn More Study Less
+** 编程语言捂热计划
+*** C++
+**** cpluff
+**** Google Fruit库研究
+      https://github.com/google/fruit.git
+*** Java
+**** Guice库研究
+      https://github.com/google/guice.git
+**** Freemind工具研究
+*** Python
+*** zsh
+** 开源工具
+   1. simple screen recoder
+   2. Dia
+   3. Childsplay
+* Finished Tasks
+** 2016
+*** ✔ DONE Tool研究
+    CLOSED: [2016-03-23 三 09:10]
+    - zsh
+    - less
+    - tmux
+    - web幻灯片 Cleaver
+*** ✔ DONE Notepad++插件研究 [3/3]
+    CLOSED: [2016-03-23 三 09:10]
+**** ✘ CANCELED 编写显示emacs org文件插件
+     CLOSED: [2016-03-20 周日 21:45]
+**** ✔ DONE 编译环境
+     CLOSED: [2016-02-28 日 12:55]
+**** ✔ DONE 示例插件研究
+     CLOSED: [2016-03-20 周日 21:45]
+     https://github.com/mpcabd/PyNPP.git
+     - NEXT: 完成一个可用的模块上传
+       
