@@ -60,7 +60,7 @@
     =struct nl_mgmt= 注册管理帧，如Action帧. 在设置设备模式
     =wpa_driver_nl80211_set_mode= 的时候，
     =wpa_supplicant= 会向Driver注册一些Action帧。
-** wpa_supplicant初始化分析
+** =wpa_supplicant= 初始化分析
 *** =wpa_supplicant= 初始化执行过程
 
      #+BEGIN_SRC plantuml :file ./images/2015/2015123004.png :cmdline -charset UTF-8
@@ -114,6 +114,10 @@
       end
     #+END_SRC
 
+    #+RESULTS:
+    [[file:./images/2016/2016011410.png]]
+
+    接下来看 =wpa_supplicant_global_ctrl_iface_init= 的执行过程。
     
      #+BEGIN_SRC plantuml :file ./images/2015/2015123002.png :cmdline -charset UTF-8
        title: wpa_supplicant_global_ctrl_iface_init执行过程
@@ -229,6 +233,9 @@
           stop
           @enduml
         #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016010501.png]]
 
 ** event loop
 *** eloop data structure
@@ -861,6 +868,35 @@
    
 *** WPA/WPA2 
 *** EAPOL
+**** EAPOL Authenticator
+     在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
+**** wpa Authenticator
+     在 =hostapd_setup_wpa= 中会初始化 =wpa_authenticator=
+     (wpa_auth_glue.h), 标记为： =WPA_PROTO_WPA= =WPA_PROTO_RSN=
+**** =hostapd_setup_bss=
+     Initialize Per-BSS data structures.
+     #+BEGIN_SRC plantuml :file ./images/2016/2016031501.png :cmdline -charset UTF-8
+       @startuml
+       start
+       :hostapd_setup_interface;
+       :setup_interface;
+       :hostapd_setup_interface_complete;
+       :hostapd_setup_bss;
+       :ieee802_1x_init;
+       if (执行成功?) then (yes)
+       :eapol_auth_init;
+       endif
+       if (hapd->conf->wpa) then (yes)
+       :hostapd_setup_wpa;
+       :wpa_init;
+       endif
+       stop
+       @enduml
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:./images/2016/2016031501.png]]
+
 *** EAP
 
 
@@ -887,7 +923,7 @@
        endif
        :初始化struct p2p_config;
        note right: 注册了与p2p相关的一些回调函数
-       :p2p_init
+       :p2p_init;
        note right: 初始化了一个struct p2p_data数据结构
        @enduml
      #+END_SRC
@@ -1406,7 +1442,7 @@
 *** 错误总结
       当Associate  Request失败后，会尝试5次
 
-** bgscan (roaming)
+** bgscan (roaming) IAPP(Inter Access Point Protocol)
 
     WPA_Supplicant has a module that is called 'bgscan' which features
     a mode called 'simple'. This module can be configured to perform
@@ -1484,7 +1520,7 @@
      endif
      @enduml
    #+END_SRC
-
+   
 *** Enrollee
     此时双方会通过 P2P 接口地址进行交互。WPS具体使用的方式有PBC或者PIN
     的方式。
@@ -1524,6 +1560,17 @@
        成功关联上GO后，开始了WPS的交互过程。 GC首先发一笔：
        =eapol_sm_txStart= 将 =IEEE802_1X_TYPE_EAPOL_START= 包发出去。
 
+*** Registar
+    首先看下 =wpas_start_wps_go= 几个主要的过程：
+    1. =wpas_copy_go_neg_results=
+       复制协商后的参数信息。
+    2. =wpa_config_add_network= 
+       添加一个网络SSID.
+    3. 配置新建的网络SSID的基本信息。
+    4. 设置wpa_supplicant实例相关信息。
+       设置回调接口： =p2p_go_configured=
+    5. =wpa_supplicant_req_scan=
+       发起一次扫描。
 
 ** SME
 

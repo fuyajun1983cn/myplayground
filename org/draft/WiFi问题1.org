@@ -1,3 +1,8 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: WiFi案例1 -- Miracast无法连接
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 问题描述
    客户平台的网卡从一家厂商的芯片更换为另一家的芯片，结果出现WiFi
@@ -25,30 +30,37 @@
           03-03 16:06:08.256 I/wpa_supplicant(  864): P2P-GROUP-FORMATION-FAILURE 
         #+END_EXAMPLE
 
-    =config_error=  的值为 12， 其意义为：　
+      =config_error=  的值为 12， 其意义为：　
       =WPS_CFG_MULTIPLE_PBC_DETECTED= ，这个是GO在处理M1信息时，带上的。
    4. 根据双方的Log， GO在处理GC发送过来的M1消息后，回复了M2D信息给GC，
       从而中断了WPS的交互过程。从如下代码入手分析：
+
       [[./images/2016/2016031102.png]]
+
       函数 =wps_registrar_p2p_dev_addr_match= 中进行地址过滤时，发现了
       线索：
+
       [[./images/2016/2016031103.png]]
+
       正常情况下， =reg->p2p_dev_addr= 的值应该与 =wps->p2p_dev_addr=
       的值一致，但是从出错Log中发现 =wps->p2p_dev_addr= 的值为0。  
       而 wps 相关的初始化是在 =eap_wsc_init= 在调用了 =wps_init= 来进
       行初始化的。  如下图所示 ：
+
       [[./images/2016/2016031104.png]]
+
       有个条件引起来我们的注意：
       =sm->assoc_p2p_ie=  
       是否因为这个为NULL，导致 =wps_init= 初始化时， =p2p_dev_addr=  没有
-      得到幅值？
+      得到赋值？
    5. 分析 =wpa_supplicant= 处理Associate Request的函数代码：
       在函数 =hostapd_notif_assoc= 里面，会解析 Associate Request 携带
       的IE信息， 代码如下：  
+
       [[./images/2016/2016031105.png]]
 
       可以发现，并结合之前的Log发现， WPS， RSN， WPA等 IE信息都为空。
-      所有有理由 怀疑Driver送上来的Associate Request中就没有包含这些IE
+      所以有理由 怀疑Driver送上来的Associate Request中就没有包含这些IE
       信息， IE信息为空！！！
    6. Driver层确认
        在Driver处理Association Request的地方， 加一些打印Log确认收到的
@@ -68,7 +80,7 @@
      NdisZeroMemory(&sinfo, sizeof(sinfo));
 
      //因为这个标记没有置上，导致nl80211模块处理IE信息时，
-     //将assoc_req IE给过滤掉了, 正解就是要让这名执行。
+     //将assoc_req IE给过滤掉了, 正解就是要让这句执行。
       sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
 
       mgmt = (struct ieee80211_mgmt *) assoc_frame;

@@ -38,6 +38,9 @@
 *** MlmeEnqueueForRecv
     This function is used when Recv gets a MLME message
 
+*** MlmePeriodicExec
+    周期性执行的一个函数。
+
 * MLME状态机
 
 ** AP状态机
@@ -86,5 +89,37 @@
     1. =ASSOC_IDLE=
     2. =ASSOC_WAIT_RSP=
 
+* 数据接收
 
+** 基本函数调用流程
+   #+BEGIN_SRC plantuml :file ./images/2016/2016032401.png :cmdline -charset UTF-8
+     title mt76xx驱动数据接收流程
+     @startuml
+     start
+     :RTUSBBulkReceive;
+     :rtmp_rx_done_handle;
+     note right: 代码位于wdev_rx.c文件中
+     if (是数据帧) then(yes)
+     #Blue:dev_rx_data_frm;
+     else
+     if (是管理帧) then(yes)
+     #Red :dev_rx_mgmt_frm;
+     else
+     if (是控制帧) then(yes)
+     #Green :dev_rx_ctrl_frm;
+     endif
+     endif
+     endif
+     stop
+     @enduml   
+   #+END_SRC
 
+   #+RESULTS:
+   [[file:./images/2016/2016032401.png]]
+
+* 数据发送
+  
+** 概述
+
+   MlmeHardTransmitMgmtRing
+   
