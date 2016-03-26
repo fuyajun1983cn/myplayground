@@ -1,5 +1,5 @@
 
-*Ubuntu内核更新
+* Ubuntu内核更新
 ** 官方地址
    http://kernel.ubuntu.com/~kernel-ppa/mainline/
 ** 直接通过deb包的方式安装
