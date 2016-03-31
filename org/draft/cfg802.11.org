@@ -1,3 +1,7 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 主要API速览   
 - =cfg80211_register== 
@@ -46,6 +50,83 @@
   指向这个数据结构。
 
 - =struct cfg80211_registered_device=
+  #+BEGIN_SRC c
+    struct cfg80211_registered_device {
+            const struct cfg80211_ops *ops;
+            struct list_head list;
+            /* we hold this mutex during any call so that
+             ,* we cannot do multiple calls at once, and also
+             ,* to avoid the deregister call to proceed while
+             ,* any call is in progress */
+            struct mutex mtx;
+
+            /* rfkill support */
+            struct rfkill_ops rfkill_ops;
+            struct rfkill *rfkill;
+            struct work_struct rfkill_sync;
+
+            /* ISO / IEC 3166 alpha2 for which this device is receiving
+             ,* country IEs on, this can help disregard country IEs from APs
+             ,* on the same alpha2 quickly. The alpha2 may differ from
+             ,* cfg80211_regdomain's alpha2 when an intersection has occurred.
+             ,* If the AP is reconfigured this can also be used to tell us if
+             ,* the country on the country IE changed. */
+            char country_ie_alpha2[2];
+
+            /* If a Country IE has been received this tells us the environment
+             ,* which its telling us its in. This defaults to ENVIRON_ANY */
+            enum environment_cap env;
+
+            /* wiphy index, internal only */
+            int wiphy_idx;
+
+            /* associated wireless interfaces */
+            struct mutex devlist_mtx;
+            /* protected by devlist_mtx or RCU */
+            struct list_head wdev_list;
+            int devlist_generation, wdev_id;
+            int opencount; /* also protected by devlist_mtx */
+            wait_queue_head_t dev_wait;
+
+            struct list_head beacon_registrations;
+            spinlock_t beacon_registrations_lock;
+
+            /* protected by RTNL only */
+            int num_running_ifaces;
+            int num_running_monitor_ifaces;
+
+            /* BSSes/scanning */
+            spinlock_t bss_lock;
+            struct list_head bss_list;
+            struct rb_root bss_tree;
+            u32 bss_generation;
+            struct cfg80211_scan_request *scan_req; /* protected by RTNL */
+            struct cfg80211_sched_scan_request *sched_scan_req;
+            unsigned long suspend_at;
+            struct work_struct scan_done_wk;
+            struct work_struct sched_scan_results_wk;
+
+            struct mutex sched_scan_mtx;
+
+    #ifdef CONFIG_NL80211_TESTMODE
+            struct genl_info *testmode_info;
+    #endif
+
+            struct work_struct conn_work;
+            struct work_struct event_work;
+
+            struct cfg80211_wowlan *wowlan;
+
+            struct delayed_work dfs_update_channels_wk;
+
+            /* netlink port which started critical protocol (0 means not started) */
+            u32 crit_proto_nlportid;
+
+            /* must be last because of the way we do wiphy_priv(),
+             ,* and it should at least be aligned to NETDEV_ALIGN */
+            struct wiphy wiphy __aligned(NETDEV_ALIGN);
+    };  
+  #+END_SRC
 
 - =struct cfg80211_chan_def=
 - =struct cfg80211_scan_request=
