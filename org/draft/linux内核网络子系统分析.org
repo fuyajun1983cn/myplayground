@@ -145,6 +145,12 @@
    对于NAPI驱动来说，它会调用driver注册的poll函数。
    [[./images/2016/2016032303.png]] 
    在 =net_dev_init= 初始化阶段， 会注册poll函数为 =process_backlog= 。
-   =netif_receive_skb= 是处理帧的具体函数。
+** =netif_receive_skb= 
+   此函数是处理帧的具体函数，它的执行逻辑大概如下图所示：
+   [[./images/2016/2016032401.png]]
+
+   图中提到的Diverter可以修改数据包的目的地址。
+   执行到这个函数后，接收到的数据包将会根据需要传递到L3层去处理。 L3层
+   会注册相关的协议处理函数。
 
 * 发送数据

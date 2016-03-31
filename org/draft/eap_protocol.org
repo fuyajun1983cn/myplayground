@@ -1,0 +1,98 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 摘要
+  本文档描述了EAP Peer，EAP独立的authenticator(non-pass-through),EAP后
+  端authenticator(用于Authentication， Authorization以及Accounting服务
+  器)以及EAP全功能authenticator(for both local & pass-through)等相关的
+  一些状态机。 这些状态机显示了如何实现EAP以支持各种应用环境下的
+  peer/authenticator或peer/authenticator/AAA server的部署。
+  
+  这些状态机是基于EAP的"开关"模型。该模型包含了EAP Switch和EAP方法之间
+  交互的事件和动作。
+
+* EAP Switch模型介绍
+  offer proposed state machine for RFC3748 & RFC3579
+  the EAP switches control negotiation of EAP methods and sequences of
+  methods
+
+      Peer             Peer  |  Authenticator       Auth
+      Method                 |                      Method
+              \              |                    /
+               \             |                   /
+                Peer         |             Auth
+                EAP    <-----|---------->  EAP
+                Switch       |             Switch
+
+                    Figure 1: EAP Switch Model
+                    
+  双方协商出一个共同使用的方法，进行交互。Authenticator支通过
+  EAP-Success或EAP-Failure来表示协调的成功或失败。方法本身也有一些状态
+  机。
+
+** EAP Pass-Through Model
+           Peer  |  Authenticator              | Backend
+                 |              /   Local      |
+                 |             /    Method     |
+           Peer  |        Auth                 |        Backend
+           EAP  -|----->  EAP                  |    -->  EAP
+          Switch |       Switch                |   /    Server
+                 |             \               |  /
+                 |              \ pass-through |
+                 |                             |
+
+                Figure 2: EAP Pass-Through Model
+   
+* Peer状态机
+
+** Peer状态机与底层之间的接口
+
+** Peer状态机与EAP方法之间的接口
+
+** Peer状态机局部变量
+
+** Peer状态机流程
+
+** Peer状态机的状态
+
+* 独立的Authenticator状态机
+
+** 独立的Authenticator状态机与底层之间的接口
+
+** 独立的Authenticato状态机与EAP方法之间的接口
+
+** 独立的Authenticator状态机局部变量
+
+** EAP独立的Authenticator流程
+
+** EAP独立的Authenticator状态
+
+* EAP后端Authenticator
+
+** 后端Authenticator状态机与底层之间的接口
+
+** 后端Authenticator状态机与EAP方法之间的接口
+
+** 后端Authenticator状态机局部变量 
+
+** EAP后端Authenticator流程
+
+** EAP后端Authenticator状态
+
+* EAP全功能Authenticator
+
+** 全功能Authenticator状态机与底层之间的接口
+
+** 全功能Authenticator状态机与EAP方法之间的接口
+
+** 全功能Authenticator状态机局部变量 
+
+** 全功能Authenticator流程
+
+** EAP全功能Authenticator状态
+
+
+   

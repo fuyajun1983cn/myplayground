@@ -21,47 +21,42 @@
      
 **** ☛ TODO =loaddefs.el= 源码研究
 
-**** ☛ TODO =org.el= 源码研究
-     - 时间读取
-       1. =float-time= : 返回当前时间，也浮点数表示
-       2. =current-time= : 返回当前时间, 返回秒
-     - 文件操作
-       1. =file-truename= :如果文件名不是绝对路径，会先展开为绝对路径，
-          如果是符号链接，也跟踪到实际的文件
-       2. =file-attributes= : 返回文件的属性
-       3. =file-name-sans-extension= : 返回base name  , 如 file.x.y.z
-          --> file.x.y
-       
-    本次分析到 288行
-
 *** 插件使用
 **** Hydra
        NEXT：https://github.com/abo-abo/hydra
-** ArchLinux学习 [0/1]
-*** ☛ TODO 字符终端中文显示问题
-    - NEXT： 编译Linux内核，打开frame buffer的支持
+*** 工作流优化
+**** ☛ TODO 任务开始时，自动计时
+     参考代码：
+     #+BEGIN_SRC emacs-lisp
+          (setq org-log-done 'time)
+            (defadvice org-clock-in (after wicked activate)
+         "Mark STARTED when clocked in"
+         (save-excursion
+           (catch 'exit
+             (org-back-to-heading t)
+             (if (looking-at org-outline-regexp) (goto-char (1- (match-end 0))))
+             (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
+                 (org-todo "STARTED")))))     
+     #+END_SRC
+** ArchLinux学习 [0/2]
+*** 了解systemd工作原理
 ** 博文 [0/1]
-*** ☛ TODO Linux kernel小程序快速参考
-    - NEXT: 准备第一版
 ** 扩展学习 [2/3]
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
     https://github.com/google/guice.git
     https://github.com/google/fruit.git
-** 个人杂事 [2/3]
-*** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
-*** ✔ DONE 英文简历制作
-    CLOSED: [2016-03-07 一 16:15]
+** 个人杂事 [0/1]
 *** ☛ TODO 简历优化
-** 读书计划 [0/4]
-*** ☛ TODO 突破思维的障碍
-*** ☛ TODO 大脑使用说明书
-*** ☛ TODO 尽管去做——无压的工作艺术
-      NEXT: 从108页开始读 第五章
-*** ☛ TODO Learn More Study Less
+    NEXT: 编写一个不超过2页的精简版
 ** 技术修炼
-*** 读书计划 [0/1]
-**** ☛ TODO Understanding Linux Network Internals
+*** 读书计划 [0/5]
+**** ☛ TODO 大脑使用说明书
+**** ☛ TODO 尽管去做——无压的工作艺术
+       NEXT: 下次阅读最后三章
+**** ☛ TODO Learn More Study Less
+**** ☛ TODO 突破思维的障碍
 ** 编程语言捂热计划
+*** 网络编程
 *** C++
 **** cpluff
 **** Google Fruit库研究
@@ -70,28 +65,65 @@
 **** Guice库研究
       https://github.com/google/guice.git
 **** Freemind工具研究
+***** ☛ TODO 在Tab页中添加支持双击关闭的功能
+*** Android
+**** Android Adventures - Mastering Fragments
+     http://www.i-programmer.info/ebooks/android-adventures-mastering-fragments.html
+**** Android
+     http://www.i-programmer.info/programming/android.html
+*** Javascript
+**** 学习"Javascript Data Structures - Stacks, Queue and Deque"
+     http://www.i-programmer.info/programming/javascript/1674-javascript-data-structures-stacks-queues-and-deques.html
 *** Python
 *** zsh
+** 个人开发需求
+*** 编写一个Chrome Plugin，记录自己收藏的网址
+*** Wifi Debug Program                                               :PROJECT:
+**** 当前Action： 搭建应用程序的基本UI界面
+**** WiFi
+***** ☛ TODO 显示AP列表
+***** ☛ TODO 连接AP
+**** P2P
+***** ☛ TODO 支持WiFi直连
+**** Miracast
+***** ☛ TODO 支持设备投屏操作
 ** 开源工具
    1. simple screen recoder
    2. Dia
    3. Childsplay
+* My Daily GTD 
+** ☛ TODO =org.el= 源码研究
+   SCHEDULED: <2016-04-30 六>
+     
+  NEXT： 研究defcustom常见函数的用法
+
+** ☛ TODO Linux kernel小程序快速参考
+   - NEXT: 准备第一版
+** ☛ TODO 字符终端中文显示问题
+   - 编译Linux内核，打开frame buffer的支持
+   - NEXT: 在工作电脑中安装ArchLinux
+** ☛ TODO Understanding Linux Network Internals
+   下次从第11章开始
 * Finished Tasks
 ** 2016
-*** ✔ DONE Tool研究
-    CLOSED: [2016-03-23 三 09:10]
-    - zsh
-    - less
-    - tmux
-    - web幻灯片 Cleaver
-*** ✔ DONE Notepad++插件研究 [3/3]
-    CLOSED: [2016-03-23 三 09:10]
-**** ✘ CANCELED 编写显示emacs org文件插件
-     CLOSED: [2016-03-20 周日 21:45]
-**** ✔ DONE 编译环境
-     CLOSED: [2016-02-28 日 12:55]
-**** ✔ DONE 示例插件研究
-     CLOSED: [2016-03-20 周日 21:45]
-     https://github.com/mpcabd/PyNPP.git
-     - NEXT: 完成一个可用的模块上传
-       
+*** 3月[4/4]
+**** ✔ DONE Tool研究
+     CLOSED: [2016-03-23 三 09:10]
+     - zsh
+     - less
+     - tmux
+     - web幻灯片 Cleaver
+**** ✔ DONE Notepad++插件研究 [3/3]
+     CLOSED: [2016-03-23 三 09:10]
+***** ✘ CANCELED 编写显示emacs org文件插件
+      CLOSED: [2016-03-20 周日 21:45]
+***** ✔ DONE 编译环境
+      CLOSED: [2016-02-28 日 12:55]
+***** ✔ DONE 示例插件研究
+      CLOSED: [2016-03-20 周日 21:45]
+      https://github.com/mpcabd/PyNPP.git
+      - NEXT: 完成一个可用的模块上传
+        
+**** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
+**** ✔ DONE 英文简历制作
+     CLOSED: [2016-03-07 一 16:15]
