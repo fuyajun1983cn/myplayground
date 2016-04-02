@@ -1,0 +1,31 @@
+##
+## Arch Linux repository mirrorlist
+## Sorted by mirror score from mirror status page
+## Generated on 2016-03-01
+##
+## Score: 2.2, China
+Server = http://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch
+## Score: 3.3, China
+Server = http://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch
+## Score: 3.7, China
+Server = http://mirrors.neusoft.edu.cn/archlinux/$repo/os/$arch
+## Score: 4.1, China
+Server = http://run.hit.edu.cn/archlinux/$repo/os/$arch
+## Score: 4.2, China
+Server = http://mirror.bjtu.edu.cn/archlinux/$repo/os/$arch
+## Score: 4.9, Taiwan
+Server = http://archlinux.cs.nctu.edu.tw/$repo/os/$arch
+## Score: 5.2, China
+Server = http://mirrors.hustunique.com/archlinux/$repo/os/$arch
+## Score: 5.6, China
+Server = http://mirrors.hust.edu.cn/archlinux/$repo/os/$arch
+## Score: 6.7, China
+Server = http://mirrors.163.com/archlinux/$repo/os/$arch
+## Score: 21.4, China
+Server = http://mirrors.opencas.cn/archlinux/$repo/os/$arch
+## Score: 1.8, Hong Kong
+Server = http://arch-mirror.wtako.net/$repo/os/$arch
+## Score: 2.7, Taiwan
+Server = http://shadow.ind.ntou.edu.tw/archlinux/$repo/os/$arch
+## Score: 3.1, Taiwan
+Server = http://ftp.yzu.edu.tw/Linux/archlinux/$repo/os/$arch
