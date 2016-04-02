@@ -745,95 +745,6 @@
 ** TODO Cryptographic functions
      重点看下如何调用这些函数进行加密的
 
-** WPA supplicant
-   WPA功能代码如下：
-   - =wpa.c and wpa.h= WPA state machine and 4-Way/Group Key Handshake
-     processing
-   - =preauth.c and preauth.h= PMKSA caching and pre-authentication
-     (RSN/WPA2)
-   - =wpa_i.h= Internal definitions for WPA code; not to be included
-     to other modules.
-
-*** wpa state machine初始化
-**** L2 Packet (EAPOL包)处理
-       创建了一个链路层的套接字(=driver_nl802.11.c=)：
-       #+BEGIN_SRC c
-         drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));       
-       #+END_SRC
-       监听并处理EAPOL链路层数据包
-       #+BEGIN_SRC c
-          if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
-          {
-                  printf("Could not register read socket for eapol\n");
-                  goto failed;
-          }
-                
-       #+END_SRC
-
-       处理流程：
-        #+BEGIN_SRC plantuml :file ./images/2016/2016011801.png :cmdline -charset UTF-8
-          @startuml
-          start
-          :nl802.11驱动初始化;
-          :handle_eapol ;
-          note right
-          在802.11驱动初始化时，注册了处理EAPOL数据包的
-          回调函数handle_eapol
-          end note
-          :drv_event_eapol_rx;
-          :wpa_supplicant_event;
-          :wpa_supplicant_assoc;
-          :wpa_supplicant_rx_eapol;
-          stop
-          @enduml
-        #+END_SRC
-
-        #+RESULTS:
-        [[file:./images/2016/2016011801.png]]
-
-       1. evnets.c  
-          =EVENT_EAPOL_RX=
-          在Association之前收到EAPOL包，会先缓存起来，等到Association成
-          功后，再处理。
-       2. =wpa_supplicant.c=
-          
-
-       =wpa_supplicant_set_state=
-
-*** wpa statemachine状态变化
-     设置当前状态： =wpa_supplicant_set_state=
-     获取当前状态： =wpa_supplicant_get_state=
-
-     访问当前状态机的状态(公供wpa状态机内部调用)： 
-     1. 获取当前状态机的状态：  =wpa_sm_get_state=
-     2. 设置当前状态机的状态:  =wpa_sm_set_state= 
-
-** EAP peer
-    这个模块是个相对独立的模块，可单独使用。
-    相关文件说明如下：
-    - =eap.c and eap.h= EAP状态机和方法接口。
-    - =eap_defs.h= 通用的EAP定义
-    - =eap_i.h= EAP状态机和EAP方法的内部定义。
-    - =eap_sim_common.c and eap_sim_common.h= =EAP-SIM= 和 =EAP-AKA= 的公用代
-      码。
-    - =eap_tls_common.c and eap_tls_common.h= =EAP-PEAP, EAP-TTLS, and
-      EAP-FAST= 公用代码
-    - =eap_tlv.c and eap_tlv.h= =EAP-PEAP= 和 =EAP-FAST= 的 =EAP-TLV=
-      代码。
-    - =eap_ttls.c and eap_ttls.h= EAP-TTLS代码。
-    - =eap_pax.c, eap_pax_common.h, eap_pax_common.c=  =EAP-PAX= 代码
-    - =eap_psk.c, eap_psk_common.h, eap_psk_common.c= =EAP-PSK= 代码
-    - =eap_sake.c, eap_sake_common.h, eap_sake_common.c= =EAP-SAKE= 代
-      码
-    - =eap_gpsk.c, eap_gpsk_common.h, eap_gpsk_common.c= =EAP-GPSK= 代
-      码
-    - =eap_aka.c, eap_fast.c, eap_gtc.c, eap_leap.c, eap_md5.c,
-      eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
-      其他EAP方法实现
-
-** EAPOL supplicant
-   =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
-
 ** driver interface
    一个新的驱动的注册主要是定义一个 =wpa_driver_ops= 结构体实例。 硬件
    的部分代码会通过这个结构体提供的一些回调函数来控制驱动/无线网卡。 
@@ -875,39 +786,191 @@
       
 *** rfkill
 ** l2 packets
+** =hostapd_setup_bss=
+   Initialize Per-BSS data structures.
+   #+BEGIN_SRC plantuml :file ./images/2016/2016031501.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :hostapd_setup_interface;
+     :setup_interface;
+     :hostapd_setup_interface_complete;
+     :hostapd_setup_bss;
+     :ieee802_1x_init;
+     if (执行成功?) then (yes)
+     :eapol_auth_init;
+     endif
+     if (hapd->conf->wpa) then (yes)
+     :hostapd_setup_wpa;
+     :wpa_init;
+     endif
+     stop
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016031501.png]]
+
 ** State Machine
+*** 状态机的定义 
+    文件路径 src/utils.h
+    此文件中定义了一些宏用于实现一个状态机
+**** 总体说明
+     首先，需要包含这个头文件，另外在实现文件中，有如下一些要求：
+     1. 必须定义这个宏 =STATE_MACHINE_DATA= ，代表包含状态机变量的数据
+        结构
+     2. 定义宏 =STATE_MACHINE_DEBUG_PREFIX= 已保证输出该状态机相关的打
+        印消息时，有相关的前缀信息出来。
+     3. 宏 =SM_ENTRY_MA= 用于定义一组共享一个数据结构的状态机。
+     4. 宏 =STATE_MACHINE_ADDR= 定义到指向在调试输出中的MAC地址
+     5. 宏 =SM_ENTRY_M= 用于定义一组类似的状态机，只是不包含这些额外的
+        调试信息。
+**** 主要宏
+     1. =SM_STATE=
+        用于声明一个状态机的函数。 当调用 =SM_ENTER=,
+        =SM_ENTER_GLOBAL= ，进入当前状态。
+        #+BEGIN_SRC c
+          #define SM_STATE(machine, state) \
+          static void sm_ ## machine ## _ ## state ## _Enter(STATE_MACHINE_DATA *sm, \
+                  int global)        
+        #+END_SRC
+     2. =SM_ENTRY=
+        状态机函数入口点，通常位于函数体的开头处。
+        #+BEGIN_SRC c
+          #define SM_ENTRY(machine, state) \
+          if (!global || sm->machine ## _state != machine ## _ ## state) { \
+                  sm->changed = TRUE; \
+                  wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX ": " #machine \
+                             " entering state " #state); \
+          } \
+          sm->machine ## _state = machine ## _ ## state;        
+        #+END_SRC
+     3. =SM_ENTRY_M=
+        一组状态机的入口函数，定义与 =SM_ENTRY= 一样。
+     4. =SM_ENTRY_MA=
+        与 =SM_ENTRY_M= 一样，只是在调试信息中加入了MAC地址信息。
+     5. =SM_ENTER=
+        将状态机从一个状态转入另一个状态。
+        #+BEGIN_SRC c
+          #define SM_ENTER(machine, state) \
+          sm_ ## machine ## _ ## state ## _Enter(sm, 0)        
+        #+END_SRC
+     6. =SM_ENTER_GLOBAL= 
+        #+BEGIN_SRC c
+          #define SM_ENTER_GLOBAL(machine, state) \
+          sm_ ## machine ## _ ## state ## _Enter(sm, 1)        
+        #+END_SRC
+     7. =SM_STEP=
+        声明一个状态机的step函数
+        #+BEGIN_SRC c
+          #define SM_STEP(machine) \
+          static void sm_ ## machine ## _Step(STATE_MACHINE_DATA *sm)        
+        #+END_SRC
+     8. =SM_STEP_RUN=
+        调用一个状态机的step函数
+        #+BEGIN_SRC c
+          #define SM_STEP_RUN(machine) sm_ ## machine ## _Step(sm)        
+        #+END_SRC
 *** WPA/WPA2 
-*** EAPOL
-**** EAPOL Authenticator
-     在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
+
+**** wpa state machine初始化
+***** L2 Packet (EAPOL包)处理
+        创建了一个链路层的套接字(=driver_nl802.11.c=)：
+        #+BEGIN_SRC c
+          drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));       
+        #+END_SRC
+        监听并处理EAPOL链路层数据包
+        #+BEGIN_SRC c
+           if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
+           {
+                   printf("Could not register read socket for eapol\n");
+                   goto failed;
+           }
+                 
+        #+END_SRC
+
+        处理流程：
+         #+BEGIN_SRC plantuml :file ./images/2016/2016011801.png :cmdline -charset UTF-8
+           @startuml
+           start
+           :nl802.11驱动初始化;
+           :handle_eapol ;
+           note right
+           在802.11驱动初始化时，注册了处理EAPOL数据包的
+           回调函数handle_eapol
+           end note
+           :drv_event_eapol_rx;
+           :wpa_supplicant_event;
+           :wpa_supplicant_assoc;
+           :wpa_supplicant_rx_eapol;
+           stop
+           @enduml
+         #+END_SRC
+
+         #+RESULTS:
+         [[file:./images/2016/2016011801.png]]
+
+        1. evnets.c  
+           =EVENT_EAPOL_RX=
+           在Association之前收到EAPOL包，会先缓存起来，等到Association成
+           功后，再处理。
+        2. =wpa_supplicant.c=
+           
+
+        =wpa_supplicant_set_state=
 **** wpa Authenticator
      在 =hostapd_setup_wpa= 中会初始化 =wpa_authenticator=
      (wpa_auth_glue.h), 标记为： =WPA_PROTO_WPA= =WPA_PROTO_RSN=
-**** =hostapd_setup_bss=
-     Initialize Per-BSS data structures.
-     #+BEGIN_SRC plantuml :file ./images/2016/2016031501.png :cmdline -charset UTF-8
-       @startuml
-       start
-       :hostapd_setup_interface;
-       :setup_interface;
-       :hostapd_setup_interface_complete;
-       :hostapd_setup_bss;
-       :ieee802_1x_init;
-       if (执行成功?) then (yes)
-       :eapol_auth_init;
-       endif
-       if (hapd->conf->wpa) then (yes)
-       :hostapd_setup_wpa;
-       :wpa_init;
-       endif
-       stop
-       @enduml
-     #+END_SRC
-
-     #+RESULTS:
-     [[file:./images/2016/2016031501.png]]
+**** WPA supplicant
+     WPA功能代码如下：
+     - =wpa.c and wpa.h= WPA state machine and 4-Way/Group Key Handshake
+       processing
+     - =preauth.c and preauth.h= PMKSA caching and pre-authentication
+       (RSN/WPA2)
+     - =wpa_i.h= Internal definitions for WPA code; not to be included
+       to other modules.
+*** EAPOL
+    IEEE 802.1X-2004 - Supplicant - EAPOL state machines
+**** EAPOL supplicant
+     =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
+**** EAPOL Authenticator
+     在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
 
 *** EAP
+    EAP Peer State Machine & EAP Server State Machine, RFC4137 & RFC3748
+
+**** EAP peer
+      这个模块是个相对独立的模块，可单独使用。
+      相关文件说明如下：
+      - =eap.c and eap.h= EAP状态机和方法接口。
+      - =eap_defs.h= 通用的EAP定义
+      - =eap_i.h= EAP状态机和EAP方法的内部定义。
+      - =eap_sim_common.c and eap_sim_common.h= =EAP-SIM= 和 =EAP-AKA= 的公用代
+        码。
+      - =eap_tls_common.c and eap_tls_common.h= =EAP-PEAP, EAP-TTLS, and
+        EAP-FAST= 公用代码
+      - =eap_tlv.c and eap_tlv.h= =EAP-PEAP= 和 =EAP-FAST= 的 =EAP-TLV=
+        代码。
+      - =eap_ttls.c and eap_ttls.h= EAP-TTLS代码。
+      - =eap_pax.c, eap_pax_common.h, eap_pax_common.c=  =EAP-PAX= 代码
+      - =eap_psk.c, eap_psk_common.h, eap_psk_common.c= =EAP-PSK= 代码
+      - =eap_sake.c, eap_sake_common.h, eap_sake_common.c= =EAP-SAKE= 代
+        码
+      - =eap_gpsk.c, eap_gpsk_common.h, eap_gpsk_common.c= =EAP-GPSK= 代
+        码
+      - =eap_aka.c, eap_fast.c, eap_gtc.c, eap_leap.c, eap_md5.c,
+        eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
+        其他EAP方法实现
+
+**** EAP Server
+
+*** wpa statemachine状态变化
+     设置当前状态： =wpa_supplicant_set_state=
+     获取当前状态： =wpa_supplicant_get_state=
+
+     访问当前状态机的状态(公供wpa状态机内部调用)： 
+     1. 获取当前状态机的状态：  =wpa_sm_get_state=
+     2. 设置当前状态机的状态:  =wpa_sm_set_state= 
+        
 * =wpa_supplicant= 功能模块分析
 ** P2P
 *** 数据结构分析与初始化流程 
@@ -1541,7 +1604,6 @@
    #+RESULTS:
    [[file:./images/2016/2016031007.png]]
 
->>>>>>> 293f056f46a80695776bbe3605fe7aa01ffb2641
 *** Enrollee
     此时双方会通过 P2P 接口地址进行交互。WPS具体使用的方式有PBC或者PIN
     的方式。
@@ -1603,7 +1665,9 @@
       ,* wpa_supplicant). */
      #define WPA_DRIVER_FLAGS_SME            0x00000020   
    #+END_SRC
-   
+
+* 常用代码片断
+  记录 =wpa_supplicant= 源码中常见的一些代码片断。
 * 参考资料
 [1]  http://en.wikipedia.org/wiki/Extensible_Authentication_Protocol
 维基百科关于EAP各种方法的一个简单介绍。
