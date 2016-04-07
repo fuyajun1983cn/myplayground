@@ -1,98 +1,928 @@
 #+STARTUP: overview
 #+STARTUP: hidestars
+#+TITLE: EAP协议与状态机(RFC3748 RFC4137)
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
+    
+* EAP协议
 
-* 摘要
-  本文档描述了EAP Peer，EAP独立的authenticator(non-pass-through),EAP后
-  端authenticator(用于Authentication， Authorization以及Accounting服务
-  器)以及EAP全功能authenticator(for both local & pass-through)等相关的
-  一些状态机。 这些状态机显示了如何实现EAP以支持各种应用环境下的
-  peer/authenticator或peer/authenticator/AAA server的部署。
-  
-  这些状态机是基于EAP的"开关"模型。该模型包含了EAP Switch和EAP方法之间
-  交互的事件和动作。
+** 概述
+   EAP是一种认证框架性协议，支持多种认证方法。EAP通常运行在数据链接层
+   （不推荐使用在IP层及以上的协议层），本身支持侦测重复数据包以及重传，
+   但底层协议需要保证数据包按序接收。本身不支持分片，但是具体的认证方
+   法可以提供这样的分片支持。
 
-* EAP Switch模型介绍
-  offer proposed state machine for RFC3748 & RFC3579
-  the EAP switches control negotiation of EAP methods and sequences of
-  methods
+   EAP构架的优势是灵活，可伸缩性强。在Authenticator获得足够信息后，EAP
+   用于选择特定的认证机制（方法）。Authenticator可以本身支持很多认证方
+   法，或者将认证请求转发给后端的认证服务器。
 
-      Peer             Peer  |  Authenticator       Auth
-      Method                 |                      Method
-              \              |                    /
-               \             |                   /
-                Peer         |             Auth
-                EAP    <-----|---------->  EAP
-                Switch       |             Switch
+   EAP是一种Lock Step协议，一次只能传输一个数据包，不适合用于传输大量
+   数据。不支持乱序接收数据包。
 
-                    Figure 1: EAP Switch Model
-                    
-  双方协商出一个共同使用的方法，进行交互。Authenticator支通过
-  EAP-Success或EAP-Failure来表示协调的成功或失败。方法本身也有一些状态
-  机。
+   EAP认证过程由Authenticator首先发起。EAP对于Authenticator与Peer之间
+   交互数据包的趟数没有明确限定，不同的认证方法所需要的趟数有区别。
 
-** EAP Pass-Through Model
-           Peer  |  Authenticator              | Backend
-                 |              /   Local      |
-                 |             /    Method     |
-           Peer  |        Auth                 |        Backend
-           EAP  -|----->  EAP                  |    -->  EAP
-          Switch |       Switch                |   /    Server
-                 |             \               |  /
-                 |              \ pass-through |
-                 |                             |
+   EAP协议双方交互的一般过程如下：
+   1. The authenticator sends a Request to authenticate the peer.
+      请求的类型可以是Identity,MD5-challenge等。
+   2. The peer sends a Response packet in reply to a valid Request.
+      发送一个与Request对应的响应包。
+   3. 双方根据认证机制的需要继续发送和接收数据包。
+   4. 会话继续直到Authenticator判断成功或失败为止。
 
-                Figure 2: EAP Pass-Through Model
-   
-* Peer状态机
-
-** Peer状态机与底层之间的接口
-
-** Peer状态机与EAP方法之间的接口
-
-** Peer状态机局部变量
-
-** Peer状态机流程
-
-** Peer状态机的状态
-
-* 独立的Authenticator状态机
-
-** 独立的Authenticator状态机与底层之间的接口
-
-** 独立的Authenticato状态机与EAP方法之间的接口
-
-** 独立的Authenticator状态机局部变量
-
-** EAP独立的Authenticator流程
-
-** EAP独立的Authenticator状态
-
-* EAP后端Authenticator
-
-** 后端Authenticator状态机与底层之间的接口
-
-** 后端Authenticator状态机与EAP方法之间的接口
-
-** 后端Authenticator状态机局部变量 
-
-** EAP后端Authenticator流程
-
-** EAP后端Authenticator状态
-
-* EAP全功能Authenticator
-
-** 全功能Authenticator状态机与底层之间的接口
-
-** 全功能Authenticator状态机与EAP方法之间的接口
-
-** 全功能Authenticator状态机局部变量 
-
-** 全功能Authenticator流程
-
-** EAP全功能Authenticator状态
-
+   EAP协议中规定双方在一次会话中只能选定一种认证方法，一旦使用某种认证
+   方法成功认证后，不能在当前会话中继续使用另一种认证方法进行认证。
 
    
+** EAP复用模型
+   [[./images/2016/2016040101.png]]
+
+   1. Lower layer
+      负责传输和接收Peer与Authenticator之间的EAP帧。
+   2. EAP layer
+      通过Lower layer实现EAP帧的传输与接收，并实现了重复帧检测与重传机
+      制。
+   3. EAP peer and authenticator layers
+      根据Code域值的不同，将EAP数据包分发给EAP Peer Layer和EAP
+      Authenticator Layer.
+   4. EAP method layers
+      实现了认证算法，并通过EAP peer and authenticator layers传输EAP消
+      息。根据需要，可能实现了分片支持。
+
+   打个比方，EAP Code相关IP地址，而Type则相当于端口号，根据Type信息，
+   将EAP消息传递到对应的方法中。
+** EAP Packet Format
+   格式如下：
+
+   [[./images/2016/2016040201.png]]
+
+   - Code:
+     code域占用一个字节，可能的值为：
+     1. 1 Request
+     2. 2 Response
+     3. 3 Success
+     4. 4 Failure
+     Code为其他值的情况下，Authenticator和Peer都会丢弃。
+     Code大小范围为1 ~ 255
+   - Identifier
+     用于标识Request和Response。一个字节的长度。
+   - Length
+     2个字节，代表Packet的长度，包含Code，Identifier，Length以及data域
+     的整个长度。
+   - Data
+     由0或多个字节构成，具体内容由Code域的值决定。
+
+*** Request and Response
+    
+**** packet Format
+
+     [[./images/2016/2016040202.png]]
+     
+     - Code
+       1 Request
+       2 Response
+     - Identifier
+       标识成对的Request和Response
+     - Length
+       length值大于实际的packet大小的数据包将会被丢弃。
+     - Type
+       Request或Response的Type
+     - Type-Data
+       大小与Type相关。
+
+**** Types
+     所有的EAP实现必须至少支持Type 1~4以及Type 254。
+     |   1 | Identity                                  |
+     |   2 | Notification                              |
+     |   3 | Nak            (Response  only)           |
+     |   4 | MD5-Challenge                             |
+     |   5 | One            Time       Password  (OTP) |
+     |   6 | Generic        Token      Card      (GTC) |
+     | 254 | Expanded       Types                      |
+     | 255 | Experimental   use                        |
+
+***** Identity
+      Identity Type用于查询Peer的标识， 通常情况下，Authenticator会将
+      这种类型的请求作为第一个EAP Request发送给Peer。 Peer应当回应 一
+      个Type为1的EAP Response。 
+
+      通常情况下， EAP的实现者不能假定EAP Identity Request/Response大
+      于1020个字节。
+
+      通常建议Identity Response的主要用是：
+      1. Routing Purpose
+      2. 选择使用的EAP method.
+
+      EAP method方法必须包含一种获取identity的机制， 而不依赖于
+      Identity Response。
+
+      Identity Request/Response都是以明文的方式发送的。在得到非法
+      Identity或认证失败的情况下，允许至少进行3次重试机会。通常
+      Notification Requesst来通知非法的Identity信息。失败的信息可以通
+      过新的EAP Request本身来显示。 
+
+      EAP Identity Request的Type-Data包含一个可显示的信息。如果Identity是未知的，
+      则EAP Response该域长度为0. EAP Identity Response的Type-Data不能
+      以空字符结尾。 Type-Data域的长度是根据EAP Identity
+      Request/Response包的Length域的值得来的。
+
+***** Notification
+      可的的一种EAP Request/Response类型，Authenticator通过该消息类型
+      来向Peer传递一些可显示的消息。
+
+***** Nak
+      1. Legacy Nak
+         只用于EAP Response消息中， 通常用于当想要的认证类型（方法）不
+         可接受时。 Authentication Type的编号为4或以上。 Response消息
+         中包含一个或多个Peer期望的认证类型，Type的值为0的话，表明Peer
+         无法接受其他的认证类型，不要再发送另外的EAP Request信息。
+
+         Legacy Nak只能用于Response中，功能有限，不能用于一般目的的错
+         误显示功能。
+
+      2. Expanded Nak
+         只用于EAP Response中。 当Authentication Type不可接受时，对方
+         会发送一个EAP Request， Type值为254（Expanded Type），此时回
+         复一个Type值为254的EAP Response消息，该响应消息中会包含一个或
+         多个Peer期望的认证类型，当Type值为0时，表示当前不支持其他的认
+         证类型，认证过程终止。
+
+      3. 例子
+         1. an Expanded Nak Response indicating a preference for OTP
+            (Type 5), and an MIT (Vendor-Id=20) Expanded Type of 6
+            would appear as follows：
+
+            [[./images/2016/2016040203.png]]
+
+         2. An Expanded Nak Response indicating a no desired
+            alternative would appear as follows
+
+            [[./images/2016/2016040204.png]]
+
+*** Success and Failure
+    Success和Failure包不会被确认，所以不会重传。
+
+    [[./images/2016/2016040205.png]]
+
+    - Code
+      3 for Success
+      4 for Failure
+    - Identifier
+    - Length
+      4
+
+* State Machines for EAP Peer And Authenticator
+** 摘要
+   本文档描述了EAP Peer，EAP独立的authenticator(non-pass-through),EAP后
+   端authenticator(用于Authentication， Authorization以及Accounting服务
+   器)以及EAP全功能authenticator(for both local & pass-through)等相关的
+   一些状态机。 这些状态机显示了如何实现EAP以支持各种应用环境下的
+   peer/authenticator或peer/authenticator/AAA server的部署。
+   
+   这些状态机是基于EAP的"开关"模型。该模型包含了EAP Switch和EAP方法之间
+   交互的事件和动作。
+
+** EAP Switch模型介绍
+   offer proposed state machine for RFC3748 & RFC3579
+   the EAP switches control negotiation of EAP methods and sequences of
+   methods
+
+   [[./images/2016/2016040206.png]]
+
+   双方协商出一个共同使用的方法，进行交互。Authenticator通过
+   EAP-Success或EAP-Failure来表示协调的成功或失败。方法本身也有一些状态
+   机。
+
+*** EAP Pass-Through Model
+
+    [[./images/2016/2016040207.png]]
+
+*** Peer状态机
+
+  Peer状态机图解：
+  [[./images/2016/2016033101.png
+]]
+*** Peer状态机与底层之间的接口
+    底层将收到的数据包存储在 =eapReqData= 中，并设置 =eapReq= 为TRUE。
+    当EAP Peer状态机完成处理该消息，它要么设置 =eapResp= 或 =eapNoResp=
+    。 如果设置 =eapResp= ，则相应的响应包存储在 =eapRespData= 中。 底
+    层负责实际去传输该消息。 当EAP peer状态机认证已经完成，它会通过设置
+    =eapSuccess= 或 =eapFailure= 向底层显示认证是否成功或失败。 
+**** 变量（底层 --> Peer）(接收请求）
+     - eapReq (boolean)
+       在底层设置为TRUE,在Peer状态机中设置为FALSE,表明在底层中有一个请
+       求到达.
+     - eapReqData (EAP packet)
+       当eapReq设置为TRUE时，该变量会被设置，代表到达的请求的数据包的内
+       容。
+     - portEnabled (boolean)
+       代表EAP Peer状态机是否已经准备好通信了。 当底层开始EAP会话时，会
+       设置为TRUE。
+     - idleWhile (integer)
+       外部计时器，用于显示等待一个合法的请求时，等待的超时时间。
+     - eapRestart (boolean)
+       显示底层将会重新启动认证。
+     - altAccept (boolean)
+       显示成功, 
+     - altReject (boolean)
+       显示失败。
+**** 变量（Peer --> 底层）（发送响应）
+     - eapResp (boolean)
+       在Peer状态机中设置为TRUE，在底层设置为FALSE，表明将有一个响应被
+       发送。
+     - eapNoResp (boolean)
+       在Peer状态机中设置为TRUE，在底层设置为FALSE，表明请求已经被处理，
+       没有响应需要发送出去。
+     - eapSuccess (boolean)
+       在Peer状态机中设置为TRUE，在底层设置为FALSE，表明Peer已经到达了
+       SUCCESS状态。
+     - eapFail (boolean)
+       在Peer状态机中设置为TRUE，在底层设置为FALSE，表明Peer已经到达了
+       FAILURE状态。
+     - eapRespData (EAP packet)
+       当eapResp设置为TRUE时，Peer状态机会设置该变量。 它是将要发送的响
+       应消息。
+     - eapKeyData (EAP key)
+       当keying material可用时，Peer状态机会设置该变量。在METHOD状态下
+       设置。
+     - eapKeyAv ailable (boolean)
+       当keying material可用时，Peer状态机会在SUCCESS状态下设置该值为
+       TRUE。实际Key存储在eapKeyData中。
+**** 常量
+     - ClientTimeout (integer)
+       等待一个合法请求时，最长的等待时间。
+*** Peer状态机与EAP方法之间的接口
+    IN: eapReqData (includes reqId)
+    OUT: ignore, eapRespData, allowNotifications, decision
+    IN/OUT: methodState, (method-specific state)
+
+    下面描述一下Peer状态机与EAP方法之间的交互过程：
+    1. 如果 methodState == INIT， 方法启动，并初始化该方法相关的状态。
+    2. 方法需要决定是否要处理该数据包，还是丢弃该数据包。
+       - 如果决定丢弃，则设置 ignore=TRUE，其他变量不要去改变。
+       - 如果决定处理该数据包，则采取如下行为：
+         1. 更新自己方法相关的状态。
+         2. 如果方法已经得到了它想要导出的keying material，则它会将
+            keying material存储到eapKeyData变量中。
+         3. 创建一个响应包（Identifier与请求包相同）并将它存储到eapRespData。
+         4. 设置ignore=FALSE。
+    3. 接下来，方法需要根据如下规则更新methodState以及decision:
+       - methodState=CONT
+         这种情况下，交互过程总是继续，decision变量值总是设置为FAIL。
+       - methodState=MAY_CONT
+         如果当前状况不满足Peer的安全策略，则设置decision=FAIL，否则设
+         置decision=COND_SUCC。
+       - methodState=DONE
+         当处理该状态时，交互过程就会停止。如果失败，则设置
+         decision=FAIL，否则设置decision为UNCOND_SUCC。如果我们不知道服
+         务器是否允许我们访问，但是我们自己想访问，则设置decision为COND_SUCC。
+    4. 最后，必须设置allowNotifications
+       如果新的methodState的值为CONT或MAY_CONT，且方法规范中并不禁止使
+       用Notification消息，则设置allowNotifications的变量值为TRUE，否则
+       设置为FALSE。
+**** eap decision的值 
+     - =DECISION_FAIL=
+     - =DECISION_COND_SUCC=
+     - =DECISION_UNCOND_SUCC=
+**** 方法的状态methodState
+     - =METHOD_NONE=
+     - =METHOD_INIT=
+     - =METHOD_CONT=
+     - =METHOD_MAY_CONT=
+     - =METHOD_DONE=
+**** =wpa_supplicant= 中相关的定义 
+     #+BEGIN_SRC c
+
+       /* RFC 4137 - EAP Peer state machine */
+
+       typedef enum {
+               DECISION_FAIL, DECISION_COND_SUCC, DECISION_UNCOND_SUCC
+       } EapDecision;
+
+       typedef enum {
+               METHOD_NONE, METHOD_INIT, METHOD_CONT, METHOD_MAY_CONT, METHOD_DONE
+       } EapMethodState;
+
+       /**
+        ,* struct eap_method_ret - EAP return values from struct eap_method::process()
+        ,*
+        ,* These structure contains OUT variables for the interface between peer state
+        ,* machine and methods (RFC 4137, Sect. 4.2). eapRespData will be returned as
+        ,* the return value of struct eap_method::process() so it is not included in
+        ,* this structure.
+        ,*/
+       struct eap_method_ret {
+               /**
+                ,* ignore - Whether method decided to drop the current packed (OUT)
+                ,*/
+               Boolean ignore;
+
+               /**
+                ,* methodState - Method-specific state (IN/OUT)
+                ,*/
+               EapMethodState methodState;
+
+               /**
+                ,* decision - Authentication decision (OUT)
+                ,*/
+               EapDecision decision;
+
+               /**
+                ,* allowNotifications - Whether method allows notifications (OUT)
+                ,*/
+               Boolean allowNotifications;
+       };    
+     #+END_SRC
+*** Peer状态机局部变量
+**** Long-Term (Maintained between Packets)
+     - selectMethod (EAP type)
+       在GET_METHOD状态中设置
+     - methodState (enumeration)
+     - lastId (integer)
+       上一个请求的EAP标识值，在SEND_RESPONSE状态中设置。
+     - lastRespData (EAP packet)
+       在SEND_RESPONSE状态中设置，存储上次从Peer中发送的EAP数据包。
+     - decision (enumeration)
+**** Short-Term (Not Maintained between Packets)
+     - rxReq (boolean)
+       在RECEIVED状态中设置。显示当前收到的数据包是一个EAP请求包。
+     - rxSuccess (boolean)
+       在RECEIVED状态中设置。显示当前收到的数据包是一个EAP成功包。
+     - rxFailure (boolean)
+       在RECEIVED状态中设置。显示当前收到的数据包是一个EAP失败包。
+     - reqId (integer)
+       在RECEIVED状态中设置。该标识值与当前EAP请求关联。
+     - reqMethod (EAP type)
+       在RECEIVED状态中设置。显示当前EAP请求的方法类型。
+     - ignore (boolean)
+       在METHOD状态中设置，显示当前方法是否决定要丢弃当前的数据包。
+
+*** Peer状态机一些程序接口
+    对于方法的程序接口，除了EAP层外，方法也会使用自己的内部状态。
+    - parseEapReq()
+      Determine the code, identifier value, and type of the current request.
+    - processNotify()
+      Process the contents of Notification Request
+    - buildNotify()
+      Create the appropriate notification response. Returns an EAP
+      packet
+    - processIdentity()
+      Process the contents of Identity Request. Return value is
+      undefined.
+    - buildIdentity()
+      Create the appropriate identity response. Returns an EAP packet.
+    - m.check()
+      Method-specific procedure to test for the validity of a
+      message. Returns a boolean.
+    - m.process()
+      Method procedure to parse and process a request for that
+      method. Returns a methodState enumeration, a decision
+      enumeration, and a boolean.
+    - m.buildResp()
+      Method procedure to create a response message. Returns an EAP
+      packet.
+    - m.getKey()
+      Method procedure to obtain key material for use by EAP or lower
+      layers. Returns an EAP key.
+
+**** =wpa_supplicant= 中的定义
+     #+BEGIN_SRC c
+       /**
+        ,* struct eap_method - EAP method interface
+        ,* This structure defines the EAP method interface. Each method will need to
+        ,* register its own EAP type, EAP name, and set of function pointers for method
+        ,* specific operations. This interface is based on section 4.4 of RFC 4137.
+        ,*/
+       struct eap_method {
+               /**
+                ,* vendor - EAP Vendor-ID (EAP_VENDOR_*) (0 = IETF)
+                ,*/
+               int vendor;
+
+               /**
+                ,* method - EAP type number (EAP_TYPE_*)
+                ,*/
+               EapType method;
+
+               /**
+                ,* name - Name of the method (e.g., "TLS")
+                ,*/
+               const char *name;
+
+               /**
+                ,* init - Initialize an EAP method
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* Returns: Pointer to allocated private data, or %NULL on failure
+                ,*
+                ,* This function is used to initialize the EAP method explicitly
+                ,* instead of using METHOD_INIT state as specific in RFC 4137. The
+                ,* method is expected to initialize it method-specific state and return
+                ,* a pointer that will be used as the priv argument to other calls.
+                ,*/
+               void * (*init)(struct eap_sm *sm);
+
+               /**
+                ,* deinit - Deinitialize an EAP method
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,*
+                ,* Deinitialize the EAP method and free any allocated private data.
+                ,*/
+               void (*deinit)(struct eap_sm *sm, void *priv);
+
+               /**
+                ,* process - Process an EAP request
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @ret: Return values from EAP request validation and processing
+                ,* @reqData: EAP request to be processed (eapReqData)
+                ,* Returns: Pointer to allocated EAP response packet (eapRespData)
+                ,*
+                ,* This function is a combination of m.check(), m.process(), and
+                ,* m.buildResp() procedures defined in section 4.4 of RFC 4137 In other
+                ,* words, this function validates the incoming request, processes it,
+                ,* and build a response packet. m.check() and m.process() return values
+                ,* are returned through struct eap_method_ret *ret variable. Caller is
+                ,* responsible for freeing the returned EAP response packet.
+                ,*/
+               struct wpabuf * (*process)(struct eap_sm *sm, void *priv,
+                                          struct eap_method_ret *ret,
+                                          const struct wpabuf *reqData);
+
+               /**
+                ,* isKeyAvailable - Find out whether EAP method has keying material
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* Returns: %TRUE if key material (eapKeyData) is available
+                ,*/
+               Boolean (*isKeyAvailable)(struct eap_sm *sm, void *priv);
+
+               /**
+                ,* getKey - Get EAP method specific keying material (eapKeyData)
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @len: Pointer to variable to store key length (eapKeyDataLen)
+                ,* Returns: Keying material (eapKeyData) or %NULL if not available
+                ,*
+                ,* This function can be used to get the keying material from the EAP
+                ,* method. The key may already be stored in the method-specific private
+                ,* data or this function may derive the key.
+                ,*/
+               u8 * (*getKey)(struct eap_sm *sm, void *priv, size_t *len);
+
+               /**
+                ,* get_status - Get EAP method status
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @buf: Buffer for status information
+                ,* @buflen: Maximum buffer length
+                ,* @verbose: Whether to include verbose status information
+                ,* Returns: Number of bytes written to buf
+                ,*
+                ,* Query EAP method for status information. This function fills in a
+                ,* text area with current status information from the EAP method. If
+                ,* the buffer (buf) is not large enough, status information will be
+                ,* truncated to fit the buffer.
+                ,*/
+               int (*get_status)(struct eap_sm *sm, void *priv, char *buf,
+                                 size_t buflen, int verbose);
+
+               /**
+                ,* has_reauth_data - Whether method is ready for fast reauthentication
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* Returns: %TRUE or %FALSE based on whether fast reauthentication is
+                ,* possible
+                ,*
+                ,* This function is an optional handler that only EAP methods
+                ,* supporting fast re-authentication need to implement.
+                ,*/
+               Boolean (*has_reauth_data)(struct eap_sm *sm, void *priv);
+
+               /**
+                ,* deinit_for_reauth - Release data that is not needed for fast re-auth
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,*
+                ,* This function is an optional handler that only EAP methods
+                ,* supporting fast re-authentication need to implement. This is called
+                ,* when authentication has been completed and EAP state machine is
+                ,* requesting that enough state information is maintained for fast
+                ,* re-authentication
+                ,*/
+               void (*deinit_for_reauth)(struct eap_sm *sm, void *priv);
+
+               /**
+                ,* init_for_reauth - Prepare for start of fast re-authentication
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,*
+                ,* This function is an optional handler that only EAP methods
+                ,* supporting fast re-authentication need to implement. This is called
+                ,* when EAP authentication is started and EAP state machine is
+                ,* requesting fast re-authentication to be used.
+                ,*/
+               void * (*init_for_reauth)(struct eap_sm *sm, void *priv);
+
+               /**
+                ,* get_identity - Get method specific identity for re-authentication
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @len: Length of the returned identity
+                ,* Returns: Pointer to the method specific identity or %NULL if default
+                ,* identity is to be used
+                ,*
+                ,* This function is an optional handler that only EAP methods
+                ,* that use method specific identity need to implement.
+                ,*/
+               const u8 * (*get_identity)(struct eap_sm *sm, void *priv, size_t *len);
+
+               /**
+                ,* free - Free EAP method data
+                ,* @method: Pointer to the method data registered with
+                ,* eap_peer_method_register().
+                ,*
+                ,* This function will be called when the EAP method is being
+                ,* unregistered. If the EAP method allocated resources during
+                ,* registration (e.g., allocated struct eap_method), they should be
+                ,* freed in this function. No other method functions will be called
+                ,* after this call. If this function is not defined (i.e., function
+                ,* pointer is %NULL), a default handler is used to release the method
+                ,* data with free(method). This is suitable for most cases.
+                ,*/
+               void (*free)(struct eap_method *method);
+
+       #define EAP_PEER_METHOD_INTERFACE_VERSION 1
+               /**
+                ,* version - Version of the EAP peer method interface
+                ,*
+                ,* The EAP peer method implementation should set this variable to
+                ,* EAP_PEER_METHOD_INTERFACE_VERSION. This is used to verify that the
+                ,* EAP method is using supported API version when using dynamically
+                ,* loadable EAP methods.
+                ,*/
+               int version;
+
+               /**
+                ,* next - Pointer to the next EAP method
+                ,*
+                ,* This variable is used internally in the EAP method registration code
+                ,* to create a linked list of registered EAP methods.
+                ,*/
+               struct eap_method *next;
+
+       #ifdef CONFIG_DYNAMIC_EAP_METHODS
+               /**
+                ,* dl_handle - Handle for the dynamic library
+                ,*
+                ,* This variable is used internally in the EAP method registration code
+                ,* to store a handle for the dynamic library. If the method is linked
+                ,* in statically, this is %NULL.
+                ,*/
+               void *dl_handle;
+       #endif /* CONFIG_DYNAMIC_EAP_METHODS */
+
+               /**
+                ,* get_emsk - Get EAP method specific keying extended material (EMSK)
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @len: Pointer to a variable to store EMSK length
+                ,* Returns: EMSK or %NULL if not available
+                ,*
+                ,* This function can be used to get the extended keying material from
+                ,* the EAP method. The key may already be stored in the method-specific
+                ,* private data or this function may derive the key.
+                ,*/
+               u8 * (*get_emsk)(struct eap_sm *sm, void *priv, size_t *len);
+
+               /**
+                ,* getSessionId - Get EAP method specific Session-Id
+                ,* @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
+                ,* @priv: Pointer to private EAP method data from eap_method::init()
+                ,* @len: Pointer to a variable to store Session-Id length
+                ,* Returns: Session-Id or %NULL if not available
+                ,*
+                ,* This function can be used to get the Session-Id from the EAP method.
+                ,* The Session-Id may already be stored in the method-specific private
+                * data or this function may derive the Session-Id.
+                */
+               u8 * (*getSessionId)(struct eap_sm *sm, void *priv, size_t *len);
+       };    
+     #+END_SRC
+*** Peer状态机的状态
+    - =DISABLED=
+      当端口使能时，会立即转入INITIALIZE状态。
+    - =INITIALIZE=
+      当状态机激活时，初始化变量。
+    - =IDLE=
+      状态机大部分时间都处于该状态，等待事件的发生。
+    - =RECEIVED=
+      在收到EAP数据包时，会进入该状态。
+    - =GET_METHOD=
+      当请求新的类型时，会进入该状态。 要么启动了正确的方法，要么构建一
+      个Nak响应包。
+    - =METHOD=
+      方法处理发生在此状态。来自Authenticator的请求会被处理，并创建一个
+      合适的响应包。
+    - =SEND_RESPONSE=
+      该状态向底层表示一个响应包已经准备就绪，可以发送出去了。
+    - =DISCARD=
+      该状态向底层表示请求已经被丢弃，此时也不会发送响应包。
+    - =IDENTITY=
+      处理Identity方法请求，并构建一个响应包。
+    - =NOTIFICATION=
+      处理Notification方法请求，并构建一个响应包。
+    - =RETRANSMIT=
+      重传之前的响应包。
+    - =SUCCESS=
+      终态，显示成功
+    - =FAILURE=
+      终态，显示失败
+*** =wpa_supplicant= 中对状态机的定义
+    #+BEGIN_SRC c
+      /**
+       ,* struct eap_sm - EAP state machine data
+       ,*/
+      struct eap_sm {
+
+              //EAP Peer State Machine的状态
+              enum {
+                      EAP_INITIALIZE, EAP_DISABLED, EAP_IDLE, EAP_RECEIVED,
+                      EAP_GET_METHOD, EAP_METHOD, EAP_SEND_RESPONSE, EAP_DISCARD,
+                      EAP_IDENTITY, EAP_NOTIFICATION, EAP_RETRANSMIT, EAP_SUCCESS,
+                      EAP_FAILURE
+              } EAP_state;
+              /* Long-term local variables */
+              EapType selectedMethod;
+              EapMethodState methodState;
+              int lastId;//last identity, used to match a request and response
+              struct wpabuf *lastRespData;
+              EapDecision decision;
+              /* Short-term local variables */
+              Boolean rxReq;
+              Boolean rxSuccess;
+              Boolean rxFailure;
+              int reqId;
+              EapType reqMethod;
+              int reqVendor;
+              u32 reqVendorMethod;
+              Boolean ignore;
+              /* Constants */
+              int ClientTimeout;
+
+              /* Miscellaneous variables */
+              Boolean allowNotifications; /* peer state machine <-> methods */
+              struct wpabuf *eapRespData; /* peer to lower layer */
+              Boolean eapKeyAvailable; /* peer to lower layer */
+              u8 *eapKeyData; /* peer to lower layer */
+              size_t eapKeyDataLen; /* peer to lower layer */
+              u8 *eapSessionId; /* peer to lower layer */
+              size_t eapSessionIdLen; /* peer to lower layer */
+              const struct eap_method *m; /* selected EAP method */
+              /* not defined in RFC 4137 */
+              Boolean changed;
+              void *eapol_ctx;
+              struct eapol_callbacks *eapol_cb;
+              void *eap_method_priv;
+              int init_phase2;
+              int fast_reauth;
+
+              Boolean rxResp /* LEAP only */;
+              Boolean leap_done;
+              Boolean peap_done;
+              u8 req_md5[16]; /* MD5() of the current EAP packet */
+              u8 last_md5[16]; /* MD5() of the previously received EAP packet; used
+                                ,* in duplicate request detection. */
+
+              void *msg_ctx;
+              void *scard_ctx;
+              void *ssl_ctx;
+              void *ssl_ctx2;
+
+              unsigned int workaround;//RFC4137 8.3
+
+              /* Optional challenges generated in Phase 1 (EAP-FAST) */
+              u8 *peer_challenge, *auth_challenge;
+
+              int num_rounds;
+              int force_disabled;
+
+              struct wps_context *wps;
+
+              int prev_failure;
+
+              struct ext_password_data *ext_pw;
+              struct wpabuf *ext_pw_buf;
+      };   
+    #+END_SRC
+** 独立的Authenticator状态机
+   [[./images/2016/2016033102.png]]
+*** 独立的Authenticator状态机与底层之间的接口
+    The lower layer presents messages to the EAP authenticator state
+    machine by storing the packet in eapRespData and setting the
+    eapResp signal to TRUE.  
+    
+    When the EAP authenticator state machine has finished processing
+    the message, it sets one of the signals eapReq, eapNoReq,
+    eapSuccess, and eapFail. If it sets eapReq, eapSuccess, or eapFail,
+    the corresponding request (or success/failure) packet is stored in
+    eapReqData. The lower layer is responsible for actually
+    transmitting this message. 
+**** Variables (Lower Layer to Stand-Alone Authenticator)
+     - eapResp (boolean)
+       Set to TRUE in lower layer, FALSE in authenticator state
+       machine.
+       表示有一个EAP Response包需要处理。
+     - eapRespData (EAP packet)
+       Set in lower layer when eapResp is set to TRUE. The EAP packet
+       to be processed.
+     - portEnabled (boolean)
+       表明EAP认证状态机是否已经准备好通信了。
+     - retransWhile (integer)
+       Outside timer used to indicate how long the authenticator has
+       waited for a new (valid) response。
+     - eapRestart (boolean)
+       Indicates that the lower layer would like to restart
+       authentication.
+     - eapSRTT (integer)
+       Smoothed round-trip time.
+     - eapRTTVAR (integer)
+       Round-trip time variation.
+**** Variables (Stand-Alone Authenticator To Lower Layer)
+     - eapReq (boolean)
+       Set to TRUE in authenticator state machine, FALSE in lower
+       layer.
+       Indicates that a new EAP request is ready to be sent.
+     - eapNoReq (boolean)
+       Set to TRUE in authenticator state machine, FALSE in lower
+       layer.
+       Indicates the most recent response has been processed, but there
+       is no new request to send.
+     - eapSuccess (boolean)
+       Set to TRUE in authenticator state machine, FALSE in lower
+       layer.
+       Indicates that the state machine has reached the SUCCESS state.
+     - eapFail (boolean)
+       Set to TRUE in authenticator state machine, FALSE in lower
+       layer. Indicates that the state machine has reached the FAILURE
+       state.
+     - eapTimeout (boolean)
+       Set to TRUE in the TIMEOUT_FAILURE state if the authenticator
+       has reached its maximum number of retransmissions without
+       receiving a response.
+     - eapReqData (EAP packet)
+       Set in authenticator state machine when eapReq, eapSuccess, or
+       eapFail is set to TRUE. The actual EAP request to be sent (or
+       success/failure).
+     - eapKeyData (EAP key)
+       Set in authenticator state machine when keying material becomes
+       available. Set during the METHOD state.
+     - eapKeyAv ailable (boolean)
+       Set to TRUE in the SUCCESS state if keying material is
+       available. The actual key is stored in eapKeyData.
+**** Constants
+     - MaxRetrans (integer)
+       重传的次数
+
+*** 独立的Authenticato状态机与EAP方法之间的接口
+    IN: eapRespData, methodState
+    OUT: ignore, eapReqData
+    IN/OUT: currentId, (method-specific state), (policy)
+
+    Authenticator状态机与EAP方法之间的交互过程如下：
+    - m.init (in: -, out: -)
+      初始化方法相关的变量。
+    - m.buildReq (in: integer, out: EAP packet)
+      创建一个新的EAP Request，该方法也可以提供重传次数的信息。
+    - m.check (in: EAP packet, out: boolean)
+      当收到一个新的EAP Response时，方法会决定是否要处理该数据包。
+    - m.process (in: EAP packet, out: -)
+    - m.isDone (in: -, out: boolean)
+    - m.getKey (in: -, out: EAP key or NONE)
+    接下来，方法处理EAP Response并更新自己方法相关的状态。然后决定是否
+    终止当前交互过程或是继续：
+    1. 如果方法想终止当前的交互过程，则
+       - 告诉策略方法的结果以及可能的其他信息。
+       - 如果方法已经得到了它想要导出的keying material,则从m.getKey()中
+         返回该信息。
+       - 通过m.isDone()的返回值返回TRUE来表明当前想终止方法。
+    2. 否则，该方法继续发送另一个请求，过程如前面所述。
+*** 独立的Authenticator状态机局部变量
+**** Long-Term (Maintained between Packets)
+     - currentMethod (EAP type)
+       EAP type, IDENTITY, or NOTIFICATION.
+     - currentId (integer)
+       0 ~ 255或NONE。通常中PROPOSE_METHOD状态中更新。表明当前EAP请求的
+       标识值。
+     - methodState (enumeration)
+       方法状态
+     - retransCount (integer)
+       当前重传的次数。在SEND_REQUEST状态中重置，在RETRANSMIT状态中更新。
+     - lastReqData (EAP packet)
+       在SEND_REQUEST状态中设置。包含上一次发送的请求数据包。
+     - methodTimeout (integer)
+       方法提供的重新超时时间。
+**** Short-Term (Not Maintained between Packets)
+     - rxResp (boolean)
+       在RECEIVED状态中设置，显示当前收到的数据包是一个EAP响应包。
+     - respId (integer)
+       在RECEIVED状态中设置。当前EAP响应包的标识符信息。
+     - respMethod (EAP type)
+       在RECEIVED状态中设置。当前EAP响应包的方法类型。
+     - ignore (boolean)
+       在METHOD状态中设置，显示当前方法是否决定要丢弃当前的数据包。
+     - decision (enumeration)
+       在SELECT_ACTION状态中设置，临时地存储策略决定成功，失败还是继续。
+*** EAP独立的Authenticator流程
+    - calculateTimeout()
+      计算重传的超时时间。
+    - parseEapResp()
+      Determines the code, identifier value, and type of the current
+      response.
+      如果解析失败，则会设置rxResp设置为FALSE，返回a boolean, an
+      integer, and an EAP type.
+    - buildSuccess()
+      Creates an EAP Success Packet. Returns an EAP packet.
+    - buildFailure()
+      Creates an EAP Failure Packet. Returns an EAP packet.
+    - nextId()
+      Determines the next identifier value to use, based on the
+      previous one. Returns an integer.
+    - Policy.update()
+      Updates all variables related to internal policy state. The
+      return value is undefined.
+    - Policy.getNextMethod()
+      Determines the method that should be used at this point in the
+      conversation based on predefined policy.
+    - Policy.getDecision()
+      Determines if the policy will allow SUCCESS, FAIL, or is yet to
+      determine (CONTINUE). Returns a decision enumeration.
+    - m.check()
+      Method-specific procedure to test for the validity of a
+      message. Returns a boolean.
+    - m.process()
+      Method procedure to parse and process a response for that
+      method. The return value is undefined.
+    - m.init()
+      Method procedure to initialize state just before use. The return
+      value is undefined.
+    - m.reset()
+      Method procedure to indicate that the method is ending in the
+      middle of or before completion. The return value is undefined.
+    - m.isDone()
+      Method procedure to check for method completion. Returns a boolean.
+    - m.getTimeout()
+      Method procedure to determine an appropriate timeout hint for
+      that method. Returns an integer.
+    - m.getKey()
+      Method procedure to obtain key material for use by EAP or lower
+      layers. Returns an EAP key.
+    - m.buildReq()
+      Method procedure to produce the next request. Returns an EAP
+      packet.
+
+*** EAP独立的Authenticator状态
+    - =DISABLED=
+      The authenticator is disabled until the port is enabled by the lower layer.
+    - =INITIALIZE=
+      Initializes variables when the state machine is activated.
+    - =IDLE=
+      The state machine spends most of its time here, waiting for
+      something to happen.
+    - =RECEIVED=
+      This state is entered when an EAP packet is received. The packet
+      header is parsed here.
+    - =INTEGRITY_CHECK=
+      A method state in which the integrity of the incoming packet from
+      the peer is verified by the method.
+    - =METHOD_RESPONSE=
+      A method state in which the incoming packet is processed.
+    - =METHOD_REQUEST=
+      A method state in which a new request is formulated if necessary.
+    - =PROPOSE_METHOD=
+      A state in which the authenticator decides which method to try
+      next in the authentication.
+    - =SELECT_ACTION=
+      Between methods, the state machine re-evaluates whether its
+      policy is satisfied and succeeds, fails, or remains undecided.
+    - =SEND_REQUEST=
+      This state signals the lower layer that a request packet is ready
+      to be sent.
+    - =DISCARD=
+      This state signals the lower layer that the response was
+      discarded, and no new request packet will be sent at this time.
+    - =NAK=
+      This state processes Nak responses from the peer
+    - =RETRANSMIT=
+      Retransmits the previous request packet.
+    - =SUCCESS=
+      A final state indicating success.
+    - =FAILURE=
+      A final state indicating failure.
+    - =TIMEOUT_FAILURE=
+      A final state indicating failure because no response has been
+      received. Because no response was received, no new message
+      (including failure) should be sent to the peer. Note that this is
+      different from the FAILURE state, in which a message indicating
+      failure is sent to the peer. 
