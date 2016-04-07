@@ -38,6 +38,7 @@
              (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
                  (org-todo "STARTED")))))     
      #+END_SRC
+**** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
 ** ArchLinux学习 [0/2]
 *** 了解systemd工作原理
 ** 博文 [0/1]
@@ -49,10 +50,8 @@
 *** ☛ TODO 简历优化
     NEXT: 编写一个不超过2页的精简版
 ** 技术修炼
-*** 读书计划 [0/5]
+*** 读书计划 [1/4]
 **** ☛ TODO 大脑使用说明书
-**** ☛ TODO 尽管去做——无压的工作艺术
-       NEXT: 下次阅读最后三章
 **** ☛ TODO Learn More Study Less
 **** ☛ TODO 突破思维的障碍
 ** 编程语言捂热计划
@@ -99,9 +98,7 @@
 
 ** ☛ TODO Linux kernel小程序快速参考
    - NEXT: 准备第一版
-** ☛ TODO 字符终端中文显示问题
-   - 编译Linux内核，打开frame buffer的支持
-   - NEXT: 在工作电脑中安装ArchLinux
+   - 收集其他的小程序
 ** ☛ TODO Understanding Linux Network Internals
    下次从第11章开始
 * Finished Tasks
@@ -127,3 +124,11 @@
 **** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
 **** ✔ DONE 英文简历制作
      CLOSED: [2016-03-07 一 16:15]
+*** 4月 [1/1]
+**** ✔ DONE 字符终端中文显示问题
+     CLOSED: [2016-04-06 三 09:30]
+     - 编译Linux内核，打开frame buffer的支持
+     - NEXT: 在工作电脑中安装ArchLinux
+**** ✔ DONE 尽管去做——无压的工作艺术
+     CLOSED: [2016-04-06 三 09:30]
+       NEXT: 下次阅读最后三章

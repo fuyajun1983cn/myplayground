@@ -526,7 +526,7 @@
        4. It is often necessary for Generic Netlink services to return
           an ACK or error code to the client. 
 
-      参考资料： [[http://www.linuxfoundation.org/collaborate/workgroups/networking/generic_netlink_howto][generic_netlink_howto]]
+      参考资料： [[http://www.linuxfoundation.org/collaborate/workgroups/networking/generic_netlink_howto][=generic_netlink_howto=]]
 ** Socket Monitoring Interface
      =sock_diag= netlink提供了一个基于netlink的子系统用于获取socket的
      相关信息。
