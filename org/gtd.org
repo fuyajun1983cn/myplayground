@@ -41,6 +41,7 @@
 **** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
 ** ArchLinux学习 [0/2]
 *** 了解systemd工作原理
+*** fbterm导致死机的原因
 ** 博文 [0/1]
 ** 扩展学习 [2/3]
 *** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
