@@ -1,0 +1,126 @@
+
+
+* HTML5语法
+
+** 标记方法
+   - DOCTYPE声明必不可少
+     #+BEGIN_SRC html
+       <!DOCTYPE html>
+            
+     #+END_SRC
+
+   - 指定字符编码
+     #+BEGIN_SRC html
+       <meta charset="UTF-8">     
+     #+END_SRC
+
+** 可以省略标记的元素
+   
+*** 不允许写结束符的元素
+    只允许使用"<元素/>"这种形式。
+    area, base, br, col, command, embed, hr, img, input, keygen, link,
+    meta, param, source, track, wbr. 
+
+*** 可以省略结束标记的元素
+    li, dt, dd,p ,rt, rp, optgroup, option, colgroup, thread, tbody,
+    tfoot, tr, td, th. 
+
+*** 可以省略全部标记的元素
+    该元素可以完全被省略，以隐式的方式存在。
+    html, head, body, colgroup, tbody.
+
+** 新增的元素
+   - section
+     相当于div
+   - article
+     与上下文不相关的内容，相当于div
+   - aside
+     article之外的内容，相当于div
+   - header
+     页面中的一块内容或整个页面的标题，相当于div
+   - hgroup
+     对整个页面或页面中一个内容区块的标题进行组合
+     相当于div
+   - footer
+     内容区块的脚注，相当于div
+   - nav
+     页面中导航链接部分，相当于ul
+   - figure
+     一段独立的流内容， 用figcaption为其设置标题。
+   - video
+   - audio
+   - embed
+     插入各种多媒体，如Midi， Wav，AIEF，AU，MP3等 。
+   - mark
+     突出显示或高亮显示文字，相当于span
+   - progress
+     表示支行中的进程
+   - Time
+     表示时间或日期
+   - ruby
+     表示ruby注释
+   - rt
+     表示字符（中文注音或字符）的解释或发音
+   - rp
+     在ruby注释中使用，以定义不支持ruby元素的浏览器所显示的内容。
+   - wbr
+     软换行，不同于br，只在有必要换行时才换行
+   - canvas
+     表示图形，是一块画布。
+   - command
+     表示命令按钮
+   - Details
+     与summary配合使用
+   - datalist
+     可选数据的列表， 下拉列表形式
+   - datagrid
+     可选数据的列表 ，树形列表形式
+   - keygen
+     生成密钥
+   - output
+     表示不同类型的输出
+   - source
+     为媒介元素定义媒介资源
+   - menu
+     菜单列表
+
+** 新增input类型元素
+   - email
+   - url
+   - number
+   - Data Picker
+     data,month, week, time, datetime, datetime-local
+
+** 全局属性
+   - ceontentEditable: 当前元素内容是否可编辑 
+   - designMode: 整个页面内容是否可编辑，只能在Javascript脚本中修改.
+   - hidden
+     所有元素都可以使用该属性
+   - spellcheck
+     允许对input 元素和textarea元素提供语法检查
+   - tabindex
+
+* HTML5主体结构
+  section是对文章内容进行分块，article相对比较独立。
+
+** 关于section元素的使用禁忌
+   1. 不要将section元素用作设置样式的页面容器，那是div元素的工作
+   2. 如果article, aside或nav元素更符合使用条件，不要使用section
+   3. 不要为没有标题的内容区块使用section元素
+
+** 主体结构
+   head --> header(nav) --> article (section)  --> footer
+
+* 表单与文件 
+
+* CSS
+
+** 定位
+   有三种position布局方式：
+   1. relative
+   2. absolute(相对于父窗口)/fixed(相对于浏览器窗口)
+   3. sticky (粘性)
+   4. static (元素默认使用的方式，此时top, left, right, bottom以及
+      z-index属性不起作用)
+   5. center 与absolute一致，但偏移定位是以定位祖先的中心点为参考
+   6. page 与absolute一致， relative与fixed的合体。

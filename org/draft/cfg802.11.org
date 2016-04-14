@@ -383,6 +383,7 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 
 ** regulatory enforcement  
    Channel使用信息, 管制
+   =regulatory_init=
 
 ** station management  
    添加，移除和修改STA。

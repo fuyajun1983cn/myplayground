@@ -478,6 +478,13 @@
     - =wpa_ctrl.c and wpa_ctrl.h= Library functions for external
       programs to provide access to the wpa_supplicant control
       interface
+    外部程序可以通过 =ctrl_iface= 向 =wpa_supplicant= 主动发送命令，也
+    可以被动接收 =wpa_supplicant= 主动发送过来的一些事件报告。 在
+    =wpa_supplicant_ctrl_iface_init= 中调用了 =wpa_msg_register_cb= 注册了
+    callback函数 =wpa_supplicant_ctrl_iface_msg_cb= ， 在该函数中，会主动
+    将supplicant中发生的一些关键事件发送给上层监听的对端，以便他们能够
+    了解 =wpa_supplicant= 的状态变化 。在 =wpa_msg= , =wpa_msg_ctrl= ,
+    =wpa_msg_global= , =wpa_msg_no_global= , 中会自动调用该回调函数 。
 *** 主要API
      主要有两种类型的通信： 命令与底层主动发送的事件消息。
      命令由请求和响应组成。 如果要监听底层主动发上来的消息，必须注册监

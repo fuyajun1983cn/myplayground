@@ -2015,7 +2015,132 @@
 * 第十一章 WLAN布署与垂直市场       :noexport:
   
 * 第十二章 WLAN 问题处理与设计 
-  
+  A bottoms-up approach to analyzing the OSI reference model layers
+  also applies to wireless networking. A wireless networking
+  administrator should always try to fi rst determine whether problems
+  exist at layer 1 and layer 2.
+
+  许多无线网络问题发生在Layer 1，即物理层，如无电力供应的AP或是CLIENT
+  Radio驱动问题，通常会引起连接性问题或是性能问题。频谱分析仪通常是诊
+  断Layer 1 RF干涉问题的有用工具。
+
+  排除Layer 1是问题产生的根源后，WLAN管理员需要尝试确认问题是否发生在
+  数据链路层。Authentication和Association问题通常发生，是由于AP或其他
+  相关软件没有配置合适的安全设定。
+
+** Layer 2重传
+   在WLAN网络中， Layer 2重传的情况往往会引起性能方面的问题。过多的
+   Layer 2重传会从如下两个方面影响WLAN：
+   1. 重传会增加开销从而降低吞吐量。
+   2. 重传过多会导致音视频不同步以及跳变产生，导致VoIP等实时性的应用体
+      验变差。
+   一般的应用能够忍受10%的重传率，但是对于VoWiFi网络，重传率不能超过5%。 
+   导致Layer 2重传的原因是多方面的：
+   1. Multipath
+   2. RF干涉
+   3. 低SNR。
+   4. 隐藏结点
+   5. near/far问题
+   6. 功率匹配
+   7. 相邻信息干涉
+
+** RF干涉
+   有多种不同类型的干涉会极大地影响802.11无线网络的性能。干涉的设备会
+   阻止一个802.11 radio传输数据，导致DOS。 如果另一个RF源以很强的功率
+   传输数据，则802.11 radio会在CCA(clear channel assessment)阶段侦测到
+   RF能量，并延迟传输。另一种干涉会导致传输的数据帧直接被破坏。过多的
+   重传会极大地降低吞吐量。有如下几种干扰：
+   
+*** 窄波干涉
+    窄波通常只占用小部分频宽，不会对一路上有你频宽造成DoS，比如2.4GHz
+    ISM频段。窄波信号通常振幅很高，会完全中断频率空间范围内的数据传输。
+    窄波信号会中断一个或多个802.11信道。 解决之道就是用频谱分析仪定位
+    干涉的信道，并通常措施避开这些被干涉的信息。
+
+*** 宽波干涉
+    如果传输的信号会中断整个频段的通信，则认为是宽波干涉。宽波干涉会导
+    致整个2.4GHz的ISM频段出现DoS。唯一的解决办法是通常频谱分析仪定位于
+    干涉的设备，并将其移开。 
+
+*** 全波段干涉
+    这种情况一般发生在FHSS（Frequency Hopping Spread Spectrum）通信中。
+    FHSS设备不停地在整个频段跳跃，会影响在这个频段范围内的传输数据的设
+    备。 蓝牙设备是一种FHSS类型的设备， 会在整个2.4GHz ISM范围内进行跳
+    变，会影响附近工作在2.4GHz的设备。解决的办法也只能是通过频谱分析仪
+    定准干涉的设备，并将其移开。
+
+*** Adjacent Channel Interference
+    the 802.11-2012 standard requires 25 MHz of separation between the
+    center frequencies of 802.11b/g channels in order for them to be
+    considered nonoverlapping.
+
+    When designing a wireless LAN, you need overlapping coverage cells
+    in order to provide for roaming. However, the overlapping cells
+    should not have overlapping frequencies, Overlapping coverage
+    cells with overlapping frequencies cause what is known as adjacent
+    channel interference. 
+
+*** Low SNR
+    背景干扰信号强度接近接收的信号，或者接收到的信号强度太低。SNR不是
+    一个比率，而是接收到的信号与背景干扰信号之间的分贝差值（decibels）。
+    如果一个802.11设备接收到一个-70的信号，此时背景干扰信号强度为-95dBm，
+    则SNR为25 dB。
+
+    通常SNR在25以上，则认为信号质量好，而低于10则认为信号质量很差。 
+
+*** 功率设置不匹配
+    AP的功率与STA的功率设备不匹配，导致出现这种情况：AP发出的数据，STA
+    能收到，但是STA回的ACK，AP却收不到。 
+
+*** Near/Far
+    离AP较近骨刺功率较大的设备会影响离AP较远，且功能偏低的设备与AP之间
+    的数据通信。 
+
+*** 隐藏结点问题
+    连接到同一个AP中的两个设备不能相互侦测到对方的存在，导致数据传输过
+    程中产生冲突，也会导致Layer 2重传。
+
+    通常的一个解决方案是：AP禁掉2.4GHz下的1， 2M数据传输率。 原因有二：
+    1. 容量
+    2. 1，2M数据传输率覆盖范围大，容易造成隐藏结点的问题。
+
+    解决隐藏结点有如下方法：
+    1. 使用RTS/CTS来侦测是否存在隐藏结点的问题，也可作为解决隐藏结点问
+       题的临时方案。
+    2. 所有STA的功率增加， 这个方法可行，但不推荐，会增加co-channel干
+       扰。
+    3. 移除障碍
+    4. 移动隐藏结点，使他们更接近。
+    5. 增加另一个AP。
+
+** 802.11覆盖范围的考量
+   
+*** 动态速率调整
+    低速率的设备，会影响处于同一个BSS中的高速率设备的吞吐量。
+
+*** Roaming
+    Rooming问题的产生通常是由于差劲的网络设计或者是WiFi设备驱动的问题。
+    Rooming的决定一般跟WiFi芯片厂商有关，每个厂家的行为都可以是特有的，
+    但一般会根据如下一些条件决定是否进行Roaming：
+    1. RSSI
+    2. Noise Level
+    3. bit-error rate
+    4. 重传率
+
+
+Keith Parsons
+
+*** Co-channel Interference
+    The unnecessary medium contention overhead that occurs because all
+    the APs are on the same channel is called co-channel interference
+    (CCI).
+
+** Performance
+   
+   
+
+
+
 * 第十三章 802.11网络安全架构
 
 ** 802.11 security basics

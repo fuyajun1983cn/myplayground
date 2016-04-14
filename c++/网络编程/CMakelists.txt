@@ -1,0 +1,6 @@
+(add_executable getip getip.c)
+(add_executable server server.c)
+(add_executable client client.c)
+(add_executable listener listener.c)
+(add_executable talker talker.c)
+(add_executable broacaster broacaster.c)

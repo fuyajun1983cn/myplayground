@@ -38,7 +38,7 @@
    用是受限的，与之关联的参数是 =OperControlledDirections= 。
 
 ** 端口访问控制操作的范围
-   端口访问控制操作假定操作的端口为单一的Supplicant和单一的Authenticator提供了一个
+   端口访问控制操作假定: 操作的端口为单一的Supplicant和单一的Authenticator提供了一个
    点到点连接。这样，授权的决定可以以端口为基准做出。
 
 ** 系统、端口和系统角色
@@ -47,7 +47,7 @@
    两个角色之一：
    1. Authenticator
    2. Supplicant
-   3. Authentication Server
+   3. Authentication Server (AS)
 
 ** 受控和非受控访问
    [[./images/2016/2016040801.png]]
@@ -99,7 +99,45 @@
     [[./images/2016/2016040805.png]]
     
 * 端口访问控制协议
+  
+** 协议操作
+   认证过程中的操作利用EAP作为Supplicant与Authenticator Server之间传递
+   认证信息的方式。EAP是一种支持多种认证机制的通用协议。 
 
+   本标准中的方法就是要定义一种封装格式，允许EAP Message直接地通过LAN
+   MAC服务来携带传输。这种封装格式，称为EAPoL，它用于Supplicant PAE与
+   Authenticator PAE之间的所有通信过程。 
+
+   每个PAE由两部分组成： 一组PACP状态机以及状态机通信所依赖的Higher
+   Layer。 对于Supplicant PAE， Higher Layer是由EAP功能模块组成，而对于
+   Authenticator PAE，Higher Layer则是EAP与AAA功能的组合。
+
+   [[./images/2016/2016041301.png]]
+
+** 状态机
+
+*** Supplicant state machines
+
+**** Supplicant PAE state machine
+
+**** Key Receive state machine
+
+**** Supplicant Backend state machine
+
+**** Supplicant Authenticator state machines
+
+**** Authenticator PAE(Port Access Entity) state machine
+
+**** Backend Authentication state machine
+
+**** Reauthentication Timer state machine
+
+**** Authenticator Key Transmit state machine
+
+**** Key Receive state machine
+
+**** Controlled Directions state machine
+     
 * 端口访问控制的管理
 
 * 管理协议

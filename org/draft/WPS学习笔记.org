@@ -82,7 +82,7 @@
         - 与这种STA进行EAP-WSC交互时，AP必须等待STA发送EAPOL-Start交互
           帧,才允许进行之后的WAP-WSC交互过程。
 
-
+          
 * In-band Setup Using a Standalone AP/Registrar
 
   [[./images/2016/2016011402.png]]
