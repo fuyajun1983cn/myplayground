@@ -20,6 +20,10 @@ bin/
 db.sqlite3
 *.html
 *.htm
+!web/html/*.html
+!web/css/*.html
+!web/javascript/*.html
 push_code.sh
 node_modules/
 .gradle/
+.sass-cache

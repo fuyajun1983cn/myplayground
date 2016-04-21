@@ -1,7 +1,57 @@
-#+TITLE: Air Sniffer抓取和分析要点记录
+#+TITLE: 网络抓包工具使用
 #+AUTHOR: Yajun Fu
 #+EMAIL: fuyajun1983cn AT 163 DOT com
 #+STARTUP:overview
 #+STARTUP: hidestars
 #+OPTIONS: toc:t
 
+* WireShark
+
+** 可以使用WireShark完成的任务列表
+   - Find the top talkers on the network
+   - Identify the protocols and applications in use
+   - Determine the average packets per second rate and bytes per
+     second rate of an application or all network traffic on a link
+   - List all hosts communicating
+   - Learn the packet lengths used by a data transfer application
+   - Recognize the most common connection problems
+   - Spot delays between client requests due to slow processing
+   - Locate misconfigured hosts
+   - Detect network or host congestion that is slowing down file
+     transfers
+   - Identify asynchronous traffic prioritization
+   - Graph HTTP flows to examine website referrals rates
+   - Identify unusual scanning traffic on the network
+   - Quickly identify HTTP error responses indicating client and
+     server problems
+   - Quickly identify VoIP error responses indicating client, server
+     or global errors
+   - Build graphs to compare traffic behavior
+   - Graph application throughput and compare to overall link traffic
+     seen
+   - Identify applications that do not encrypt traffic
+   - Play back VoIP conversations to hear the effects of various
+     network problems on network traffic
+   - Perform passive operating system and application use detection
+   - Spot unusual protocols and unrecognized port number usage on the
+     network
+   - Examine the startup process of hosts and applications on the
+     network
+   - Identify average and unacceptable service response times (SRT)
+   - Graph intervals of periodic packet generation applications or
+     protocols
+
+** Identify Network Problems
+   
+*** slow network communications
+    Slow network performance can be due to high latency, access
+    errors, excessive number of packets required to obtain data or a
+    number of other causes. 
+
+    When poor performance is due to *delays* in the communications, look
+    for /large gaps in time/ between a request and acknowledgement, an
+    acknowledgement and a response, etc. 
+
+
+
+    

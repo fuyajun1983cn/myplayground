@@ -1,5 +1,6 @@
 #+STARTUP: overview
 #+STARTUP: hidestars
+#+TITLE: WPS学习笔记
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
@@ -9,7 +10,7 @@
   [[./images/2016/2016011401.png]]
 
 ** 概述   
-   Wi-Fi Simple Configuration 定义 了一些新的802.11 IE。 这些IE包含在
+   Wi-Fi Simple Configuration 定义了一些新的802.11 IE。 这些IE包含在
    Beacon，Probe Request和Probe Response帧中 。
    这些IE的目的主要是告知其他设备执行WSC操作的能力。
 
@@ -19,14 +20,14 @@
    1. 解决基本的连接性问题。
    2. 提供Enrollee和Registar之间的相互标识信息，启用私密配置功能。
    3. 安全地将WLAN设置和其他的配置信息从Registar传递到Enrollee。
-   4. 建立每个设置的角色（AP，Registar和Enrollee）
+   4. 建立每个设备的角色（AP，Registar和Enrollee）
    5. 建立Extended Master Session Key EMSK，用于保护更多的应用相关的配
       置功能。
 
    协议工作于两个阶段：
    1. discovery phase
       交互Registar和Enrollee之间的描述性信息。
-      目的主要是能发现周围的Registrar设备，能使自己能被Registar发现。
+      目的主要是能发现周围的Registrar设备，使自己能被Registar发现。
       STA enrollee会先发送一个M1消息请求关联到Registar。
 
    2. 第二阶段
@@ -40,13 +41,49 @@
 
     Recommended timeout values are: retransmission timeout = 5
     seconds, individual message processing timeout = 15 seconds,
-    overall timeout for the entire protocol to complete = 2 minutes.  
+    overall timeout for the entire protocol to complete = 2 minutes.
+
+*** EAP Transport of Registration Protocol
+    WSC使用802.1X和EAP来传输带内注册协议消息，属性值以大端顺序传输。协
+    议映射到EAP的某个客制的方法中。 
+    WSC不要求AP支持RADIUS，网络中也不需要包含一个认证服务器。
+    1. Enrollees using Wi-Fi Simple Configuration are not granted
+       direct access to the WLAN through the Wi-Fi Simple
+       Configuration custom EAP method. The EAP method is used to
+       configure the Enrollee with a Credential that can be used
+       subsequently with whatever access method is supported by that
+       WLAN. (注意EAP method与Access Method supported by the WLAN)
+       
+       如果AP只支持WPA2-Personal，则Enrollee只通过802.11X过程获取PSK，
+       然后解除关联，并使用获取的PSK重新连接网络。 
+       如果AP支持802.1X认证，则Enrollee会首先运行WSC EAP的方法获取共享
+       的Credential，然后使用该密钥通过其他的EAP方法与网络重新连接。
+
+    2. EAP message format
+
+       [[./images/2016/2016042103.png]]
+
+    3. EAP State Machine for Enrollee Registration
+
+       [[./images/2016/2016042104.png]]
+
+    4. EAP State Machine for Adding an External Registrar
+
+       [[./images/2016/2016042105.png]]
+
 
 ** 消息
+   Registration Protocol消息通常封装在其他的消息类型中，如EAP或UPnP。
+
+*** TLV
+    大部分WSC属性是简单的数据结构，但是有些是嵌套的数据结构，本身包含
+    其他的TLV属性。 
+
+    [[./images/2016/2016042101.png]]
 
 *** 管理帧
     
-**** 管理格式
+**** 管理帧格式
      WSC Device Discovery是通过使用包含在Beacon，Probe Request和Probe
      Response中的IE信息来完成的。WSC的IE信息格式遵循IEEE 802.11的格式，
      如下图所示 ：
@@ -81,7 +118,12 @@
         - 与这种STA进行EAP-WSC交互时，AP必须等待STA发送EAPOL-Start交互
           帧,才允许进行之后的WAP-WSC交互过程。
 
+     7. WSC的Element ID值为221， OUI的值为 0x 00 50 F2 04
 
+*** 消息类型
+
+    [[./images/2016/2016042102.png]]
+          
 * In-band Setup Using a Standalone AP/Registrar
 
   [[./images/2016/2016011402.png]]
@@ -103,89 +145,131 @@
 
 ** P2P EAP WSC交互过程
 
-   - EAPOL-Start
-     EAPOL: SUPP_PAE entering state CONNECTING 
-     EAPOL: txStart
-   - EAPOL-Packet (EAPOL-Reqeust/Identity)(接收) 
-     RX EAPOL   
-     EAPOL: SUPP_PAE entering state RESTART
-     EAP: EAP entering state INITIALIZE
-     EAP: EAP entering state IDLE
-     EAPOL: SUPP_PAE entering state AUTHENTICATING
-     EAPOL: SUPP_BE entering state REQUEST
-     EAP: EAP entering state RECEIVED
-     EAP: Received EAP-Request id=75 method=1 vendor=0 vendorMethod=0
-     EAP: EAP entering state IDENTITY
-   - EAPOL-Packet (EAPOL-Response/Identity)(发送)
-     EAP: EAP entering state SEND_RESPONSE
-     EAP: EAP entering state IDLE
-     EAPOL: SUPP_BE entering state RESPONSE
-     TX EAPOL
-     EAPOL: SUPP_BE entering state RECEIVE
-   - EAPOL-Packet (EAPOL-Request/Start)（接收）
-     EAPOL: Received EAP-Packet frame
-     EAPOL: SUPP_BE entering state REQUEST
-     EAP: EAP entering state RECEIVED
-     EAP: Received EAP-Request id=76 method=254 vendor=14122
-     vendorMethod=1(建议一个方法)
-     EAP: EAP entering state GET_METHOD
-     EAP: Initialize selected EAP method: vendor 14122 method 1 (WSC)
-     EAP-WSC: Fragment size limit 1398
-     EAP: EAP entering state METHOD
-     EAP-WSC: Received packet: Op-Code 1 Flags 0x0 Message Length 0
-     EAP-WSC: Received start
-     EAP-WSC: WAIT_START -> MESG
-     EAP-WSC: MESG -> MESG
-     EAP-WSC: Generating Response
-     EAP-WSC: Sending out 406 bytes (message sent completely)
-     EAP-WSC: MESG -> MESG
-     EAP: method process -> ignore=FALSE methodState=MAY_CONT
-     decision=FAIL
-     EAP: EAP entering state SEND_RESPONSE
-     EAP: EAP entering state IDLE
-     EAPOL: SUPP_BE entering state RESPONSE
-      EAPOL: SUPP_BE entering state RECEIVE  (M1已经发送出去)
-   - EAPOL Packet (EAPOL-Request/M2)
-     EAPOL: Received EAP-Packet frame
-     EAPOL: SUPP_BE entering state REQUEST
-     EAP: EAP entering state RECEIVED
-     EAP: Received EAP-Request id=77 method=254 vendor=14122
-     vendorMethod=1
-     EAP: EAP entering state METHOD
-     EAP-WSC: Received packet: Op-Code 4 Flags 0x0 Message Length 0
-     WPS: Received WSC_MSG(解析WSC-MSG)
-     
+   P2P GO协商成功之后 ，作为GC，会调用 =wpas_start_wps_enrollee= 开始WPS
+   协商过程，以获取GO提供的PMK。 
+   如果WPS方法使用PBC方式，则直接进入 =wpas_wps_start_pbc= 
+   在该函数中，会添加一个新网络，并设置一些参数：
+   #+BEGIN_SRC sh
+     key_mgmt  WPS
+     eap  WSC
+     identity  "WFA-SimpleConfig-Enrollee-1-0"
+     phase1  "pbc=1"
+   #+END_SRC
+   
+   然后扫描特定的SSID，即GO创建的SSID。
+   
+   在函数 =wpas_start_assoc_cb= 会向GO发出Association Request。 
+   之后，会调用：
+   1. =wpa_supplicant_rsn_supp_set_config=
+      设置 =rsn_supp_config=
+   2. =wpa_supplicant_initiate_eapol=
+      配置EAPOL状态机。
+   
+   关联成功后， 在函数 =wpa_supplicant_event_assoc= ，首先会调用
+   =wpa_sm_notify_assoc= 通知WPA状态机，当前网络已经连接上。 
+   调用 =eapol_sm_notify_portEnabled= ，发生如下变化：
+   =SUPP_PAE=
+   进入 =CONNECTING=, 启用timer, 1秒钟执行一次，之后进入 =IDLE=
+   =EAP=
+   进入 =INITIALIZE= ，完成初始化进入 =IDLE= 。
+   
+   设置等待对方一第一包EAPOL Packet的超时时间为10秒。
+   
+   1秒钟后，Enrolle会发送 =EAPOL-START= ,使用的函数是：
+   =wpa_supplicant_eapol_send= 。
 
-wpas_wps_eapol_cb  //checking whether fast association is possible
-wps完成后，会调用该函数。设置wpa_s->reassociate=1。 
+   接收EAPOL Packet的代码如下：
+   #+BEGIN_SRC c
+     drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));
+     if (drv->eapol_sock < 0) {
+             wpa_printf(MSG_ERROR, "nl80211: socket(PF_PACKET, SOCK_DGRAM, ETH_P_PAE) failed: %s",
+                        strerror(errno));
+             goto failed;
+     }
 
+     if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
+     {
+             wpa_printf(MSG_INFO, "nl80211: Could not register read socket for eapol");
+             goto failed;
+     }
 
-p2p_go_configured --> wpa_supplicant_ap_wps_pbc
+   #+END_SRC
+   
+   负责处理的函数是 =handle_eapol= 。
 
-入口 函数之一：
-sme_send_authentication
-
-wpa_supplicant_deauthenticate --> wpa_supplicant_event(...,
-EVENT_DEAUTH, ...) --> wpas_event_deauth --> wpas_event_disconnect  -->
-wpa_supplicant_event_disassoc -- > wpa_supplicant_event_disassoc_finish
-
-
-wps->p2p_dev_addr
-                           p2p_get_go_dev_addr
-eap_init -->　eap_wsc_init　-------------------> wps_init --> 
-
-
-struct wps_registrar *reg = wpa_s->ap_iface->bss[0]->wps->registrar;
-
-reg->p2p_dev_addr
-
-wps_registrar_button_pushed  (wps_registrar.c)
-
-if (p2p_dev_addr)
-   os_memcpy(reg->p2p_dev_addr, p2p_dev_addr, ETH_ALEN);
-else
-   os_memset(reg->p2p_dev_addr, 0, ETH_ALEN);
-
-
-
+   现在观察一下 =PAE_BE= 状态机与 =EAP= 状态机的状态变化：
+   
+   =PAE_BE= 为1号状态机， =EAP= 为2号状态机
+   
+   1. 准备发送 =EAPOL-START= 阶段
+      从 =IDLE= 进入 =CONNECTING= 
+      发送 txStart
+   
+   2. 收到 =EAPOL-Identity= 
+      =SUPP_PAE= 进入 =RESTART= 状态
+      =EAP= 状态机进入 =INITIALIZE= 进入实始化，之后进入 =IDLE= 。
+      之后， =SUPP_PAE= 进入状态 =AUTHENTICATING= 后，进行一些变量设置后，
+      进入 =REQUEST= 状态. 
+      =EAP= 进入 =RECEIVED= 状态，解析EAP Request Packet后，进入
+      =IDENTITY= 状态。 处理完后，随后进入 =SEND_RESPONSE= ，随后进
+      入 =IDLE= 。
+   
+   3. 发送 =EAPOL-Identity= 的响应包
+      =SUPP_BE= 进入状态 =RESPONSE= ，发送成功后，进入 =RECEIVE=
+      
+   4. 接收 =Start= EAP Response帧中。
+      =SUPP_BE= 进入 =REQUEST=
+      =EAP= 进入状态 =RECEIVED= ， 解析数据包后，进入 =GET_METHOD= . 
+      比如Methods为（WSC）， 接受请求的方法后，会调用对应方法的初始化函数
+      。
+      之后进入 =METHOD= , 调用EAP方法的处理函数 。
+      处理完后，进入 =SEND_RESPONSE= ， 随后进入 =IDLE= 。 
+      =SUPP_BE= 进入状态 =RESPONSE= 。
+   
+   5. 发送 =M1= 
+      当发送完 M1  packet后， =SUPP_BE= 进入 =RECEIVE= 状态，
+   
+   6. 接收 =M2=
+      =SUPP_BE= 进入 =REQUEST= 
+      =EAP= 进入 =RECEIVED= ，解析数据包后，进入 =METHOD= 状态 ，并调用其
+      消息处理函数 。处理完后， =EAP= 进入 =SEND_RESPONSE= , 随后进入
+      =IDLE= 。 =SUPP_BE= 进入状态 =RESPONSE= .
+   
+   7. 发送 =M3=
+      发送后， =SUPP_BE= 进入 =RECEIVE=
+   
+   8. 接收 =M4= 
+      收到数据后， =SUPP_BE= 进入 =REQUEST= 
+      =EAP= 进入 =RECEIVED= 状态，解析数据包后， 进入 =METHOD= 状态。 并
+      调用方法的处理函数。处理完后， =EAP= 进入 =SEND_RESPONSE= , 随后进入
+      =IDLE= 。 =SUPP_BE= 进入状态 =RESPONSE= .
+   
+   9. 发送 =M5=
+      发送后， =SUPP_BE= 进入 =RECEIVE=
+   
+   10. 接收 =M6= 
+       收到数据后， =SUPP_BE= 进入 =REQUEST= 
+       =EAP= 进入 =RECEIVED= 状态，解析数据包后， 进入 =METHOD= 状态。 并
+       调用方法的处理函数 。处理完后， =EAP= 进入 =SEND_RESPONSE= , 随后进入
+       =IDLE= 。 =SUPP_BE= 进入状态 =RESPONSE= .
+    
+   11. 发送 =M7=
+       发送后， =SUPP_BE= 进入 =RECEIVE=
+    
+   12. 接收 =M8=
+       收到数据后， =SUPP_BE= 进入 =REQUEST= 
+       =EAP= 进入 =RECEIVED= 状态，解析数据包后， 进入 =METHOD= 状态。 并
+       调用方法的处理函数 。处理完后， =EAP= 进入 =SEND_RESPONSE= , 随后进入
+       =IDLE= 。 =SUPP_BE= 进入状态 =RESPONSE= .
+       这一步收到了Credentials信息。
+    
+   13. 发送 =WSC_Done=
+       发送后， =SUPP_BE= 进入 =RECEIVE=
+    
+   14. 接收 =EAP-Failure=
+       收到数据后， =SUPP_BE= 进入 =REQUEST= 
+       =SUPP_PAE= 进入 =HELD= 状态，随后进入 =RECEIVE= 状态，随后进入 =FAIL=
+       状态，随后进入 =IDLE=
+    
+    
 

@@ -1,5 +1,5 @@
 -*- coding: chinese-gbk-dos -*-
-#+TITLE: [802.11n  A.Survival.Guide(2012.4)].Matthew.Gast学习笔记
+#+TITLE: 802.11n学习笔记
 #+AUTHOR: Yajun Fu
 #+EMAIL: yajun.fu AT 163 DOT com
 #+STARTUP: overview
@@ -13,16 +13,18 @@
    2. 802.11b, 最高传输速率是11Mbps， 实际吞吐率是5-6Mbps。
    3. 802.11a/g, 最高传输速率是54Mbps, 实际吞吐率是25-30Mbps。
 
-** 802.11n的改进目标
+** 802.11n的一些考量
 
    1. 增加协议的效率，避免传输速率的提升受到协议开销的拖累。
    2. 把事情做对比快速做出来更重要。
-   3. 传统的802.11a/b/g，链路层和物理层是独立的，改进速度多半认为是物 理层的一个任务。而改进的方法就是让信号传输更快。
-   4. 802.11n的一个技术基础就是使用了MIMO技术。在通信过程中，多径效 应1限制了传输带宽或传输速率。
-   5. 在MIMO系统中，发射器和接收器可以复用多个路径。每个路径获得不同的 数据集, 不易受到多径效应的影响 。
-   6. 使用40MHz频宽，但与其他非802.11的设备存在干扰，所以一般2.4GHz的 频段一般会禁用40MHz的频宽。
+   3. 传统的802.11a/b/g，链路层和物理层是独立的，改进速度多半认为是物理层的一个任务。而改进的方法就是让信号传输更快。
+   4. 802.11n的一个技术基础就是使用了MIMO技术。在此之前 ，在通信过程中，多径效应限制了传输带宽或传输速率。
+   5. 在MIMO系统中，发射器和接收器可以复用多个路径。每个路径获得不同的
+      数据集, 不易受到多径效应的影响, 因为每个天线传输的数据是不同的数
+      据，相互之间不产生干扰。
+   6. 使用40MHz频宽，但与其他非802.11的设备存在干扰，所以一般2.4GHz的频段一般会禁用40MHz的频宽。
    7. 增加效率的方法是：frame aggregation。
-   8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备 来讲，算是一个需要考量的缺点。
+   8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备来讲，算是一个需要考量的缺点。
 
 ** 物理层
 
@@ -31,11 +33,15 @@
       - 增加协议的效率，即单位时间内传输更多的数据。
    2. MIMO
       - 在MIMO系统中，所在天线都是同时活跃。
+      - MIMO表示方法
+        TxR:S
+        S代表Spatial Stream的数据，它的数量决定了设备的最大传输速率。
+        R代表接收天线数量，T代表发送天线数量，T和R的值要大于或等于S。
    3. 提高速度
       - 保留了20MHz的频道，但是增加了802.11a/g中未用到的子载波。
       - 支持在40MHz的频道。
       - 802.11有许多选项一起决定了数据传输速率
-      - 对于采用单天线的802.11n的设备，数据传输速率会得到一点提升，因 为802.11的每个信道会携带更多的subcarriers。
+      - 对于采用单天线的802.11n的设备，数据传输速率会得到一点提升，因为802.11的每个信道会携带更多的subcarriers。
       - Beamforming, 波束，可以定向传输信号， 主要是对接收方有利。
 
 ** Mac层
@@ -43,10 +49,12 @@
    1. 基础
       - 帧的大小稍微比802.11的数据帧大些。
       - 管理帧包含了HT能力信息的元素，来表明它是一个802.11n的网络。
-      - 设备在发送数据包的过程中，需要包含HT IE信息来表明它是一个 802.11n的设备。同时，根据AP发送过来的Beacon帧的信息，来判断AP 是否支持802.11n网络。
+      - 设备在发送数据包的过程中，需要包含HT IE信息来表明它是一个
+        802.11n的设备。同时,根据AP发送过来的Beacon帧的信息，来判断AP是
+        否支持802.11n网络。 
       - 802.11n定义了两种类型的帧：（A-MPDU）和（A-MSDU） 采用聚合帧是
         为了把时间尽量用在传输上。另外，也需要考虑一点，就是聚合帧的大
-        小设置要合理，不能 影响小的高优先级帧。
+        小设置要合理，不能影响小的,高优先级帧。
         - *A-MPDU*：Aggregate MAC Protocol Data Unit
           
           这是一种更常见的聚合帧形式，它的大小主要由PLCP限制，可以长达
@@ -62,11 +70,12 @@
           MAC 帧。这种帧需要更多的软件上的支持，因为网络驱动必须将多个
           高层数据包整合成单个的MAC帧的负载。
 
-          另外，这两个聚合帧可以联合使用，如A-MPDU的子帧可以是一个A-MSDU聚合帧。
+          另外，这两个聚合帧可以联合使用，如 =A-MPDU= 的子帧可以是一个
+          =A-MSDU= 聚合帧。
 
       - Block Acknowledgment (BA) 
 
-        802.11n接收端可以选择向包含在一个聚合中的某个帧发送一个ACK，还
+        802.11n接收端可以选择向包含在一个聚合中的某个帧发送一个ACK，
         不用向里面的每个帧都发送ACK。
 
       - 保护机制  
@@ -89,13 +98,13 @@
 
         3. 20 MHz保护模式
 
-           种模式只针对20/40 MHz的网络，当需要在这两种带宽动态变换时。
+           这种模式只针对20/40 MHz的网络，当需要在这两种带宽动态变换时。
 
         4. Non-HT保护模式
 
       - Security
         
-        802.11n禁用了TKIP和WEP，使用CCMP，802.11a/b/g设备仍然允许使用
+        802.11n禁用了TKIP和WEP，使用CCMP， =802.11a/b/g= 设备仍然允许使用
         TKIP，一些认证过的11n设备也实现了TKIP和WEP，但是禁止它们使用
         11n的速率。
 
@@ -109,7 +118,8 @@
 
    1. 频道结构和布局
       
-      - 频道结构与802.11a/g类似，基于OFDM，将无线信道分成若干个子负载，且想互之间正交。
+      - 频道结构与802.11a/g类似，基于OFDM，将无线信道分成若干个子负载，
+        且相互之间正交。
 
       - 与802.11a/g使用相同的调制和编号方案。
 
@@ -119,20 +129,87 @@
 
       - 增加了4个子负载，而无需额外增加Pilot子负载。
 
-      - Pilot子负载用于频道测量和校准，是一种开销，就像MIMO增强数据 传输的效率一数, 它增强了Pilot负载操作的效率。
+      - Pilot子负载用于频道测量和校准，是一种开销，就像MIMO增强数据传输的效率一数, 它增强了Pilot负载操作的效率。
 
       - 支持40Mhz的信道上操作
+
+      - 802.11n要考虑当局的管制政策，且需要有DFS避让机制。
 
    3. 传输:Modulation & Guard Interval
 
       - 当一个帧传输时，有两点需要一致：
 
-        1. 发送端选择Modulation Rate和Coding，即描述怎样将数据 转变成无线电波。
+        1. 发送端选择Modulation Rate和Coding，即描述怎样将数据转变成无
+           线电波。
+           MSC(Modulation and Coding Set)的编号描述了对于一个数据传输
+           来说，使用的Spatial Numbers的数量，Modulation方法（BPSK,
+           QPSK, 16-QAM, 64-QAM）以及纠错码。
 
         2. 发送端必须选择一个Guard Interval, 802.11n需要更短的Guard
            Interval。
 
+   4. PLCP Framing
+      802.11n使用PLCP定义了一种新的物理层帧，它支持三种模式：
+      1. =Non-HT mode=
+         legacy mode
+
+      2. HT mixed mode
+         这种模式下，会考虑与之前设备的兼容性。
+
+      3. =HT-Greenfield mode=
+         这种模式下，不会考虑与之前设备的兼容性。
+
+   5. 速率
+
+      #+CAPTION: 20 MHz speeds (long guard interval)
+      [[./images/2016/2016042701.png]]
+
+      #+CAPTION: 40 MHz speeds (long guard interval)
+      [[./images/2016/2016042702.png]]
+
+   6. Mandatory PHY Features
+
+      #+CAPTION: Feature classification of PHY features
+      [[./images/2016/2016042703.png]]
+
+
 ** 与互操作性相关的高级物理层特性
+   
+*** Radio Medium Coordination
+    OBSS(Overlapping BSS): Another network that uses available
+    airtime. 
+    网络设计的基本则就是最小化OBSS的存在。 尽量使周围的AP使用不同的信
+    道进行数据传输。 
+
+    11n后，由于引入了40MHz的信道， 需要额外的方法来检测使用了40MHz的
+    OBSS。 
+
+*** CCA（Clear-Channel Assessment）
+    CCA主要用于检测当前准备进行数据传输的信道是否处于忙状态。
+    对于11n设备，当工作于20MHz的信道上时，检测媒介是否忙碌的规则如下：
+    - Signal detection
+      信号强度大于-80dBm则认为当前信道处于忙状态。
+    - Energy detection
+      cutoff value: -62 dBm
+    - Greenfield detection
+      -72 dBm
+
+    当工作于40MHz信道上时，则会同时检测Primary Channel和Second Channel
+    是否处于忙状态。
+
+*** Channel Width Selection (20/40 MHz BSS)
+    一般情况下，2.4G下，不重叠的40MHz带宽的信道很少，很容易出现干扰问
+    题。 
+
+    当使用40MHz带宽传输时，周围的设备只会根据主信道的NAV值进行更新。
+
+*** 40 MHz Intolerance for Channel Width Interoperability
+
+    11n设备在40MHz下传输数据，会影响在20MHz下的数据传输。 
+
+    因此，提出了一种机制：Forty MHz Intolerance
+    用于2.4G网络，它包含在HT Capabilities IE中，告知正在使用40Mhz进行
+    传输的AP禁用40MHz数据传输，改用20MHz的带宽进行数据传输。
 
 ** 与性能相关的高级物理层特性
 
@@ -183,7 +260,9 @@
 
    - Space-Time Block Coding (STBC)
 
-     当无线链路数量超过空中流的数目时，可以使用STBC。
+     当无线链路数量超过空中流的数目时，可以使用STBC。Space-Time Block
+     Coding (STBC) requires two radio chains to transmit a single
+     spatial stream. 
 
    - Low-Density Parity Check (LDPC) 
 
@@ -210,6 +289,79 @@
      - SU: Performed in STA
      - MU: Performed in AP, need to collect channel of all users.
 
+* HT20 HT40 Coexistence
+  11n有两种频宽模式：HT(High Throughput)20和HT40。
+
+  HT20是出于兼容性考虑：比如，一个区域内存在11b/g信号，那么为了尽量减
+  少对它们的干扰，需要设定为HT20，以减少频带的重叠。
+
+  HT40是出于高性能考虑：HT40相当于两个HT20的捆绑，一个是主，一个是辅。
+  主信道发送beacon报文和部分数据报文，辅信道发送其他报文。
+
+** Frame
+
+*** AP
+    AP在Beacon中，会通过IE中的信息来表明是否支持20/40 Coexistence
+
+    [[./images/2016/2016042801.png]]
+
+*** STA
+    STA在Association Request帧中，也会通过IE中的信息来表明是否支持
+    20/40 Coexistence.
+
+    [[./images/2016/2016042802.png]]
+
+*** HT20/40 BSS Coexistence Management (Action Frame)
+    STA可以通过此Action帧来通知周围AP从HT 40MHz转为HT 20MHz。 
+
+    [[./images/2016/2016042803.png]]
+
+** 40 MHz Intolerance
+   40MHz传输会对20MHz重叠的网络产生很大的影响，802.11n引入了一种机制，
+   可以告知周围的AP："Please don’t use 40 MHz transmissions near me."
+   这样，周围的AP就会关闭40MHz的带宽传输。
+
+** OBSS
+   与当前网络使用相同或部分相同信道的网络。
+
+** transition between HT40 and HT20
+   There are many things that will cause fallback to 20 MHz. But the
+   most frequently encountered reasons are: 
+   1) If an AP detects another BSS (wireless network) within +/1 40
+      MHz, i.e. two channels, of its own channel. For example, if an
+      AP is set to Channel 6, another network operating anywhere from
+      Channel 4 to 8 will trigger fallback. 
+   2) A client device with its 40 MHz ("fat channel") intolerant bit
+      set is detected
+   An example of another cause for fallback is that if an 802.11n
+   station sends a “20/40 BSS Coexistence” management frame containing
+   one “20/40 BSS Intolerant Channel Report” element to AP. If the
+   report includes a channel in its channel list that is within the
+   +/- 40 MHz of its set channel, the AP will fall back to 20 MHz
+   mode.
+
+   The AP or STA (client device) will remain in 20 MHz mode as long as
+   there is an overlapping BSS.
+
+   Both idle (no traffic) and active (with traffic) neighboring APs
+   will cause fallback to 20 MHz.
+
+   All routers designed to the final 802.11n must not switch to 40 MHz
+   bandwidth mode in the 2.4 GHz band unless asked to do.
+
+*** STA 20/40 Coexistence Overall Flow
+    收到一个 20/40 BSS Coexistence Management Frame， 
+
+    [[./images/2016/2016042804.png]]
+
+    如果其中的Information Request为真，则会执行一次扫描，收集相关信息。
+
+    接收AP的Beacon信息，收集HT相关的信息, 并根据情况选择是否进行HT20与
+    HT40之间的切换。
+
+*** HT40 to HT20
+    
+*** HT20 to HT40
 
 
 

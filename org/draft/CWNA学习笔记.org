@@ -4,6 +4,10 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 
+* 内容导读
+
+  [[./images/2016/CWNA内容导图.svg]]
+
 * 第一章 无线标准、组织和基础概述  
 
 ** 要点记录
@@ -2015,7 +2019,132 @@
 * 第十一章 WLAN布署与垂直市场       :noexport:
   
 * 第十二章 WLAN 问题处理与设计 
-  
+  A bottoms-up approach to analyzing the OSI reference model layers
+  also applies to wireless networking. A wireless networking
+  administrator should always try to fi rst determine whether problems
+  exist at layer 1 and layer 2.
+
+  许多无线网络问题发生在Layer 1，即物理层，如无电力供应的AP或是CLIENT
+  Radio驱动问题，通常会引起连接性问题或是性能问题。频谱分析仪通常是诊
+  断Layer 1 RF干涉问题的有用工具。
+
+  排除Layer 1是问题产生的根源后，WLAN管理员需要尝试确认问题是否发生在
+  数据链路层。Authentication和Association问题通常发生，是由于AP或其他
+  相关软件没有配置合适的安全设定。
+
+** Layer 2重传
+   在WLAN网络中， Layer 2重传的情况往往会引起性能方面的问题。过多的
+   Layer 2重传会从如下两个方面影响WLAN：
+   1. 重传会增加开销从而降低吞吐量。
+   2. 重传过多会导致音视频不同步以及跳变产生，导致VoIP等实时性的应用体
+      验变差。
+   一般的应用能够忍受10%的重传率，但是对于VoWiFi网络，重传率不能超过5%。 
+   导致Layer 2重传的原因是多方面的：
+   1. Multipath
+   2. RF干涉
+   3. 低SNR。
+   4. 隐藏结点
+   5. near/far问题
+   6. 功率匹配
+   7. 相邻信息干涉
+
+** RF干涉
+   有多种不同类型的干涉会极大地影响802.11无线网络的性能。干涉的设备会
+   阻止一个802.11 radio传输数据，导致DOS。 如果另一个RF源以很强的功率
+   传输数据，则802.11 radio会在CCA(clear channel assessment)阶段侦测到
+   RF能量，并延迟传输。另一种干涉会导致传输的数据帧直接被破坏。过多的
+   重传会极大地降低吞吐量。有如下几种干扰：
+   
+*** 窄波干涉
+    窄波通常只占用小部分频宽，不会对一路上有你频宽造成DoS，比如2.4GHz
+    ISM频段。窄波信号通常振幅很高，会完全中断频率空间范围内的数据传输。
+    窄波信号会中断一个或多个802.11信道。 解决之道就是用频谱分析仪定位
+    干涉的信道，并通常措施避开这些被干涉的信息。
+
+*** 宽波干涉
+    如果传输的信号会中断整个频段的通信，则认为是宽波干涉。宽波干涉会导
+    致整个2.4GHz的ISM频段出现DoS。唯一的解决办法是通常频谱分析仪定位于
+    干涉的设备，并将其移开。 
+
+*** 全波段干涉
+    这种情况一般发生在FHSS（Frequency Hopping Spread Spectrum）通信中。
+    FHSS设备不停地在整个频段跳跃，会影响在这个频段范围内的传输数据的设
+    备。 蓝牙设备是一种FHSS类型的设备， 会在整个2.4GHz ISM范围内进行跳
+    变，会影响附近工作在2.4GHz的设备。解决的办法也只能是通过频谱分析仪
+    定准干涉的设备，并将其移开。
+
+*** Adjacent Channel Interference
+    the 802.11-2012 standard requires 25 MHz of separation between the
+    center frequencies of 802.11b/g channels in order for them to be
+    considered nonoverlapping.
+
+    When designing a wireless LAN, you need overlapping coverage cells
+    in order to provide for roaming. However, the overlapping cells
+    should not have overlapping frequencies, Overlapping coverage
+    cells with overlapping frequencies cause what is known as adjacent
+    channel interference. 
+
+*** Low SNR
+    背景干扰信号强度接近接收的信号，或者接收到的信号强度太低。SNR不是
+    一个比率，而是接收到的信号与背景干扰信号之间的分贝差值（decibels）。
+    如果一个802.11设备接收到一个-70的信号，此时背景干扰信号强度为-95dBm，
+    则SNR为25 dB。
+
+    通常SNR在25以上，则认为信号质量好，而低于10则认为信号质量很差。 
+
+*** 功率设置不匹配
+    AP的功率与STA的功率设备不匹配，导致出现这种情况：AP发出的数据，STA
+    能收到，但是STA回的ACK，AP却收不到。 
+
+*** Near/Far
+    离AP较近骨刺功率较大的设备会影响离AP较远，且功能偏低的设备与AP之间
+    的数据通信。 
+
+*** 隐藏结点问题
+    连接到同一个AP中的两个设备不能相互侦测到对方的存在，导致数据传输过
+    程中产生冲突，也会导致Layer 2重传。
+
+    通常的一个解决方案是：AP禁掉2.4GHz下的1， 2M数据传输率。 原因有二：
+    1. 容量
+    2. 1，2M数据传输率覆盖范围大，容易造成隐藏结点的问题。
+
+    解决隐藏结点有如下方法：
+    1. 使用RTS/CTS来侦测是否存在隐藏结点的问题，也可作为解决隐藏结点问
+       题的临时方案。
+    2. 所有STA的功率增加， 这个方法可行，但不推荐，会增加co-channel干
+       扰。
+    3. 移除障碍
+    4. 移动隐藏结点，使他们更接近。
+    5. 增加另一个AP。
+
+** 802.11覆盖范围的考量
+   
+*** 动态速率调整
+    低速率的设备，会影响处于同一个BSS中的高速率设备的吞吐量。
+
+*** Roaming
+    Rooming问题的产生通常是由于差劲的网络设计或者是WiFi设备驱动的问题。
+    Rooming的决定一般跟WiFi芯片厂商有关，每个厂家的行为都可以是特有的，
+    但一般会根据如下一些条件决定是否进行Roaming：
+    1. RSSI
+    2. Noise Level
+    3. bit-error rate
+    4. 重传率
+
+
+Keith Parsons
+
+*** =Co-channel= Interference
+    The unnecessary medium contention overhead that occurs because all
+    the APs are on the same channel is called co-channel interference
+    (CCI).
+
+** Performance
+   
+   
+
+
+
 * 第十三章 802.11网络安全架构
 
 ** 802.11 security basics
@@ -2572,7 +2701,7 @@
 *** Block Acknowledgment
 
       A-MSDU只需要 一个ACK，但是，A-MPDU需要对其中的每个MPDU进行确认，
-      这是通过 /multiple traffi c ID block acknowledgment (MTBA)
+      这是通过 /multiple traffic ID block acknowledgment (MTBA)
       frame/ 来完成的，它实际上是一个A-MPDU的Block ACK帧。 
 
 *** RIFS
@@ -2631,6 +2760,122 @@
 *** RTS/CTS and CTS-to-self
 
 
-* 第十九章 Very High Throughput (VHT) and 802.11ac
+* 第十九章 VHT & 802.11ac
   
+** 802.11ac 2003修订版
+   802.11ac是分阶段实现的，第一阶段目标是传输速率达到1.3Gbps， 第二阶
+   段目标是传输速率达到3.5Gbps。 
+
+   与802.11n对比情况如下：
+
+   [[./images/2016/2016042601.png]]
+
+** 5 GHz only
+   802.11ac由于支持更高的带宽，所以只能工作在5G频段上。
+
+** 20,40,80,160 MHz信道
+
+   11ac在11n的基础上，引入了80MHz，160MHz的带宽。其中，40MHz带宽信道是
+   由两个相相邻的20MHz信道组合而成，80MHz带宽信道是由两个相邻的40MHz信
+   道组合而成，160MHz是由两个相邻或独立的两个80MHz信道构成。
+
+   [[./images/2016/2016042602.png]]
+
+   对于11n设备，当他们使用40MHz带宽传输数据时，必须等待Primary Channel
+   和Secondary Channel都空闲的情况下，才能进行数据传输。显然会影响11n
+   设备的性能。
+
+   11ac设备引入了新的功能，允许AP以每帧为单位选择不同的带宽进行传输。
+   这种特性称为 /dynamic bandwidth operation/ 。 这样，11ac的AP，如果
+   工作在信36，40，44，48上以80MHz带宽进行数据传输，在进行数据传输之前，
+   会检查这4个信道是否空闲，如果发现其中36信息被其他AP占用，则会在信道
+   44，48上以40Mhz带宽进行数据传输。
+
+** 256 QAM modulation 
+   
+   新的调整信号方法， 256 QAM is more sensitive to noise and interference.
+
+** Modulation and coding schemes
+   
+   11ac只定义了10个MCS选项，前8个是必须实现的。
+   
+   [[./images/2016/2016042603.png]]
+
+   The last column represents the maximum achievable data rate for
+   each MCS. The data rate is based on a 20 MHz wide channel, a single 
+   spatial stream, and a short guard interval (400 ns). 
+
+   11ac不能单独禁用某一个速率，但是支持三个选择： /MCS 0-7,MCS 0-8, or MCS 0-9./
+
+** Single User MIMO
+   
+** 802.11ac date Rates
+
+   相对于11n，11ac主要在如下几个方面进行了增强，以提升数据传输速率。
+   1. 采用 =256-QAM= 调制方法
+
+** VHT MAC
+
+   11ac只需要考虑11a, 11n(5G)设备的共存问题。 由于物理层都使用OFDM前导
+   码，可以容易计算出等待的时间。
+
+*** =A-MPDU=
+    所有11ac数据帧都是使用 =A-MPDU= 帧格式进行传输，即使是只有一个数据
+    帧传输。 =A-MPDU= 降低了每帧的开销，只要求一个Block ACK。11n中的
+    RIFS不需要了，所以11ac是不支持RIFS的。
+
+*** RTS/CTS
+    一个AP如果有准备在4个相邻信道上进行80MHz的数据传输，需要在4个信道
+    上发送RTS，然后监听CTS，如果信道不忙，则会收到4个CTS。
+
+    但是，如果4个信道中，有一个或2个信道忙，则AP可能只收到两个CTS，这
+    样AP就只能进行40MHz的数据传输。
+
+** Beamforming
+
+   Instead of equally radiating the RF signal, beamforming allows an
+   802.11 transmitter to focus or direct the RF energy toward a
+   specific client.
+
+   To perform beamforming, the multiple radio chains in the AP
+   transmit the same information through different antennas. The APs
+   time their transmissions so that the waves of all of the antennas
+   arrive at the receiving radio at the same time and in phase with
+   each other. This should result in a signal increase of
+   approximately 3 decibels.
+
+   
+*** Explicit Beamforming
+    11n定义了多种beamforming方法，但是11ac只使用explicit beamforming，
+    并且要求发送方和接收方都要支持。
+
+    Explicit Beamforming的过程如下：
+    1. Beamformer传输一个空数据包（NDP）， 告知beamformee准备进行
+       beamformed传输的意图。
+    2. The beamformee processes each OFDM subcarrier and creates
+       feedback information.
+    3. The beamformer uses the feedback matrix to calculate a steering
+       matrix that is used to direct the data transmission to the
+       beamformee.
+
+    [[./images/2016/2016042604.png]]
+
+*** Multiuser MIMO
+    The goal of MU-MIMO is to use as many spatial streams as possible,
+    whether the transmission is with one client using four spatial
+    streams or with four clients using one spatial stream each.
+
+    MU-MIMO is only supported for downstream transmission from an AP
+    to multiple clients.
+
+*** Multiuser Beamforming
+    
+*** Quality of Service
+    
+** Infrastructure requirements
+
+** 802.11ac in a SOHO or home
+
+** WFA certification
+
 * Bring Your Own Device (BYOD)                                      :noexport:

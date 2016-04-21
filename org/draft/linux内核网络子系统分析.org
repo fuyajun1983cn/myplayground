@@ -124,7 +124,7 @@
 *** 利用NAPI新机制
     NAPI与旧机制的不同点主要有两个地方：
     1. 驱动必须提供poll方法。
-    2. 调用调用帧的接口
+    2. 调用帧的接口
        #+BEGIN_SRC c
          //直接调用此接口通知内核收到数据帧
          netif_rx_schedule(...);
@@ -133,7 +133,7 @@
          netif_rx_schedule_prep(...)
          __netif_rx_schedule(...)
        #+END_SRC
-    当收到类型的Driver都会将接收帧的设备加入到 =poll_list= 队列中，并
+    当收到数据后，Driver都会将接收帧的设备加入到 =poll_list= 队列中，并
     调度 =NET_RX_SOFTIRQ= 软中断执行。 最终会被 =net_rx_action=。 两者
     之间的差异如下图所示：
     [[./images/2016/2016032301.png]]
@@ -154,3 +154,258 @@
    会注册相关的协议处理函数。
 
 * 发送数据
+
+** 概述
+   发送数据相关的软中断为： =NET_TX_SOFTIRQ= ，对应的处理函数为
+   =net_tx_action= 。 =softnet_data= 也有一个对应的列表 =output_queue=
+   ，它代表有数据有发送的设备列表。只有 =__LINK_STATE_XOFF= 标记被清掉
+   的情况下，该设备才会被调度去发送数据。一旦设备被调度去发送数据，则
+   会置上这个标记： =__LINK_STATE_SCHED= 。 =dev_queue_xmit= 的作用类
+   似 =netif_rx= 。
+
+** 禁用和开启数据传输
+   =__LINK_STATE_XOFF= 这个标记代表当前是否允许数据发送。 主要检查
+   =net_device->state= 的值。 =__LINK_STATE_SCHED= 这个标记代码当前是
+   否已经调度了数据发送。
+
+*** =netif_start_queue=
+    开启当前设备上的数据传输。 当设备停止后，也可以再次调用该
+    函数重新开启数据传输。
+
+*** =netif_stop_queue=
+    停止在当前设备上的数据传输。
+
+*** =netif_queue_stopped=
+    检测发送队列的状态：禁用或者开启
+    #+BEGIN_SRC c
+      static inline int netif_queue_stopped(const struct net_device *dev)
+      {
+        return test_bit(_ _LINK_STATE_XOFF, &dev->state);
+      }    
+    #+END_SRC
+
+*** =netif_wake_queue=
+    当传输数据的Buffer不够时，就会暂时关闭数据传输，等到当前这些数据传
+    输完成或者有足够的空间传输至少一帧数据时，重新开启数据传输,就需要
+    调用些函数。 =netif_wake_queue= 与 =netif_start_queue= 相比，除了
+    开启数据传输外，还会检查发送队列中是否有数据待传。
+
+** 调度数据传输
+   内核提供了函数 =dev_queue_xmit= 来传输一个数据帧，该函数从设备的发
+   送队列中拿出一帧数据，并将其传递给 =hard_start_xmit= 方法。
+   =dev_queue_xmit= 并不总是能够传输数据，比如设备的发送队列被禁用，或
+   者无法获得当前发送队列的锁，对于后面这种情况，内核提供了另一个函数
+   =__netif_schedule= 。 一般不直接调用这个函数，而是通过使用如下两个
+   函数：
+
+*** =netif_schedule=
+    #+BEGIN_SRC c
+      static inline void netif_schedule(struct net_device *dev)
+      {
+        if (!test_bit(_ _LINK_STATE_XOFF, &dev->state))
+          _ _netif_schedule(dev);
+      }    
+    #+END_SRC
+
+    一般在驱动代码之外被调用，如 =net_tx_action= 或传输控制。
+
+*** =netif_wake_queue=
+    开启设备的数据发送，如果之前传输已经被调度，再次调用这个函数将是一
+    个空操作。
+    #+BEGIN_SRC c
+      static inline void netif_wake_queue(struct net_device *dev)
+      {
+        ...
+        f (test_and_clear_bit(_ _LINK_STATE_XOFF, &dev->state))
+          _ _netif_schedule(dev);
+      }
+    #+END_SRC
+
+    一般在设备驱动中调用。
+
+** Queuing Discipline Interface
+   内核使用的一种算法，用于以最有效率的顺序安排数据的发送。每种Traffic
+   Control的入队规则都提供了不同的函数指针以供上层调用以完成不同的任务。
+   比较重要的函数有：
+
+*** enqueue
+    入队
+
+*** dequeue
+    出队
+
+*** requeue
+    重新入队
+
+   每当驱动准备调度数据发送时，通过函数 =qdisc_run= 来选择下一帧需要传
+   输的数据, 这个函数会间接地调用与入队规则相关的 =dequeue= 虚函数。实
+   际的工作实际上在函数 =qdisc_restart= 里面做的。
+   #+BEGIN_SRC c
+     static inline void qdisc_run(struct net_device *dev)
+     {
+       while (!netif_queue_stopped(dev) && qdisc_restart(dev) < 0)
+         /* NOTHING */;
+     }   
+   #+END_SRC
+
+** =qdisc_restart=
+   根据各种入队规则的 =dequeue= 方法的返回值，来采取不同的动作。
+   #+BEGIN_SRC c
+     int qdisc_restart(struct net_device *dev)
+     {
+       struct Qdisc *q = dev->qdisc;
+       struct sk_buff *skb;
+       if ((skb = q->dequeue(q)) != NULL) {
+
+         //传输数据需要两个Lock
+         //dev->queue_lock 保护quue
+         //dev->xmit_lock  由hard_start_xmit管理
+
+         if (!spin_trylock(&dev->xmit_lock)) {
+           //其他CPU已经在通过该设备传送数据了
+         collision:
+           ...
+           goto requeue;
+         }
+         ...
+      requeue:
+         q->ops->requeue(skb, q);
+         netif_schedule(dev);
+         
+
+         if (!netif_queue_stopped(dev)) {
+           int ret;
+           if (netdev_nit)
+             dev_queue_xmit_nit(skb, dev);
+           ret = dev->hard_start_xmit(skb, dev);
+           if (ret == NETDEV_TX_OK) {
+             if (!nolock) {
+               dev->xmit_lock_owner = -1;
+               spin_unlock(&dev->xmit_lock);
+             }
+             spin_lock(&dev->queue_lock);
+             return -1;
+           }
+           if (ret == NETDEV_TX_LOCKED && nolock) {
+             spin_lock(&dev->queue_lock);
+             goto collision;
+           }
+         }
+       }
+     }
+   #+END_SRC
+
+   =hard_start_xmit= 是每个WiFi驱动必须提供的一个回调函数。一般通过
+   =qdisc_run= ，如果不使用Traffic Control机制，则可以直接调用该函数接
+   口。 返回可能有：
+
+*** =NETDEV_TX_OK=
+    传输正常
+
+*** =NETDEV_TX_BUSY=
+    NIC没有足够的空间来发送当前数据帧。 这种情况下，通常会调用
+    =netif_stop_queue= 。
+
+*** =NETDEV_TX_LOCKED=
+    驱动已经被锁住。
+
+   总的来说，如下三种情况下，会导致当前发送的数据帧被重新放入到发送队
+   列中：
+   
+*** The queue is disabled ( =netif_queue_stopped(dev)= is true).
+
+*** Another CPU is holding the lock on the driver.
+
+*** The driver failed ( =hard_start_xmit= did not return =NEtdEV_TX_OK=).
+
+** =net_tx_action=
+   与软中断 =NET_RX_SOFTIRQ= 关联的处理函数。通过函数调用
+   =raise_softirq_irqoff(NET_TX_SOFTIRQ)= 触发。主要在如下两种情况下调
+   用：
+   1. 当启用数据传输时，调用 =netif_wake_queue= 触发。
+   2. 当数据传输完成时，调用 =dev_kfree_skb_irq= 来释放内存。
+
+* 协议处理
+
+** 网络模型
+   网络模型通常有OSI 7层参考模型和TCP/IP 4层参考模型，如图所示：
+
+   [[./images/2016/2016042510.png]]
+
+   被传输的数据包在不同的协议层，称呼不一样。 链路层称为frame，网络层
+   称为packet, 传输层称为segment，应用层称之为message。
+
+** 协议家族
+
+   主要的协议家族有：
+   1. =PF_INET=
+   2. =PF_PACKET=
+      It's the Linux way to capture frames at the link layer and
+      inject frames into the link layer, directly bypassing all the
+      intermediate protocol layers.
+   3. =PF_NETLINK=
+      Used as the preferred interface for network configuration.
+   4. =PF_KEY=
+      Used as a key management interface for network security services. IPsec is one of these services.
+   5. =PF_LLC=
+      Logical Link Control (LLC)
+
+** 驱动如何调用L3协议处理器
+   当设备驱动接收到一帧数据，它会保存到 =sk_buffer= 中，并初始化它的
+   protocol域：
+   #+BEGIN_SRC c
+     struct sk_buff
+     {
+       ... ... ...
+       unsigned short
+       ... ... ...
+     };   
+   #+END_SRC
+
+   =netif_receive_skb= 函数会根据protocol的值，来决定调用哪个协议处理
+   函数。
+
+** 协议处理函数注册
+   每个协议由 =packet_type= 结构体描述。内核中调用 =dev_add_pack= 注册
+   一种协议处理函数。
+   #+BEGIN_SRC c
+     struct packet_type
+     {
+       unsigned short type; //协议代码
+       struct net_device *dev;//协议使能的设备，为NULL时，代表所有设备
+       int (*func) (struct sk_buff *, struct net_device *,
+                struct packet_type *);
+       void *af_packet_priv;
+       struct list_head *list;
+     };
+
+   #+END_SRC
+
+   =dev_remove_pack= 注册协议处理函数。如下是IPv4的初始化代码：
+   #+BEGIN_SRC c
+     static struct packet_type ip_packet_type =
+       {
+         .type = _ _constant_htons(ETH_P_IP),
+         .func = ip_rcv,
+       }
+       ...
+       void _ _init ip_init(void)
+       {
+         dev_add_pack(&ip_packet_type);
+         ...
+       }   
+   #+END_SRC
+   
+   =eth_type_trans= performs two main tasks: setting the packet type
+   setting the protocol.
+
+   #+BEGIN_SRC c
+     static void tr_rx(struct device *dev)
+     {
+       ...
+       skb->protocol=tr_type_trans(skb, dev);
+       ...
+       netif_rx(skb);
+       ...
+     }   
+   #+END_SRC

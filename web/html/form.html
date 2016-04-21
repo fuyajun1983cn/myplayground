@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>表单与文件</title>
+</head>
+<body>
+<form id = "testForm">
+	<input type="text">
+</form>
+<textarea form="testForm" placeholder="请输入一些文件"></textarea>
+
+<input type="text" name="greeting" autocomplete="on" list="greetings">
+<datalist id="greetings" style="display:none;">
+	<option value="Good Morning">Good Morning</option>
+	<option value="Hello">Hello</option>
+	<option value="Good Afternoon">Good Afternoon</option>
+</datalist>
+
+<article>
+	<header>
+		<h1>简单表单示例</h1>
+	</header>
+	<form name="form1">
+		<label for=username>姓名</label>
+		<input name="username" id="username" type=text required /><br/>
+		<label for=age>年龄</label>
+		<input name=age id="age" type=number min=0 max=100 /><br/>
+		<label for=birthday>出生日期</label>
+		<input name=birthday id="birthday" type=data /><br/>
+		<label for=email id="email" type=email required>Email</label>
+		<input name=email id="email" type=email required /><br/>
+		<label for=url>个人主页</label>
+		<input name=url id="url" type=url /><br/>
+		<label for=memo><mark>个人简介</mark></label>
+		<textarea name=memo id="memo" required></textarea><br/>
+		<input type=submit>
+	</form>
+</article>
+
+下次看第五章
+
+</body>
+</html>

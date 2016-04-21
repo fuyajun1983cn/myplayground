@@ -17,6 +17,7 @@
   2.6.31后，优先使用此接口
 - =cfg80211_inform_bss_frame=
 - =cfg80211_find_ie=
+  寻找指定的IE。 如SSID
 - =cfg80211_find_vendor_ie=
 - =cfg80211_tdls_oper_request=
 - =cfg80211_scan_done=
@@ -48,7 +49,6 @@
 - =struct wireless_dev= 
   无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
   指向这个数据结构。
-
 - =struct cfg80211_registered_device=
   #+BEGIN_SRC c
     struct cfg80211_registered_device {
@@ -127,7 +127,6 @@
             struct wiphy wiphy __aligned(NETDEV_ALIGN);
     };  
   #+END_SRC
-
 - =struct cfg80211_chan_def=
 - =struct cfg80211_scan_request=
 - =struct cfg80211_ibss_params=
@@ -197,10 +196,8 @@
 
   - =cfg80211_rx_mgmt=
     向上层报告有未处理的管理帧收到。
-
 - =struct cfg80211_bss=
   BSS信息
-
 - =struct station_info=
   描述STA相关的信息， 其中 =filled= 可以告知 =nl80211= 层，上报上来的
   消息包含哪些IE。 如 =STATION_INFO_ASSOC_REQ_IES= 表明当前上报上来的
@@ -329,6 +326,38 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 
           
   }
+
+
+  BOOLEAN CFG80211_Register(
+          IN VOID                                         *pAd,
+          IN struct device                        *pDev,
+          IN struct net_device            *pNetDev)
+  {
+          CFG80211_CB *pCfg80211_CB = NULL;
+          CFG80211_BAND BandInfo;
+
+
+          /* allocate MAC80211 structure */
+          os_alloc_mem(NULL, (UCHAR **)&pCfg80211_CB, sizeof(CFG80211_CB));
+
+          ...
+          /* allocate wireless device */
+          RTMP_DRIVER_80211_BANDINFO_GET(pAd, &BandInfo);
+
+          pCfg80211_CB->pCfg80211_Wdev = \
+                                  CFG80211_WdevAlloc(pCfg80211_CB, &BandInfo, pAd, pDev);
+          ...
+            
+          pNetDev->ieee80211_ptr = pCfg80211_CB->pCfg80211_Wdev;
+          SET_NETDEV_DEV(pNetDev, wiphy_dev(pCfg80211_CB->pCfg80211_Wdev->wiphy));
+          pCfg80211_CB->pCfg80211_Wdev->netdev = pNetDev;
+
+          ...
+            
+          CFG80211DBG(RT_DEBUG_ERROR, ("80211> CFG80211_Register\n"));
+          return TRUE;
+  } /* End of CFG80211_Register */
+
 #+END_SRC
 
 #+TITLE：注册网络设备相关函数
@@ -355,6 +384,7 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 
 ** regulatory enforcement  
    Channel使用信息, 管制
+   =regulatory_init=
 
 ** station management  
    添加，移除和修改STA。
@@ -377,10 +407,114 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
    - 跟踪与无线设备关联的接口
 
 
-
+   
 * 几个主要数据结构之间的关系   
   [[./images/2016/2016012801.png]]
 
-
-
 wireless_send_event
+
+* MAC80211
+  
+** 主要API速览
+
+*** =ieee80211_check_tim()=
+    checks a specific information element (TIM)
+    The TIM is an array of 2008 entries. Because the TIM size is 251
+    bytes (2008 bits) 
+
+*** =ieee80211_get_buffered_bc()=
+    retrieve packets from the multicast/broadcast buffer
+
+*** =sta_info_insert=
+    Adds a station
+
+*** =sta_info_destroy_addr=
+    Removes a station
+
+*** =sta_info_get=
+    Fetches a station; the address of the station (it’s bssid) is
+    passed as a parameter. 
+
+** MLME
+   
+*** 扫描
+    =ieee80211_send_probe_req()=
+    ==>
+    =the ieee80211_request_scan()=
+
+    Change Channel:
+    =ieee80211_hw_config()=
+
+    Channel to Frequence Transition: 
+    =ieee80211_channel_to_frequency()=
+
+*** 认证
+    =the ieee80211_send_auth()=
+
+    有两种类型的认证方式：
+    1. =WLAN_AUTH_OPEN=
+    2. =WLAN_AUTH_SHARED_KEY=
+
+*** 关联
+    =ieee80211_send_assoc()=
+
+*** 重新关联
+    =ieee80211_send_assoc()=
+
+** mac80211实现
+   
+*** 数据结构
+    1. =ieee80211_hw=
+       代表硬件信息
+    2. =ieee80211_ops=
+       实例传递给 =ieee80211_alloc_hw()= 方法，这个实际定义了一些回调
+       函数 ：
+       - =tx()=
+         The transmit handler called for each transmitted packet. It
+         usually returns =NETDEV_TX_OK= (except for under certain
+         limited conditions). 
+       - =start()=
+         开户数据帧的接收
+       - =stop()=
+         停止数据帧的接收，关闭硬件
+       - =add_interface()=
+         Called when a network device attached to the hardware is
+         enabled. 
+       - =remove_interface()=
+         Informs a driver that the interface is going down. 
+       - =config()=
+         Handles configuration requests, such as hardware channel
+         configuration. 
+       - =configure_filter()=
+         Configures the device’s Rx filter.
+
+*** Rx Path
+    主要的接收函数 =ieee80211_rx()=
+    对接收到的数据，会进行一些检查，可能会丢弃一些数据包：
+    #+BEGIN_SRC c
+      ieee80211_rx_h_mgmt_check(struct ieee80211_rx_data *rx)
+      {
+        struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *) rx->skb->data;
+        struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(rx->skb);
+        . . .
+          if (rx->skb->len < 24)
+            return RX_DROP_MONITOR;
+          if (!ieee80211_is_mgmt(mgmt->frame_control))
+            return RX_DROP_MONITOR;
+          . . .
+      }    
+    #+END_SRC
+
+*** Tx Path
+    主要的发送函数 =ieee80211_tx()=
+    
+*** Packet Aggregation
+    1. =ieee80211_start_tx_ba_session()=
+       The originator starts the block acknowledgement session
+       ADDBA Request
+    2. =ieee80211_send_addba_resp()=
+       ADDBA response
+    3. =ieee80211_send_bar()=
+       sends a Block Ack Request (BAR) packet
+    4. =ieee80211_send_delba()=
+       DELBA request

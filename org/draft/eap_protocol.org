@@ -14,7 +14,7 @@
    法可以提供这样的分片支持。
 
    EAP构架的优势是灵活，可伸缩性强。在Authenticator获得足够信息后，EAP
-   用于选择特定的认证机制（方法）。Authenticator可以本身支持很多认证方
+   用于选择特定的认证机制（方法）。Authenticator本身可以支持很多认证方
    法，或者将认证请求转发给后端的认证服务器。
 
    EAP是一种Lock Step协议，一次只能传输一个数据包，不适合用于传输大量
@@ -34,7 +34,6 @@
    EAP协议中规定双方在一次会话中只能选定一种认证方法，一旦使用某种认证
    方法成功认证后，不能在当前会话中继续使用另一种认证方法进行认证。
 
-   
 ** EAP复用模型
    [[./images/2016/2016040101.png]]
 
@@ -50,14 +49,14 @@
       实现了认证算法，并通过EAP peer and authenticator layers传输EAP消
       息。根据需要，可能实现了分片支持。
 
-   打个比方，EAP Code相关IP地址，而Type则相当于端口号，根据Type信息，
+   打个比方，EAP Code相当于IP地址，而Type则相当于端口号，根据Type信息，
    将EAP消息传递到对应的方法中。
 ** EAP Packet Format
    格式如下：
 
    [[./images/2016/2016040201.png]]
 
-   - Code:
+   - Code:  
      code域占用一个字节，可能的值为：
      1. 1 Request
      2. 2 Response
@@ -65,12 +64,12 @@
      4. 4 Failure
      Code为其他值的情况下，Authenticator和Peer都会丢弃。
      Code大小范围为1 ~ 255
-   - Identifier
+   - Identifier   
      用于标识Request和Response。一个字节的长度。
-   - Length
+   - Length   
      2个字节，代表Packet的长度，包含Code，Identifier，Length以及data域
      的整个长度。
-   - Data
+   - Data  
      由0或多个字节构成，具体内容由Code域的值决定。
 
 *** Request and Response
@@ -118,7 +117,7 @@
       Identity Response。
 
       Identity Request/Response都是以明文的方式发送的。在得到非法
-      Identity或认证失败的情况下，允许至少进行3次重试机会。通常
+      Identity或认证失败的情况下，允许至少进行3次重试机会。通过
       Notification Requesst来通知非法的Identity信息。失败的信息可以通
       过新的EAP Request本身来显示。 
 
@@ -128,11 +127,12 @@
       Request/Response包的Length域的值得来的。
 
 ***** Notification
-      可的的一种EAP Request/Response类型，Authenticator通过该消息类型
+      可选的一种EAP Request/Response类型，Authenticator通过该消息类型
       来向Peer传递一些可显示的消息。
 
 ***** Nak
       1. Legacy Nak
+
          只用于EAP Response消息中， 通常用于当想要的认证类型（方法）不
          可接受时。 Authentication Type的编号为4或以上。 Response消息
          中包含一个或多个Peer期望的认证类型，Type的值为0的话，表明Peer
@@ -142,6 +142,7 @@
          误显示功能。
 
       2. Expanded Nak
+
          只用于EAP Response中。 当Authentication Type不可接受时，对方
          会发送一个EAP Request， Type值为254（Expanded Type），此时回
          复一个Type值为254的EAP Response消息，该响应消息中会包含一个或
@@ -201,8 +202,7 @@
 *** Peer状态机
 
   Peer状态机图解：
-  [[./images/2016/2016033101.png
-]]
+  [[./images/2016/2016033101.png]]
 *** Peer状态机与底层之间的接口
     底层将收到的数据包存储在 =eapReqData= 中，并设置 =eapReq= 为TRUE。
     当EAP Peer状态机完成处理该消息，它要么设置 =eapResp= 或 =eapNoResp=
@@ -211,46 +211,61 @@
     =eapSuccess= 或 =eapFailure= 向底层显示认证是否成功或失败。 
 **** 变量（底层 --> Peer）(接收请求）
      - eapReq (boolean)
+
        在底层设置为TRUE,在Peer状态机中设置为FALSE,表明在底层中有一个请
        求到达.
      - eapReqData (EAP packet)
+
        当eapReq设置为TRUE时，该变量会被设置，代表到达的请求的数据包的内
        容。
      - portEnabled (boolean)
+
        代表EAP Peer状态机是否已经准备好通信了。 当底层开始EAP会话时，会
        设置为TRUE。
      - idleWhile (integer)
+
        外部计时器，用于显示等待一个合法的请求时，等待的超时时间。
      - eapRestart (boolean)
+
        显示底层将会重新启动认证。
      - altAccept (boolean)
+
        显示成功, 
      - altReject (boolean)
+
        显示失败。
 **** 变量（Peer --> 底层）（发送响应）
      - eapResp (boolean)
+
        在Peer状态机中设置为TRUE，在底层设置为FALSE，表明将有一个响应被
        发送。
      - eapNoResp (boolean)
+
        在Peer状态机中设置为TRUE，在底层设置为FALSE，表明请求已经被处理，
        没有响应需要发送出去。
      - eapSuccess (boolean)
+
        在Peer状态机中设置为TRUE，在底层设置为FALSE，表明Peer已经到达了
        SUCCESS状态。
      - eapFail (boolean)
+
        在Peer状态机中设置为TRUE，在底层设置为FALSE，表明Peer已经到达了
        FAILURE状态。
      - eapRespData (EAP packet)
+
        当eapResp设置为TRUE时，Peer状态机会设置该变量。 它是将要发送的响
        应消息。
      - eapKeyData (EAP key)
+
        当keying material可用时，Peer状态机会设置该变量。在METHOD状态下
        设置。
-     - eapKeyAv ailable (boolean)
+     - eapKeyAvailable (boolean)
+
        当keying material可用时，Peer状态机会在SUCCESS状态下设置该值为
        TRUE。实际Key存储在eapKeyData中。
 **** 常量
      - ClientTimeout (integer)
+
        等待一个合法请求时，最长的等待时间。
 *** Peer状态机与EAP方法之间的接口
     IN: eapReqData (includes reqId)
@@ -269,16 +284,21 @@
          4. 设置ignore=FALSE。
     3. 接下来，方法需要根据如下规则更新methodState以及decision:
        - methodState=CONT
+
          这种情况下，交互过程总是继续，decision变量值总是设置为FAIL。
-       - methodState=MAY_CONT
+       - methodState= =MAY_CONT=
+
          如果当前状况不满足Peer的安全策略，则设置decision=FAIL，否则设
-         置decision=COND_SUCC。
+         置decision= =COND_SUCC= 。
        - methodState=DONE
+
          当处理该状态时，交互过程就会停止。如果失败，则设置
-         decision=FAIL，否则设置decision为UNCOND_SUCC。如果我们不知道服
-         务器是否允许我们访问，但是我们自己想访问，则设置decision为COND_SUCC。
+         decision=FAIL，否则设置decision为 =UNCOND_SUCC= 。如果我们不知道服
+         务器是否允许我们访问，但是我们自己想访问，则设置decision为
+         =COND_SUCC= 。
     4. 最后，必须设置allowNotifications
-       如果新的methodState的值为CONT或MAY_CONT，且方法规范中并不禁止使
+
+       如果新的methodState的值为CONT或 =MAY_CONT= ，且方法规范中并不禁止使
        用Notification消息，则设置allowNotifications的变量值为TRUE，否则
        设置为FALSE。
 **** eap decision的值 
@@ -337,52 +357,70 @@
 *** Peer状态机局部变量
 **** Long-Term (Maintained between Packets)
      - selectMethod (EAP type)
-       在GET_METHOD状态中设置
+
+       在 =GET_METHOD= 状态中设置
      - methodState (enumeration)
      - lastId (integer)
-       上一个请求的EAP标识值，在SEND_RESPONSE状态中设置。
+
+       上一个请求的EAP标识值，在 =SEND_RESPONSE= 状态中设置。
      - lastRespData (EAP packet)
-       在SEND_RESPONSE状态中设置，存储上次从Peer中发送的EAP数据包。
+
+       在 =SEND_RESPONSE= 状态中设置，存储上次从Peer中发送的EAP数据包。
      - decision (enumeration)
 **** Short-Term (Not Maintained between Packets)
      - rxReq (boolean)
+
        在RECEIVED状态中设置。显示当前收到的数据包是一个EAP请求包。
      - rxSuccess (boolean)
+
        在RECEIVED状态中设置。显示当前收到的数据包是一个EAP成功包。
      - rxFailure (boolean)
+
        在RECEIVED状态中设置。显示当前收到的数据包是一个EAP失败包。
      - reqId (integer)
+
        在RECEIVED状态中设置。该标识值与当前EAP请求关联。
      - reqMethod (EAP type)
+
        在RECEIVED状态中设置。显示当前EAP请求的方法类型。
      - ignore (boolean)
+
        在METHOD状态中设置，显示当前方法是否决定要丢弃当前的数据包。
 
 *** Peer状态机一些程序接口
     对于方法的程序接口，除了EAP层外，方法也会使用自己的内部状态。
     - parseEapReq()
+
       Determine the code, identifier value, and type of the current request.
     - processNotify()
+
       Process the contents of Notification Request
     - buildNotify()
+
       Create the appropriate notification response. Returns an EAP
       packet
     - processIdentity()
+
       Process the contents of Identity Request. Return value is
       undefined.
     - buildIdentity()
+
       Create the appropriate identity response. Returns an EAP packet.
     - m.check()
+
       Method-specific procedure to test for the validity of a
       message. Returns a boolean.
     - m.process()
+
       Method procedure to parse and process a request for that
       method. Returns a methodState enumeration, a decision
       enumeration, and a boolean.
     - m.buildResp()
+
       Method procedure to create a response message. Returns an EAP
       packet.
     - m.getKey()
+
       Method procedure to obtain key material for use by EAP or lower
       layers. Returns an EAP key.
 
@@ -612,32 +650,45 @@
      #+END_SRC
 *** Peer状态机的状态
     - =DISABLED=
+
       当端口使能时，会立即转入INITIALIZE状态。
     - =INITIALIZE=
+
       当状态机激活时，初始化变量。
     - =IDLE=
+
       状态机大部分时间都处于该状态，等待事件的发生。
     - =RECEIVED=
+
       在收到EAP数据包时，会进入该状态。
     - =GET_METHOD=
+
       当请求新的类型时，会进入该状态。 要么启动了正确的方法，要么构建一
       个Nak响应包。
     - =METHOD=
+
       方法处理发生在此状态。来自Authenticator的请求会被处理，并创建一个
       合适的响应包。
     - =SEND_RESPONSE=
+
       该状态向底层表示一个响应包已经准备就绪，可以发送出去了。
     - =DISCARD=
+
       该状态向底层表示请求已经被丢弃，此时也不会发送响应包。
     - =IDENTITY=
+
       处理Identity方法请求，并构建一个响应包。
     - =NOTIFICATION=
+
       处理Notification方法请求，并构建一个响应包。
     - =RETRANSMIT=
+
       重传之前的响应包。
     - =SUCCESS=
+
       终态，显示成功
     - =FAILURE=
+
       终态，显示失败
 *** =wpa_supplicant= 中对状态机的定义
     #+BEGIN_SRC c
@@ -731,75 +782,95 @@
     transmitting this message. 
 **** Variables (Lower Layer to Stand-Alone Authenticator)
      - eapResp (boolean)
+
        Set to TRUE in lower layer, FALSE in authenticator state
        machine.
        表示有一个EAP Response包需要处理。
      - eapRespData (EAP packet)
+
        Set in lower layer when eapResp is set to TRUE. The EAP packet
        to be processed.
      - portEnabled (boolean)
+
        表明EAP认证状态机是否已经准备好通信了。
      - retransWhile (integer)
+
        Outside timer used to indicate how long the authenticator has
        waited for a new (valid) response。
      - eapRestart (boolean)
+
        Indicates that the lower layer would like to restart
        authentication.
      - eapSRTT (integer)
+
        Smoothed round-trip time.
      - eapRTTVAR (integer)
+
        Round-trip time variation.
 **** Variables (Stand-Alone Authenticator To Lower Layer)
      - eapReq (boolean)
+
        Set to TRUE in authenticator state machine, FALSE in lower
        layer.
        Indicates that a new EAP request is ready to be sent.
      - eapNoReq (boolean)
+
        Set to TRUE in authenticator state machine, FALSE in lower
        layer.
        Indicates the most recent response has been processed, but there
        is no new request to send.
      - eapSuccess (boolean)
+
        Set to TRUE in authenticator state machine, FALSE in lower
        layer.
        Indicates that the state machine has reached the SUCCESS state.
      - eapFail (boolean)
+
        Set to TRUE in authenticator state machine, FALSE in lower
        layer. Indicates that the state machine has reached the FAILURE
        state.
      - eapTimeout (boolean)
-       Set to TRUE in the TIMEOUT_FAILURE state if the authenticator
+
+       Set to TRUE in the =TIMEOUT_FAILURE= state if the authenticator
        has reached its maximum number of retransmissions without
        receiving a response.
      - eapReqData (EAP packet)
+
        Set in authenticator state machine when eapReq, eapSuccess, or
        eapFail is set to TRUE. The actual EAP request to be sent (or
        success/failure).
      - eapKeyData (EAP key)
+
        Set in authenticator state machine when keying material becomes
        available. Set during the METHOD state.
      - eapKeyAv ailable (boolean)
+
        Set to TRUE in the SUCCESS state if keying material is
        available. The actual key is stored in eapKeyData.
 **** Constants
      - MaxRetrans (integer)
+
        重传的次数
 
 *** 独立的Authenticato状态机与EAP方法之间的接口
     IN: eapRespData, methodState
     OUT: ignore, eapReqData
-    IN/OUT: currentId, (method-specific state), (policy)
+    IN/OUT: currentId, (method specific state), (policy)
 
     Authenticator状态机与EAP方法之间的交互过程如下：
     - m.init (in: -, out: -)
+
       初始化方法相关的变量。
     - m.buildReq (in: integer, out: EAP packet)
+
       创建一个新的EAP Request，该方法也可以提供重传次数的信息。
     - m.check (in: EAP packet, out: boolean)
+
       当收到一个新的EAP Response时，方法会决定是否要处理该数据包。
     - m.process (in: EAP packet, out: -)
     - m.isDone (in: -, out: boolean)
     - m.getKey (in: -, out: EAP key or NONE)
+
     接下来，方法处理EAP Response并更新自己方法相关的状态。然后决定是否
     终止当前交互过程或是继续：
     1. 如果方法想终止当前的交互过程，则
@@ -811,116 +882,159 @@
 *** 独立的Authenticator状态机局部变量
 **** Long-Term (Maintained between Packets)
      - currentMethod (EAP type)
+
        EAP type, IDENTITY, or NOTIFICATION.
      - currentId (integer)
-       0 ~ 255或NONE。通常中PROPOSE_METHOD状态中更新。表明当前EAP请求的
+
+       0 ~ 255或NONE。通常中 =PROPOSE_METHOD= 状态中更新。表明当前EAP请求的
        标识值。
      - methodState (enumeration)
+
        方法状态
      - retransCount (integer)
-       当前重传的次数。在SEND_REQUEST状态中重置，在RETRANSMIT状态中更新。
+
+       当前重传的次数。在 =SEND_REQUEST= 状态中重置，在RETRANSMIT状态中更新。
      - lastReqData (EAP packet)
+
        在SEND_REQUEST状态中设置。包含上一次发送的请求数据包。
      - methodTimeout (integer)
+
        方法提供的重新超时时间。
 **** Short-Term (Not Maintained between Packets)
      - rxResp (boolean)
+
        在RECEIVED状态中设置，显示当前收到的数据包是一个EAP响应包。
      - respId (integer)
+
        在RECEIVED状态中设置。当前EAP响应包的标识符信息。
      - respMethod (EAP type)
+
        在RECEIVED状态中设置。当前EAP响应包的方法类型。
      - ignore (boolean)
+
        在METHOD状态中设置，显示当前方法是否决定要丢弃当前的数据包。
      - decision (enumeration)
-       在SELECT_ACTION状态中设置，临时地存储策略决定成功，失败还是继续。
+
+       在 =SELECT_ACTION= 状态中设置，临时地存储策略决定成功，失败还是继续。
 *** EAP独立的Authenticator流程
     - calculateTimeout()
+
       计算重传的超时时间。
     - parseEapResp()
+
       Determines the code, identifier value, and type of the current
       response.
       如果解析失败，则会设置rxResp设置为FALSE，返回a boolean, an
       integer, and an EAP type.
     - buildSuccess()
+
       Creates an EAP Success Packet. Returns an EAP packet.
     - buildFailure()
+
       Creates an EAP Failure Packet. Returns an EAP packet.
     - nextId()
+
       Determines the next identifier value to use, based on the
       previous one. Returns an integer.
     - Policy.update()
+
       Updates all variables related to internal policy state. The
       return value is undefined.
     - Policy.getNextMethod()
+
       Determines the method that should be used at this point in the
       conversation based on predefined policy.
     - Policy.getDecision()
+
       Determines if the policy will allow SUCCESS, FAIL, or is yet to
       determine (CONTINUE). Returns a decision enumeration.
     - m.check()
+
       Method-specific procedure to test for the validity of a
       message. Returns a boolean.
     - m.process()
+
       Method procedure to parse and process a response for that
       method. The return value is undefined.
     - m.init()
+
       Method procedure to initialize state just before use. The return
       value is undefined.
     - m.reset()
+
       Method procedure to indicate that the method is ending in the
       middle of or before completion. The return value is undefined.
     - m.isDone()
+
       Method procedure to check for method completion. Returns a boolean.
     - m.getTimeout()
+
       Method procedure to determine an appropriate timeout hint for
       that method. Returns an integer.
     - m.getKey()
+
       Method procedure to obtain key material for use by EAP or lower
       layers. Returns an EAP key.
     - m.buildReq()
+
       Method procedure to produce the next request. Returns an EAP
       packet.
 
 *** EAP独立的Authenticator状态
     - =DISABLED=
+
       The authenticator is disabled until the port is enabled by the lower layer.
     - =INITIALIZE=
+
       Initializes variables when the state machine is activated.
     - =IDLE=
+
       The state machine spends most of its time here, waiting for
       something to happen.
     - =RECEIVED=
+
       This state is entered when an EAP packet is received. The packet
       header is parsed here.
     - =INTEGRITY_CHECK=
+
       A method state in which the integrity of the incoming packet from
       the peer is verified by the method.
     - =METHOD_RESPONSE=
+
       A method state in which the incoming packet is processed.
     - =METHOD_REQUEST=
+
       A method state in which a new request is formulated if necessary.
     - =PROPOSE_METHOD=
+
       A state in which the authenticator decides which method to try
       next in the authentication.
     - =SELECT_ACTION=
+
       Between methods, the state machine re-evaluates whether its
       policy is satisfied and succeeds, fails, or remains undecided.
     - =SEND_REQUEST=
+
       This state signals the lower layer that a request packet is ready
       to be sent.
     - =DISCARD=
+
       This state signals the lower layer that the response was
       discarded, and no new request packet will be sent at this time.
     - =NAK=
+
       This state processes Nak responses from the peer
     - =RETRANSMIT=
+
       Retransmits the previous request packet.
     - =SUCCESS=
+
       A final state indicating success.
     - =FAILURE=
+
       A final state indicating failure.
     - =TIMEOUT_FAILURE=
+
       A final state indicating failure because no response has been
       received. Because no response was received, no new message
       (including failure) should be sent to the peer. Note that this is

@@ -219,3 +219,6 @@
    #+END_SRC
 ** sysfs
 ** debugfs
+   #+BEGIN_SRC c
+     simple_read_from_buffer(...)   
+   #+END_SRC

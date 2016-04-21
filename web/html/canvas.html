@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>canvas元素示例</title>
+	<script type="text/javascript" >
+		function draw(id) {
+			var canvas = document.getElementById(id);
+			if (canvas == null)
+				return false;
+			var context = canvas.getContext('2d');
+			context.fillStyle = "#EEEEFF";
+			context.fillRect(0, 0, 400, 300);
+			context.fillStyle = "red";
+			context.strokeStyle = "blue";
+			context.lineWidth = 5;
+			context.fillRect(50, 50, 100, 100);
+			context.strokeRect(50, 50, 100, 100);
+			context.clearRect(50, 50, 50, 50);
+		}
+		
+		//draw path
+		function draw2(id) {
+			var canvas = document.getElementById(id);
+			if (canvas == null)
+				return false;
+			var context = canvas.getContext('2d');
+			
+			context.fillStyle = "#EEEEFF";
+			context.fillRect(0, 0, 400, 300);
+
+			for (var i = 0; i < 10; i++) {
+				context.beginPath();
+				context.arc(i * 25, i * 25, i * 10, 0, Math.PI * 2, true);
+				context.closePath();
+				context.fillStyle = 'rgba(255, 0, 0, 0.25)';
+				context.fill();
+			}
+			
+		}
+		
+		//draw complex graph
+		function draw3(id) {
+			var canvas = document.getElementById(id);
+			if (canvas == null)
+				return false;
+			var context = canvas.getContext('2d');
+			
+			context.fillStyle = "#EEEEFF";
+			context.fillRect(0, 0, 400, 300);
+			
+			var dx = 150;
+			var dy = 150;
+			var s = 100;
+			context.beginPath();
+			context.fillStyle = 'rgba(255, 0, 0, 0.25)';
+			context.strokeStyle = 'rgb(0, 0, 255)';
+			var x = Math.sin(0);
+			var y = Math.cos(0);
+			var dig = Math.PI / 15 * 11;
+			
+			for (var i = 0; i < 30; i++) {
+				var x = Math.sin(i * dig);
+				var y = Math.cos(i * dig);
+				context.lineTo(dx + x * s, dy + y * s)
+			}
+			context.closePath();
+			context.fill();
+			context.stroke();
+		}
+		
+		function create5Star(context) {
+			var dx = 150;
+			var dy = 150;
+			var s = 50;
+			context.beginPath();
+			context.fillStyle = 'rgba(255, 0, 0, 0.25)';
+			context.strokeStyle = 'rgba(255, 0, 0, 0)';
+
+			var dig = 2 * Math.PI / 5 ;
+			
+			for (var i = 0; i < 10; i++) {
+				var x = Math.sin(i * dig);
+				var y = Math.cos(i * dig);
+				if (i%2)
+					context.lineTo(dx + x * s, dy + y * s)
+			}
+			context.closePath();
+			context.fill();
+			context.stroke();
+		}
+		
+		function draw4(id) {
+			var canvas = document.getElementById(id);
+			if (canvas == null)
+				return false;
+			var context = canvas.getContext('2d');
+			
+			context.fillStyle = "#EEEEFF";
+			context.fillRect(0, 0, 400, 300);
+			
+			create5Star(context);
+		}
+	</script>
+</head>
+<body onload="draw4('canvas');">
+<h1>canvas元素示例</h1>
+<canvas id="canvas" width="400" height="300" />
+</body>
+</html>
