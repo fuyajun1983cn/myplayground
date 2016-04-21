@@ -429,7 +429,7 @@ static int uart_probe(void)
 		 */
 		drvdata->port_ptr = ioport_map(port, port_size);
 		pr_debug("drvdata->port_ptr=%p\n", drvdata->port_ptr);
-		if (!drvdata->%port_ptr) {
+		if (!drvdata->port_ptr) {
 			pr_err("%s\n", "ioport_map failed");
 			return -ENODEV;
 		}

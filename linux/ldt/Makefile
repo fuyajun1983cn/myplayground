@@ -12,6 +12,8 @@ obj-m+= ldt_plat_dev.o # implements platform_device and resource
 #obj-m+= chrdev_region_sample.o
 obj-m+= ldt_configfs_basic.o
 obj-m+= kthread_sample.o
+obj-m+= firmware_example.o
+obj-m+= firmware_nowait_example.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 
