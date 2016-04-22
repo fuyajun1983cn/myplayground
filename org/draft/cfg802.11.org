@@ -48,7 +48,6 @@
 - =struct wireless_dev= 
   无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
   指向这个数据结构。
-
 - =struct cfg80211_registered_device=
   #+BEGIN_SRC c
     struct cfg80211_registered_device {
@@ -127,7 +126,6 @@
             struct wiphy wiphy __aligned(NETDEV_ALIGN);
     };  
   #+END_SRC
-
 - =struct cfg80211_chan_def=
 - =struct cfg80211_scan_request=
 - =struct cfg80211_ibss_params=
@@ -197,10 +195,8 @@
 
   - =cfg80211_rx_mgmt=
     向上层报告有未处理的管理帧收到。
-
 - =struct cfg80211_bss=
   BSS信息
-
 - =struct station_info=
   描述STA相关的信息， 其中 =filled= 可以告知 =nl80211= 层，上报上来的
   消息包含哪些IE。 如 =STATION_INFO_ASSOC_REQ_IES= 表明当前上报上来的
@@ -329,6 +325,38 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 
           
   }
+
+
+  BOOLEAN CFG80211_Register(
+          IN VOID                                         *pAd,
+          IN struct device                        *pDev,
+          IN struct net_device            *pNetDev)
+  {
+          CFG80211_CB *pCfg80211_CB = NULL;
+          CFG80211_BAND BandInfo;
+
+
+          /* allocate MAC80211 structure */
+          os_alloc_mem(NULL, (UCHAR **)&pCfg80211_CB, sizeof(CFG80211_CB));
+
+          ...
+          /* allocate wireless device */
+          RTMP_DRIVER_80211_BANDINFO_GET(pAd, &BandInfo);
+
+          pCfg80211_CB->pCfg80211_Wdev = \
+                                  CFG80211_WdevAlloc(pCfg80211_CB, &BandInfo, pAd, pDev);
+          ...
+            
+          pNetDev->ieee80211_ptr = pCfg80211_CB->pCfg80211_Wdev;
+          SET_NETDEV_DEV(pNetDev, wiphy_dev(pCfg80211_CB->pCfg80211_Wdev->wiphy));
+          pCfg80211_CB->pCfg80211_Wdev->netdev = pNetDev;
+
+          ...
+            
+          CFG80211DBG(RT_DEBUG_ERROR, ("80211> CFG80211_Register\n"));
+          return TRUE;
+  } /* End of CFG80211_Register */
+
 #+END_SRC
 
 #+TITLE：注册网络设备相关函数

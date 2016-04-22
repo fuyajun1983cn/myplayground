@@ -41,3 +41,8 @@
      #安装内核
      make install
    #+END_SRC
+
+** 获取当前运行的内核配置参数  
+   #+BEGIN_SRC sh
+   zcat /proc/config.gz > .config
+   #+END_SRC
