@@ -55,9 +55,15 @@
 **** ☛ TODO 大脑使用说明书
 **** ☛ TODO Learn More Study Less
 **** ☛ TODO 突破思维的障碍
+**** 专注力
+**** 一万小时天才理论
+**** 成功者的大脑
+**** Break-Throuhgh Rapid Reading
 ** 编程语言捂热计划
 *** 网络编程
 *** C++
+**** ☛ TODO 阅读C++ Concurrency in Action
+**** 阅读C++编程的55个好习惯
 **** cpluff
 **** Google Fruit库研究
       https://github.com/google/fruit.git
@@ -75,6 +81,7 @@
 **** 学习"Javascript Data Structures - Stacks, Queue and Deque"
      http://www.i-programmer.info/programming/javascript/1674-javascript-data-structures-stacks-queues-and-deques.html
 *** Python
+**** 学习Python基本的网络编程方法
 *** zsh
 ** 个人开发需求
 *** 编写一个Chrome Plugin，记录自己收藏的网址
