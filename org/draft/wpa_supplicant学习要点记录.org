@@ -10,6 +10,14 @@
 ** 全局数据结构  
 *** =struct wpa_supplicant= 
 *** =struct wpa_global=
+*** =struct wpa_radio_work= 
+    Radio work item
+    相关的函数接口
+    1. =radio_add_work=
+    2. =radio_work_done=
+    3. =radio_remove_works=
+    4. =radio_work_check_next=
+    5. =radio_work_pending=
 *** =struct nl80211_global=
     #+BEGIN_SRC c
       struct nl80211_global {
@@ -519,7 +527,7 @@
      - PING
      - MIB
      - STATUS
-     - STATUS-verbose
+     - =STATUS-verbose=
      - PMKSA
      - SET <variable> <valus>
      - LOGON
@@ -533,19 +541,19 @@
      - RECONFIGURE
      - TERMINATE
      - BSSID <network id> <BSSID>
-     - LIST_NETWORKS
+     - =LIST_NETWORKS=
      - DISCONNECT
      - SCAN
-     - SCAN_RESULTS
+     - =SCAN_RESULTS=
      - BSS
-     - SELECT_NETWORK <network id>
-     - ENABLE_NETWORK <network id>
-     - DISABLE_NETWORK <network id>
-     - ADD_NETWORK
-     - REMOVE_NETWORK <network id>
-     - SET_NETWORK <network id> <variable> <value>
-     - GET_NETWORK <network id> <variable>
-     - SAVE_CONFIG
+     - =SELECT_NETWORK= <network id>
+     - =ENABLE_NETWORK= <network id>
+     - =DISABLE_NETWORK= <network id>
+     - =ADD_NETWORK=
+     - =REMOVE_NETWORK= <network id>
+     - =SET_NETWORK= <network id> <variable> <value>
+     - =GET_NETWORK= <network id> <variable>
+     - =SAVE_CONFIG=
 
 ** configuration
 
@@ -793,6 +801,26 @@
       
 *** rfkill
 ** l2 packets
+   l2 packets的发送函数： =l2_packet_send=
+   接收EAPOL Packet的代码如下：
+   #+BEGIN_SRC c
+     drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));
+     if (drv->eapol_sock < 0) {
+             wpa_printf(MSG_ERROR, "nl80211: socket(PF_PACKET, SOCK_DGRAM, ETH_P_PAE) failed: %s",
+                        strerror(errno));
+             goto failed;
+     }
+
+     if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
+     {
+             wpa_printf(MSG_INFO, "nl80211: Could not register read socket for eapol");
+             goto failed;
+     }
+
+   #+END_SRC
+
+负责处理的函数是 =handle_eapol= 。
+
 ** =hostapd_setup_bss=
    Initialize Per-BSS data structures.
    #+BEGIN_SRC plantuml :file ./images/2016/2016031501.png :cmdline -charset UTF-8

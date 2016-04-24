@@ -2130,7 +2130,7 @@
 
 Keith Parsons
 
-*** Co-channel Interference
+*** =Co-channel= Interference
     The unnecessary medium contention overhead that occurs because all
     the APs are on the same channel is called co-channel interference
     (CCI).
@@ -2756,6 +2756,6 @@ Keith Parsons
 *** RTS/CTS and CTS-to-self
 
 
-* 第十九章 Very High Throughput (VHT) and 802.11ac
+* 第十九章 VHT & 802.11ac
   
 * Bring Your Own Device (BYOD)                                      :noexport:

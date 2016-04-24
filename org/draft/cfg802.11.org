@@ -17,6 +17,7 @@
   2.6.31后，优先使用此接口
 - =cfg80211_inform_bss_frame=
 - =cfg80211_find_ie=
+  寻找指定的IE。 如SSID
 - =cfg80211_find_vendor_ie=
 - =cfg80211_tdls_oper_request=
 - =cfg80211_scan_done=

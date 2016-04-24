@@ -117,9 +117,28 @@
    #+RESULTS:
    [[file:./images/2016/2016032401.png]]
 
+   APRxDataFrameAnnounce (mt76x2 ap)
+   STAHandleRxDataFrame (mt76x2 sta)
+   rx_data_frm_announce (mt7603)
+
+
 * 数据发送
   
 ** 概述
 
-   MlmeHardTransmitMgmtRing
+   deq_mgmt_frame
+
+   MiniportMMRequest(发送管理帧给AP) --> MlmeHardTransmit --> MlmeHardTransmitMgmtRing --> RtmpUSBMgmtKickOut
+
+   STASendPacket_New --> rtmp_enq_req
+
+
+   在函数 RTMPDeQueuePacket 中，会处理加入到发送队列中的需要传输的数据
+   包。
    
+   数据结构： _TX_BLK, 触发硬件进行数据发送的函数是： HAL_KickOutTx
+
+   驱动注册的Callback函数为：STAHardTransmit (硬件数据包传送)
+
+   而这一切，是从 =struct net_device_ops= 中的回调接口
+   =ndo_start_xmit= 触发的。
