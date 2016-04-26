@@ -259,7 +259,7 @@
 
        当keying material可用时，Peer状态机会设置该变量。在METHOD状态下
        设置。
-     - eapKeyAv ailable (boolean)
+     - eapKeyAvailable (boolean)
 
        当keying material可用时，Peer状态机会在SUCCESS状态下设置该值为
        TRUE。实际Key存储在eapKeyData中。

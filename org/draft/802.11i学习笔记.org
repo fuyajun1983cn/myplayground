@@ -70,5 +70,74 @@
 	- key entropy： 负熵（指选定的特殊符号所产生的信息的数值量度）
 	- Authentication: 包含用户认证（确认对方的身份）和数据认证（确认接收的数据没有被篡改）。
 	- Authorization: 允许对方访问（在Authentication后）
-          
+
+* WAPI
+  
+** 概述 
+   WAPI (（Wireless LAN Authentication and Privacy Infrastructure）无
+   线局域网鉴别和保密基础结构，是一种安全协议，同时也是中国无线局域网
+   安全强制性标准。
+
+   WAPI 像红外线、蓝牙、GPRS、CDMA1X等协议一样，是无线传输协议的一种，
+   只不过跟它们不同的是它是无线局域网（WLAN）中的一种传输协议而已，它
+   与802.11传输协议是同一领域的技术。
+
+   
+** 主要术语
+   - WAI 
+     WLAN Authentication Infrastructure
+     WAI鉴别及密钥管理
+     在STA与AP进行关联或者重新关联时，相互的身份认证必须执行。
+   - WPI 
+     WLAN Privacy Infrastructure
+     WPI数据传输保护
+
+     无线局域网保密基础结构（WPI）对MAC子层的MPDU进行加、解密处理，分
+     别用于WLAN设备的数字证书、密钥协商和传输数据的加解密，从而实现设
+     备的身份鉴别、链路验证、访问控制和用户信息在无线传输状态下的加密
+     保护。
+   - Authenticator Entity(AE)
+     it is the entity that provides the Authentication Supplicant with
+     the authentications operation before access service. This entity
+     resides in AP.
+   - Authentication Supplicant Entity(ASUE) 
+     it is the entity that needs to be authenticated by authentication
+     service unit. This entity resides in STA.
+   - Authentication Service Entity(ASE)
+     it is the entity that provides reciprocal(双向) authentication
+     for the authenticator and authentication supplicant.
+     
+     它是一个权威的第三方机构，确保公钥的合法性，负责发布公钥数字证书，
+     提供公钥合法性的证据。签名算法采用ECC加密系统。
+
+** WAI的主要过程
+
+   [[./images/2016/2016041801.png]]
+   
+*** Certificate Authentication
+
+**** Authentication enable 
+
+**** Access authentication request 
+
+**** Certificate authentication request 
+
+**** Certificate authentication response 
+
+**** Access authentication response
+
+*** Key negotiation
+
+**** Key negotiation request 
+
+**** Key negotiation response
+
+** 802.11i versus WAPI
+   
+|                       | 802.11i                           | WAPI                   |
+|-----------------------+-----------------------------------+------------------------|
+| cryptography          | Support TKIP or AES               | SMS4, defined by China |
+| Certification in AP   | No                                | Yes                    |
+| Certificate mechanism | EAP(MD5/TLS/TTLS/PEAP)  Port 1812 | ECC UDP Port 9000      |
+| Ethernet Type         | 0x888E                            | 0x88B4                 |
 

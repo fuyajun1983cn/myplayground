@@ -1,0 +1,721 @@
+#+STARTUP: overveiw
+#+STARTUP: hidestars
+#+TITLE: Socket网络编程快速手册
+
+
+* 数据结构
+
+** struct sockaddr
+   该结构保存socket地址信息
+   #+BEGIN_SRC c
+     struct sockaddr {
+       unsigned short sa_family; // address family, AF_xxx
+       char sa_data[14]; // 14 bytes of protocol address
+     };
+   #+END_SRC
+
+** struct =sockaddr_in=
+   通常一般直接使用这个对应的数据结构，in for Internet
+   #+BEGIN_SRC c
+     struct sockaddr_in {
+       short int sin_family; // Address family
+       unsigned short int sin_port; // Port number
+       struct in_addr sin_addr; // Internet address
+       unsigned char sin_zero[8]; // Same size as struct sockaddr
+     };   
+   #+END_SRC
+
+   - =sin_family=
+     这个值应该设置为 =AF_INET= 。
+   - =sin_port= , =sin_addr= 
+     必须为网络字节序
+
+** =in_addr=
+   #+BEGIN_SRC c
+     struct in_addr {
+       unsigned long s_addr; // that’s a 32-bit long, or 4 bytes
+     };   
+   #+END_SRC
+
+* 实用函数
+** 网络字节序转换
+   
+*** =htons()=
+    Host to Network Short
+
+*** =htonl()=
+    Host to Network Long
+
+*** =ntohs()=
+    Network to Host Short
+
+*** =ntohl()=
+    Network to Host Long
+
+** IP地址
+   
+*** =inet_addr=
+    returns the address in Network Byte Order
+
+*** =inet_aton()=
+    assic to Network
+    #+BEGIN_SRC c
+      #include <sys/socket.h>
+      #include <netinet/in.h>
+      #include <arpa/inet.h>
+      int inet_aton(const char *cp, struct in_addr *inp);    
+    #+END_SRC
+
+    代码示例如下：
+    #+BEGIN_SRC c
+      struct sockaddr_in my_addr;
+      my_addr.sin_family = AF_INET; // host byte order
+      my_addr.sin_port = htons(MYPORT); // short, network byte order
+      inet_aton("10.12.110.57", &(my_addr.sin_addr));
+      memset(&(my_addr.sin_zero), ’\0’, 8); // zero the rest of the struct    
+    #+END_SRC
+
+    这个函数有些平台可能不支持，所以一般直接使用 =inet_addr=
+
+*** =inet_ntoa=
+    与IP地址转换为字符串
+    如下代码所示：
+    #+BEGIN_SRC c
+      a1 = inet_ntoa(ina1.sin_addr); // this is 192.168.4.14
+      a2 = inet_ntoa(ina2.sin_addr); // this is 10.12.110.57
+      printf("address 1: %s\n",a1);
+      printf("address 2: %s\n",a2);    
+    #+END_SRC
+    
+* 主要系统调用
+  
+** =socket()=
+   Get the File Descriptor!
+   函数原型声明如下：
+   #+BEGIN_SRC c
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     int socket(int domain, int type, int protocol);   
+   #+END_SRC
+
+** =bind()=
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     int bind(int sockfd, struct sockaddr *my_addr, int addrlen);   
+   #+END_SRC
+
+   you can skip this function call if you don’t care about the local port number
+
+** =connect()=
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     int connect(int sockfd, struct sockaddr *serv_addr, int addrlen);   
+   #+END_SRC
+
+** =listen()=
+   监听客户连接，函数原型声明如下：
+   #+BEGIN_SRC c
+     int listen(int sockfd, int backlog);   
+   #+END_SRC
+   backlog是允许连接的最大队列数，收到的连接会在incoming queue中等待被
+   处理，即等待调用accept函数处理。
+
+** =accept()=
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);   
+   #+END_SRC
+
+** =send() and recv()=
+   TCP发送和接收数据
+   函数原型为：
+   #+BEGIN_SRC c
+     int send(int sockfd, const void *msg, int len, int flags);
+     int recv(int sockfd, void *buf, int len, unsigned int flags);
+   #+END_SRC
+** =sendto() and recvfrom()=
+   UDP发送和接收数据
+   函数原型如下：
+   #+BEGIN_SRC c
+     int sendto(int sockfd, const void *msg, int len, unsigned int flags,
+                const struct sockaddr *to, socklen_t tolen);
+     int recvfrom(int sockfd, void *buf, int len, unsigned int flags,
+                  struct sockaddr *from, int *fromlen);
+   #+END_SRC
+** =close() and shutdown()=
+   关闭socket连接，停止通信。
+   其中shutdown的原型如下：
+   #+BEGIN_SRC c
+     int shutdown(int sockfd, int how);   
+   #+END_SRC
+   how的值可为如下：
+   - 0  Further receives are disallowed
+   - 1  Further sends are disallowed
+   - 2  Further sends and receives are disallowed (like close())
+
+   shutdown只是改变了socket的可用性，要关闭socket还是需要调用close()。
+** =getpeername()=
+   获取对端地址
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <sys/socket.h>
+     int getpeername(int sockfd, struct sockaddr *addr, int *addrlen);   
+   #+END_SRC
+** =gethostname()=
+   获取主机名称
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <unistd.h>
+     int gethostname(char *hostname, size_t size);   
+   #+END_SRC
+** =gethostbyname=
+   根据主机名获取主机的IP地址
+   函数原型如下：
+   #+BEGIN_SRC c
+     #include <netdb.h>
+     struct hostent *gethostbyname(const char *name);
+     struct hostent {
+       char *h_name;
+       char **h_aliases;
+       int h_addrtype;
+       int h_length;
+       char **h_addr_list;
+     };
+     #define h_addr h_addr_list[0]
+   #+END_SRC
+
+   - =h_name= 
+     Official name of the host
+   - =h_aliases=
+     A NULLterminated array of alternate names for the host.
+   - =h_addrtype=
+     The type of address being returned; usually =AF_INET=.
+   - =h_length=
+     The length of the address in bytes
+   - =h_addr_list=
+     A zeroterminated array of network addresses for the host. Host
+     addresses are in Network Byte Order.
+   - =h_addr=
+     The first address in =h_addr_list=.
+
+* 程序示例
+** 获取主机IP地址
+   示例程序如下，获取主机的IP地址：
+   #+BEGIN_SRC c :tangle getip.c
+     /*
+     ,** getip.c -- a hostname lookup demo
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <errno.h>
+     #include <netdb.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     int main(int argc, char *argv[])
+     {
+       struct hostent *h;
+       if (argc != 2) { // error check the command line
+         fprintf(stderr,"usage: getip address\n");
+         exit(1);
+       }
+       if ((h=gethostbyname(argv[1])) == NULL) { // get the host info
+         herror("gethostbyname");
+         exit(1);
+       }
+       printf("Host name : %s\n", h->h_name);
+       printf("IP Address : %s\n", inet_ntoa(*((struct in_addr *)h->h_addr)));
+       return 0;
+     }
+   #+END_SRC
+** A Simple Stream Server
+   该服务器会打印一句"Hello World!"， 测试时，先运行该程序，然后输入：
+   #+BEGIN_SRC sh
+     telnet remotehostname 3490   
+   #+END_SRC
+     
+   代码如下：
+   #+BEGIN_SRC c :tangle server.c
+     /*
+     ,** server.c -- a stream socket server demo
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <errno.h>
+     #include <string.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     #include <sys/wait.h>
+     #include <signal.h>
+
+     #define MYPORT 3490 // the port users will be connecting to
+     #define BACKLOG 10 // how many pending connections queue will hold
+     void sigchld_handler(int s)
+     {
+       while(waitpid(-1, NULL, WNOHANG) > 0);
+     }
+     int main(void)
+     {
+       int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
+       struct sockaddr_in my_addr; // my address information
+       struct sockaddr_in their_addr; // connector’s address information
+       socklen_t sin_size;
+       struct sigaction sa;
+       int yes=1;
+       if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
+         perror("setsockopt");
+         exit(1);
+       }
+       my_addr.sin_family = AF_INET; // host byte order
+       my_addr.sin_port = htons(MYPORT); // short, network byte order
+       my_addr.sin_addr.s_addr = INADDR_ANY; // automatically fill with my IP
+       memset(&(my_addr.sin_zero), '\0', 8); // zero the rest of the struct
+       if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr))
+           == -1) {
+         perror("bind");
+         exit(1);
+       }
+       if (listen(sockfd, BACKLOG) == -1) {
+         perror("listen");
+         exit(1);
+       }
+       sa.sa_handler = sigchld_handler; // reap all dead processes
+       sigemptyset(&sa.sa_mask);
+       sa.sa_flags = SA_RESTART;
+       if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+         perror("sigaction");
+         exit(1);
+       }
+       while(1) { // main accept() loop
+         sin_size = sizeof(struct sockaddr_in);
+         if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr,
+                              &sin_size)) == -1) {
+           perror("accept");
+           continue;
+         }
+         printf("server: got connection from %s\n",
+                inet_ntoa(their_addr.sin_addr));
+         if (!fork()) { // this is the child process
+           close(sockfd); // child doesn’t need the listener
+           if (send(new_fd, "Hello, world!\n", 14, 0) == -1)
+             perror("send");
+           close(new_fd);
+
+           exit(0);
+         }
+         close(new_fd); // parent doesn’t need this
+       }
+       return 0;
+     }
+   #+END_SRC
+** A Simple Stream Client
+   连接TCP服务器上的端口3490，并打印出服务器返回的字符串
+   #+BEGIN_SRC c :tangle client.c
+     /*
+     ,** client.c -- a stream socket client demo
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <errno.h>
+     #include <string.h>
+     #include <netdb.h>
+     #include <sys/types.h>
+     #include <netinet/in.h>
+     #include <sys/socket.h>
+     #define PORT 3490 // the port client will be connecting to
+     #define MAXDATASIZE 100 // max number of bytes we can get at once
+     int main(int argc, char *argv[])
+     {
+       int sockfd, numbytes;
+       char buf[MAXDATASIZE];
+       struct hostent *he;
+       struct sockaddr_in their_addr; // connector’s address information
+       if (argc != 2) {
+         fprintf(stderr,"usage: client hostname\n");
+         exit(1);
+       }
+       if ((he=gethostbyname(argv[1])) == NULL) { // get the host info
+         herror("gethostbyname");
+         exit(1);
+       }
+       if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       their_addr.sin_family = AF_INET; // host byte order
+       their_addr.sin_port = htons(PORT); // short, network byte order
+       their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+       memset(&(their_addr.sin_zero), '\0', 8); // zero the rest of the struct
+       if (connect(sockfd, (struct sockaddr *)&their_addr,
+                   sizeof(struct sockaddr)) == -1) {
+         perror("connect");
+         exit(1);
+       }
+       if ((numbytes=recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+         perror("recv");
+         exit(1);
+       }
+       buf[numbytes] = '\0';
+       printf("Received: %s",buf);
+       close(sockfd);
+       return 0;
+     }
+   #+END_SRC
+** Datagram Sockets
+   listener sits on a machine waiting for an incoming packet on
+   port 4950. talker sends a packet to that port, on the specified
+   machine, that contains whatever the user enters on the command
+   line.
+
+   listener的代码如下：
+   #+BEGIN_SRC c :tangle listener.c
+     /*
+     ,** listener.c -- a datagram sockets "server" demo
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <errno.h>
+     #include <string.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     #define MYPORT 4950 // the port users will be connecting to
+     #define MAXBUFLEN 100
+     int main(void)
+     {
+       int sockfd;
+       struct sockaddr_in my_addr; // my address information
+       struct sockaddr_in their_addr; // connector’s address information
+       socklen_t addr_len;
+       int numbytes;
+       char buf[MAXBUFLEN];
+       if ((sockfd = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       my_addr.sin_family = AF_INET; // host byte order
+       my_addr.sin_port = htons(MYPORT); // short, network byte order
+       my_addr.sin_addr.s_addr = INADDR_ANY; // automatically fill with my IP
+       memset(&(my_addr.sin_zero), '\0', 8); // zero the rest of the struct
+       if (bind(sockfd, (struct sockaddr *)&my_addr,
+                sizeof(struct sockaddr)) == -1) {
+         perror("bind");
+         exit(1);
+       }
+       addr_len = sizeof(struct sockaddr);
+       if ((numbytes=recvfrom(sockfd, buf, MAXBUFLEN-1 , 0,
+                              (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+         perror("recvfrom");
+         exit(1);
+       }
+       printf("got packet from %s\n",inet_ntoa(their_addr.sin_addr));
+       printf("packet is %d bytes long\n",numbytes);
+       buf[numbytes] = '\0';
+       printf("packet contains \"%s\"\n",buf);
+       close(sockfd);
+       return 0;
+     }
+   #+END_SRC
+
+   talker的代码如下：
+   #+BEGIN_SRC c :tangle talker.c
+     /*
+     ,** talker.c -- a datagram "client" demo
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <errno.h>
+     #include <string.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     #include <netdb.h>
+     #define SERVERPORT 4950 // the port users will be connecting to
+     int main(int argc, char *argv[])
+     {
+       int sockfd;
+       struct sockaddr_in their_addr; // connector’s address information
+       struct hostent *he;
+       int numbytes;
+       if (argc != 3) {
+         fprintf(stderr,"usage: talker hostname message\n");
+         exit(1);
+
+       }
+       if ((he=gethostbyname(argv[1])) == NULL) { // get the host info
+         perror("gethostbyname");
+         exit(1);
+       }
+       if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       their_addr.sin_family = AF_INET; // host byte order
+       their_addr.sin_port = htons(SERVERPORT); // short, network byte order
+       their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+       memset(&(their_addr.sin_zero), '\0', 8); // zero the rest of the struct
+       if ((numbytes = sendto(sockfd, argv[2], strlen(argv[2]), 0,
+                              (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
+         perror("sendto");
+         exit(1);
+       }
+       printf("sent %d bytes to %s\n", numbytes, inet_ntoa(their_addr.sin_addr));
+       close(sockfd);
+       return 0;
+     }
+   #+END_SRC
+** 广播
+   发送数据报广播客户端示例程序：
+   #+BEGIN_SRC c :tangle broadcaster.c
+     /*
+     ,** broadcaster.c -- a datagram "client" like talker.c, except
+     ,** this one can broadcast
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <errno.h>
+     #include <string.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     #include <netdb.h>
+     #define SERVERPORT 4950 // the port users will be connecting to
+     int main(int argc, char *argv[])
+     {
+       int sockfd;
+       struct sockaddr_in their_addr; // connector’s address information
+       struct hostent *he;
+       int numbytes;
+       //int broadcast = 1;
+       char broadcast = '1'; // if that doesn’t work, try this
+       if (argc != 3) {
+         fprintf(stderr,"usage: broadcaster hostname message\n");
+         exit(1);
+       }
+       if ((he=gethostbyname(argv[1])) == NULL) { // get the host info
+         perror("gethostbyname");
+         exit(1);
+       }
+       if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       // this call is the difference between this program and talker.c:
+       if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast,
+                      sizeof(broadcast)) == -1) {
+         perror("setsockopt (SO_BROADCAST)");
+         exit(1);
+       }
+       their_addr.sin_family = AF_INET; // host byte order
+       their_addr.sin_port = htons(SERVERPORT); // short, network byte order
+       their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+       memset(&(their_addr.sin_zero), '\0', 8); // zero the rest of the struct
+       if ((numbytes=sendto(sockfd, argv[2], strlen(argv[2]), 0,
+                            (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
+         perror("sendto");
+         exit(1);
+       }
+       printf("sent %d bytes to %s\n", numbytes, inet_ntoa(their_addr.sin_addr));
+       close(sockfd);
+       return 0;
+     }
+   #+END_SRC
+* IO控制
+** 阻塞
+   默认情况下，socket发送和接收的函数都是阻塞式的，要想调整成非阻塞模
+   式，可以使用如下代码：
+   #+BEGIN_SRC c
+     #include <fcntl.h> ...
+     sockfd = socket(PF_INET, SOCK_STREAM, 0);
+     fcntl(sockfd, F_SETFL, O_NONBLOCK);   
+   #+END_SRC
+   这样，代码必须不停地通过poll查询socket的状态。
+** select()
+   select函数可以同时监听多个socket，哪些可读，哪些可写，哪些抛出异常
+   等等。函数原型如下：
+   #+BEGIN_SRC c
+     #include <sys/time.h>
+     #include <sys/types.h>
+     #include <unistd.h>
+     int select(int numfds, fd_set *readfds, fd_set *writefds,
+                fd_set *exceptfds, struct timeval *timeout);
+   #+END_SRC
+
+   相关宏：
+   - =FD_ZERO(fd_set *set)=  clears a file descriptor set
+   - =FD_SET(int fd, fd_set *set)=  adds fd to the set
+   - =FD_CLR(int fd, fd_set *set)=  removes fd from the set
+   - =FD_ISSET(int fd, fd_set *set)=  tests to see if fd is in the set
+
+   示例程序如下：
+   #+BEGIN_SRC c
+     /*
+     ,** select.c -- a select() demo
+     ,*/
+     #include <stdio.h>
+     #include <sys/time.h>
+     #include <sys/types.h>
+     #include <unistd.h>
+     #define STDIN 0 // file descriptor for standard input
+     int main(void)
+     {
+       struct timeval tv;
+       fd_set readfds;
+       tv.tv_sec = 2;
+       tv.tv_usec = 500000;
+       FD_ZERO(&readfds);
+       FD_SET(STDIN, &readfds);
+       // don’t care about writefds and exceptfds:
+       select(STDIN+1, &readfds, NULL, NULL, &tv);
+       if (FD_ISSET(STDIN, &readfds))
+         printf("A key was pressed!\n");
+       else
+         printf("Timed out.\n");
+       return 0;
+     }
+   #+END_SRC
+** 示例程序
+   a simple multiuser chat server
+   测试时，可以从多个窗口中输入：
+   #+BEGIN_SRC sh
+     telnet hostname 9034   
+   #+END_SRC
+
+   多个聊天服务器：
+   #+BEGIN_SRC c
+     /*
+     ,** selectserver.c -- a cheezy multiperson chat server
+     ,*/
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <string.h>
+     #include <unistd.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <arpa/inet.h>
+     #define PORT 9034 // port we’re listening on
+     int main(void)
+     {
+       fd_set master; // master file descriptor list
+       fd_set read_fds; // temp file descriptor list for select()
+       struct sockaddr_in myaddr; // server address
+       struct sockaddr_in remoteaddr; // client address
+       int fdmax; // maximum file descriptor number
+       int listener; // listening socket descriptor
+       int newfd; // newly accept()ed socket descriptor
+       char buf[256]; // buffer for client data
+       int nbytes;
+       int yes=1; // for setsockopt() SO_REUSEADDR, below
+       socklen_t addrlen;
+       int i, j;
+       FD_ZERO(&master); // clear the master and temp sets
+       FD_ZERO(&read_fds);
+       // get the listener
+       if ((listener = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+         perror("socket");
+         exit(1);
+       }
+       // lose the pesky "address already in use" error message
+       if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes,
+                      sizeof(int)) == -1) {
+         perror("setsockopt");
+         exit(1);
+       }
+       // bind
+       myaddr.sin_family = AF_INET;
+       myaddr.sin_addr.s_addr = INADDR_ANY;
+       myaddr.sin_port = htons(PORT);
+       memset(&(myaddr.sin_zero), ’\0’, 8);
+       if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) {
+         perror("bind");
+         exit(1);
+       }
+       // listen
+       if (listen(listener, 10) == -1) {
+         perror("listen");
+         exit(1);
+       }
+       // add the listener to the master set
+       FD_SET(listener, &master);
+       // keep track of the biggest file descriptor
+       fdmax = listener; // so far, it’s this one
+       // main loop
+       for(;;) {
+         read_fds = master; // copy it
+         if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+           perror("select");
+           exit(1);
+         }
+         // run through the existing connections looking for data to read
+         for(i = 0; i <= fdmax; i++) {
+           if (FD_ISSET(i, &read_fds)) { // we got one!!
+             if (i == listener) {
+               // handle new connections
+               addrlen = sizeof(remoteaddr);
+               if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr,
+                                   &addrlen)) == -1) {
+                 perror("accept");
+               } else {
+                 FD_SET(newfd, &master); // add to master set
+                 if (newfd > fdmax) { // keep track of the maximum
+                   fdmax = newfd;
+                 }
+                 printf("selectserver: new connection from %s on "
+                        "socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
+               }
+             } else {
+               // handle data from a client
+               if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) {
+                 // got error or connection closed by client
+                 if (nbytes == 0) {
+                   // connection closed
+                   printf("selectserver: socket %d hung up\n", i);
+                 } else {
+                   perror("recv");
+                 }
+                 close(i); // bye!
+                 FD_CLR(i, &master); // remove from master set
+               } else {
+                 // we got some data from a client
+                 for(j = 0; j <= fdmax; j++) {
+                   // send to everyone!
+                   if (FD_ISSET(j, &master)) {
+                     // except the listener and ourselves
+                     if (j != listener && j != i) {
+                       if (send(j, buf, nbytes, 0) == -1) {
+                         perror("send");
+                       }
+                     }
+                   }
+                 }
+               }
+             } // it’s SO UGLY!
+           }
+         }
+       }
+       return 0;
+     }
+   #+END_SRC
+   

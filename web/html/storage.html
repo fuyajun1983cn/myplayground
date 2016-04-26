@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"></meta>
+	<title>本地存储</title>
+
+</head>
+<body>
+<article>
+	<header>
+		<h2>Web Storage是什么</h2>
+	</header>
+	<p>
+		Web Storage分为两种：
+		<ul>
+			<li>sessionStorage(临时保存)</li>
+			<section>
+				<p>
+					将数据保存在session对象中，所谓session，是指用户
+					在浏览某个网站时，从进入网站到浏览器关闭所经过的
+					时间。
+				</p>
+			</section>
+			<li>localStorage(永久保存)</li>
+			<section>
+				<p>
+					将数据保存在客户端本地的硬件设备，即使浏览器关闭了，数据仍然存在
+					，下次打开浏览器时访问网站时仍然可以继续使用。
+				</p>
+			</section>
+		</ul>
+	</p>
+</article>
+<article>
+	<header>
+		<h2>Web Storage示例</h2>
+	<header>
+		<script>
+		//sessionStorage示例
+		function saveStorage(id) {
+			var target = document.getElementById(id);
+			var str = target.value;
+			sessionStorage.setItem("message", str);
+			alert("已经保存");
+		}
+		
+		function loadStorage(id) {
+			var target = document.getElementById(id);
+			var msg = sessionStorage.getItem("message");
+			target.innerHTML = msg;
+		}
+/*		
+		//localStorage示例
+		function saveStorage(id) {
+			var target = document.getElementById(id);
+			var str = target.value;
+			localStorage.setItem("message", str);
+		}
+		
+		function loadStorage(id) {
+			var target = document.getElementById(id);
+			var msg = localStorage.getItem("message");
+			target.innerHTML = msg;
+		}
+*/
+	</script>
+	<p id="msg"></p>
+	<input type="text" id="input" >
+	<input type="button" value="保存数据" onclick="saveStorage('input');">
+	<input type="button" value="读取数据" onclick="loadStorage('msg');">
+</article>
+<article>
+	<header>
+		<h2>简单Web留言本——演示保存和读取大量数据</h2>
+	</header>
+	<script>
+		//sessionStorage示例
+		function saveStorage2(id) {
+			var data = document.getElementById(id).value;
+			var time = new Date().getTime();
+			localStorage.setItem(time, data);
+			alert("数据已经保存");
+			loadStorage2('msg2')
+		}
+		
+		function loadStorage2(id) {
+			var result = '<table border="1">';
+			for (var i = 0; i < localStorage.length; i++) {
+				var key = localStorage.key(i);
+				var value = localStorage.getItem(key);
+				var date = new Date();
+				date.setTime(key);
+				var datestr = date.toGMTString();
+				result += '<tr><td>' + value + '</td><td>' + datestr + '</td></tr>';
+			}
+			result += '</table>';
+			var target = document.getElementById(id);
+			target.innerHTML = result;
+		}
+		
+		function clearStorage() {
+			localStorage.clear();
+			alert("全部数据被清除");
+			loadStorage2('msg2');
+		}
+	</script>
+	<section>
+		<textarea id="memo" cols="60" rows="10"></textarea><br/>
+		<input type="button" value="追加" onclick="saveStorage2('memo');">
+		<input type="button" value="初始化" onclick="clearStorage();">
+		<br/>
+		<p id="msg2"></p>
+	</section>
+</article>
+<article>
+	<header>
+		<h2>使用Web Storage来做简易数据库</h2>
+	</header>
+	<script>
+		function saveStorage3() {
+			var data = new Object();
+			data.name = document.getElementById('name').value;
+			data.email = document.getElementById('email').value;
+			data.tel = document.getElementById('tel').value;
+			data.memo = document.getElementById('memo2').value;
+			
+			var str = JSON.stringify(data);
+			localStorage.setItem(data.name, str);
+			alert("数据已经保存");
+		}
+		
+		function findStorage(id) {
+			var find = document.getElementById('find').value;
+			var str = localStorage.getItem(find);
+			var data = JSON.parse(str);
+			var result = "姓名：" + data.name + '<br>';
+			result += "电子邮件：" + data.email + "<br>";
+			result += "电话号码：" + data.tel + "<br>";
+			result += "备份：" + data.memo + "<br>";
+			var target = document.getElementById('msg3');
+			target.innerHTML = result;
+		}
+	</script>
+	<section>
+		<table>
+			<tr><td>姓名：</td><td><input type="text" id="name"></td></tr>
+			<tr><td>电子邮件:</td><td><input type="text" id="email"></td></tr>
+			<tr><td>电话号码：</td><td><input type="text" id="tel"></td></tr>
+			<tr><td>备份：</td><td><input type="text" id="memo2"></td></tr>
+			<tr>
+				<td></td>
+				<td><input type="button" value="保存" onclick="saveStorage3();"></td>
+			</tr>
+		</table>
+		<hr>
+		<p>检索：<input type="text" id="find">
+			<input type="button" value="检索" onclick="findStorage('msg3');">
+		</p>
+		<p id="msg3"></p>
+	</section>
+</article>
+<article>
+	<header>
+		<h2>本地数据库</h2>
+	</header>
+	<section>
+		<p> HTML5采用SQLLite作为本地数据库,总体说来，有两个必要的步骤：
+			<ol>
+				<li>创建访问的数据库</li>
+				<li>使用事务处理。</li>
+			</ol>
+			首先，必须使用<b>openDatabase</b>来创建一个访问数据库的对象。<br/>
+			使用方法如下：<br>
+			<pre><code>
+			var db = openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024);
+			</code></pre>
+			参数说明如下：
+			<ol>
+				<li>数据库名</li>
+				<li>版本号</li>
+				<li>数据库的描述</li>
+				<li>数据库的大小</li>
+			</ol>
+			<b>transaction</b>方法的使用示例如下：
+			<pre><code>
+			db.transaction(function(tx) {
+				tx.executeSql('CREATE TABLE IF NOT EXISTS LOGS (id unique, Log)');
+			});
+			</code></pre>
+		</p>
+	</section>
+</article>
+<article>
+	<header>
+		<h2>使用数据库实现Web留言本</h2>
+	</header>
+	<script>
+		var datatable = null;
+		var db = null
+		function init() {
+			db = openDatabase('MyData', '', 'My Database', 102400);
+			datatable = document.getElementById('datatable');
+			showAllData();
+			alert("初始化成功")
+		}
+		
+		function removeAllData() {
+			for (var i = datatable.childNodes.length-1; i >= 0; i--) {
+				datatable.removeChild(datatable.childNodes[i]);
+			}
+			var tr = document.createElement('tr');
+			var th1 = document.createElement('th');
+			var th2 = document.createElement('th');
+			var th3 = document.createElement('th');
+			th1.innerHTML = '姓名';
+			th2.innerHTML = '留言';
+			th3.innerHTML = '时间';
+			tr.appendChild(th1);
+			tr.appendChild(th2);
+			tr.appendChild(th3);
+			datatable.appendChild(tr);
+		}
+		
+		function showData(row) {
+			var tr = document.createElement('tr');
+			var td1 = document.createElement('td');
+			td1.innerHTML = row.name;
+			var td2 = document.createElement('td');
+			td2.innerHTML = row.message;
+			var td3 = document.createElement('td');
+			var t = new Date();
+			t.setTime(row.time);
+			td3.innerHTML = t.toLocaleDateString() + " " + t.toLocaleTimeString();
+			tr.appendChild(td1);
+			tr.appendChild(td2);
+			tr.appendChild(td3);
+			datatable.appendChild(tr);
+		}
+		
+		function showAllData() {
+			db.transaction(function(tx) {
+				tx.executeSql('CREATE TABLE IF NOT EXISTS MsgData(name TEXT, message TEXT, time INTEGER)',
+							[]);
+				tx.executeSql('SELECT * FROM MsgData', [], function(tx, rs) {
+					removeAllData();
+					for (var i = 0; i < rs.rows.length; i++) {
+						showData(rs.rows.item(i));
+					}
+				});
+			});
+			alert("创建表格成功~");
+		}
+		
+		function addData(name, message, time) {
+			db.transaction(function(tx) {
+				tx.executeSql('INSERT INTO MsgData VALUES(?, ?, ?)', 
+				[name, message, time], function(tx, rs) {
+					alert('成功保存数据');
+				}, function(tx, error) {
+					alert(error.source + "::" + error.message);
+				});
+			});
+		}
+		
+		function saveData() {
+			var name = document.getElementById('name2').value;
+			var memo = document.getElementById('memo3').value;
+			var time = new Date().getTime();
+			addData(name, memo, time);
+			showAllData();
+		}
+	</script>
+	<section>
+		<table>
+			<tr><td>姓名：</td><td><input type="text" id="name2"></td></tr>
+			<tr><td>留言：</td><td><input type="text" id="memo3"></td></tr>
+			<tr>
+				<td></td>
+				<td><input type="button" value="初始化" onclick="init();"></td>
+				<td><input type="button" value="保存" onclick="saveData();"></td>
+			</tr>
+		</table>
+		<hr>
+		<table id="database" border="1"></table>
+		<p id="msg4"></p>
+	</section>
+</article>
+</body>
+</html>
