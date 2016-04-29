@@ -1,0 +1,234 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: libpcap编程小结
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 概述  
+  libpcap是与Packet Sniffer相关的一个库，大名鼎鼎的tcpdump就用到了
+  libpcap库, 属于链路层的接口。 
+
+  学习这个库的主要目的只是简单了解一下Packet Sniffer的过程, 主要想通过
+  这个库来了解一些协议层的数据包结构，所以本文仅仅是为了满足个人的好
+  奇之心而对一些资料进行简单汇总，供个人参考备查而已。 
+
+* libpcap编程指南
+
+** 使用libpcap进行基本编程
+
+*** 一个完整的例子
+    首先，上一个完整的程序代码，然后分析一下实现一个简单的Packet
+    Sniffer的主要步骤。 
+
+    #+BEGIN_SRC c
+      #include <pcap.h>
+      #include <time.h>
+      #include <stdlib.h>
+      #include <stdio.h>
+
+      void getPacket(u_char * arg, const struct pcap_pkthdr * pkthdr, const u_char * packet)
+      {
+        int * id = (int *)arg;
+        
+        printf("id: %d\n", ++(*id));
+        printf("Packet length: %d\n", pkthdr->len);
+        printf("Number of bytes: %d\n", pkthdr->caplen);
+        printf("Recieved time: %s", ctime((const time_t *)&pkthdr->ts.tv_sec)); 
+        
+        int i;
+        for(i=0; i<pkthdr->len; ++i)
+        {
+          printf(" %02x", packet[i]);
+          if( (i + 1) % 16 == 0 )
+          {
+            printf("\n");
+          }
+        }
+        
+        printf("\n\n");
+      }
+
+      int main()
+      {
+        char errBuf[PCAP_ERRBUF_SIZE], * devStr;
+        
+        /* get a device */
+        devStr = pcap_lookupdev(errBuf);
+        
+        if(devStr)
+        {
+          printf("success: device: %s\n", devStr);
+        }
+        else
+        {
+          printf("error: %s\n", errBuf);
+          exit(1);
+        }
+        
+        /* open a device, wait until a packet arrives */
+        pcap_t * device = pcap_open_live(devStr, 65535, 1, 0, errBuf);
+        
+        if(!device)
+        {
+          printf("error: pcap_open_live(): %s\n", errBuf);
+          exit(1);
+        }
+        
+        /* construct a filter */
+        struct bpf_program filter;
+        pcap_compile(device, &filter, "dst port 80", 1, 0);
+        pcap_setfilter(device, &filter);
+        
+        /* wait loop forever */
+        int id = 0;
+        pcap_loop(device, -1, getPacket, (u_char*)&id);
+        
+        pcap_close(device);
+
+        return 0;
+      }
+
+    #+END_SRC
+
+    
+*** 基本步骤
+    从上述代码，可以看到，实现一个基本的Packet Sniffer，基本的步骤如下：
+    1. 决定要Sniff的接口，如eth0或其他，可以显式地指定接口名，也可以通
+       过libpcap库的接口返回一个可用的接口， 即调用 =pcap_lookupdev=
+    2. 初始化libpcap库， 告诉libpcap具体要Sniff哪个设备，可以同时Sniff
+       多个设备， 使用接口 =pcap_open_live=
+    3. 设置一个过滤规则，即可以选择只接收符合某种条件的数据包。相关函
+       数有 =pcap_compile= , =pcap_setfilter= 。
+    4. 最后，进入主循环，在该循环中，不停地监听接收到的数据包，一旦有
+       数据包到达，会交给函数去处理。 相关函数有： =pcap_next= (只读一
+       次) , =pcap_loop= (循环处理)
+    5. Sniff结束后，关闭相应的句柄。
+
+** 更多的小例子
+
+*** 获取网络设备的一些信息，如网络地址和掩码
+     #+BEGIN_SRC c
+       /* ldev.c
+       Martin Casado
+       To compile:
+       >gcc ldev.c -lpcap
+       Looks for an interface, and lists the network ip
+       and mask associated with that interface.
+       ,*/
+       #include <stdio.h>
+       #include <stdlib.h>
+       #include <pcap.h> /* GIMME a libpcap plz! */
+       #include <errno.h>
+       #include <sys/socket.h>
+       #include <netinet/in.h>
+       #include <arpa/inet.h>
+       int main(int argc, char **argv)
+       {
+         char *dev; /* name of the device to use */
+         char *net; /* dot notation of the network address */
+         char *mask;/* dot notation of the network mask */
+         int ret; /* return code */
+         char errbuf[PCAP_ERRBUF_SIZE];
+         bpf_u_int32 netp; /* ip */
+         bpf_u_int32 maskp;/* subnet mask */
+         struct in_addr addr;
+         /* ask pcap to find a valid device for use to sniff on */
+         dev = pcap_lookupdev(errbuf);
+         /* error checking */
+         if(dev == NULL)
+           {
+             printf("%s\n",errbuf);
+             exit(1);
+           }
+         /* print out device name */
+         printf("DEV: %s\n",dev);
+         /* ask pcap for the network address and mask of the device */
+         ret = pcap_lookupnet(dev,&netp,&maskp,errbuf);
+         if(ret == -1)
+           {
+             printf("%s\n",errbuf);
+             exit(1);
+           }
+         /* get the network address in a human readable form */
+         addr.s_addr = netp;
+         net = inet_ntoa(addr);
+         if(net == NULL)/* thanks Scott :-P */
+           {
+             perror("inet_ntoa");
+             exit(1);
+           }
+         printf("NET: %s\n",net);
+         /* do the same as above for the device's mask */
+         addr.s_addr = maskp;
+         mask = inet_ntoa(addr);
+         if(mask == NULL)
+           {
+             perror("inet_ntoa");
+             exit(1);
+           }
+         printf("MASK: %s\n",mask);
+         return 0;
+       }
+     #+END_SRC
+
+*** 分析Sniff到的数据包
+    =pcap_loop= 有定义回调函数，当收到数据后，会调用相应的回调函数，我
+    们对数据包的解析也在回调函数中进行。
+    #+BEGIN_SRC c
+      u_int16_t handle_ethernet
+      (u_char *args,const struct pcap_pkthdr* pkthdr,const u_char*
+       packet);
+      /* looking at ethernet headers */
+      void my_callback(u_char *args,const struct pcap_pkthdr* pkthdr,const u_char*
+                       packet)
+      {
+        u_int16_t type = handle_ethernet(args,pkthdr,packet);
+        if(type == ETHERTYPE_IP)
+          {/* handle IP packet */
+          }else if(type == ETHERTYPE_ARP)
+          {/* handle arp packet */
+          }
+        else if(type == ETHERTYPE_REVARP)
+          {/* handle reverse arp packet */
+          }/* ignorw */
+      }
+
+      u_int16_t handle_ethernet
+      (u_char *args,const struct pcap_pkthdr* pkthdr,const u_char*
+       packet)
+      {
+        struct ether_header *eptr; /* net/ethernet.h */
+        /* lets start with the ether header... */
+        eptr = (struct ether_header *) packet;
+        fprintf(stdout,"ethernet header source: %s"
+                ,ether_ntoa(eptr->ether_shost));
+        fprintf(stdout," destination: %s "
+                ,ether_ntoa(eptr->ether_dhost));
+        /* check to see if we have an ip packet */
+        if (ntohs (eptr->ether_type) == ETHERTYPE_IP)
+          {
+            fprintf(stdout,"(IP)");
+          }else if (ntohs (eptr->ether_type) == ETHERTYPE_ARP)
+          {
+            fprintf(stdout,"(ARP)");
+          }else if (ntohs (eptr->ether_type) == ETHERTYPE_REVARP)
+          {
+            fprintf(stdout,"(RARP)");
+          }else {
+          fprintf(stdout,"(?)");
+          exit(1);
+        }
+        fprintf(stdout,"\n");
+        return eptr->ether_type;
+      }
+    #+END_SRC
+
+* 参考链接
+  1. http://www.tcpdump.org/pcap.html
+  2. http://eecs.wsu.edu/~sshaikot/docs/lbpcap/libpcap-tutorial.pdf
+  3. http://recursos.aldabaknocking.com/libpcapHakin9LuisMartinGarcia.pdf
+  4. http://blog.chinaunix.net/uid-21556133-id-120228.html
+
+
+

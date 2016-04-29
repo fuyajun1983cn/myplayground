@@ -1,0 +1,67 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: 设计模式快速参考
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 构造模式
+  主要描述如何更好地表述一个对象。主要有如下一些具体模式：
+
+** 抽象工厂(Abstract Factory)
+
+** 构造器(Builder)
+
+** 工厂方法(Factory Method)
+
+** 原型(Prototype)
+
+** 单例(Singleton)
+
+* 结构模式
+  主要描述组织对象和类以完成更大的目标。主要有如下一些具体模式：
+
+** 适配器(Adapter)
+
+** 桥接(Bridge)
+
+** 组合(Composite)
+
+** 修饰器(Decorator)
+
+** 门面(Facade)
+
+** 享元(Flyweight)
+
+** 代理(Proxy)
+
+
+* 行为模式
+  主要关注对象之间的交互。主要有如下一些具体模式：
+
+** 责任链(Chain of Responsibility)
+
+** 命令(Command)
+
+** 解释器(Interpreter)
+
+** 迭代器(Iterator)
+
+** 仲裁者(Mediator)
+
+** 备忘录(Memento)
+
+** 观察者(Observer)
+
+** 状态(State)
+
+** 策略(Strategy)
+
+** 模板方法(Template Method) 
+
+** 访问者(Visitor Method)
+
+* 体系结构模式
+
+** MVC(Model-View-Controller)
+
