@@ -51,8 +51,7 @@
 *** ☛ TODO 简历优化
     NEXT: 编写一个不超过2页的精简版
 ** 技术修炼
-*** 读书计划 [1/4]
-**** ☛ TODO 大脑使用说明书
+*** 读书计划 [1/3]
 **** ☛ TODO Learn More Study Less
 **** ☛ TODO 突破思维的障碍
 **** 专注力
@@ -107,8 +106,6 @@
 ** ☛ TODO Linux kernel小程序快速参考
    - NEXT: 准备第一版
    - 收集其他的小程序
-** ☛ TODO Understanding Linux Network Internals
-   下次从第12章开始, 协议层处理
 * Finished Tasks
 ** 2016
 *** 3月[4/4]
@@ -140,3 +137,8 @@
 **** ✔ DONE 尽管去做——无压的工作艺术
      CLOSED: [2016-04-06 三 09:30]
        NEXT: 下次阅读最后三章
+**** ✔ DONE Understanding Linux Network Internals
+     CLOSED: [2016-04-25 一 21:00]
+     下次从第11章开始
+**** ✔ DONE 大脑使用说明书
+     CLOSED: [2016-04-26 二 10:20]
