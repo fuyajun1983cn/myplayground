@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>通信API</title>
+</head>
+<body>
+	<article>
+		<header>
+		<h2>跨文档消息传递</h2>
+		</header>
+		<script>
+			window.addEventListener("message", function(ev) {
+				alert("hello");
+				if (ev.origin != "http://www.baidu.com") {
+					return;
+				}
+				alert("从" + ev.origin + "那里传过来的消息\n\"" + ev.data + "\"");
+			}, false);
+			
+			function hello()
+			{
+				var iframe = window.frames[0];
+				iframe.postMessage("你好", "http://www.baidu.com");
+			}
+		</script>
+		<iframe width="400" src="http://www.baidu.com" onload="hello()">
+		</iframe>
+	</article>
+	<article>
+	<p>
+		Web Sockets API可以在服务器与客户端之间建立一个非HTTP的双向连接。这个连接
+		是实时的，也是永久的，除非显式关闭。
+	</p>
+	</article>
+</body>
+</html>

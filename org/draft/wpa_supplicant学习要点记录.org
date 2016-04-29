@@ -792,17 +792,53 @@
      #+RESULTS:
      [[file:./images/2016/2016012001.png]]
 
-*** TODO 配置加密方法（TKIP/CCMP）
+*** 配置加密方法（TKIP/CCMP）
     如果是在Driver中实现的，必须提供一种配置的手段。
 
-*** TODO 漫游和扫描支持
-*** TODO 产生WPA IE
+*** 漫游和扫描支持
+*** 产生WPA IE
       WPA IE是在Driver中产生的还是在 =wpa_supplicant= 中产生的？
       
 *** rfkill
 ** l2 packets
-   l2 packets的发送函数： =l2_packet_send=
-   接收EAPOL Packet的代码如下：
+*** 链路层套接字 =PF_PACKET=
+    Packet套接字用于在MAC层上收发原始数据帧，这样就允许用户在用户空间
+    完成MAC之上各个层次的实现。
+    Packet套接字的定义方式与传送层的套接字定义类似，如下：
+    #+BEGIN_SRC c
+      packet_socket=socket(PF_PACKET,int socket_type,int protocol);
+    #+END_SRC
+
+
+    其中 =socket_type= 有两种类型，一种为 =SOCK_RAW=,它是包含了MAC层头
+    部信息的原始分组，当然这种类型的套接字在发送的时候需要自己加上一个
+    MAC头部（其类型定义在 =linux</if_ether.h= 中，ethhdr），另一种是
+    =SOCK_DGRAM= 类型，它是已经进行了MAC层头部处理的，即收上的帧已经去
+    掉了头部，而发送时也无须用户添加头部字段。Protocol是指其送交的上层
+    的协议号，如IP为0x0800，当其为 =htons(ETH_P_ALL)= （其宏定义为0）
+    时表示收发所有的协议。创建好套接字后，就可以通过与UDP一样的
+    recvfrom与sendto函数进行数据的收发，其目的地址结构为 =sockaddr_ll=
+    ，这与传送层的地址结构定义是不一样的，其长度为20字节（在TCP/IP的链
+    路层地址中使用了18字节），而传送层的地址结构长度为16字节。
+
+    Sockaddr_ll结构如下：
+    #+BEGIN_SRC c
+      struct sockaddr_ll
+      {
+        unsigned short sll_family; /* 总是 AF_PACKET */
+        unsigned short sll_protocol; /* 物理层的协议 */
+        int sll_ifindex; /* 接口号 */
+        unsigned short sll_hatype; /* 报头类型 */
+        unsigned char sll_pkttype; /* 分组类型 */
+        unsigned char sll_halen; /* 地址长度 */
+        unsigned char sll_addr[8]; /* 物理层地址 */
+      };
+    #+END_SRC
+*** =wpa_supplicant= 中 =l2_packet= 的初始化
+    初始化函数函数在 =l2_packet_init= ，设置接收不同的LLC层数据包类型。 
+
+    l2 packets的发送函数： =l2_packet_send=
+    驱动接口中接收EAPOL Packet的代码如下：
    #+BEGIN_SRC c
      drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));
      if (drv->eapol_sock < 0) {
@@ -819,7 +855,7 @@
 
    #+END_SRC
 
-负责处理的函数是 =handle_eapol= 。
+    负责处理的函数是 =handle_eapol= 。
 
 ** =hostapd_setup_bss=
    Initialize Per-BSS data structures.

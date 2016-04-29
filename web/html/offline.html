@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>离线应用程序</title>
+<head>
+<body>
+<article>
+	<header>
+		<h2>本地缓存与浏览器网页缓存之间的区别</h2>
+	</header>
+	<p>
+		区别主要有如下几点：
+		<ul>
+			<li>本地缓存是为整个Web应用服务的，而浏览器的网页缓存只是服务于单个网页。</li>
+			<li>任何网页都是有缓存的，而本地缓存可以进行控制哪些内容缓存，而哪些没有缓存。</li>
+		</ul>
+	</p>
+	<p>
+		manifest是一个简单文本文件，以清单的形式列举了需要（或不需要）被缓存的资源文件及名称。
+		<br/>
+		在指定资源的时候，可以把资源分为三类：
+		<ul>
+			<li>CACHE</li>
+			<p>
+				指定需要被缓存在本地的资源文件
+			</p>
+			<li>NETWORK</li>
+			<p>
+				显示指定不进行本地缓存的资源文件
+			</p>
+			<li>FALLBACK</li>
+			<p>
+				每行指定两个资源文件，第一个资源为在线访问时使用的资源文件，第二个资源
+				为离线访问时使用的资源文件。
+			</p>
+	</p>
+	<p>
+		applicationCache代表了本地缓存对象。swapCache()方法用于手动执行本地缓存的更新。
+		它只能在applicationCache对象的updateReady事件被触发的时候调用。
+</article>
+</body>
+</html>

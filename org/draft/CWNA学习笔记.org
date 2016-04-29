@@ -4,6 +4,10 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 
+* 内容导读
+
+  [[./images/2016/CWNA内容导图.svg]]
+
 * 第一章 无线标准、组织和基础概述  
 
 ** 要点记录
@@ -2697,7 +2701,7 @@ Keith Parsons
 *** Block Acknowledgment
 
       A-MSDU只需要 一个ACK，但是，A-MPDU需要对其中的每个MPDU进行确认，
-      这是通过 /multiple traffi c ID block acknowledgment (MTBA)
+      这是通过 /multiple traffic ID block acknowledgment (MTBA)
       frame/ 来完成的，它实际上是一个A-MPDU的Block ACK帧。 
 
 *** RIFS
@@ -2758,4 +2762,120 @@ Keith Parsons
 
 * 第十九章 VHT & 802.11ac
   
+** 802.11ac 2003修订版
+   802.11ac是分阶段实现的，第一阶段目标是传输速率达到1.3Gbps， 第二阶
+   段目标是传输速率达到3.5Gbps。 
+
+   与802.11n对比情况如下：
+
+   [[./images/2016/2016042601.png]]
+
+** 5 GHz only
+   802.11ac由于支持更高的带宽，所以只能工作在5G频段上。
+
+** 20,40,80,160 MHz信道
+
+   11ac在11n的基础上，引入了80MHz，160MHz的带宽。其中，40MHz带宽信道是
+   由两个相相邻的20MHz信道组合而成，80MHz带宽信道是由两个相邻的40MHz信
+   道组合而成，160MHz是由两个相邻或独立的两个80MHz信道构成。
+
+   [[./images/2016/2016042602.png]]
+
+   对于11n设备，当他们使用40MHz带宽传输数据时，必须等待Primary Channel
+   和Secondary Channel都空闲的情况下，才能进行数据传输。显然会影响11n
+   设备的性能。
+
+   11ac设备引入了新的功能，允许AP以每帧为单位选择不同的带宽进行传输。
+   这种特性称为 /dynamic bandwidth operation/ 。 这样，11ac的AP，如果
+   工作在信36，40，44，48上以80MHz带宽进行数据传输，在进行数据传输之前，
+   会检查这4个信道是否空闲，如果发现其中36信息被其他AP占用，则会在信道
+   44，48上以40Mhz带宽进行数据传输。
+
+** 256 QAM modulation 
+   
+   新的调整信号方法， 256 QAM is more sensitive to noise and interference.
+
+** Modulation and coding schemes
+   
+   11ac只定义了10个MCS选项，前8个是必须实现的。
+   
+   [[./images/2016/2016042603.png]]
+
+   The last column represents the maximum achievable data rate for
+   each MCS. The data rate is based on a 20 MHz wide channel, a single 
+   spatial stream, and a short guard interval (400 ns). 
+
+   11ac不能单独禁用某一个速率，但是支持三个选择： /MCS 0-7,MCS 0-8, or MCS 0-9./
+
+** Single User MIMO
+   
+** 802.11ac date Rates
+
+   相对于11n，11ac主要在如下几个方面进行了增强，以提升数据传输速率。
+   1. 采用 =256-QAM= 调制方法
+
+** VHT MAC
+
+   11ac只需要考虑11a, 11n(5G)设备的共存问题。 由于物理层都使用OFDM前导
+   码，可以容易计算出等待的时间。
+
+*** =A-MPDU=
+    所有11ac数据帧都是使用 =A-MPDU= 帧格式进行传输，即使是只有一个数据
+    帧传输。 =A-MPDU= 降低了每帧的开销，只要求一个Block ACK。11n中的
+    RIFS不需要了，所以11ac是不支持RIFS的。
+
+*** RTS/CTS
+    一个AP如果有准备在4个相邻信道上进行80MHz的数据传输，需要在4个信道
+    上发送RTS，然后监听CTS，如果信道不忙，则会收到4个CTS。
+
+    但是，如果4个信道中，有一个或2个信道忙，则AP可能只收到两个CTS，这
+    样AP就只能进行40MHz的数据传输。
+
+** Beamforming
+
+   Instead of equally radiating the RF signal, beamforming allows an
+   802.11 transmitter to focus or direct the RF energy toward a
+   specific client.
+
+   To perform beamforming, the multiple radio chains in the AP
+   transmit the same information through different antennas. The APs
+   time their transmissions so that the waves of all of the antennas
+   arrive at the receiving radio at the same time and in phase with
+   each other. This should result in a signal increase of
+   approximately 3 decibels.
+
+   
+*** Explicit Beamforming
+    11n定义了多种beamforming方法，但是11ac只使用explicit beamforming，
+    并且要求发送方和接收方都要支持。
+
+    Explicit Beamforming的过程如下：
+    1. Beamformer传输一个空数据包（NDP）， 告知beamformee准备进行
+       beamformed传输的意图。
+    2. The beamformee processes each OFDM subcarrier and creates
+       feedback information.
+    3. The beamformer uses the feedback matrix to calculate a steering
+       matrix that is used to direct the data transmission to the
+       beamformee.
+
+    [[./images/2016/2016042604.png]]
+
+*** Multiuser MIMO
+    The goal of MU-MIMO is to use as many spatial streams as possible,
+    whether the transmission is with one client using four spatial
+    streams or with four clients using one spatial stream each.
+
+    MU-MIMO is only supported for downstream transmission from an AP
+    to multiple clients.
+
+*** Multiuser Beamforming
+    
+*** Quality of Service
+    
+** Infrastructure requirements
+
+** 802.11ac in a SOHO or home
+
+** WFA certification
+
 * Bring Your Own Device (BYOD)                                      :noexport:

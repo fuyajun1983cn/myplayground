@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>CSS学习</title>
+	
+	<style type="text/css">
+		#image-border {
+			margin: 3px;
+			width: 450px;
+			height:104px;
+			padding-left:14px;
+			padding-top: 20px;
+		}
+		
+
+		h2:before {
+			content: "[这是一个测试] ";
+			background-color:orange;
+		}
+		
+		div {
+			background-color: #aaff00;
+		}
+		
+		span {
+			background-color: #ffaa00;
+		}
+	</style>
+</head>
+<body>
+<div id="image-border">
+1.示例文字1<br/>
+2.示例文字2<br/>
+3.示例文字3<br/>
+</div>
+<article>
+	<header>
+		<h2>盒相关样式</h2>
+	</header>
+	<p>
+		CSS中的盒分为block类型和inline类型。 div和p元素属于block类型，
+		而span和a属于inline类型。
+	</p>
+	<div>div元素</div>
+	<div>div元素</div>
+	<span>span元素</span>
+	<span>span元素</span>
+</article>
+</body>
+</html>
