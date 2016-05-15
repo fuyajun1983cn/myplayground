@@ -1,0 +1,36 @@
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* 消息交互
+
+** M1
+   [[./images/2016/2016050602.png]]
+
+   [[./images/2016/2016050603.png]]
+
+   [[./images/2016/2016050604.png]]
+
+   [[./images/2016/2016050605.png]]
+
+   [[./images/2016/2016050606.png]]
+
+   [[./images/2016/2016050607.png]]
+
+   [[./images/2016/2016050608.png]]
+
+   [[./images/2016/2016050609.png]]
+
+   [[./images/2016/2016050610.png]]
+
+   [[./images/2016/2016050611.png]]
+
+   [[./images/2016/2016050612.png]]
+
+   [[./images/2016/2016050613.png]]
+
+   [[./images/2016/2016050614.png]]
+
+   [[./images/2016/2016050615.png]]

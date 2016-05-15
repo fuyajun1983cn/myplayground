@@ -1730,7 +1730,9 @@
        发起一次扫描。
        
 ** SME
-
+   SME was designed to be used when the driver does provide the
+   separate authentication and association commands. 
+   
    #+BEGIN_SRC c
      /* Driver provides separate commands for authentication and association (SME in
       ,* wpa_supplicant). */
@@ -1740,63 +1742,4 @@
 * 常用代码片断
   记录 =wpa_supplicant= 源码中常见的一些代码片断。
 * 参考资料
-[1]  http://en.wikipedia.org/wiki/Extensible_Authentication_Protocol
-维基百科关于EAP各种方法的一个简单介绍。
-[2]  http://hostap.epitest.fi/wpa_supplicant/devel/
-wpa_supplicant官方开发文档。读者可以简单浏览一下。
-wpa_ssid结构体介绍
-[3]  802.11-2012 附录M.4 “Suggested pass-phrase-to-PSK mapping”
-该节介绍了passphrase转换成PSK的方法，甚至还有伪代码实现。感兴趣的读者不妨结合WPAS中的代码来研究它。
-[4]  802.11-2012 第8.4.2.27.2节“Cipher suites”
-[5]  802.11-2012 第8.4.2.27.3节“AKM suites”
-上述两小节分别介绍了Cipher和AKM suites的情况。注意，其中定义的取值定义是指在RSN IE中的取值，和代码中定义的宏不是一回事。
-[6]  802.11-2012 第12章“Fast BSS Transition”
-官方文档。不过难度较大，建议读者阅读“Secure Roaming in 802.11 Networks”一书后再去看它。提醒，此书是笔者目前阅读到的关于Wi-Fi Roaming相关知识介绍最完整的一本。
-[7]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第6章“How IEEE 802.11 WEP Works and Why It Doesn't”
-关于WEP介绍的章节。另外，对安全感兴趣的读者请仔细阅读此书。
-[8]  http://www.codealias.info/technotes/opportunistic_pmk_pre-caching
-关于Opportunistic PMK Caching的简单介绍。
-[9]  Secure Roaming in 802.11 Networks第8章“Opportunistic Key Caching”一节
-相比[8]而言，这一节对OKC有更为详尽的介绍。
-wpa_supplicant结构体介绍
-[10]  802.11无线网络权威指南（第二版）第七章“802.11：RSN、TKIP与CCMP”，P171-P172
-[11]  802.11-2012 第11.4.2.4节“TKIP countermeasures procedures”
-上述两个参考资料介绍了TKIP countermeasures的处理方式。请读者先阅读[10]。
-[12]  http://www.cisco.com/en/US/docs/solutions/Enterprise/Mobility/vowlan/41dg/vowlan_ch5.html
-[13]  Secure Roaming in 802.11 Networks第5.2.5节“Background Scanning”
-Background Scan技术的介绍。
-[14]  http://network.chinabyte.com/359/12453859.shtml
-[15]  http://www.docin.com/p-365323002.html
-和GAS以及802.11u相关的一些介绍。
-wpa_supplicant_init_iface分析之三
-[16]  http://www.mjmwired.net/kernel/Documentation/rfkill.txt
-[17]  http://lwn.net/Articles/335382/
-这两篇资料介绍了rfkill相关的信息。感兴趣的读者不妨仔细阅读它们。
-[18]  http://wenku.baidu.com/view/c74758d280eb6294dd886c53.html
-RFC2863 3.1.13“IfAdminStatus and IfOperStatus”一节描述了IfOperStatus的取值情况及相关说明。
-[19]  http://wireless.kernel.org/en/developers/Documentation/nl80211/kerneldoc
-linux wireless kernel官方网站中nl80211内核部分的一些解释。
-EAP模块分析
-[20]  http://tools.ietf.org/pdf/rfc4137.pdf
-RFC4137文档的PDF版。相比TXT版而言，它用图来描述状态机的状态切换。
-EAPOL模块分析
-[21]  802.1X 2004版
-WPAS中的802.1X实现是基于802.1X 2004版。相比2010版而言，笔者觉得2004版的内容更具条理性。尤其是其关于EAPOL各状态机的描述非常清晰。
-EAPOL-Key交换流程分析
-[22]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第10章“WPA and RSN Key Hierarchy”
-[23]  802.11-2012 第11.6“Keys and key distribution”
-这两篇参考资料对Pairwise Key和Group Key以及4-Way Handshake、Group Key Handshake都有详细的介绍。
-[24]  wireless.kernel.org/en/users/Documentation/WoWLAN
-[25]  msdn.microsoft.com/en-us/library/windows/hardware/ff571052(v=vs.85).aspx
-这两篇文章对WoWLAN有一番介绍。读者可简单阅读它们。
-
-
-
-
-entropy
-
-
-
-
-
-wpa_supplicant_global_ctrl_iface_process
+  [1] https://w1.fi/wpa_supplicant/devel/index.html

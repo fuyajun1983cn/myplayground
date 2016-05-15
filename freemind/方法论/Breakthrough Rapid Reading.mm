@@ -77,8 +77,7 @@
       how people read fast
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461809293383" ID="ID_1490827466" MODIFIED="1461893460616">
 <richcontent TYPE="NODE"><html>
@@ -90,8 +89,7 @@
       <font color="#ff3333">&#32451;&#20064;1</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1461809301571" ID="ID_144501251" MODIFIED="1461893774706" TEXT="1. &#x9009;&#x62e9;&#x4e00;&#x4efd;&#x9605;&#x8bfb;&#x6750;&#x6599;&#x8bfb;3&#x904d;, &#x65f6;&#x95f4;&#x8bbe;&#x5b9a;&#x4e3a;3&#x5206;&#x949f;"/>
 <node CREATED="1461809330770" ID="ID_109494769" MODIFIED="1461809342714" TEXT="2. &#x4ee5;&#x8f83;&#x5feb;&#x7684;&#x901f;&#x5ea6;&#x518d;&#x8bfb;&#x4e00;&#x904d;"/>
@@ -109,8 +107,7 @@
       &#32451;&#20064;2
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1461893473312" ID="ID_124708732" MODIFIED="1461893563231">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -121,8 +118,7 @@
       1. &#36873;&#25321;&#19968;&#20221;&#38405;&#35835;&#26448;&#26009;&#65292;&#35835;&#19977;&#20998;&#38047;&#65292;&#26102;&#38388;&#21040;&#30340;&#26102;&#20505;&#65292;&#35760;&#19979;&#26631;&#35782;&#12290;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461893565062" ID="ID_1961248085" MODIFIED="1461893604874">
 <richcontent TYPE="NODE"><html>
@@ -134,8 +130,7 @@
       2. &#37325;&#26032;&#35835;3&#20998;&#38047;&#65292;&#22914;&#26524;&#21040;&#36798;&#26631;&#35760;&#22788;&#65292;&#26102;&#38388;&#36824;&#27809;&#26377;&#21040;&#65292;&#21017;&#36820;&#22238;&#24320;&#22836;&#32487;&#32493;&#21335;&#35835;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461893606144" ID="ID_1397533302" MODIFIED="1461893618748">
 <richcontent TYPE="NODE"><html>
@@ -147,8 +142,7 @@
       3. &#20351;&#29992;2&#20998;&#38047;&#37325;&#26032;&#35835;&#19968;&#36941;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461893619733" ID="ID_1576049474" MODIFIED="1461893677640">
 <richcontent TYPE="NODE"><html>
@@ -160,8 +154,7 @@
       4. &#20351;&#29992;1&#20998;&#38047;&#37325;&#26032;&#35835;&#19968;&#36941;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461893678640" ID="ID_1173509203" MODIFIED="1461893706755">
 <richcontent TYPE="NODE"><html>
@@ -173,8 +166,7 @@
       &#32451;&#20064;&#23436;&#25104;&#21518;&#65292;&#20174;&#26631;&#35760;&#22788;&#32487;&#32493;&#24320;&#22987;&#35835;&#19968;&#20998;&#38047;&#65292;&#35760;&#24405;&#19979;&#38405;&#35835;&#30340;&#36895;&#24230;&#12290;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1461893210773" ID="ID_1865424587" MODIFIED="1461893212709" TEXT="tips">
@@ -188,8 +180,7 @@
       <b><font color="#ff3333">The secret to good drilling is to go faster than you can say all of the words to yourself; yet you must still be seeing all of the words.</font></b>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1461895557732" ID="ID_195211154" MODIFIED="1461895595594">
 <richcontent TYPE="NODE"><html>
@@ -201,12 +192,11 @@
       <b><font color="#3333ff">quickly identify what a passage is about, usually the first sentence.</font></b>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
-<node CREATED="1461809809942" ID="ID_1284567044" MODIFIED="1461809811993" POSITION="right" TEXT="ASK THIS SIMPLE"/>
+<node CREATED="1461809809942" ID="ID_1284567044" MODIFIED="1462280455246" POSITION="right" TEXT="ASK THIS SIMPLE(38)"/>
 <node CREATED="1461634455525" ID="ID_1212230188" MODIFIED="1461634461994" POSITION="left" TEXT="&#x9605;&#x8bfb;&#x901f;&#x5ea6;&#x8bb0;&#x5f55;">
 <node CREATED="1461809046564" ID="ID_1713464106" MODIFIED="1461809069121" TEXT="&#x5f53;&#x524d;&#x9605;&#x8bfb;&#x901f;&#x5ea6;213&#x5b57;&#x6bcf;&#x5206;&#x949f;"/>
 <node CREATED="1461894944420" ID="ID_539874512" MODIFIED="1461894952079" TEXT="276&#x5b57;&#x6bcf;&#x5206;&#x949f;"/>
