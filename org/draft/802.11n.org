@@ -27,7 +27,7 @@
    8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备来讲，算是一个需要考量的缺点。
 
 ** 物理层
-
+   
    1. 如何加快网络速度？
       - 增加传输速率, 使用MIMO技术，可达150Mbps，最高可达600Mbps。
       - 增加协议的效率，即单位时间内传输更多的数据。
@@ -55,13 +55,13 @@
       - 802.11n定义了两种类型的帧：（A-MPDU）和（A-MSDU） 采用聚合帧是
         为了把时间尽量用在传输上。另外，也需要考虑一点，就是聚合帧的大
         小设置要合理，不能影响小的,高优先级帧。
-        - *A-MPDU*：Aggregate MAC Protocol Data Unit
+        - =A-MPDU= ：Aggregate MAC Protocol Data Unit
           
           这是一种更常见的聚合帧形式，它的大小主要由PLCP限制，可以长达
           65535字节。 每个放到聚合帧中的子帧都包含自己的MAC头和FCS，相
           当于每个子帧都是一个独立的MAC帧。
 
-        - *A-MSDU*：Aggregate MAC Service Data Unit， take several
+        - =A-MSDU= ：Aggregate MAC Service Data Unit， take several
           higher-layer packets and build them into a single MAC frame
           payload.
 
@@ -70,7 +70,7 @@
           MAC 帧。这种帧需要更多的软件上的支持，因为网络驱动必须将多个
           高层数据包整合成单个的MAC帧的负载。
 
-          另外，这两个聚合帧可以联合使用，如 =A-MPDU= 的子帧可以是一个
+          另外，这两种聚合帧可以联合使用，如 =A-MPDU= 的子帧可以是一个
           =A-MSDU= 聚合帧。
 
       - Block Acknowledgment (BA) 
@@ -262,12 +262,12 @@
 
      当无线链路数量超过空中流的数目时，可以使用STBC。Space-Time Block
      Coding (STBC) requires two radio chains to transmit a single
-     spatial stream. 
+     spatial stream. 传输速率虽然会降低，但是提高了传输质量。
 
    - Low-Density Parity Check (LDPC) 
 
      在802.11 关联过程中，会协商是否传递LDPC编码的帧，如果对端在
-     Beacon或Association Request帧中表明了支持LDPC，则802.11n设备只 会
+     Beacon或Association Request帧中表明了支持LDPC，则802.11n设备只会
      传输LDPC编码的帧。
 
 ** MU-MIMO (Multi-User MIMO) VS SU-MIMO

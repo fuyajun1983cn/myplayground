@@ -1,0 +1,24 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: Android学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* Framework
+
+** Media Framework
+
+*** 基础知识
+    AMessage代表一个消息，对对应一个target， 根据这个target可以知道对
+    应的消息应该归哪个AHandler去处理。
+
+    AHandler是处理消息的基类，它有一个id，处理与这个id相关联的AMessage，
+    在 =onMessageReceived= 函数中处理各种消息。
+    从AHandler派生的类，都会重写该方法，以处理各种消息。
+
+    有一个全局的 =ALooperRoster= 对象，它维护了系统中存在的 AHandler对
+    象。
+
+    ALooper对象，通过 =registerHandler= 接口将AHandler对象注册给
+    =ALooperRoster= 对象维护的AHandler列表中。 

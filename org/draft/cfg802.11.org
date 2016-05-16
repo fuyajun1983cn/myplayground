@@ -39,6 +39,7 @@
 - =cfg80211_report_obss_beacon=
 - =cfg80211_ibss_joined=
 - =cfg80211_ready_on_channel=
+  repoort remain on channel ready.
 - =cfg80211_remain_on_channel_expired=
 - =wiphy_new= 
   会创建 =struct cfg80211_registered_device= 结构实例，并初始化其
@@ -131,6 +132,173 @@
 - =struct cfg80211_scan_request=
 - =struct cfg80211_ibss_params=
 - =struct cfg80211_connect_params=
+  Connection parameters
+  This structure provides information needed to complete IEEE 802.11
+  authentication and association. 
+
+  #+BEGIN_SRC c
+    struct cfg80211_ops CFG80211_Ops = {
+      ...
+      .connect = mt76xx_cfg80211_connect,
+      ...
+    };
+
+    static int mt76xx_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
+                                       struct cfg80211_connect_params *sme)
+    {
+    #ifdef CONFIG_STA_SUPPORT
+            RTMP_ADAPTER *pAd;
+            INT32 Pairwise;
+            INT32 Groupwise;
+            INT32 Keymgmt = 0;
+            int i;
+            CMD_RTPRIV_IOCTL_80211_CONNECT ConnInfo;
+
+            MAC80211_PAD_GET(pAd, wiphy);
+            if (!pAd)
+                    return -EFAULT;
+
+            CFG80211DBG(RT_DEBUG_TRACE, ("80211> %s ==>\n", __func__));
+
+            //Group Wise
+            CFG80211DBG(RT_DEBUG_TRACE, ("Groupwise: %x\n", sme->crypto.cipher_group));
+            Groupwise = sme->crypto.cipher_group;
+
+            //Pair Wise
+            if (sme->crypto.n_ciphers_pairwise)
+                    Pairwise = sme->crypto.ciphers_pairwise[0];
+            else
+                    Pairwise = 0;
+            CFG80211DBG(RT_DEBUG_TRACE, ("Pairwise %x\n", sme->crypto.ciphers_pairwise[0]));
+
+            //Key management
+            for (i = 0; i < sme->crypto.n_akm_suites; ++i)
+                    Keymgmt |= sme->crypto.akm_suites[i];
+
+            memset(&ConnInfo, 0, sizeof(ConnInfo));
+
+            //WPA Version
+
+            if (!sme->crypto.wpa_versions)
+                    ConnInfo.WpaVer = 0;
+            else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_2)
+                    ConnInfo.WpaVer = 2;
+            else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_1)
+                    ConnInfo.WpaVer = 1;
+            else {
+                    CFG80211DBG(RT_DEBUG_ERROR, ("version %x not supported\n",
+                                                 sme->crypto.wpa_versions));
+                    return -ENOTSUPP;
+            }
+            CFG80211DBG(RT_DEBUG_TRACE, ("wpa_versions %x\n", sme->crypto.wpa_versions));
+
+            /* GeK: [todo] WLAN_AKM_SUITE_PSK and others? */
+            CFG80211DBG(RT_DEBUG_TRACE, ("Keymgmt %x\n", Keymgmt));
+            if (Keymgmt == WLAN_AKM_SUITE_8021X)
+                    ConnInfo.FlgIs8021x = TRUE;
+            else
+                    ConnInfo.FlgIs8021x = FALSE;
+
+            //Auth type
+            CFG80211DBG(RT_DEBUG_TRACE, ("Auth_type %x\n", sme->auth_type));
+            if (sme->auth_type == NL80211_AUTHTYPE_SHARED_KEY)
+                    ConnInfo.AuthType = Ndis802_11AuthModeShared;
+            else if (sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM)
+                    ConnInfo.AuthType = Ndis802_11AuthModeOpen;
+            else
+                    ConnInfo.AuthType = Ndis802_11AuthModeAutoSwitch;
+
+            switch (Pairwise) {
+            case 0:
+                    CFG80211DBG(RT_DEBUG_TRACE, ("NONE...\n"));
+                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
+                    break;
+            case WLAN_CIPHER_SUITE_CCMP:
+                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_CCMP...\n"));
+                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
+                    break;
+            case WLAN_CIPHER_SUITE_TKIP:
+                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_TKIP...\n"));
+                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
+                    break;
+            case WLAN_CIPHER_SUITE_WEP40:
+                    /* fall through */
+            case WLAN_CIPHER_SUITE_WEP104:
+                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_WEP...\n"));
+                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_WEP;
+                    break;
+            default:
+                    CFG80211DBG(RT_DEBUG_ERROR, ("pairwise %x not supported\n", Pairwise));
+                    return -ENOTSUPP;
+            }
+
+            if (Groupwise == WLAN_CIPHER_SUITE_CCMP)
+                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
+            else if (Groupwise == WLAN_CIPHER_SUITE_TKIP)
+                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
+            else
+                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
+
+            CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyLen ===> %d\n", sme->key_len));
+            CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyIdx ===> %d\n", sme->key_idx));
+
+            ConnInfo.pKey = (UINT8 *) (sme->key);
+            ConnInfo.KeyLen = sme->key_len;
+            ConnInfo.pSsid = sme->ssid;
+            ConnInfo.SsidLen = sme->ssid_len;
+            ConnInfo.KeyIdx = sme->key_idx;
+            ConnInfo.bWpsConnection = FALSE;
+            /* Check if WPS is triggerred */
+            pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP = WPA_SUPPLICANT_ENABLE;
+            if (sme->ie && sme->ie_len &&
+                sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM &&
+                ConnInfo.PairwiseEncrypType == RT_CMD_80211_CONN_ENCRYPT_NONE) {
+                    if (RTMPFindWPSIE(sme->ie, (UINT32) sme->ie_len) != NULL) {
+                            ConnInfo.bWpsConnection = TRUE;
+                            pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP
+                                    |= WPA_SUPPLICANT_ENABLE_WPS;
+                    }
+            }
+
+            /* YF@20120328: Use SIOCSIWGENIE to make out the WPA/WPS IEs in AssocReq. */
+    #ifdef RT_CFG80211_P2P_CONCURRENT_DEVICE
+            if (dev->ieee80211_ptr->iftype == NL80211_IFTYPE_P2P_CLIENT) {
+                    if (sme->ie_len > 0)
+                            CFG80211DRV_SetP2pCliAssocIe(pAd, sme->ie, sme->ie_len);
+                    else
+                            CFG80211DRV_SetP2pCliAssocIe(pAd, NULL, 0);
+            } else
+    #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
+            {
+                    if (sme->ie_len > 0)
+                            RtmpIoctl_rt_ioctl_siwgenie(pAd, sme->ie, sme->ie_len);
+                    else
+                            RtmpIoctl_rt_ioctl_siwgenie(pAd, NULL, 0);
+            }
+
+    #ifdef DOT11W_PMF_SUPPORT
+    #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
+            CFG80211DBG(RT_DEBUG_TRACE, ("80211> PMF Connect %d\n", sme->mfp));
+            if (sme->mfp)
+                    ConnInfo.mfp = TRUE;
+            else
+                    ConnInfo.mfp = FALSE;
+    #endif /* LINUX_VERSION_CODE */
+    #endif /* DOT11W_PMF_SUPPORT */
+
+            /* %NULL if not specified (auto-select based on scan) */
+            if (sme->bssid != NULL && !MAC_ADDR_EQUAL(sme->bssid, ZERO_MAC_ADDR)) {
+                    CFG80211DBG(RT_DEBUG_OFF, ("80211> Connect bssid %02x:%02x:%02x:%02x:%02x:%02x\n",
+                                               PRINT_MAC(sme->bssid)));
+                    ConnInfo.pBssid = sme->bssid;
+            } else
+                    ConnInfo.pBssid = NULL;
+
+            RTMP_DRIVER_80211_CONNECT(pAd, &ConnInfo, dev->ieee80211_ptr->iftype);
+    #endif /*CONFIG_STA_SUPPORT */
+            return 0;
+    }                               /* mt76xx_cfg80211_connect */
+  #+END_SRC
 - =struct cfg80211_pmksa=
 - =struct cfg80211_gtk_rekey_data=
 - =struct cfg80211_mgmt_tx_params=
@@ -435,6 +603,8 @@ wireless_send_event
     Fetches a station; the address of the station (it’s bssid) is
     passed as a parameter. 
 
+*** =ieee80211_rate_control_register=
+    注册速率控制算法
 ** MLME
    
 *** 扫描
@@ -518,3 +688,6 @@ wireless_send_event
        sends a Block Ack Request (BAR) packet
     4. =ieee80211_send_delba()=
        DELBA request
+
+* 参考
+  [1] http://linuxwireless.org/en/users/Documentation/

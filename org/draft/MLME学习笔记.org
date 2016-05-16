@@ -69,12 +69,19 @@
     7. =CNTL_WAIT_OID_DISASSOC=
     8. =CNTL_IDLE=
 
+    处理函数 MlmeCntlMachinePerformAction 
+
 *** SYNC
     Handle scan or join BSS behavior
     总共有3个状态：
     1. =SCAN_LISTEN=
     2. =JOIN_WAIT_BEACON=
     3. =SYNC_IDLE=
+
+    MlmeJoinReqAction --> PeerBeaconAtJoinAction --> CntlWaitAuthProc
+    (send auth req, waiting for auth response)
+
+IE_EXT_CAPABILITY
 
 *** AUTH
     Handle authentication packets
@@ -142,3 +149,14 @@
 
    而这一切，是从 =struct net_device_ops= 中的回调接口
    =ndo_start_xmit= 触发的。
+
+* 问题调试
+
+** 读取TX RX寄存器状态
+   正常情况下，值应该为0x0c
+   #+BEGIN_SRC c
+     UINT32 Value;
+     RTMP_IO_READ32(pAd, 0x1004, &Value);
+     Value = Value | 0x0c; /* set bit[30]=1 */
+     RTMP_IO_WRITE32(pAd, 0x1004, Value); 
+   #+END_SRC
