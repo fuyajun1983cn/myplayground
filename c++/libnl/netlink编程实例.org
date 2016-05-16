@@ -30,6 +30,7 @@
 
     #define ETH_ALEN 6
 
+    #if 0
     #if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
 
     #define nl_sock nl_handle
@@ -50,6 +51,7 @@
             return nl_set_buffer_size(sk, rxbuf, txbuf);
     }
     #endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
+    #endif
 
     struct nl80211_state {
              struct nl_sock *nl_sock;
@@ -106,6 +108,11 @@
 
             return 0;
     }
+
+    int nl80211_init(struct nl80211_state *state);
+    void nl80211_cleanup(struct nl80211_state *state);
+    int send_command(struct nl80211_state *state, struct cmd *cmd);
+    int get_device_index(const char *);
 
     #endif
   #+END_SRC
@@ -186,7 +193,7 @@
     int main(int argc, char *argv[])
     {
       printf(" Phy0 Index: %d\n", get_device_index1("phy0"));
-      printf(" Device Index: %d\n", get_device_index2("wlan0"));
+      printf(" Device Index: %d\n", get_device_index2("wlp6s0"));
       return 0;
     }
   #+END_SRC
@@ -240,7 +247,7 @@
   2. 指定网络设备号
      #+NAME: nl80211 
      #+BEGIN_SRC c :tangle nl80211_common.c
-       static int get_device_index(const char *ifname)
+       int get_device_index(const char *ifname)
        {
          unsigned int index = if_nametoindex(ifname);
          if (index == 0)
@@ -361,9 +368,6 @@
    #+BEGIN_SRC c :tangle scan_test.c
 
      #include "common.h"
-     extern int nl80211_init(struct nl80211_state *state);
-     extern void nl80211_cleanup(struct nl80211_state *state);
-     extern int get_device_index(const char *);
 
      static int prepare_scan_req(struct nl80211_state *state, struct nl_cb *cb, struct nl_msg *msg)
      {

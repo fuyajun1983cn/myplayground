@@ -39,14 +39,11 @@ void nl80211_cleanup(struct nl80211_state *state)
         nl_socket_free(state->nl_sock);
 }
 
-static int get_device_index(const char *ifname)
+int get_device_index(const char *ifname)
 {
   unsigned int index = if_nametoindex(ifname);
   if (index == 0)
     index = -1;
-  #if _DEBUG
-  printf("device index: %d\n", index);
-  #endif
   return index;
 }
 
@@ -55,9 +52,6 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err,
 {
         int *ret = arg;
         *ret = err->error;
-        #if _DEBUG
-        printf("error_handler\n");
-        #endif
         return NL_STOP;
 }
 
@@ -65,10 +59,6 @@ static int finish_handler(struct nl_msg *msg, void *arg)
 {
         int *ret = arg;
         *ret = 0;
-        printf("sdfsdf");
-        #if _DEBUG
-        printf("finiish_handler\n");
-        #endif
         return NL_SKIP;
 }
 
@@ -76,10 +66,6 @@ static int ack_handler(struct nl_msg *msg, void *arg)
 {
         int *ret = arg;
         *ret = 0;
-        printf("sdfsdf");
-        #if _DEBUG
-        printf("ack_handler\n");
-        #endif
         return NL_STOP;
 }
 
@@ -153,14 +139,11 @@ int send_command(struct nl80211_state *state, struct cmd *cmd)
 
   while (err > 0) {
     nl_recvmsgs(state->nl_sock, cb);
-    printf("nl_recvmsgs, errno: %d, error info: %s\n", err, strerror(err));
   }
 
  out:
-  printf("out\n");
   nl_cb_put(cb);
  out_free_msg:
-  printf("out_free_msg\n");
   nlmsg_free(msg);
   return err;
  nla_put_failure:
