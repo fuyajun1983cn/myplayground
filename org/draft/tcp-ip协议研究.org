@@ -5,7 +5,29 @@
 
 
 * 总体模型
+
+  #+CAPTION: Network OSI Model
   [[./images/2016/2016050601.png]]
+
+  #+CAPTION: Linux network stack and OSI model
+  [[./images/2016/2016052001.png]]
+  
+* 网络层
+
+** ICMP
+   通常与IP协议层一起使用，利用IP协议进行数据传输。为IP传输提供诊断信
+   息。它位于网络层与传输层之间。ICMP包要么是错误诊断信息，要么就是查
+   询信息。
+
+   [[./images/2016/2016052301.png]]
+
+   其中，ICMP Header的格式为：
+
+   [[./images/2016/2016052302.png]]
+
+   下面是一个网络不可达的ICMP报文信息的例子：
+   [[./images/2016/2016052303.png]]
+
 * 传输层
   Segment
 ** UDP
@@ -15,7 +37,21 @@
 
 ** TCP
    拥塞控制，可靠传输
-3.4
+   
+   socket send  --> inet_sendmsg() --> tcp_sendmsg()
+
+
+** 丢包问题分析
+
+*** 重传
+
+*** 干扰
+
+*** QoS策略
+
+*** Flow control mechanism
+
+*** 传输的packet size 以及传输速率 
 
 * 应用层
 

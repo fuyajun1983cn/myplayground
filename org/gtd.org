@@ -97,15 +97,15 @@
    1. simple screen recoder
    2. Dia
    3. Childsplay
-* My Daily GTD 
+** ☛ TODO Linux kernel小程序快速参考
+   - NEXT: 准备第一版
+   - 收集其他的小程序
 ** ☛ TODO =org.el= 源码研究
    SCHEDULED: <2016-04-30 六>
      
   NEXT： 研究defcustom常见函数的用法
 
-** ☛ TODO Linux kernel小程序快速参考
-   - NEXT: 准备第一版
-   - 收集其他的小程序
+* My Daily GTD 
 * Finished Tasks
 ** 2016
 *** 3月[4/4]

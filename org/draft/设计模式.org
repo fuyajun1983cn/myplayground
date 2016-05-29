@@ -13,6 +13,22 @@
 ** 构造器(Builder)
 
 ** 工厂方法(Factory Method)
+   defines an abstract class that creates objects but lets each
+   subclass decide which object to create. 
+
+   定义一个用于创建对象的接口，让子类决定实例化哪一个类，工厂方法使一
+   个类的实例化延迟到其子类。
+
+   #+BEGIN_SRC plantuml :file ./images/2016/2016051801.png :cmdline -charset UTF-8
+     @startuml
+     AbstractFactory <|.. ConcreteFactory
+     AbstractProduct <|.. ConcreteProduct
+     ConcreteFactory ..> ConcreteProduct
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016051801.png]]
 
 ** 原型(Prototype)
 
@@ -34,7 +50,6 @@
 ** 享元(Flyweight)
 
 ** 代理(Proxy)
-
 
 * 行为模式
   主要关注对象之间的交互。主要有如下一些具体模式：

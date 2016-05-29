@@ -43,6 +43,9 @@
 
 * MLME状态机
 
+** APCLI状态机
+   p2p时使用的状态机
+   
 ** AP状态机
 
 *** AP_AUTH state machine
@@ -55,7 +58,7 @@
     Handle beacon or scan behavior
 
 ** STA状态机
-   
+   STA时使用的状态机
 *** CTNL
     CNTL sends messages to other state machine to trigger actions
     Control STA connection behavior
@@ -99,7 +102,7 @@ IE_EXT_CAPABILITY
 * 数据接收
 
 ** 基本函数调用流程
-   #+BEGIN_SRC plantuml :file ./images/2016/2016032401.png :cmdline -charset UTF-8
+   #+BEGIN_SRC plantuml :file ./images/2016/2016032499.png :cmdline -charset UTF-8
      title mt76xx驱动数据接收流程
      @startuml
      start
@@ -122,7 +125,7 @@ IE_EXT_CAPABILITY
    #+END_SRC
 
    #+RESULTS:
-   [[file:./images/2016/2016032401.png]]
+   [[file:./images/2016/2016032499.png]]
 
    APRxDataFrameAnnounce (mt76x2 ap)
    STAHandleRxDataFrame (mt76x2 sta)
@@ -159,4 +162,10 @@ IE_EXT_CAPABILITY
      RTMP_IO_READ32(pAd, 0x1004, &Value);
      Value = Value | 0x0c; /* set bit[30]=1 */
      RTMP_IO_WRITE32(pAd, 0x1004, Value); 
+   #+END_SRC
+
+** 设置HT Bandwidth
+   #+BEGIN_SRC c
+     //pAd->ScanTab.BssEntry[bss_idx].Channel
+     bbp_set_bw(pAd, BW_20)
    #+END_SRC
