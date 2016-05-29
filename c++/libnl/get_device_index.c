@@ -34,6 +34,6 @@ static int get_device_index2(const char *ifname)
 int main(int argc, char *argv[])
 {
   printf(" Phy0 Index: %d\n", get_device_index1("phy0"));
-  printf(" Device Index: %d\n", get_device_index2("wlan0"));
+  printf(" Device Index: %d\n", get_device_index2("wlp6s0"));
   return 0;
 }

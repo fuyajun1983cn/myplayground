@@ -26,6 +26,7 @@
 
 #define ETH_ALEN 6
 
+#if 0
 #if !defined(CONFIG_LIBNL20) && !defined(CONFIG_LIBNL30)
 
 #define nl_sock nl_handle
@@ -46,6 +47,7 @@ static inline int nl_socket_set_buffer_size(struct nl_sock *sk,
         return nl_set_buffer_size(sk, rxbuf, txbuf);
 }
 #endif /* CONFIG_LIBNL20 && CONFIG_LIBNL30 */
+#endif
 
 struct nl80211_state {
          struct nl_sock *nl_sock;
@@ -102,5 +104,10 @@ static inline int mac_addr_a2n(unsigned char *mac_addr, char *arg)
 
         return 0;
 }
+
+int nl80211_init(struct nl80211_state *state);
+void nl80211_cleanup(struct nl80211_state *state);
+int send_command(struct nl80211_state *state, struct cmd *cmd);
+int get_device_index(const char *);
 
 #endif
