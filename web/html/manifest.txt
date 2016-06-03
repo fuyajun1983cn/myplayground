@@ -1,0 +1,17 @@
+CACHE MANIFEST
+#文件的开关必须书写CACHE MANIFEST
+#这个manifest文件的版本
+#version 7
+CACHE:
+other.html
+hello.js
+images/photo.jpg
+NETWORK:
+http://www.baidu.com
+Test.asp
+*
+FALLBACK:
+online.js locale.js
+CACHE:
+newhello.html
+newhello.js

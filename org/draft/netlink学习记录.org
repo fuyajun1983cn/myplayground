@@ -172,7 +172,7 @@
 
 *** 发送一个 =netlink socket= 消息
        rtnetlink消息是通过 =rtmsg_ifinfo()= 发送的。 
-       #+CAPTION: Sending of rtnelink messages with the rtmsg_ifinfo() method
+       #+CAPTION: Sending of rtnelink messages with the =rtmsg_ifinfo()= method
        [[./images/2016/2016010402.png]]
 
        - =nlmsg_net()= 分配一个 =sk_buffer= 对象
@@ -303,7 +303,8 @@
           };      
         #+END_SRC
         - =name= : 唯一的名称
-        - =id= : 动态申请 16 (GENL_MIN_ID, which is 0x10) to 1023 (GENL_MAX_ID).
+        - =id= : 动态申请 16 ( =GENL_MIN_ID=, which is 0x10) to 1023 (
+          =GENL_MAX_ID=).
         - =hdrsize= : 私有头部的大小。
         - =maxattr= : 所支持的属性的最大值： =NL80211_ATTR_MAX=
         - =netnsok= : 该家族是否可以处理网络空间。
@@ -332,9 +333,9 @@
           - =GENL_CMD_CAP_DO= : 当设置了该标记， 表明 =genl_ops= 结构实
             现了 =doit()= 回调函数。
           - =GENL_CMD_CAP_DUMP= : 当设置了该标记，表明 =genl_ops= 结构实
-            现了 =dumpit()=回调函数。
+            现了 =dumpit()= 回调函数。
           - =GENL_CMD_CAP_HASPOL= : 当设置了该标记， 表明 =genl_ops= 结
-            构定义了属性验证策略(nla_policy数组)。
+            构定义了属性验证策略( =nla_policy= 数组)。
         - =policy= : 属性验证策略。
         - =doit= : 标准的命令回调函数。
         - =dumpit= : dump的回调函数。
@@ -427,7 +428,9 @@
 
 *** 创建和发送 =Generic Netlink消息= 
 **** =Generic Header=
+
        [[./images/2016/2016010403.png]]
+
        其中 =genlmsghdr= 定义如下：
        #+BEGIN_SRC c
          struct genlmsghdr {
@@ -450,8 +453,8 @@
 
       发送单播消息： =genlmsg_unicast()= . 
       发送多播消息： =genlmsg_multicast()= , 发送多播消息到默认的网络
-      命令空间(net_init). =genlmsg_multicast_allns()= , 发送多播消息到
-      所有的网络命令空间。
+      命名空间(net_init). =genlmsg_multicast_allns()= , 发送多播消息到
+      所有的网络命名空间。
 
       在用户空间可以调用如下接口创建一个 =generic netlink socket= ， 
       #+BEGIN_SRC c
@@ -503,10 +506,21 @@
       述符，并将socket绑定到 =NETLINK_GENERIC= netlink协议 。
 
       用户空间通过 =libnl-genl= 发送一条消息的流程如下：
-      1. 创建Socket： state->nl_sock = nl_socket_alloc()
-      2. 创建 =NETLINK_GENERIC= 类型的socket，并调用 =bind()= ： genl_connect(state->nl_sock)
+      1. 创建Socket： 
+         #+BEGIN_SRC c
+           state->nl_sock = nl_socket_alloc()
+                    
+         #+END_SRC
+      2. 创建 =NETLINK_GENERIC= 类型的socket，并调用 =bind()= ：
+         #+BEGIN_SRC c
+            genl_connect(state->nl_sock)
+                    
+         #+END_SRC
       3. 解析该 netlink family name对应的family id:
-         genl_ctrl_resolve(state->nl_sock, "nl80211");
+         #+BEGIN_SRC c
+           genl_ctrl_resolve(state->nl_sock, "nl80211");
+                    
+         #+END_SRC
 
 *** 使用建议
        1. make use of the Netlink attributes wherever possible.

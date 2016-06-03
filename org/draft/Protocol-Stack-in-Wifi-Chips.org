@@ -1,0 +1,30 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* Protocol Stack in Wi-Fi Devices
+
+   WiFi设备中的软件层次结构图如下：
+
+    #+CAPTION: Protocol Stack in Wi-Fi Devices
+   [[./images/2015121501.jpg]]
+
+   
+** Full MAC & Soft MAC
+
+    Wi-Fi芯片可以根据是否包含MLME功能分为 =Full MAC= 和 =Soft MAC= 。
+
+    *What is the advantage of having (or not having) the MLME in the
+     Wi-Fi chipset?*     
+ 
+     *Ans*: MLME is MAC Sublayer Management Entity and takes care of
+     various management procedures like Assocation, Authentication
+     etc.
+     Wi-Fi芯片中如果包含了MLME功能，则主芯片可以将一些特定的功能（如漫游功
+     能）交级Wi-Fi芯片。另一方面，也会导致Wi-Fi芯片的开销增加（如需要更多
+     的内存、更多的处理工作）。 =Full MAC= 芯片适用电池驱动的设备，而
+     =Soft MAC= 则适用于直接供电的设备。
+
+     #+CAPTION: Full MAC        #+CAPTION: Soft MAC
+     [[./images/2015121502.jpg]]       [[./images/2015121503.jpg]]

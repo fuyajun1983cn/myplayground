@@ -1,0 +1,258 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 总体模型
+
+  #+CAPTION: Network OSI Model
+  [[./images/2016/2016050601.png]]
+
+  #+CAPTION: Linux network stack and OSI model
+  [[./images/2016/2016052001.png]]
+  
+* 网络层
+
+** ICMP
+   通常与IP协议层一起使用，利用IP协议进行数据传输。为IP传输提供诊断信
+   息。它位于网络层与传输层之间。ICMP包要么是错误诊断信息，要么就是查
+   询信息。
+
+   [[./images/2016/2016052301.png]]
+
+   其中，ICMP Header的格式为：
+
+   [[./images/2016/2016052302.png]]
+
+   下面是一个网络不可达的ICMP报文信息的例子：
+   [[./images/2016/2016052303.png]]
+
+* 传输层
+  Segment
+** UDP
+   RFC 768
+*** UDP segment structure
+    [[./images/2016/2016050402.png]]
+
+** TCP
+   拥塞控制，可靠传输
+   
+   socket send  --> inet_sendmsg() --> tcp_sendmsg()
+
+
+** 丢包问题分析
+
+*** 重传
+
+*** 干扰
+
+*** QoS策略
+
+*** Flow control mechanism
+
+*** 传输的packet size 以及传输速率 
+
+* 应用层
+
+** RTSP
+   Real Time Streaming Protocol
+   实时流协议，作为多媒体服务器的“网络遥控器”。通过表示描述
+   (presentation Description)来控制流的数量。 RTSP没有连接的概念，服务
+   器维护了由一个ID标识的会话，一个RTSP会话并没有绑定某种特定的传输层
+   协议。 可以使用可靠的传输层协议，如TCP，会不可靠的传输层协议，如UDP。
+
+   RTSP一般使用RTP协议控制流，但是RTSP的操作并不依赖其传输机制去携带连
+   续的多媒体数据。 有如下一些特征：
+   1. 默认情况下，RTSP服务器会维护会话状态。
+   2. RTSP客户端和服务器端都可以发送请求。
+
+*** 协议参数
+    
+**** RTSP Version
+     
+**** RTSP URL
+     #+BEGIN_SRC sh
+       rtsp URL = ( ”rtsp:” j ”rtspu:” j ”rtsps:” )
+                  ”//” host [ ”:” port ] [ abs path ]
+       host     = <A legal Internet host domain name of IP address
+                  (in dotted decimal form), as defined by Section 2.1
+                  of RFC 1123 [18]>
+       port = *DIGIT     
+     #+END_SRC
+
+     - rtsp使用可靠的传输层协议
+     - rtspu使用不可靠的传输层协议
+     - rtsps要求TCP连接使用TLS保护
+     - 示例
+       rtsp://media.example.com:554/twister/audiotrack
+
+**** Conference Identifiers
+     对RTSP透明，使用标准的URI编码方法。 
+
+**** Session Identifiers
+     随机长度的字符串，空格需要进行转义。
+
+**** SMPTE Relative Timestamps
+     A SMPTE relative timestamp expresses time relative to the start
+     of the clip.
+
+**** Normal Play Time
+     stream absolute position relative to the beginning of the
+     presentation.
+
+**** Absolute Time
+     绝对时间
+
+**** Option Tags
+     Option tags are unique identifiers used to designate new options
+     in RTSP.
+
+*** RTSP Message
+    RTSP是一种基于文本的协议，使用UTF-8编码。
+    
+**** Message Types
+
+**** Message Headers
+
+**** Message Body
+
+**** Message Length
+     
+*** General Header Fields
+    #+BEGIN_SRC sh
+      general-header = Cache-Control ; Section 12.8
+                     |    Connection ; Section 12.10
+                     |      Date     ; Section 12.18
+                     |      Via      ; Section 12.43           
+    #+END_SRC
+
+*** Request
+    从客户端或者服务器发出。
+    #+BEGIN_SRC sh
+      Request =    Request-Line   ; Section 6.1
+              ,*(   general-header ; Section 5
+              |    request-header ; Section 6.2
+              |   entity-header ) ; Section 8.1
+                      CRLF
+                 [ message-body ] ; Section 4.3    
+    #+END_SRC
+
+**** Request Line
+     [[./images/2016/2016050501.png]]
+
+**** Request Header Fields
+     [[./images/2016/2016050502.png]]
+
+*** Response
+    [[./images/2016/2016050503.png]]
+
+**** =Status-Line=
+     The first line of a Response message is the =Status-Line=
+
+     =Status-Line= = =RTSP-Version= SP =Status-Code= SP =Reason-Phrase= CRLF
+
+     1. Status Code and Reason Phrase
+        - 1xx: Informational - Request received, continuing process
+        - 2xx: Success - The action was successfully received,
+          understood, and accepted
+        - 3xx: Redirection - Further action must be taken in order to
+          complete the request
+        - 4xx: Client Error - The request contains bad syntax or
+          cannot be fulfilled
+        - 5xx: Server Error - The server failed to fulfill an
+          apparently valid request
+
+       Status Code有如下一些：
+        [[./images/2016/2016050504.png]]
+
+**** Response Header Fields
+     [[./images/2016/2016050505.png]]
+
+*** Entity
+    Entity一般包含Header和Body部分，有些Response只包含Entity Header。
+    
+**** Header
+     [[./images/2016/2016050901.png]]
+
+     Extension-header机制可以允许定义扩展的 =entity-header= 的域，而不
+     用改变协议。
+
+**** Body
+
+*** Connections
+    RTSP请求可以通过三种方式进行传输：
+    1. 持久连接传输，即用于多个请求、响应业务。
+    2. 每次请求和响应进行一次连接。
+    3. 无连接。
+
+    RTSP URI可以看出是哪种传输方式。比如 =rtsp= 表示持久连接，而
+    =rtspu= 则表示无连接传输。对于持久连接，服务器和客户端都可以发送请
+    求与响应。
+
+    客户端可以连接发送几个请求，而不用等待每个响应，服务器则需要按照请
+    求收到的顺序发送响应。
+
+    除了多播的请求，所有的请求必须得到确认，发送请求在RRT(round trip time)
+    时间内如果没有收到确认，则需要重发。如果RTSP是通过可靠的传输层协议
+    传输的，则RTSP请求不需要进行重传，由底层传输层去保证。
+
+    每个请求在CSeq头部携带了序号，每次不同的请求序号会加1. 重传的请求
+    CSeq的值应该跟被重传的请求中的CSeq值一致。
+
+*** Method Definitions
+    
+    [[./images/2016/2016050902.png]]
+
+    
+**** OPTIONS
+     该请求可以在任何时间发出。客户端也可以发出非标准请求，不过影响服
+     务器端的状态。
+
+     [[./images/2016/2016051001.png]]
+
+     服务器回应如下：
+     [[./images/2016/2016051002.png]]
+
+**** DESCRIBE
+     获取presentation或媒体对象的描述
+     Accept表明客户端接受的描述格式
+     [[./images/2016/2016051003.png]]
+
+     DESCRIBE的响应应该包含所描述的资源的所有媒体初始化信息。
+
+**** ANNOUNCE
+     如果是从客户端向服务器端发送的，则表示客户端将相关描述信息发送到服务
+     器端。如果是从服务器端发送给客户端，则表示服务器端向客户端实时更
+     新会话的描述信息。
+
+**** SETUP
+     该请求指定了用于流媒体的传输机制。 
+     [[./images/2016/2016051004.png]]
+
+     服务器端在回应SETUP请求时，会产生一个会话ID，如果SETUP请求中包含
+     了会议ID，则服务器会将该请求绑定到已经存在的会话当中，否则会返回
+     459的错误。 
+
+**** PLAY
+     PLAY方法告知服务器端开始发送数据。示例如下：
+
+     [[./images/2016/2016051005.png]]
+
+**** PAUSE
+     暂停流的传送。
+
+**** TEARDOWN
+     停止流传送，释放资源。
+
+**** =GET PARAMETER=
+     获取参数
+
+**** =SET PARAMETER=
+     设置参数
+
+**** REDIRECT
+     重定向到另一个服务器。
+
+**** RECORD
+     记录一段媒体数据。

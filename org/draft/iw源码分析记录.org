@@ -1,0 +1,56 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE:iw源码分析记录 
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+interface.c
+
+
+TOPLEVEL
+
+顶层命令
+主要的顶层命令有：
+disconnect
+connect
+auth
+cqm
+event
+list
+phy
+commands (查询当前支持的命令集)
+features
+del
+info
+dev
+help
+link
+offchannel 
+scan
+
+
+
+SECTION
+段，为命令分组。
+coalesce
+hwsim
+ibss
+interface
+_name
+set
+get 
+mesh 
+mpath 
+mpp 
+ocb 
+p2p 
+reg 
+roc
+station
+survey
+vendor
+wowlan
+
+
+
+

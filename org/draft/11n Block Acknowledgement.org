@@ -1,0 +1,96 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 概述
+
+   802.11标准中要求每个单播的帧都必须得到正面确认(Positive
+   Acknowledgement)。 在802.11e中引入了 =Block Acknowlegement= 的概念：
+   单个确认帧可以对多个数据帧进行确认。 =Block Acknowlegement= 和
+   =A-MPDU= 一起用在802.11n中，极大改善了应用吞吐量。 
+
+* BA Inside
+
+** BA Procedure
+
+   #+CAPTION: BA Session Procedure
+   [[./images/2016/2016050401.png]]
+
+** BA setup & tear down
+
+     #+CAPTION: Block Ack setup
+     [[./images/2015/2015121504.png]]
+
+     #+CAPTION: Block Ack deletion
+     [[./images/2015/2015121505.png]]
+
+** BA的类型
+
+     BA分为 =Immediate BA= 和 =Delayed BA= , 区别如下图所示：
+
+     [[./images/2015/2015121501.png]]
+
+     ADDBA会指定使用何种类型的BA。 
+
+** 隐式BA请求
+
+     有时，在抓取的802.11n的sniffer log中，只看到BA事件，没有看到BAR，
+     这是因为BAR是隐式的，即"Immediate BA with implicit BA request"。 
+
+     [[./images/2015/2015121502.png]]
+
+** BA Bitmap
+
+     BA Bitmap 和起始序列号显示了正在被确认的数据包。每个比特位确认一
+     个包，且该包的序列号等于起始序列号加上比特号，如下图显示的BA是确
+     认package 3, 4。 
+
+     [[./images/2015/2015121503.png]]
+
+** Compressed BA
+
+      BA最初是定义在802.11e中，以允许确认每个的MSDU，bitmap有128字节长。
+      802.11n只允许确认每个MPDU，且bitmap是8个字节长。8字节长的Bitmap称为
+      =Compressed BA= 。 
+
+** BAR(BA Request)
+
+     一个BAR也用来改变起始序列号。有一种应用场景是： 当一个发送方一开
+     始没有使用聚合发送数据帧（此时会通过正常的Ack确认帧）， 之后，它
+     想发送一些聚合的数据，则发送方可以通过发送一个BAR去更新接收方的起
+     始序列号。 接收方会回应一个Bitmpa全0的BA给发送方。 
+      
+** BAR Ack Policy
+
+     require Immediate Acknowledgement or not.
+
+* 深入了解BA
+
+** Receive buffer operation
+   针对每次Block Acknowledge, 接收方都会维护一个MAC变量：
+   =NextExpectedSequenceNumber= 。 
+
+   初始值为0. 
+
+   如果收到的帧的Sequence Number小于 =NextExpectedSequenceNumber= ，则
+   会丢弃该帧, 否则都会缓存该帧。 
+
+   当收到 =BlockAckReq= 帧时，它会冲刷当前收到的MSDU和 =A-MSDU= . 会执
+   行如下一些过程：
+   1. 对于那些已经接收到的帧，如果帧的序号小于 =BlockAckReq= 帧中的起始
+      序号，则会被传递到下一个MAC过程中去处理。
+   2. 同时，从起始序号开始的， 将对应的帧也传递到下一个MAC过程中去处理，
+      直至出现的序号没有对应收到的帧为止。
+   3. 上述两步过后，如果没有帧需要传递给下一个MAC过程中去处理，且
+      =BlockAckReq= 帧中的起始序号要比 =NextExpectedSequenceNumber= 值
+      要大，则将 =NextExpectedSequenceNumber= 值更新为此值。
+   4. 如果接收到了一个MPDU，但是接收的Buffer已经满了，则序号最早的帧将
+      会被传递到下一个MAC过程去处理。
+   5. 如果接收到了一个MPDU，但是接收的Buffer没有满，且接收到的帧中的
+      序号最小值与 =NextExpectedSequenceNumber= 值相同，则该MPDU将会直
+      接被传递给下一个MAC过程。
+   6. 每次接收者传送一个MSDU或 =A-MSDU= 给下一个MAC过程去处理，
+      =NextExpectedSequenceNumber= 的值会更新为该帧的序号加1.
+   7. 接收者应该以递增的顺序将接收到的帧传送给下一个MAC过程。 
+   

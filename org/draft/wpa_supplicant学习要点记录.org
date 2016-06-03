@@ -757,7 +757,7 @@
     - =config.c= Configuration parser and common functions
     - =config_file.c= Configuration backend for text files (e.g.,
       =wpa_supplicant=.
-** TODO Cryptographic functions
+** Cryptographic functions
      重点看下如何调用这些函数进行加密的
 
 ** driver interface
@@ -792,17 +792,53 @@
      #+RESULTS:
      [[file:./images/2016/2016012001.png]]
 
-*** TODO 配置加密方法（TKIP/CCMP）
+*** 配置加密方法（TKIP/CCMP）
     如果是在Driver中实现的，必须提供一种配置的手段。
 
-*** TODO 漫游和扫描支持
-*** TODO 产生WPA IE
+*** 漫游和扫描支持
+*** 产生WPA IE
       WPA IE是在Driver中产生的还是在 =wpa_supplicant= 中产生的？
       
 *** rfkill
 ** l2 packets
-   l2 packets的发送函数： =l2_packet_send=
-   接收EAPOL Packet的代码如下：
+*** 链路层套接字 =PF_PACKET=
+    Packet套接字用于在MAC层上收发原始数据帧，这样就允许用户在用户空间
+    完成MAC之上各个层次的实现。
+    Packet套接字的定义方式与传送层的套接字定义类似，如下：
+    #+BEGIN_SRC c
+      packet_socket=socket(PF_PACKET,int socket_type,int protocol);
+    #+END_SRC
+
+
+    其中 =socket_type= 有两种类型，一种为 =SOCK_RAW=,它是包含了MAC层头
+    部信息的原始分组，当然这种类型的套接字在发送的时候需要自己加上一个
+    MAC头部（其类型定义在 =linux</if_ether.h= 中，ethhdr），另一种是
+    =SOCK_DGRAM= 类型，它是已经进行了MAC层头部处理的，即收上的帧已经去
+    掉了头部，而发送时也无须用户添加头部字段。Protocol是指其送交的上层
+    的协议号，如IP为0x0800，当其为 =htons(ETH_P_ALL)= （其宏定义为0）
+    时表示收发所有的协议。创建好套接字后，就可以通过与UDP一样的
+    recvfrom与sendto函数进行数据的收发，其目的地址结构为 =sockaddr_ll=
+    ，这与传送层的地址结构定义是不一样的，其长度为20字节（在TCP/IP的链
+    路层地址中使用了18字节），而传送层的地址结构长度为16字节。
+
+    Sockaddr_ll结构如下：
+    #+BEGIN_SRC c
+      struct sockaddr_ll
+      {
+        unsigned short sll_family; /* 总是 AF_PACKET */
+        unsigned short sll_protocol; /* 物理层的协议 */
+        int sll_ifindex; /* 接口号 */
+        unsigned short sll_hatype; /* 报头类型 */
+        unsigned char sll_pkttype; /* 分组类型 */
+        unsigned char sll_halen; /* 地址长度 */
+        unsigned char sll_addr[8]; /* 物理层地址 */
+      };
+    #+END_SRC
+*** =wpa_supplicant= 中 =l2_packet= 的初始化
+    初始化函数函数在 =l2_packet_init= ，设置接收不同的LLC层数据包类型。 
+
+    l2 packets的发送函数： =l2_packet_send=
+    驱动接口中接收EAPOL Packet的代码如下：
    #+BEGIN_SRC c
      drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));
      if (drv->eapol_sock < 0) {
@@ -819,7 +855,31 @@
 
    #+END_SRC
 
-负责处理的函数是 =handle_eapol= 。
+    负责处理的函数是 =handle_eapol= 。
+*** 管理帧发送和接收
+    初始化RAW Socket，代码如下：
+    #+BEGIN_SRC c
+      static int hostap_init_sockets(struct hostap_driver_data *drv, u8 *own_addr)
+      {
+              struct ifreq ifr;
+              struct sockaddr_ll addr;
+
+              drv->sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+              if (drv->sock < 0) {
+                      wpa_printf(MSG_ERROR, "socket[PF_PACKET,SOCK_RAW]: %s",
+                                 strerror(errno));
+                      return -1;
+              }
+
+              ...
+                
+              return linux_get_ifhwaddr(drv->sock, drv->iface, own_addr);
+      }    
+      (src/drivers/driver_hosap.c)
+    #+END_SRC
+
+    函数 =hostap_send_mlme= 发送管理帧，如发送 Probe Response. 
+    =handle_frame= 用于处理接收到的管理帧或数据帧等。
 
 ** =hostapd_setup_bss=
    Initialize Per-BSS data structures.
@@ -1543,6 +1603,38 @@
       | =P2p_flush= | Flush p2p_state, and clears the discovered peer list |
     - =p2p_presence_req=
     - =p2p_ext_listen=
+    - =p2p_group_idle=
+      Maximum idle time in seconds for P2P group
+      当一个p2p group建立起来后，GO等待GC连接的最大等待时间，或GC发现
+      GO的最大超时时间。
+      #+BEGIN_SRC c
+        /*
+         ,* How many seconds to try to reconnect to the GO when connection in P2P client
+         ,* role has been lost.
+         ,*/
+        #define P2P_MAX_CLIENT_IDLE 10      
+      #+END_SRC
+
+      group timeout相关Log：
+      #+BEGIN_EXAMPLE
+        05-25 10:42:50.650 D/wpa_supplicant( 2963): P2P: Group idle timeout reached - terminate group
+        05-25 10:42:50.650 D/wpa_supplicant( 2963): p2p0: Request to deauthenticate - bssid=00:00:00:00:00:00 pending_bssid=00:00:00:00:00:00 reason=3 state=SCANNING
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): TDLS: Tear down peers
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): p2p0: State: SCANNING -> DISCONNECTED
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): nl80211: Set p2p0 operstate 0->0 (DORMANT)
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): netlink: Operstate: ifindex=5 linkmode=-1 (no change), operstate=5 (IF_OPER_DORMANT)
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): CTRL_IFACE monitor sent successfully to /data/misc/wifi/sockets/wpa_ctrl_624-2\x00
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): EAPOL: External notification - portEnabled=0
+        05-25 10:42:50.651 D/wpa_supplicant( 2963): EAPOL: External notification - portValid=0
+        05-25 10:42:50.651 I/wpa_supplicant( 2963): P2P-GROUP-REMOVED p2p0 client reason=IDLE
+
+
+        D/wpa_supplicant( 7409 7409): nl80211: Set supplicant port unauthorized for 00:00:00:00:00:00
+        I/wpa_supplicant( 7409 7409): P2P-GROUP-REMOVED p2p-p2p0-0 client reason=GO_ENDING_SESSION
+        D/wpa_supplicant( 7409 7409): CTRL_IFACE monitor send - hexdump(len=21): 2f 74 6d 70 2f 77 70 61 5f 63 74 72 6c 5f 37 36 32 2d 32 34 00
+        D/wpa_supplicant( 7409 7409): P2P: Cancelled P2P group idle timeout
+        D/wpa_supplicant( 7409 7409): P2P: Remove group interface p2p-p2p0-0
+      #+END_EXAMPLE
 *** nl80211 (p2p)
     - =NL80211_CMD_REMAIN_ON_CHANNEL=
     - =NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL=
@@ -1694,73 +1786,60 @@
        发起一次扫描。
        
 ** SME
-
+   SME was designed to be used when the driver does provide the
+   separate authentication and association commands. 
+   
    #+BEGIN_SRC c
      /* Driver provides separate commands for authentication and association (SME in
       ,* wpa_supplicant). */
      #define WPA_DRIVER_FLAGS_SME            0x00000020   
    #+END_SRC
 
+** SoftAp
+   hostapd是一个用户空间程序，实现了AP和认证服务器的功能。通过配置文件
+   hostapd.conf 来修改一些Wifi参数。
+
+   #+CAPTION: hostapd配置文件示例
+   #+BEGIN_SRC sh
+     interface=wlan0 
+     driver=nl80211 
+     ssid=woody_hostap
+     hw_mode=g 
+     channel=6 
+     ieee80211n=1
+     auth_algs=0
+     wpa=1 
+     wpa_passphrase=12345678
+     wpa_key_mgmt=WPA-PSK 
+     wpa_pairwise=TKIP
+     wpa_ptk_rekey=600
+   #+END_SRC
+
+   
+
 * 常用代码片断
   记录 =wpa_supplicant= 源码中常见的一些代码片断。
+
+** 遍历当前的接口
+   #+BEGIN_SRC c
+     struct wpa_global *global = wpa_s->global;
+
+     for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next) {
+       if (os_strcmp(wpa_s->ifname, "p2p") == 0) {
+         break;
+       }
+      }
+   #+END_SRC
+
+** 遍历接口上存在的SSID
+   #+BEGIN_SRC c
+     struct wpa_ssid *s;
+
+     for (s = wpa_s->conf->ssid; s; s = s->next) {
+       if (s->mode == WPAS_MODE_P2P_GO) {
+         ...
+       }
+      }
+   #+END_SRC
 * 参考资料
-[1]  http://en.wikipedia.org/wiki/Extensible_Authentication_Protocol
-维基百科关于EAP各种方法的一个简单介绍。
-[2]  http://hostap.epitest.fi/wpa_supplicant/devel/
-wpa_supplicant官方开发文档。读者可以简单浏览一下。
-wpa_ssid结构体介绍
-[3]  802.11-2012 附录M.4 “Suggested pass-phrase-to-PSK mapping”
-该节介绍了passphrase转换成PSK的方法，甚至还有伪代码实现。感兴趣的读者不妨结合WPAS中的代码来研究它。
-[4]  802.11-2012 第8.4.2.27.2节“Cipher suites”
-[5]  802.11-2012 第8.4.2.27.3节“AKM suites”
-上述两小节分别介绍了Cipher和AKM suites的情况。注意，其中定义的取值定义是指在RSN IE中的取值，和代码中定义的宏不是一回事。
-[6]  802.11-2012 第12章“Fast BSS Transition”
-官方文档。不过难度较大，建议读者阅读“Secure Roaming in 802.11 Networks”一书后再去看它。提醒，此书是笔者目前阅读到的关于Wi-Fi Roaming相关知识介绍最完整的一本。
-[7]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第6章“How IEEE 802.11 WEP Works and Why It Doesn't”
-关于WEP介绍的章节。另外，对安全感兴趣的读者请仔细阅读此书。
-[8]  http://www.codealias.info/technotes/opportunistic_pmk_pre-caching
-关于Opportunistic PMK Caching的简单介绍。
-[9]  Secure Roaming in 802.11 Networks第8章“Opportunistic Key Caching”一节
-相比[8]而言，这一节对OKC有更为详尽的介绍。
-wpa_supplicant结构体介绍
-[10]  802.11无线网络权威指南（第二版）第七章“802.11：RSN、TKIP与CCMP”，P171-P172
-[11]  802.11-2012 第11.4.2.4节“TKIP countermeasures procedures”
-上述两个参考资料介绍了TKIP countermeasures的处理方式。请读者先阅读[10]。
-[12]  http://www.cisco.com/en/US/docs/solutions/Enterprise/Mobility/vowlan/41dg/vowlan_ch5.html
-[13]  Secure Roaming in 802.11 Networks第5.2.5节“Background Scanning”
-Background Scan技术的介绍。
-[14]  http://network.chinabyte.com/359/12453859.shtml
-[15]  http://www.docin.com/p-365323002.html
-和GAS以及802.11u相关的一些介绍。
-wpa_supplicant_init_iface分析之三
-[16]  http://www.mjmwired.net/kernel/Documentation/rfkill.txt
-[17]  http://lwn.net/Articles/335382/
-这两篇资料介绍了rfkill相关的信息。感兴趣的读者不妨仔细阅读它们。
-[18]  http://wenku.baidu.com/view/c74758d280eb6294dd886c53.html
-RFC2863 3.1.13“IfAdminStatus and IfOperStatus”一节描述了IfOperStatus的取值情况及相关说明。
-[19]  http://wireless.kernel.org/en/developers/Documentation/nl80211/kerneldoc
-linux wireless kernel官方网站中nl80211内核部分的一些解释。
-EAP模块分析
-[20]  http://tools.ietf.org/pdf/rfc4137.pdf
-RFC4137文档的PDF版。相比TXT版而言，它用图来描述状态机的状态切换。
-EAPOL模块分析
-[21]  802.1X 2004版
-WPAS中的802.1X实现是基于802.1X 2004版。相比2010版而言，笔者觉得2004版的内容更具条理性。尤其是其关于EAPOL各状态机的描述非常清晰。
-EAPOL-Key交换流程分析
-[22]  Real 802.11 Security：Wi-Fi Protected Access and 802.11i 第10章“WPA and RSN Key Hierarchy”
-[23]  802.11-2012 第11.6“Keys and key distribution”
-这两篇参考资料对Pairwise Key和Group Key以及4-Way Handshake、Group Key Handshake都有详细的介绍。
-[24]  wireless.kernel.org/en/users/Documentation/WoWLAN
-[25]  msdn.microsoft.com/en-us/library/windows/hardware/ff571052(v=vs.85).aspx
-这两篇文章对WoWLAN有一番介绍。读者可简单阅读它们。
-
-
-
-
-entropy
-
-
-
-
-
-wpa_supplicant_global_ctrl_iface_process
+  [1] https://w1.fi/wpa_supplicant/devel/index.html

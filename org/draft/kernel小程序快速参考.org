@@ -222,3 +222,38 @@
    #+BEGIN_SRC c
      simple_read_from_buffer(...)   
    #+END_SRC
+* 输入子系统
+** 注册输入设备
+   #+BEGIN_SRC c
+     static int WowRegisterInputDevice(...)
+     {
+             int ret = 0;
+             struct input_dev *input;
+
+             pAd->input_key = NULL;
+             input = input_allocate_device();
+             if (!input) {
+                     ret = -ENOMEM;
+                     goto err1;
+             }
+
+             /* Indicate that we generate key events */
+             __set_bit(EV_KEY, input->evbit);
+
+             /* Indicate that we generate *any* key event */
+             __set_bit(KEY_POWER, input->keybit);
+             input->name = WOWLAN_NAME;
+             ret = input_register_device(input);
+             if (ret) {
+                     goto err2;
+             }
+             pAd->input_key = input;
+
+             return ret;
+
+     err2:
+             input_free_device(input);
+     err1:
+             return ret;
+     }   
+   #+END_SRC

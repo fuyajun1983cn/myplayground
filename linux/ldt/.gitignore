@@ -5,3 +5,6 @@ all.txt
 trace
 *.ko
 dio
+ldt-test
+ldt_plat_test
+misc_loop_drv_test

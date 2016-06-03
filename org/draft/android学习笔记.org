@@ -1,0 +1,238 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: Android学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* 通用概念
+
+** UI基本开发
+   
+
+** Fragment
+   
+
+
+* Framework
+
+** Media Framework
+
+*** 基础知识
+    AMessage代表一个消息，对对应一个target， 根据这个target可以知道对
+    应的消息应该归哪个AHandler去处理。
+
+    AHandler是处理消息的基类，它有一个id，处理与这个id相关联的AMessage，
+    在 =onMessageReceived= 函数中处理各种消息。
+    从AHandler派生的类，都会重写该方法，以处理各种消息。
+
+    有一个全局的 =ALooperRoster= 对象，它维护了系统中存在的 AHandler对
+    象。
+
+    ALooper对象，通过 =registerHandler= 接口将AHandler对象注册给
+    =ALooperRoster= 对象维护的AHandler列表中。
+
+** Graphics
+
+*** Android Graphics Pipeline Overview
+    
+**** Android Graphics Pipeline
+
+     [[./images/2016/2016052601.png]]
+
+     如图，对于一些Buffer，有些通过GPU处理后，再送给HWComposer，有些则
+     直接送给HWComposer处理。
+
+**** BufferQueue
+
+     [[./images/2016/2016052602.png]]
+
+     关于BufferQueue的说明如下：
+     1. manages flow of buffers between producers and consumers
+     2. two queues
+     3. producers dequeue unused buffers, fill them, then queue them
+     4. consumers acquire filled buffers, use them, then release them
+        when done.
+
+**** SurfaceFlinger
+
+     它的主要使用是：
+     1. Responsible for compositing all windows into the display(s)
+     2. Just another GL client
+
+**** HW Composer
+
+     一开始是为了加速叠图而准备的一个HAL，目前作为所有显示的HAL。
+
+
+*** Android Sync Framework
+
+**** 定义
+
+     Synchronization between consumers and producers who are from
+     different hardware components to use a buffer atomically
+
+**** 应用背景
+
+     在复杂的DMA管线如图形管线（多媒体，摄像头，GPU以及显示设备），一
+     个buffer的消费者需要知道生产者什么时候完成生产（即创建一个Buffer,
+     并往里面放置消费者所需要的数据）。同样地，生产者也需要知道消费者
+     什么时候使用它创建的Buffer，以便它可以重新使用这个Buffer。而且，
+     一个Buffer可能被多个不同的消费者使用不同的时间。另外，一个消费者
+     可能需要互斥地消费多个Buffer，等等，有一个问题应运而生，就是如何
+     保证多个消费者之间同步使用Buffer，以及生产者与消费者协调使用
+     Buffer。因为Buffer是一个共享资源，且任何消费者或生产者对Buffer的
+     使用都是排他性的（因为它们属于不同的硬件单元或模块），大体看来，
+     需要解决如下两个问题：
+     1. 消费者与生产者之间对Buffer的同步访问。
+     2. 消费者之间对Buffer的同步访问。
+     
+**** 目标
+
+     1. Provide a simple API to let components signal when buffers are
+        ready/released.
+     2. Allow synchronization primitives to be passed between processes
+        and between userspace and the kernel.
+     3. Allow implementers to exploit hardware sync support
+     4. Provide visibility into the graphics pipeline for debugging
+
+**** Software Stacks
+
+     [[./images/2016/2016052609.png]]
+
+**** 实现 
+
+     1. sync_timeline
+
+        [[./images/2016/2016052603.png]]
+
+        - Represents monotonically increasing counter
+
+        - Generally one instance per driver context
+
+        - allows hardware specific implementation
+
+        - sw_sync implementation provided
+
+     2. sync_pt
+
+        [[./images/2016/2016052604.png]]
+
+        - Represents a specific values on a parent timeline
+
+        - 3 states
+          - active
+
+          - signaled
+
+          - error
+
+        - starts active and transitions once to either signaled or
+          error
+
+     3. sync_fence
+
+        [[./images/2016/2016052605.png]]
+
+        - A collection of sync_pts
+
+        - Backed by a file and can be passed to userspace.
+
+        - Main primitive drivers and userspace use to describe sync
+          events/dependencies.
+
+        - Fences are a promise by the kernel
+          - that work has been queued
+
+          - and will complete in a "timely" manner
+
+        - Starts active and transitions to signaled with all of its
+          sync_pts become signaled or one becomes errored
+
+        - The list of sync_pts is immutable after fence creation
+
+        - A sync_pt can only be in one fence.
+
+        - Two fences can be merged to create a third fence containing
+          copies of the sync points in both.
+
+        - Sync Merge
+
+          - Before Merge
+
+            [[./images/2016/2016052606.png]]
+
+          - After Merge
+
+            [[./images/2016/2016052607.png]]
+
+     4. 代码
+
+        - supported in android-3.10 kernel + staged for quite some
+          time
+
+        - Core
+
+          - =drivers/staging/android/sync.c=
+
+          - =drivers/staging/android/sync.h=
+
+        - sw_sync
+          
+          - =drivers/staging/android/sw_sync.c=
+
+          - =drivers/staging/android/sw_sync.h=
+
+        - 接口声明
+
+          [[./images/2016/2016052608.png]]
+
+     5. 实现sync_timeline的建议
+
+        在实现前，先考虑是否可以直接使用sw_sync, 以sw_sync为起点。
+        - Don'ts
+          - Don't base a timeline on any "real" time.
+
+          - Don't allow userspace to explicitly
+            - create a fence
+
+            - signal a fence
+
+          - Don't access sync_timeline, sync_pt, or sync_fence
+            elements explicitly.
+
+        - Dos
+          - Do provide useful names
+
+          - Do implement timeline_value str and pt_value_str
+
+          - Do implement fill driver_data
+
+** Wifi Framework
+   Android Framework中的wifi代码分为两部分，一部分面向应用开发者，提供
+   公共接口给应用开发者，另一部分则是框架的实现灵魂，代码分别位于：
+   Android 5.1
+   - =frameworks\base\wifi\java\android\net\wifi=
+   - =frameworks\opt\net\wifi\service=
+
+*** WifiConfigStore
+    
+    
+
+
+
+
+
+
+         
+
+
+
+
+
+
+
+
+
+

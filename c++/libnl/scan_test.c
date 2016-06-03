@@ -1,8 +1,5 @@
 
 #include "common.h"
-extern int nl80211_init(struct nl80211_state *state);
-extern void nl80211_cleanup(struct nl80211_state *state);
-extern int get_device_index(const char *);
 
 static int prepare_scan_req(struct nl80211_state *state, struct nl_cb *cb, struct nl_msg *msg)
 {
@@ -26,7 +23,8 @@ static int prepare_scan_req(struct nl80211_state *state, struct nl_cb *cb, struc
   //Freq 5220 MHz
   NLA_PUT_U32(freqs, 0, 5220);
   //SSID
-  NLA_PUT(ssids, 1, strlen("MiBox_5G"), "MiBox_5G");
+  //NLA_PUT(ssids, 1, strlen("MiBox_5G"), "MiBox_5G");
+  NLA_PUT(ssids, 1, 0, "");
 
   //主动扫描
   nla_put_nested(msg, NL80211_ATTR_SCAN_SSIDS, ssids);
@@ -138,7 +136,6 @@ static void send_scan_request(struct nl80211_state *nlstate)
 
 static void get_scan_results(struct nl80211_state *nlstate)
 {
-  printf("get scan results\n");
   send_command(nlstate, &scan_result_req);
 }
 
@@ -148,15 +145,11 @@ int main(int argc, char *argv[])
   int err;
 
   err = nl80211_init(&nlstate);
-  if (err) {
-    printf("nl80211_init failed\n");
-  }
+  if (err)
+    return 1;
 
   send_scan_request(&nlstate);
-
-  //sleep(10);
-  
-  //get_scan_results(&nlstate);
+  get_scan_results(&nlstate);
   nl80211_cleanup(&nlstate);
   return err;
 }

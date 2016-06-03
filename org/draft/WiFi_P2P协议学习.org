@@ -15,7 +15,7 @@
         - Support WMM AP functionality
         - Support WMM-PS AP functionality
         - Function as WPS internal registrar
-        - Form temporaryP2P Groups
+        - Form temporary P2P Groups
         - Provide IP address (DHCP) to ONE P2P Client
         - Support P2P Client Discovery
         - Supply SSID and passphrase for manual configuration of
@@ -31,7 +31,7 @@
         - Concurrency
         - Cross-Connection
         - Data Distribution
-        - Form/re-invoke PersistentP2P Groups
+        - Form or =re-invoke= PersistentP2P Groups
           - Support P2P Invitation Procedure
         - Ability to remove/reject devices from P2P network
         - Coexistence parameters
@@ -49,58 +49,61 @@
     4. WPA2 V3.1
 
 ** WiFi P2P技术概述
-*** A Wi-Fi P2P network is a non-infrastructure connection of Wi-Fi CERTIFIED devices. 
+
+   A Wi-Fi P2P network is a non-infrastructure connection of Wi-Fi CERTIFIED devices. 
 
 *** Key features of Wi-Fi P2P networks
       - 与Infrastructure网络相同的一些特征：
-        - Full, robust WPA2™security using AES
-        - Typical Wi-Fi data rates (up to 802.11n)
-        - Typical Wi-Fi range
+        - Full, robust WPA2™ security using AES
+        - Typical WiFi data rates (up to 802.11n)
+        - Typical WiFi range
         - Support for 2.4GHz and 5GHz devices
-        - Simple, secure device authentication and enrollment via Wi-Fi Protected Setup™ (WPS)
-        - Excellent co-existence with neighboring networks
-        - Compatible with existing Wi-Fi CERTIFIED™ devices
+        - Simple, secure device authentication and enrollment via WiFi Protected Setup™ (WPS)
+        - Excellent =co-existence= with neighboring networks
+        - Compatible with existing WiFi CERTIFIED™ devices
       - Additional features
         - IP address based
         - Automatic device discovery
         - Device service advertisement
         - Support for device power management
-        - Support for temporary (one-time) and persistent (many-time) network connections
-        - Optional cross-connection to infrastructure network
+        - Support for temporary (=one-time=) and persistent (=many-time=) network connections
+        - Optional =cross-connection= to infrastructure network
         - Enterprise manageability
 
-* Wi-Fi P2P Framework
+* WiFi P2P Framework
 
-     - A P2P Group is a Wi-Fi P2P network that may include two types
+     - A P2P Group is a WiFi P2P network that may include two types
        of devices
-       - P2P Device –Wi-Fi CERTIFIED™ device that is compliant with
-         the Wi-Fi P2P specification 
-       - Legacy device –Wi-Fi CERTIFIED™ device that is not compliant
-         with the Wi-Fi P2P specification
+       - P2P Device 
+         WiFi CERTIFIED™ device that is compliant with
+         the WiFi P2P specification 
+       - Legacy device 
+         WiFi CERTIFIED™ device that is not compliant
+         with the WiFi P2P specification
      - P2P devices must be capable of two different roles in a P2P
        Group
-       - P2P Group Owner : An “AP-like” capability that controls a
-         Wi-Fi P2P Group and enables P2P Device connectivity 
-       - P2P Client : A Wi-Fi P2P-compliant device that may connect to
+       - P2P Group Owner : An =AP-like= capability that controls a
+         WiFi P2P Group and enables P2P Device connectivity 
+       - P2P Client : A WiFi =P2P-compliant= device that may connect to
          a P2P Group Owner
      - Note : Legacy devices may only function as clients in a P2P
        Group. They see P2P Group Owners as APs.
 
-* Wi-Fi P2P Architecture
+* WiFi P2P Architecture
     - A P2P Device is the fundamental component of a P2P Group
       - Capable of either an infrastructure or a P2P connection
       - Can always connect with another P2P Device
       - Supports both P2P Group Owner and P2P Client roles
       - Negotiates P2P Group Ownership with other P2P Devices
-      - Must be Wi-Fi CERTIFIED™ for Wi-Fi Protected Setup™
-      - Must be Wi-Fi CERTIFIED™ for WMM®
+      - Must be WiFi CERTIFIED™ for WiFi Protected Setup™
+      - Must be WiFi CERTIFIED™ for WMM®
       - Must Support P2P Discovery mechanisms
       - Must Support P2P Power Management mechanisms
       - May support Managed P2P Device operation
       - May support WLAN and P2P Group operation at the same time
       - May operate as a member of multiple P2P Groups simultaneously
         - Functionality is out of scope for this spec
-    - A P2P Group is a Wi-Fi P2P network made of at least two Wi-Fi
+    - A P2P Group is a WiFi P2P network made of at least two WiFi
       enabled devices
       - One device mustbe a P2P Group Owner
       - The other device(s) are Clients (P2P Clients and/or Legacy
@@ -123,7 +126,7 @@
     - Key P2P Group Owner capabilities
       - Must provide BSS functionality and services for Clients (P2P
         and Legacy) associated to a P2P Group
-      - Must provide Wi-Fi Protected Setup™ Internal Registrar
+      - Must provide WiFi Protected Setup™ Internal Registrar
         functionality for a P2P Group
       - May enable facilitated or direct communication between Clients
         in a P2P Group
@@ -139,7 +142,7 @@
       - Must have the ability to join/function in infrastructure
         networks as typical STA
       - Must support WPS Enrollee functionality
-    - Wi-Fi P2P protocol communication based on
+    - WiFi P2P protocol communication based on
       - P2P Information Element (P2P IE)
       - P2P Action frame
         - Group Owner Discoverability; P2P Presence; Group Owner
@@ -154,12 +157,12 @@
       Vendor Specific Action frame in IEEE Std 802.11-2007
       - Each P2P Group has a single SSID and a single security domain
       - Each P2P Group has a unique P2P Group ID
-      - Wi-Fi P2P has a Wi-Fi Alliance-specific OUI
-      - OUI type indicates a Wi-Fi P2P specification version
+      - WiFi P2P has a WiFi Alliance-specific OUI
+      - OUI type indicates a WiFi P2P specification version
     - A Number of P2P Attributes are defined
       - A Single P2P IE carries one or more P2P Attributes
 
-* Wi-Fi P2P Protocol Overview
+* WiFi P2P Protocol Overview
 ** 基本流程概述
    1. User discovers P2P Devices in range
    2. User selects which of the discovered P2P Devices to connect to
@@ -280,7 +283,7 @@
       Group is formed using the P2P Group Formation Procedure
     - If the target P2P Device is already part of a P2P Group, the
       searching P2P Device may seek to join the group
-      - Use Wi-Fi Protected Setup™ (WPS) to obtain credentials and
+      - Use WiFi Protected Setup™ (WPS) to obtain credentials and
         authenticate
         - WPS handshakes take place on the Operating Channel of the
           P2P Group Owner
@@ -296,7 +299,7 @@
          at an application-level
      - Provisioningof the P2P Group
        - Establishment of the P2P Group session using the appropriate credentials
-       - Uses Wi-Fi Protected Setup™ to exchange credentials
+       - Uses WiFi Protected Setup™ to exchange credentials
 
 *** Special Provisioning Consideration
 
@@ -304,7 +307,7 @@
       =15 seconds=
     - Special consideration required to meet the time limit for P2P
       Group Formation
-      - Up to =two minutes= required for completion of Wi-Fi Protected
+      - Up to =two minutes= required for completion of WiFi Protected
         Setup™ when waiting for user input
     - P2P Device must obtain any information required to execute
       provisioning in advance of P2P Group Formation
@@ -332,7 +335,7 @@
         - Use WPA2-PSK Authentication, AES Encryption, Network Key
           Type of 64 Hex characters
         - Maintain a WPA-PSK passphrase for delivery to Legacy Clients
-      - Serve as the Wi-Fi Protected Setup™ Registrar
+      - Serve as the WiFi Protected Setup™ Registrar
       - Be capable of acting as a DHCP server
         - Support IPv4 at a minimum
         - Support assignment of IP address, subnet mask and default
@@ -366,7 +369,7 @@
         List
       - P2P Client may have to scan to find the P2P Group Owner if the
         Operating Channel is not available
-    - Wi-Fi Protected Setup™ sequence executes in the following manner
+    - WiFi Protected Setup™ sequence executes in the following manner
       - P2P Group Owner serves as the AP with Internal Registrar
         - It shall only allow association by P2P Device with which it
           is in Group Formation with
@@ -585,7 +588,7 @@
 
       - Printer joins the P2P group
 
-* Power Management and Wi-Fi P2P Technology
+* Power Management and WiFi P2P Technology
 
 ** P2P Power Management
    - P2P supports power saving mechanisms for P2P Group Owners and P2P
@@ -679,7 +682,7 @@
      - P2P Clients shall generally not send frames to a P2P Group
        Owner during periods of absence
 
-* Additional Wi-Fi P2P Technology Capabilities
+* Additional WiFi P2P Technology Capabilities
 
 ** Service Discovery
    - Optional Service Discovery procedure enables advertisement of
@@ -738,19 +741,19 @@
      Interface addresses to the WLAN AP at association to help with
      monitoring
 
-* Additional Wi-Fi P2P Technology Considerations
+* Additional WiFi P2P Technology Considerations
 
-** Wi-Fi P2P WLAN Coexistence
+** WiFi P2P WLAN Coexistence
    [[./images/2016/2016011108.png]]
 
-   - P2P Devices shall coexist well with nearby Wi-Fi networks, both
+   - P2P Devices shall coexist well with nearby WiFi networks, both
      legacy and P2P
      - Follow standard W-Fi Alliance practices for protection of
        overlapping networks
    - Primary and Secondary P2P Coexistence Parameters provided to
      assist with fine tuning coexistence behaviors
 
-** Wi-Fi P2P Spectrum Coexistence in 5GHz
+** WiFi P2P Spectrum Coexistence in 5GHz
    [[./images/2016/2016011109.png]]
 
    - with AP‟s, P2P Devices that may operate as P2P Group Owners in
@@ -759,7 +762,7 @@
      - Support for DFS (Dynamic Frequency Selection) may be required
        depending on supported channels.
 
-* Summary: Minimum Requirements for Wi-Fi P2P Devices
+* Summary: Minimum Requirements for WiFi P2P Devices
   - 2.4GHz, 802.11g support
   - Device certified for WPA2, WMM and WPS
   - Ability to connect to other P2P Devices
@@ -795,4 +798,45 @@
     roles
 
 
+
+
+* 附录
+
+** nl80211
+   p2p相关的扩展有：
+   - =NL80211_CMD_REMAIN_ON_CHANNEL=
+   - =NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL=
+     This indicates to the device that it should stay on a given
+     channel for a given time, to implement a P2P listen phase. Can
+     also be canceled, since it is also used to implement off-channel
+     TX for group negotiation or invitation
+   - =NL80211_CMD_FRAME=
+     previously =NL80211_CMD_ACTION=
+     Transmit a management frame, with channel checking. This can be
+     used during a =remain-on-channel= phase to transmit frames on that
+     channel, or at other times to transmit on the operating
+     channel. This also allows =off-channel= transmission, i.e. transmit
+     on a given channel and wait for a response for a given time
+     (including the ability to cancel the wait) which in a sense
+     combines =REMAIN_ON_CHANNEL= and =MGMT_TX= into just a single =MGMT_TX=
+     for some operations.
+   - =NL80211_CMD_REGISTER_FRAME=
+     Allow a userspace application to register for receiving a given
+     type of (management) frame through nl80211, and also replying to
+     it. Applications can also specify a filter so for example they
+     don't have to handle all the different action frames but just a
+     subset. For action frames, a side effect is that the kernel will
+     not reply to unknown action frames when they are registered by
+     userspace. Used by =wpa_supplicant= for P2P also for probe
+     requests.
+
+     Related events:
+     =NL80211_CMD_FRAME= , =NL80211_CMD_FRAME_TX_STATUS=
+
+
+** p2p问题分析思路
+   当GO与GC两种角色下，问题是否一样？
+
+   打印Wifi状态变化情况。
+   while true; do sleep 1; iwpriv wlan0 stat; done
 

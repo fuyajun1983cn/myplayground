@@ -1,0 +1,63 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: 802.11ac学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 802.11ac介绍
+  802.11ac was founded as gigabit at less than 6 GHz,
+  keeps it constrained to the existing unlicensed frequency bands used
+  by 802.11.
+
+  802.11ac is an evolution from 802.11n and not a revolutionary
+  departure.
+
+  
+** 与802.11n对比 
+   
+   #+CAPTION: Differences between 802.11n and 802.11ac
+| *802.11n*                                              | *802.11ac*                                                                           |
+|--------------------------------------------------------+--------------------------------------------------------------------------------------|
+| Supports 20 and 40 MHz channels                        | Adds 80 and 160 MHz channels                                                         |
+| Supports 2.4 GHz and 5 GHz frequency bands             | Supports 5 GHz only                                                                  |
+| Supports BPSK, QPSK, 16-QAM, and 64-QAM                | Adds 256-QAM                                                                         |
+| Supports many types of explicit beamforming            | Supports only null data packet (NDP) explicit beamforming                            |
+| Supports up to four spatial streams                    | Supports up to eight spatial streams (AP); client devices up to four spatial streams |
+| Supports single-user transmission only                 | Adds multi-user transmission                                                         |
+| Includes significant MAC enhancements (A-MSDU, A-MPDU) | Supports similar MAC enhancements, with extensions to accommodate high data rates    |
+
+** 发展趋势
+   
+   #+CAPTION: Anticipated 802.11ac technology waves
+| *Attribute*                       | *First wave*                 | *Second wave* |
+|-----------------------------------+------------------------------+---------------|
+| Maximum number of spatial streams | 3                            | 3 or 4        |
+| Channel width                     | 80 MHz                       | 160 MHz       |
+| Maximum modulation                | 256-QAM                      | 256-QAM       |
+| Typical maximum speed             | 1.3 Gbps                     | 2.6 Gbps      |
+| Beamforming support               | Varies (depending on vendor) | Yes           |
+| MU-MIMO support                   | No                           | Possibly      |
+
+* 物理层
+  相对于802.11n引入时，传输技术有创新性的变化，802.11ac在这方面并没有
+  带入创新性的技术，数据传输仍然依赖于：
+  1. MIMO
+  2. Wide Channels
+  所以，802.11ac物理层面上的传输速率的提升主要来源三个方面：
+  1. 更多数量的MIMO流
+  2. 更宽的Channel
+  3. 更精密的调制技术，可以在单位时间内携带更多的数据。
+
+** MIMO扩展操作
+   802.11ac为了提升数据吞吐量，将MIMO流支持的个数从4提升到8个。
+   另外，就是支持 =MU-MIMO= ，将数率进一步提升。
+
+** Radio Channels in 802.11ac
+   
+* MAC层
+
+* Beamforming
+
+* 参考资料
+  [[[http://chimera.labs.oreilly.com/books/1234000001739/index.html][802.11ac: A Survival Guide]]]

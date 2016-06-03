@@ -40,3 +40,18 @@
    - Identify average and unacceptable service response times (SRT)
    - Graph intervals of periodic packet generation applications or
      protocols
+
+** Identify Network Problems
+   
+*** slow network communications
+    Slow network performance can be due to high latency, access
+    errors, excessive number of packets required to obtain data or a
+    number of other causes. 
+
+    When poor performance is due to *delays* in the communications, look
+    for /large gaps in time/ between a request and acknowledgement, an
+    acknowledgement and a response, etc. 
+
+
+
+    
