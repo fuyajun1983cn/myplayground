@@ -1603,7 +1603,7 @@
       | =P2p_flush= | Flush p2p_state, and clears the discovered peer list |
     - =p2p_presence_req=
     - =p2p_ext_listen=
-    - =p2p_group_idle=
+    - =p2p_group_idle= 
       Maximum idle time in seconds for P2P group
       当一个p2p group建立起来后，GO等待GC连接的最大等待时间，或GC发现
       GO的最大超时时间。
@@ -1637,15 +1637,21 @@
       #+END_EXAMPLE
 *** nl80211 (p2p)
     - =NL80211_CMD_REMAIN_ON_CHANNEL=
-    - =NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL=
+    - =NL80211_CMD_CANCEL_REMAIN_ON_CHANNEL=  
+
       This indicates to the device that it should stay on a given
       channel for a given time, to implement a P2P listen phase. Can
       also be canceled, since it is also used to implement off-channel
       TX for group negotiation or invitation
+
     - =NL80211_CMD_FRAME (previously NL80211_CMD_ACTION)=
+
       传输一个管理帧。
+
     - =NL80211_CMD_REGISTER_FRAME=
+
       通过nl80211，用户程序可以注册接收指定类型的管理帧。
+
 *** 错误总结
       当Associate  Request失败后，会尝试5次
 

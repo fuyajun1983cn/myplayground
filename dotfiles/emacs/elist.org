@@ -1,15 +1,156 @@
 -*- mode: org -*-
 #STARTUP:showall
 
+
+
+* 基础语法
+** function definitions
+*** defun template
+(defun functoin-name (arguments ...)
+"optional documentation ..."
+(interactive argument-passing info) ; optional
+body...)
+
+**** example 
+     #+BEGIN_SRC emacs-lisp
+       (defun multiply-by-seven (number)
+         "Multiply by server"
+         (* number 7))     
+     #+END_SRC
+
+*** install a func
+    : evaluate defunc
+*** make a function interactive
+    #+BEGIN_SRC emacs-lisp
+      (defun multiply-by-seven (number) ;interactive version
+        "Multiply by seven"
+        (interactive "p")  ;the "p" tells Emacs to pass the prefix argument to the function and use its value for the argument of the function.
+        (message "The result is %d" (* 7 number)))    
+    #+END_SRC
+*** diffrent options for interactive
+*** funcall
+    调用另外一个函数.
+*** 参数
+**** prefix-numeric-value
+     获取传入进来的参数值
+*** 内联函数
+    定义内联函数使用 defsubst
+** 宏
+   宏的参数是隐匿引用起来的，也就是说，当宏被调用时，它的参数不会被解
+   析，而是原样传递到宏内部。
+*** 例子
+    #+BEGIN_SRC emacs-lisp
+      (defmacro incr (var)
+        "Add one to the named variable"
+        '(setq ,var (+ ,var 1)))
+    #+END_SRC
+
+    其中 macroexpand 用于调试，可以查看一个宏展开后的样子。','表示
+    backquote, 被backquote的元素在执行宏定义的代码时，不会被解析。
+
+    #+BEGIN_SRC emacs-lisp
+      (defmacro limited-save-excursion (&rest subexprs)
+        "Like save-excursion, but only restores point."
+        (let ((orig-point-symbol (make-symbol "orig-point")))
+          '(let ((,orig-point-symbol (point)))
+             (unwind-protect
+                 (progn ,@subexprs)
+               (goto-char ,orig-point-symbol)))))
+    #+END_SRC
+
+    ",@"跟","一样，原封不动的保留传入进来的参数，且会自动去年最外层的
+    括号。
+** let
+   create a name for a local variable
+   =let*= : set each variable in its varlist in sequence
+   但通常情况下，应该使用 =let= ，因为它在大多数情况下，更有效率。
+
+   in Emacs Lisp, scoping is dynamic, not lexical
+
+*** sample
+
+    #+BEGIN_SRC emacs-lisp
+      (let ((zera 'strips)
+            (tiger 'fierce))
+      (message "One kind of animal has %s and another is %s. " 
+           zera tiger))     
+    #+END_SRC
+
+
+** if
+   #+BEGIN_SRC emacs-lisp
+     (if true-or-false-test
+         action-to-carryout-if-test-is-true)   
+   #+END_SRC
+
+*** sample
+    #+BEGIN_SRC emacs-lisp
+      (if (> number 5)
+          (message "%d is larger than 5" number))
+
+      (if true-or-false-test
+          action-to-carryout-if-test-is-true
+       action-to-carryout-if-test-is-false)    
+    #+END_SRC
+
+*** sample
+    #+BEGIN_SRC emacs-lisp
+      (if (> number 5)
+          (message "%d is larger than 5" number)
+      (message "%d is not larger than 5" number))
+          
+    #+END_SRC
+
+*** nil
+    nil mean an empty list or false
+*** save-excursion
+    save the current location of point and mark, execute the body of
+    function, and then restores point and mark.
+
+    #+BEGIN_SRC emacs-lisp
+      (defun simple-beginning-of-buffer ()
+        "Move point to the beginning of buffer,
+      leave mark at previouse position"
+        (interactive)
+        (push-mark)
+        (goto-char (point-min)))
+    #+END_SRC
+** unless
+** condition-case
+** make-symbol
+   创建一个全新的对象，能确保不会与现存的对象冲突。
+** 错误处理
+   unwind-protect函数专门用于调用某个程序发生错误时，自动回退到调用前的状态。
+** Point Marker
+* 数据结构
+** 向量
+   1. 创建一个向量
+      #+BEGIN_SRC emacs-lisp
+        ;;创建一个包含rows个元素的向量，初始值为nil
+        (make-vector rows nill)      
+      #+END_SRC
+   2. 访问向量元素
+      #+BEGIN_SRC emacs-lisp
+        (aref VECTOR INDEX)      
+      #+END_SRC
+   3. 设置一个向量元素
+      #+BEGIN_SRC emacs-lisp
+        (aset VECTOR INDEX NEW-ELEMENT-VALUE)      
+      #+END_SRC
+** 数组
+** 字符串
+** 列表
 * evaluate an expression
 ** C-x C-e
+* Syntax Table
+** char-syntax
 
-* function
+* Buffer
 ** Buffer Names
 *** buffer-name
-return file name
+    return file name, make sure this buffer is alive.
 *** buffer-file-name
-return full path
+    return full path
 ** Buffers
 *** current-buffer
 *** other-buffer
@@ -17,82 +158,181 @@ return full path
 ** Buffer size
 *** buffer-size
 *** point, point-min, point-max
-the size of the current buffer
+    the size of the current buffer
+** Buffer Operations
+*** with-current-buffer
+    将buffer临时作为当前buffer执行
+*** with-temp-current
+* Window
+** window-buffer
+   返回当前窗口中显示的buffer
+* Minor Mode
 
-* function definitions
-** defun template
-(defun functoin-name (arguments ...)
-"optional documentation ..."
-(interactive argument-passing info) ; optional
-body...)
+  Emacs uses the concept of a mode to encapsulate a set of editing
+  behaviors. 
 
-*** example 
-(defun multiply-by-seven (number)
-"Multiply by server"
-(* number 7))
-** install a func
-evaluate defunc
-** make a function interactive
-(defun multiply-by-seven (number) ;interactive version
-"Multiply by seven"
-(interactive "p")  ;the "p" tells Emacs to pass the prefix argument to the function and use its value for the argument of the function.
-(message "The result is %d" (* 7 number)))
-** diffrent options for interactive
+  A minor mode, adds to a buffer a package of
+  functionality that doesn't fundamentally change the way editing in
+  the buffer is performed. 
 
-** let
-create a name for a local variable
-let* : set each variable in its varlist in sequence
-
-in Emacs Lisp, scoping is dynamic, not lexical
-
-*** sample
-(let ((zera 'strips)
-      (tiger 'fierce))
-(message "One kind of animal has %s and another is %s. " 
-     zera tiger))
-
-** if
-(if true-or-false-test
-    action-to-carryout-if-test-is-true)
-*** sample
-(if (> number 5)
-    (message "%d is larger than 5" number))
-
-(if true-or-false-test
-    action-to-carryout-if-test-is-true
- action-to-carryout-if-test-is-false)
- 
-*** sample
-(if (> number 5)
-    (message "%d is larger than 5" number)
-(message "%d is not larger than 5" number))
-
-*** nil
-nil mean an empty list or false
-*** save-excursion
-save the current location of point and mark, execute the body of
-function, and then restores point and mark.
-
-#+BEGIN_SRC emacs-lisp
-  (defun simple-beginning-of-buffer ()
-    "Move point to the beginning of buffer,
-  leave mark at previouse position"
-    (interactive)
-    (push-mark)
-    (goto-char (point-min)))
-#+END_SRC
+** 实现步骤
+   1. 选择一个名称
+   2. 定义一个变量: name-mode, 并使它buffer-local, 
+      #+BEGIN_SRC emacs-lisp
+        (defvar refill-mode nil
+          "Mode variable for refill minor mode.")
+        (make-variable-buffer-local 'refill-mode)       
+      #+END_SRC
+   3. 定义一个叫name-mode的命令，该命令应该接收一个可选的参数。
+      #+BEGIN_SRC emacs-lisp
+        (defun refill-mode (&optional arg)
+          "Refill minor mode."
+          (interactive "P")
+          (setq refill-mode
+                (if (null arg)
+                    (not refill-mode)
+                  (> (prefix-numeric-value arg) 0)))
+          (if refill-mode
+              code for turning on refill-mode
+              code for turning offrefill-mode) )       
+      #+END_SRC
+   4. 向minor-mode-alist添加一项
+      #+BEGIN_SRC emacs-lisp
+        (if (not (assq 'refill-mode minor-mode-alist))
+            (setq minor-mode-alist
+                  (cons '(refill-mode " Refill")
+                        minor-mode-alist)) )
+      #+END_SRC
 
 
+** 示例
+   #+BEGIN_SRC emacs-lisp
+     (define-minor-mode next-error-follow-minor-mode
+       "Minor mode for compilation, occur and diff modes.
+     With a prefix argument ARG, enable mode if ARG is positive, and
+     disable it otherwise.  If called from Lisp, enable mode if ARG is
+     omitted or nil.
+     When turned on, cursor motion in the compilation, grep, occur or diff
+     buffer causes automatic display of the corresponding source code location."
+       :group 'next-error :init-value nil :lighter " Fol"
+       (if (not next-error-follow-minor-mode)
+           (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
+         (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
+         (make-local-variable 'next-error-follow-last-line)))
+         
+   #+END_SRC
+* Major Mode
+** 实现步骤
+   1. 选择一个名称name
+   2. 创建一个文件name.el, 它包含相关代码
+   3. 定义一个叫name-mode-hook的变量，包含用户自定义的钩子函数
+   4. 如果有需要，可以定义一个模式相关的keymap，名称为name-mode-keymap
+      #+BEGIN_SRC emacs-lisp
+        (defvar name-mode-map nil
+          "Keymap for name major mode.")
+        (if name-mode-map
+            nil
+          (setq name-mode-map (make-keymap))
+          (define-key name-mode-map keysequence command))
+      #+END_SRC
+      如果定义的keybindings不多的话，则可以使用 make-sparse-keymap.
+   5. 如果有需要，可以定义一个模式相关的syntax table，名称为
+      name-mode-syntax-table.
+   6. 如果有需要，可以定义一个模式相关的abbrev table，名称为
+      name-mode-abbrev-table.
+   7. 定义一条名为name-mode的命令，它没有参数。 当执行时，需要执行如下
+      一些步骤：
+      1) 必须调用kill-all-local-variables, 清掉所有buffer-local的变量。
+         #+BEGIN_SRC emacs-lisp
+           (kill-all-local-variables)         
+         #+END_SRC
+      2) 设置变量major-mode的值为name-mode.
+         #+BEGIN_SRC emacs-lisp
+           (setq major-mode 'name-mode)         
+         #+END_SRC
+      3) 设置变量mode-name描述该模式，用于在mode line中显示
+         #+BEGIN_SRC emacs-lisp
+           (setq mode-name "Name Mode")         
+         #+END_SRC
+      4) 如果有的话，必须在name-mode-map上调用use-local-map以安装模式
+         相关的keymap.
+      5) 调用用户定义的钩子函数.
+         #+BEGIN_SRC emacs-lisp
+           (run-hooks 'name-mode-hook)         
+         #+END_SRC
+   8. "provide"该模式
+      #+BEGIN_SRC emacs-lisp
+        (provide 'name) ;;allow user to (require 'name)      
+      #+END_SRC
+   
+** 示例
 
+*** 简单示例
+    #+BEGIN_SRC emacs-lisp
+      (defun fundamental-mode ()
+        "Major mode not specialized for anything in particular.
+      Other major modes are defined by comparison with this one."
+        (interactive)
+        (kill-all-local-variables)
+        (run-mode-hooks))
+    #+END_SRC
 
+*** 完整实例
+    #+BEGIN_SRC emacs-lisp
+      (defvar quip-mode-hook nil
+        "*List of functions to call when entering Quip mode.")
+      (defvar quip-mode-map nil
+        "Keymap for quip major mode.")
 
+      (defalias 'backward-quip 'backward-page)
+      (defalias 'forward-quip forward-page)
+      (defalias 'narrow-to-quip 'narrow-to-page)
+      (defalias 'what-quip 'what-page)
 
-(Multiply-by-seven 3)
+      (if quip-mode-map
+          nil
+        (setq quip-mode-map (copy-keymap text-mode-map))
+        (define-key quip-mode-map "\C-x[" 'backward-quip)
+        (define-key quip-mode-map "\C-x]" 'forward-quip)
+        (define-key quip-mode-map "\C-xnq" 'narrow-to-quip)
+        (define-key quip-mode-map "\C-cw" 'what-quip))
 
-(buffer-size) 
-(point)
-(point-min)
-(point-max)
-
-(switch-to-buffer (other-buffer))(point)
-
+      (defun quip-mode ()
+        "Major mode for editing Quip files.
+      Special commands:
+      \\{quip-mode-map}"
+        (interactive)
+        (kill-all-local-variables)
+        (text-mode) ;first, set things upfor Text mode
+        (setq major-mode 'quip-mode) ; now, specializefor Quip mode
+        (setq mode-name "Quip")
+        (use-local-map quip-mode-map)
+        (make-local-variable 'paragraph-separate)
+        (make-local-variable 'paragraph-start)
+        (make-local-variable 'page-delimiter)
+        (setq paragraph-start "%%\\I[ \t\n\^L]")
+        (setq paragraph-separate "%%$\\ [ \t\^L]*\$")
+        (setq page-delimiter "^%%$")
+        (run-hooks quip-mode-hook))
+      (provide 'quip)    
+    #+END_SRC
+** define-derived-mode
+   从现存的模式中派生出一个新的模式。
+   #+BEGIN_SRC emacs-lisp
+     (require 'derived)
+     (define-derived-mode quip-mode text-mode "Quip"
+       "Major mode for editing Quip files.
+     Special commands:
+     \\ quip-mode-map}"
+       (make-local-variable 'paragraph-separate)
+       (make-local-variable 'paragraph-start)
+       (make-local-variable 'page-delimiter)
+       (setq paragraph-start "%%\\[[ \t\n\^L]")
+       (setq paragraph-separate "%%$\\ [ \t\^L]*$")
+       (setq page-delimiter "^%%$"))
+     (define-key quip-mode-map "\C-x[" 'backward-quip)
+     (define-key quip-mode-map "\C-x]" 'forward-quip)
+     (define-key quip-mode-map "\C-xnq" narrow-to-quip)
+     (define-key quip-mode-map "\C-cw" 'what-quip)
+     (provide 'quip)   
+   #+END_SRC

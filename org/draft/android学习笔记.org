@@ -17,6 +17,145 @@
 
 * Framework
 
+** Audio System
+   
+*** Audio System 介绍
+
+    [[./images/2016/2016053001.png]]
+    
+*** AudioTrack 介绍
+
+    [[./images/2016/2016053002.png]]
+
+    基本说明：
+    1. 用于管理来自一个Source的Audio 播放将播放的Audio 数据送给
+       AudioFlinger
+    2. 提供播放的控制接口
+       API:start(), stop(), ...
+    3. 提供Volume 控制接口， 用于控制L/R声道各自的Volume
+       - API: setVolume
+       - Android 体系中有3个Audio Volume控制,  最终的输出Volume是下面3
+         者的乘积 
+         1. Master Volume
+         2. Stream Type Volume
+         3. Track Volume
+    4. AudioTrack可以配置为下面三种Mode：
+       1. PUSH MODE
+       2. PULL MODE
+       3. STATIC MODE
+    5. AudioTrack测试程序
+       #+BEGIN_SRC cpp
+         /**
+          ,* 利用AudioTrack播放一个wav文件
+          ,*/
+
+         //#define LOG_NDEBUG 0
+         #define LOG_TAG "AudioTrackTest"
+         //#include <utils/Log.h>
+         #include <media/AudioTrack.h>
+         #include <system/audio.h>
+         using namespace android;
+         #define ALOGD printf
+         int main(int argc, char *argv[])
+         {
+           int readNum;
+           unsigned short channel;
+           unsigned int sampleRate;
+           FILE *fp = fopen("bzk_chic.wav", "ab+");
+           if (fp == NULL) {
+             ALOGD("Cannot open .wav file");
+             return -1;
+           }
+           ALOGD("Open wav file successfully!\n");
+           fseek(fp, 0x16, 0); 
+           readNum= fread(&channel, 1, 2, fp);
+           if (readNum < 1) {
+             ALOGD("Can not read channel number: %d\n", readNum);
+             fclose(fp);
+             return 0;
+           }
+           ALOGD("channel number is %d\n", channel);
+           fseek(fp, 0x18, 0); 
+           readNum = fread(&sampleRate, 1, 4, fp);
+           if (readNum < 1) {
+             ALOGD("Cannot read sample rate: %d\n", readNum);
+             fclose(fp);
+             return 0;
+           }
+           ALOGD("Sample Rate is %d\n", sampleRate);
+           
+           // playing to an AudioTrack, set up mask if necessary
+           audio_channel_mask_t audioMask = AUDIO_CHANNEL_OUT_STEREO;
+           if (0 == audioMask) {
+             return -1;
+           }
+           sp<AudioTrack> audioTrack = new AudioTrack(
+                                                      AUDIO_STREAM_MUSIC, sampleRate, AUDIO_FORMAT_PCM_16_BIT, audioMask,
+                                                      0, AUDIO_OUTPUT_FLAG_NONE);
+           status_t status = audioTrack->initCheck();
+           if(status != NO_ERROR) {
+             audioTrack.clear();
+             ALOGD("Failed for initCheck()");
+             return -1;
+           }
+           audioTrack->start();
+           
+           unsigned char *buffer = new unsigned char[channel * 64 * 2];
+           while (1) {
+             readNum = fread(buffer, 1, channel * 64 * 2, fp);
+             if (readNum <= 0)
+               break;
+             ALOGD("Write data : %d to AudioTrack", readNum);
+             audioTrack->write(buffer, readNum);
+           }
+          
+           fclose(fp);
+           delete []buffer;
+           audioTrack->stop();
+           
+         }
+                
+       #+END_SRC
+
+*** AudioRecord介绍
+
+    [[./images/2016/2016053003.png]]
+
+    基本说明：
+    1. 用于管理从底层获取录音数据，并提供给上层
+    2. 提供录音的控制接口
+       API:start(), stop()
+    3. 获取声音资料的方式
+       - 由上层主动调用AudioRecord::read() 来获取数据 (PULL MODE)
+       - 上层提供Callback function, 通过AudioRecord主动将资料通过
+         Callback 给上层(PUSH MODE) 
+
+*** AudioPolicyService介绍
+
+    [[./images/2016/2016053004.png]]
+
+    AudioPolicyService在Audio system中的位置和作用
+    - 仅是一个行为决策者，而不是行为的实施者
+    - 真正的实施者为AudioFlinger
+    - 它是一个在后台进程中的服务实体，提供的服务就是告诉实施者要怎么去
+      做
+
+    [[./images/2016/2016053005.png]]
+
+    AudioPolicyService几大功能:
+    - 设备状态管理
+    - 输入输出策略管理
+    - 音量控制管理
+    - Effect 控制管理
+
+*** AudioFlinger
+
+    [[./images/2016/2016053006.png]]
+
+    AudioFlinger的线程循环逻辑如下所示：
+    
+    [[./images/2016/2016053007.png]]
+
 ** Media Framework
 
 *** 基础知识
@@ -33,6 +172,66 @@
     ALooper对象，通过 =registerHandler= 接口将AHandler对象注册给
     =ALooperRoster= 对象维护的AHandler列表中。
 
+*** 主要代码路径 
+    
+**** MediaPlayer.java
+     - Java 层的 MediaPlayer 接口，APK 主要通过 call 它的接口实现播放功能
+     - code path: framework/base/media/java/android/media/MediaPlayer.java
+
+**** Media JNI
+     - MediaPlayer java 层与 native 层的接口
+     - code path: framework/base/media/jni/android_media_MediaPlayer.cpp
+     - output:libmedia_jni.so
+
+**** MediaPlayer
+     - MediaPlayer Native 层 client 端接口
+     - code path: framework/av/media/libmedia/
+     - output:libmedia.so
+
+**** Media Service
+     - Native 层真正实现播放功能的 Service 进程
+     - code path:
+       framework/av/media/mediaserver
+       framework/av/media/libmediaplayerservice
+     - output: mediaserver   libmediaplayerservice.so
+
+*** Stagefright 
+
+**** StagefrightPlayer
+     - 负责提供 player 的接口
+     - code path: framework/av/media/libmediaplayerservice/StagefrightPlayer.cpp
+
+**** AwesomePlayer
+     - 真正实现 playback 功能的模块
+     - code path: : framework/av/media/libstagefright
+
+**** DataSource
+     - 提供 Source 数据，可以是本地文件，也可以是网络数据
+     - code path: : framework/av/media/libstagefright
+
+**** MediaSource
+     - MediaSource使用到了DataSoure和OMX，可以提供解码后的供显示的数据
+     - code path: framework/av/media/libstagefright/
+
+**** OMXClient
+     - 使用 OMX 的 client 端
+     - code path: framework/av/media/libstagefright/
+
+**** OMX
+     - 提供一套接口接到底层的 decoder 进行解码
+     - code path: framework/av/media/libstagefright/omx
+
+*** NuPlayer 
+
+    [[./images/2016/2016053008.png]]
+    
+*** OpenMAX 
+    OpenMAX is a royalty-free, cross-platform API. OpenMAX Working
+    Group has been formed by the Khronos Group. The Standard for Media
+    Library Portability. Reduce the cost and complexity of porting
+    multimedia software to  new processors and architectures. 分为
+    OpenMAX DL, IL, AL 三层，Android 上只用到 OpenMAX IL. 
+    
 ** Graphics
 
 *** Android Graphics Pipeline Overview
@@ -209,12 +408,27 @@
 
           - Do implement fill driver_data
 
+** Input System
+
+   Input  Event Process Flow
+
+   [[./images/2016/2016053009.png]]
+
+   
+*** Architecture (ICS)
+
+    [[./images/2016/2016053010.png]]
+
+*** Architecture (JB)
+
+    [[./images/2016/2016053011.png]]
+
 ** Wifi Framework
    Android Framework中的wifi代码分为两部分，一部分面向应用开发者，提供
    公共接口给应用开发者，另一部分则是框架的实现灵魂，代码分别位于：
    Android 5.1
-   - =frameworks\base\wifi\java\android\net\wifi=
-   - =frameworks\opt\net\wifi\service=
+   - frameworks\base\wifi\java\android\net\wifi
+   - frameworks\opt\net\wifi\service
 
 *** WifiConfigStore
     

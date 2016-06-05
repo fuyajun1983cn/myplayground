@@ -16,8 +16,9 @@ wireless_send_event
 - =cfg80211_register== 
   这个必须在 =regsiter_netdevice()= 之前调用   
 - =cfg80211_connect_result=
-  通知上层当前的关联状态。
+  通知上层当前的连接状态。
 - =cfg80211_disconnected=
+  通知上层底层连接已经断开
 - =cfg80211_get_chandef_type=
 - =cfg80211_chandef_create=
 - =cfg80211_get_bss=
@@ -59,6 +60,73 @@ wireless_send_event
 - =struct wireless_dev= 
   无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
   指向这个数据结构。
+
+  #+BEGIN_SRC c
+    struct wireless_dev {
+            struct wiphy *wiphy;
+            enum nl80211_iftype iftype;
+
+            /* the remainder of this struct should be private to cfg80211 */
+            struct list_head list;
+            struct net_device *netdev;
+
+            u32 identifier;
+
+            struct list_head mgmt_registrations;
+            spinlock_t mgmt_registrations_lock;
+
+            struct mutex mtx;
+
+            bool use_4addr, p2p_started;
+
+            u8 address[ETH_ALEN] __aligned(sizeof(u16));
+
+            /* currently used for IBSS and SME - might be rearranged later */
+            u8 ssid[IEEE80211_MAX_SSID_LEN];
+            u8 ssid_len, mesh_id_len, mesh_id_up_len;
+            struct cfg80211_conn *conn;
+            struct cfg80211_cached_keys *connect_keys;
+
+            struct list_head event_list;
+            spinlock_t event_lock;
+
+            struct cfg80211_internal_bss *current_bss; /* associated / joined */
+            struct cfg80211_chan_def preset_chandef;
+            struct cfg80211_chan_def chandef;
+
+            bool ibss_fixed;
+            bool ibss_dfs_possible;
+
+            bool ps;
+            int ps_timeout;
+
+            int beacon_interval;
+
+            u32 ap_unexpected_nlportid;
+
+            bool cac_started;
+            unsigned long cac_start_time;
+            unsigned int cac_time_ms;
+
+            u32 owner_nlportid;
+
+    #ifdef CPTCFG_CFG80211_WEXT
+            /* wext data */
+            struct {
+                    struct cfg80211_ibss_params ibss;
+                    struct cfg80211_connect_params connect;
+                    struct cfg80211_cached_keys *keys;
+                    const u8 *ie;
+                    size_t ie_len;
+                    u8 bssid[ETH_ALEN], prev_bssid[ETH_ALEN];
+                    u8 ssid[IEEE80211_MAX_SSID_LEN];
+                    s8 default_key, default_mgmt_key;
+                    bool prev_bssid_valid;
+            } wext;
+    #endif
+    };  
+  #+END_SRC
+
 - =struct cfg80211_registered_device=
   #+BEGIN_SRC c
     struct cfg80211_registered_device {

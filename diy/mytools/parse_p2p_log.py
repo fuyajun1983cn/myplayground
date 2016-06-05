@@ -25,8 +25,36 @@ excluded_strings_regx = [
 ]
 
 ##
+GO_NEG_SUCCESS = re.compile(r'P2P-GO-NEG-SUCCESS')
+EAP_STARTED = re.compile(r'CTRL-EVENT-EAP-STARTED')
+SEND_M1 = re.compile(r'Building Message M1')
+SEND_M2 = re.compile(r'Building Message M2')
+SEND_M3 = re.compile(r'Building Message M3')
+SEND_M4 = re.compile(r'Building Message M4')
+SEND_M5 = re.compile(r'Building Message M5')
+SEND_M6 = re.compile(r'Building Message M6')
+SEND_M7 = re.compile(r'Building Message M7')
+SEND_M8 = re.compile(r'Building Message M8')
+SEND_Done = re.compile(r'Building Message WSC_Done')
+RECV_M1 = re.compile(r'Received M1')
+RECV_M2 = re.compile(r'Received M2')
+RECV_M3 = re.compile(r'Received M3')
+RECV_M4 = re.compile(r'Received M4')
+RECV_M5 = re.compile(r'Received M5')
+RECV_M6 = re.compile(r'Received M6')
+RECV_M7 = re.compile(r'Received M7')
+RECV_M8 = re.compile(r'Received M8')
+RECV_Done = re.compile(r'Received WSC_Done')
 WPS_SUCCESS = re.compile(r'WPS-SUCCESS')
 P2P_GROUP_FORMATION_SUCCESS = re.compile(r'P2P-GROUP-FORMATION-SUCCESS')
+SEND_EAPOL_KEY_1_of_4 = re.compile(r'Sending EAPOL-Key 1/4')
+SEND_EAPOL_KEY_2_of_4 = re.compile(r'Sending EAPOL-Key 2/4')
+SEND_EAPOL_KEY_3_of_4 = re.compile(r'Sending EAPOL-Key 3/4')
+SEND_EAPOL_KEY_4_of_4 = re.compile(r'Sending EAPOL-Key 4/4')
+RECV_EAPOL_KEY_1_of_4 = re.compile(r'RX message 1 of 4-Way Handshake')
+RECV_EAPOL_KEY_2_of_4 = re.compile(r'RX message 2 of 4-Way Handshake')
+RECV_EAPOL_KEY_3_of_4 = re.compile(r'RX message 3 of 4-Way Handshake')
+RECV_EAPOL_KEY_4_of_4 = re.compile(r'RX message 4 of 4-Way Handshake')
 FOURC_WAY_HANDSHAKE_SUCCESS = re.compile(r'Key negotiation completed with')
 GROUP_STARTED=re.compile(r'P2P-GROUP-STARTED')
 
@@ -38,6 +66,86 @@ def is_include_string(str, patterns):
     return False
 
 def parse_info(str):
+    if GO_NEG_SUCCESS.search(str) is not None:
+        print("P2P GO Negotiation Success!\n")
+        return
+
+    if EAP_STARTED.search(str) is not None:
+        print("CTRL-EVENT-EAP-STARTED EAP authentication started\n")
+        return
+
+    if SEND_M1.search(str) is not None:
+        print("Send M1\n")
+        return
+
+    if RECV_M1.search(str) is not None:
+        print("Received M1\n")
+        return
+
+    if SEND_M2.search(str) is not None:
+        print("Send M2\n")
+        return
+
+    if RECV_M2.search(str) is not None:
+        print("Received M2\n")
+        return
+
+    if SEND_M3.search(str) is not None:
+        print("Send M3\n")
+        return
+
+    if RECV_M3.search(str) is not None:
+        print("Received M3\n")
+        return
+
+    if SEND_M4.search(str) is not None:
+        print("Send M4\n")
+        return
+
+    if RECV_M4.search(str) is not None:
+        print("Received M4\n")
+        return
+
+    if SEND_M5.search(str) is not None:
+        print("Send M5\n")
+        return
+
+    if RECV_M5.search(str) is not None:
+        print("Received M5\n")
+        return
+
+    if SEND_M6.search(str) is not None:
+        print("Send M6\n")
+        return
+
+    if RECV_M6.search(str) is not None:
+        print("Received M6\n")
+        return
+
+    if SEND_M7.search(str) is not None:
+        print("Send M7\n")
+        return
+
+    if RECV_M7.search(str) is not None:
+        print("Received M7\n")
+        return
+
+    if SEND_M8.search(str) is not None:
+        print("Send M8\n")
+        return
+
+    if RECV_M8.search(str) is not None:
+        print("Received M8\n")
+        return
+
+    if SEND_Done.search(str) is not None:
+        print("Send WSC_Done\n")
+        return
+
+    if RECV_Done.search(str) is not None:
+        print("Received WSC_Done\n")
+        return
+    
     if GROUP_STARTED.search(str) is not None:
         print("P2P Group Stared!\n")
         return
