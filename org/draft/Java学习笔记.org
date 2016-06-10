@@ -7,6 +7,64 @@
 
 * 基础语法
 
-* 模块
+* 标准库
+
+** 数据结构
+   
+*** List
+
+*** HashMap
+    #+BEGIN_SRC java
+      public HashMap<String, ScanResult> scanResultCache;
+
+      scanResultCache = new HashMap<Sting, ScanREsult>();
+
+      for (ScanResult result : scanResultCache.values()) {
+          ...
+      }
+
+      //通过迭代器遍历
+      Iterator<HashMap.Entry<String,ScanResult>> iter = scanResultCache.entrySet().iterator();
+      while (iter.hasNext()) {
+          HashMap.Entry<String,ScanResult> entry = iter.next();
+          ScanResult result = entry.getValue();
+
+          if ((result.seen + delay) < milli) {
+              iter.remove();
+          }
+      }
+    #+END_SRC
+
+*** BitSet
+    #+BEGIN_SRC java
+      BitSet bs = new BitSet();
+
+      if (bs.cardinality() > 1) {
+          ...
+      }
+
+      if (bs.get(...) == true) {
+          ...
+      }
+
+
+    #+END_SRC
 
 ** Swing
+
+* 实用技巧
+
+** 打印函数调用栈
+   #+BEGIN_SRC java
+     void logDbg(String message, boolean stackTrace) {
+         if (stackTrace) {
+             Log.e(TAG, message + " stack:"
+                   + Thread.currentThread().getStackTrace()[2].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[3].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[4].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[5].getMethodName());
+         } else {
+             Log.e(TAG, message);
+         }
+     }   
+   #+END_SRC

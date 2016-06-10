@@ -1,0 +1,369 @@
+#+STARTUP: overview
+#+TITLE: PlantUML语法速查
+#+STARTUP: hidestars
+#+OPTIONS:    H:3  toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* Sequence Diagram
+
+* Use Case Diagram
+
+* Class Diagram
+
+* Activity Diagram
+
+* Activity Diagram (beta)
+  活动图的新语法
+
+** Simple Activity
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061002.png :cmdline -charset UTF-8
+     @startuml
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016061002.png]]
+
+** Start/Stop
+   定义活动图的开始和结束位置
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061003.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     stop
+     @enduml   
+   #+END_SRC
+
+   也可以使用end关键字
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061004.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     end
+     @enduml   
+   #+END_SRC
+
+** Conditional
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061005.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (Graphviz installed?) then (yes)
+     :process all\ndiagrams;
+     else (no)
+     :process only
+     __sequence__ and __activity__ diagrams;
+     endif
+     stop
+     @enduml           
+   #+END_SRC
+
+   elseif
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061006.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (condition A) then (yes)
+     :Text 1;
+     elseif (condition B) then (yes)
+     :Text 2;
+     stop
+     elseif (condition C) then (yes)
+     :Text 3;
+     elseif (condition D) then (yes)
+     :Text 4;
+     else (nothing)
+     :Text else;
+     endif
+     stop
+     @enduml
+   #+END_SRC
+
+** Repeat loop
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061007.png :cmdline -charset UTF-8
+     @startuml
+     start
+     repeat
+     :read data;
+     :generate diagrams;
+     repeat while (more data?)
+     stop
+     @enduml   
+   #+END_SRC
+
+** While loop
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061008.png :cmdline -charset UTF-8
+     @startuml
+     start
+     while (data available?)
+     :read data;
+     :generate diagrams;
+     endwhile
+     stop
+     @enduml
+   #+END_SRC
+
+   使用lable和is关键字
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061009.png :cmdline -charset UTF-8
+     @startuml
+     while (check filesize ?) is (not empty)
+     :read file;
+     endwhile (empty)
+     :close file;
+     @enduml   
+   #+END_SRC
+
+** Parallel processing
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061010.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (multiprocessor?) then (yes)
+     fork
+     :Treatment 1;
+     fork again
+     :Treatment 2;
+     end fork
+     else (monoproc)
+     :Treatment 1;
+     :Treatment 2;
+     endif
+     @enduml   
+   #+END_SRC
+
+** Notes
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061011.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :foo1;
+     note left: This is a note
+     :foo2;
+     note right
+     This note is on several
+     //lines// and can
+     contain <b>HTML </b>
+     ====
+     ,* Calling the method ""foo()"" is prohibited
+     end note
+     stop
+     @enduml   
+   #+END_SRC
+
+** Title Legend
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061012.png :cmdline -charset UTF-8
+     @startuml
+     title this is my title
+     if (condition?) then (yes)
+     :yes;
+     else (no)
+     :no;
+     note right
+     this is a note
+     end note
+     endif
+     stop
+     legend
+     this is the legend
+     endlegend
+     footer dummy footer
+     header
+     this is
+     a long __dummy__ header
+     end header
+     @enduml
+   #+END_SRC
+
+** Colors
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061013.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :starting progress;
+     #HotPink:reading configuration files
+     These files should edited at this point!;
+     #AAAAAA:ending of the process;
+     @enduml   
+   #+END_SRC
+
+** Arrow
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061014.png :cmdline -charset UTF-8
+     @startuml
+     :foo1;
+     -> You can put text on arrows;
+     if (test) then
+     -[#blue]->
+     :foo2;
+     -[#green]-> The text can
+     also be on several lines
+     and **very** long...;
+     :foo3;
+     else
+     -[#black]->
+     :foo4;
+     endif
+     -[#gray]->
+     :foo5;
+     @enduml
+   #+END_SRC
+
+** Grouping
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061015.png :cmdline -charset UTF-8
+     @startuml
+     start
+     partition Initialization {
+     :read config file;
+     :init internal variable;
+     }
+     partition Running {
+     :wait for user interaction;
+     :print information;
+     }
+     stop
+     @enduml   
+   #+END_SRC
+
+** Swimlanes
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061016.png :cmdline -charset UTF-8
+     @startuml
+     |Swimlane1|
+     start
+     :foo1;
+     |#AntiqueWhite|Swimlane2|
+     :foo2;
+     :foo3;
+     |Swimlane1|
+     :foo4;
+     |Swimlane2|
+     :foo5;
+     stop
+     @enduml   
+   #+END_SRC
+
+** Detach
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061017.png :cmdline -charset UTF-8
+     @startuml
+     :start;
+     fork
+     :foo1;
+     :foo2;
+     fork again
+     :foo3;
+     detach
+     endfork
+     if (foo4) then
+     :foo5;
+     detach
+     endif
+     :foo6;
+     detach
+     :foo7;
+     stop
+     @enduml   
+   #+END_SRC
+** SDL 通过改变最后的;分隔符，可以设置不同的Activity渲染图形
+   - |
+   - <
+   - >
+   - /
+   - ]
+   - }
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061018.png :cmdline -charset UTF-8
+     @startuml
+     :Ready;
+     :next(o)|
+     :Receiving;
+     split
+     :nak(i)<
+     :ack(o)>
+     split again
+     :ack(i)<
+     :next(o)
+     on several line|
+     :i := i + 1]
+     :ack(o)>
+     split again
+     :err(i)<
+     :nak(o)>
+     split again
+     :foo/
+     split again
+     :i > 5}
+     stop
+     end split
+     :finish;
+     @enduml   
+   #+END_SRC
+
+** Complete example
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061019.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :ClickServlet.handleRequest ();
+     :new page;
+     if (Page.onSecurityCheck) then (true)
+     :Page.onInit();
+     if (isForward?) then (no)
+     :Process controls;
+     if (continue processing?) then (no)
+     stop
+     endif
+     if (isPost?) then (yes)
+     :Page.onPost();
+     else (no)
+     :Page.onGet();
+     endif
+     :Page.onRender ();
+     endif
+     else (false)
+     endif
+     if (do redirect?) then (yes)
+     :redirect process;
+     else
+     if (do forward?) then (yes)
+     :Forward request;
+     else (no)
+     :Render page template;
+     endif
+     endif
+     stop
+     @enduml   
+   #+END_SRC
+* Component Diagram
+
+
+* State Diagram
+
+* Object Diagram
+
+* Common commands
+
+* Salt
+
+* Creole
+
+* Changing fonts and colors
+
+* Preprocessing
+
+* Internationalization
+
+* Color Names

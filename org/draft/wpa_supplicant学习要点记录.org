@@ -1563,6 +1563,51 @@
       | Command                        | Description        |
       |--------------------------------+--------------------|
       | =P2p_listen= [timeout (seconds)] | Enable listen mode |
+
+
+      =p2p_listen= 流程分析：
+      应用程序进入Miracast后，一般会调用 =p2p_listen= 命令，监听附近的
+      WFD Source设备， 大致流程如下：
+      #+BEGIN_SRC plantuml :file ./images/2016/2016061001.png :cmdline -charset UTF-8
+        title =p2p_listen= 流程
+        @startuml
+        start
+        :上层应用下达P2P_LISTEN命令;
+        :p2p_ctrl_listen;
+        #Blue:wpas_p2p_listen;
+        note right
+        如果默认情况下，没有传递超时时间，或超时时间为0，
+        则默认执行p2p_listen的时间为一个小时
+        end note
+        :wpa_s->p2p_long_listen;
+        note right
+        设置初始值为0， 这个值会决定在当前一轮
+        remain on channel结束后，是否进入下一轮remain on channel.
+        end note
+        :p2p_stop_find;
+        :wpas_p2p_listen_start;
+        note right
+        将p2p listen命令通过netlink传递给驱动，
+        并将p2p state设置为LISTEN ONLY。
+        end note
+        :设置p2p_long_listen的值;
+        note right
+        如果当前设置的超时时间大于Driver一次在某个
+        Channel上的最大remain on channel的时间，
+        则设置p2p_long_listen，表示将要执行至少一
+        次以上的p2p listen操作。 Driver在收到
+        p2p listen请求后，会发生REMAIN_ON_CHANNEL
+        通知上层已经进入某个Channel监听，当监听结束时，
+        会发送一个CANCEL_REAMIN_ON_CHANNEL(EVENT_CANCEL_REMAIN_ON_CHANNEL)
+        事件，将调用wpas_p2p_cancel_remain_on_channel_cb.
+        end note
+        stop
+        @enduml      
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:./images/2016/2016061001.png]]
+
     - =p2p_group_remove=
       | Command                      | Description                                                                      |
       |------------------------------+----------------------------------------------------------------------------------|
@@ -1849,3 +1894,4 @@
    #+END_SRC
 * 参考资料
   [1] https://w1.fi/wpa_supplicant/devel/index.html
+  [2] http://lists.shmoo.com/pipermail/hostap/
