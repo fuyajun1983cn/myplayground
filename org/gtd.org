@@ -79,9 +79,12 @@
 
 *** CTS/RTS设置
 
-*** Rate Control
+*** Sniffer Mode
+    - Next Action: Introduction of Monitor Mode
+
+*** WDS
     - Next Action:
-      WIFI Driver Study - Rate Control (20141021)
+      WIFI_WDS_study
 
 ** LDD3学习 [0/6]
 *** ☛ TODO Chapter 06 Advanced Char Driver Operations
@@ -139,10 +142,10 @@
                  (org-todo "STARTED")))))     
      #+END_SRC
 **** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
-** ArchLinux学习 [0/2]
+** ArchLinux学习 [1/1]
 *** 了解systemd工作原理
-*** fbterm导致死机的原因
 ** 个人杂事
+** TCP/IP体系结构研究
 ** 技术修炼
 *** 读书计划 [1/3]
 **** ☛ TODO Learn More Study Less
@@ -153,6 +156,10 @@
 **** Break-Throuhgh Rapid Reading
 **** The Art of Learning
 **** 提早六小时下班的高效工作术
+*** 技术课程
+**** Digital Communication Systems
+     http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/index.htm
+
 ** 编程语言捂热计划
 *** 网络编程
 *** C++
@@ -176,6 +183,7 @@
      http://www.i-programmer.info/programming/javascript/1674-javascript-data-structures-stacks-queues-and-deques.html
 *** Python
 **** 学习Python基本的网络编程方法
+**** https://automatetheboringstuff.com/
 *** 设计模式
 *** zsh
 ** 个人开发需求
@@ -193,19 +201,10 @@
    1. simple screen recoder
    2. Dia
    3. Childsplay
-** ☛ TODO Linux kernel小程序快速参考
-   - NEXT: 准备第一版
-   - 收集其他的小程序
-   - 整理内核编程笔记
-   SCHEDULED: <2016-04-30 六>
 ** 802.11常见帧格式深入研究
 *** Beacon帧
     CHANNEL_SWITCH_ANNOUNCEMENT
     
-** ☛ TODO [#B] TCP/IP协议分析 [2/2]
-   - [X] TCP协议分析
-   - [X] ICMP 
-
 ** ☛ TODO WireShark学习目标
 *** 熟悉软件的基本使用 (1~13章) [4/7]
     - [X] 熟悉软件基本功能的定制
@@ -301,45 +300,71 @@
     - 0523
       go intent = 15
       force frequency
-
       30.5
     - 对比（公版平台对比）
       选择一个干净的信道测试
       重传次数太多会导致速率降低
       False CCA
       RTS/CTS Threshold
+    - 对比测试实现 
+      1. 平台不连接AP的情况下
 
-*** 联系人电话
-    18575639260
+         1) 手机不连接AP的情况
+            17.4 Mbps
+
+            15.8 Mbps
+
+         2) 手机连接AP的情况(Xiaomi_2.4G 2437)
+            31 Mbps
+            20.9 Mbps
+
+         3) 手机连接AP的情况(Cisco_sa1, 2442)
+            35.4 Mbps
+            34.9 Mbps
+
+         4) 手机清掉已经保存的AP (5785)
+            14.4Mbs
+
+*** 网络拔掉后，Wifi回连时间较长
+    0608
+
+*** 项目信息
+**** 联系人电话
+     18575639260
+
+**** 软件版本信息
+     升级前的版本： 5.50.88058-606151-2016/05/26 16:03:59
+
+**** KO路径
+     ./system/rtk_rootfs/lib/modules/kernel/wifi/mt7662u_sta.ko
+
+*** RD
+    Neil Wu (吳宗軒)
 
 ** 案例
 *** p2p go dhcp failed after wlan0 linkdown
     WCNCR00082921
 *** gpiolib
 *** kallsyms_lookup_name() //查找对应symbol然后调用
-* Daily GTD [1/3]
+* Daily GTD [0/2]
 ** ☛ TODO [#C] IW源码学习
-** ☛ TODO [#C] 阅读Emacs Plugin程序设计 [9/10]
-   DEADLINE: <2016-06-30 周四>
-   - [X] 第一章
-   - [X] 第二章 简单的新命令
-   - [X] 第三章 协作命令
-   - [X] 第四章 搜索和修改Buffer
-   - [X] 第五章 文件
-   - [X] 第六章 列表
-   - [X] 第七章 Minor Mode
-   - [X] 第八章 Evaluation and Error Recovery
-   - [X] 第九章 Major Mode
-   - [ ] 第十章 完整实例
 ** 整理Android笔记
 *** WiFi Framework
-** 分析一下CFG80211DRV_P2pClientConnect流程
-** Sniffer Mode
-   - Next Action: Introduction of Monitor Mode
-
-** WDS
+** 整理以前的学习笔记 [0/8]
+   - [ ] Android研究文章整理
+   - [ ] Android学习笔记
+   - [ ] Android研究记录
+   - [ ] CMake笔记
+   - [ ] C++学习笔记
+   - [ ] Java编程笔记
+   - [ ] Unix下C编程学习笔记
+   - [ ] 内核编程笔记
+** Rate Control
    - Next Action:
-     WIFI_WDS_study
+     WIFI Driver Study - Rate Control (20141021)
+   - http://blog.csdn.net/junglefly/article/details/48974077
+** ☛ TODO 预约体检
+** 网卡订购电灯等
 
 * 已完成 
 
@@ -1048,19 +1073,76 @@ Added: [2015-12-14 周一 16:30]
      - Next Action:
        MT76x2_Data_Path
 
-*** 6月[1/1]
+*** 6月[6/6]
 **** ✔ DONE TX & RX Ring                                              :Wifi Driver持续学习:
      CLOSED: [2016-06-01 周三 14:00]
      - Next Action:
        PCIE_Handle_MT7603E
        TX.pptx
        Wifi_driver_TxFlow_Introduction_Xiaohua.pptx
-**** p2p连接过程中，如何决定BW的？
+**** ✔ DONE p2p连接过程中，如何决定BW的？
+     CLOSED: [2016-06-10 周五 22:50]
      在关联的时候会确定是否使用HT40还是HT20或者是非HT Bandwidth。 在传输
      过程中，可以会动态调整。
-**** 中午取款（付房租)                                                  :个人事务:
+**** ✔ DONE 中午取款（付房租)                                           :个人事务:
+     CLOSED: [2016-06-10 周五 22:50]
 **** ✔ DONE 还款提醒(星期四)                                            :个人私事:
      CLOSED: [2016-06-02 周四 18:55]
+**** ✔ DONE 通过系统调用或命令行卸载驱动失败                        :Hissense:
+     CLOSED: [2016-06-08 周三 07:50]
+     Wifi驱动在卸载前必须先禁用WiFi的使用
+**** ✔ DONE [#C] 阅读Emacs Plugin程序设计 [10/10]
+     CLOSED: [2016-06-10 周五 22:50] DEADLINE: <2016-06-30 周四>
+     - [X] 第一章
+     - [X] 第二章 简单的新命令
+     - [X] 第三章 协作命令
+     - [X] 第四章 搜索和修改Buffer
+     - [X] 第五章 文件
+     - [X] 第六章 列表
+     - [X] 第七章 Minor Mode
+     - [X] 第八章 Evaluation and Error Recovery
+     - [X] 第九章 Major Mode
+     - [X] 第十章 完整实例
+**** ✘ CANCELED fbterm导致死机的原因                               :ArchLinux:
+     CLOSED: [2016-06-13 周一 17:45]
+**** ☛ TODO [#B] TCP/IP协议分析 [2/2]
+     - [X] TCP协议分析
+     - [X] ICMP 
+
+**** ✔ DONE WiFi回连的过程中，UP了2次，多花费了1s                    :Hisense:
+     CLOSED: [2016-06-14 周二 14:10]
+     待加Log调试。
+     Android架构差异导致
+**** ✔ DONE SoftAP能开户，但是关联失败。                             :Hisense:
+     CLOSED: [2016-06-14 周二 14:10]
+     需要替换DHCP Server进行对比测试。
+     目前看起来是因为DHCP服务没有启动，目前先请m*协助Hisense去看。
+**** uap0是啥接口                                                    :Hisense:
+     softap, 默认会初始化，相对独立的一个接口
+**** ✔ DONE Linux kernel小程序快速参考
+      CLOSED: [2016-06-20 周一 10:35]
+     - NEXT: 准备第一版
+     - 收集其他的小程序
+     - 整理内核编程笔记
+     SCHEDULED: <2016-04-30 六>
+**** ✔ DONE 分析一下CFG80211DRV_P2pClientConnect流程    :Study:wpa_supplicant:
+      CLOSED: [2016-06-27 周一 09:15]
+**** ✔ DONE 连接隐藏SSID的AP时，有时会连接失败               :Hisense:Project:
+     CLOSED: [2016-06-27 周一 09:20]
+     查看上层调用enableNetwork时的参数, 看disableOthers是否为true. 
+     调试修改：
+     1) 打开Debug级别
+     2) mScanResultAutoJoinAge 设置为0，则相当于关闭掉AutoJoin机制。
+     3) 通过命令行连接WiFi
+    
+     目前请m*提供分析意见。
+
+     driver每次连接多个SSID时，只连接最前面的那个。
+
+     max ssid > 1
+**** ✔ DONE 深入研究wpa_supplicant中SCAN的处理                :wpa_supplicant:
+      CLOSED: [2016-06-29 周三 14:40]
+     重点看下每一轮Scan的开始与结束为何
 *** 7月[/]
 *** 8月[/]
 *** 9月[/]

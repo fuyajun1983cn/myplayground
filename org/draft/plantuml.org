@@ -8,6 +8,614 @@
 
 * Sequence Diagram
 
+** Basic examples
+   
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062901.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     Alice -> Bob: Another authentication Request
+     Alice <-- Bob: another authentication Response
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062901.png]]
+
+** Comments
+   注释用单引号或多行注释 /' ... '/
+
+** Declaring participant
+   可以使用 *participant* 关键字来改变参与者的顺序
+   也可以使用其他的关键字声明一个参与者：
+   - actor
+   - boundary
+   - control
+   - entity
+   - database
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062902.png :cmdline -charset UTF-8
+     @startuml
+     actor Foo1
+     boundary Foo2
+     control Foo3
+     entity Foo4
+     database Foo5
+     Foo1 -> Foo2 : To boundary
+     Foo1 -> Foo3 : To control
+     Foo1 -> Foo4 : To entity
+     Foo1 -> Foo5 : To database
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062902.png]]
+
+   可以使用 *as* 关键字来重命名一个参与者
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062903.png :cmdline -charset UTF-8
+     @startuml
+     actor Bob #red
+     ' The only difference between actor
+     'and participant is the drawing
+     participant Alice
+     participant "I have a really\nlong name" as L #99FF99
+     /' You can also declare:
+     participant L as "I have a really\nlong name" #99FF99
+     '/
+     Alice ->Bob: Authentication Request
+     Bob ->Alice: Authentication Response
+     Bob ->L: Log transaction
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062903.png]]
+
+** Use non-letters in participants
+   可以直接使用引号来定义参与者，并使用 *as* 关键字来起个别名。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062904.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> "Bob()" : Hello
+     "Bob()" -> "This is very\nlong" as Long
+     ' You can also declare:
+     ' "Bob()" -> Long as "This is very\nlong"
+     Long --> "Bob()" : ok
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062904.png]]
+
+** Message to Self
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062905.png :cmdline -charset UTF-8
+     @startuml
+     Alice ->Alice: This is a signal to self.\nIt also demonstrates\nmultiline \ntext
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062905.png]]
+
+** Change arrow style
+   可以改变箭头的形状：
+   1. add a final x to denote a lost message
+   2. use \ or / instead of < or > to have only the bottom or top part of the arrow
+   3. repeat the arrow head (for example, >> or //) head to have a thin drawing
+   4. use -- instead of - to have a dotted arrow
+   5. add a final ”o” at arrow head
+   6. use bidirectional arrow
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062906.png :cmdline -charset UTF-8
+     @startuml
+     Bob ->x Alice
+     Bob -> Alice
+     Bob ->> Alice
+     Bob -\ Alice
+     Bob \\- Alice
+     Bob //-- Alice
+     Bob ->o Alice
+     Bob o\\-- Alice
+     Bob <-> Alice
+     Bob <->o Alice
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062906.png]]
+
+** Change arrow color
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062907.png :cmdline -charset UTF-8
+     @startuml
+     Bob -[#red]> Alice : hello
+     Alice -[#0000FF]->Bob : ok
+     @enduml   
+   #+END_SRC
+
+** Message sequence numbering
+   使用关键字 *autonumber* 来自动给消息添加数字序号
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062908.png :cmdline -charset UTF-8
+     @startuml
+     autonumber
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     @enduml   
+   #+END_SRC
+
+   可以使用 :autonumber 'start' 'increment'  指定一个起始数字和增量。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062909.png :cmdline -charset UTF-8
+     @startuml
+     autonumber
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber 15
+     Bob -> Alice : Another authentication Request
+     Bob <- Alice : Another authentication Response
+     autonumber 40 10
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+   双引号之间也可以指定数字显示的格式， 可以参考Java类 *DecimalFormat*
+   中对格式的要求。 (’0’ means digit, ’#’ means digit and zero if
+   absent)
+   在格式中，可以使用html标签。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062910.png :cmdline -charset UTF-8
+     @startuml
+     autonumber "<b>[000]"
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber 15 "<b>(<u>##</u>)"
+     Bob -> Alice : Another authentication Request
+     Bob <- Alice : Another authentication Response
+     autonumber 40 10 "<font color=red ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+   也可以使用 autonumber stop 'increment' 'format' 以及 autonumber
+   resume 'increment' 'format'来暂停和恢复数字编号。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062911.png :cmdline -charset UTF-8
+     @startuml
+     autonumber 10 10 "<b>[000]"
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber stop
+     Bob -> Alice : dummy
+     autonumber resume "<font color=red ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     autonumber stop
+     Bob -> Alice : dummy
+     autonumber resume 1 "<font color=blue ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+** Title
+   为序列图定义一个标题
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062912.png :cmdline -charset UTF-8
+     @startuml
+     title Simple communication example
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Legend(图例) the diagram
+   The legend and end legend are keywords is used to put a legend. You
+   can optionally specify to have left, right or center alignment for
+   the legend.
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062913.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob : Hello
+     legend right
+     Short
+     legend
+     endlegend
+     @enduml   
+   #+END_SRC
+
+** Splitting diagrams
+   *newpage* 关键字用于将一个图分解成多个图， 在 *newpage* 之后可以添
+   加一个标题。 
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070102.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob : message 1
+     Alice -> Bob : message 2
+     newpage
+     Alice -> Bob : message 3
+     Alice -> Bob : message 4
+     newpage A title for the\nlast page
+     Alice -> Bob : message 5
+     Alice -> Bob : message 6
+     @enduml   
+   #+END_SRC
+
+** Grouping message
+   可以使用如下一些关键字组合消息：
+   - alt/else
+   - opt
+   - loop
+   - par
+   - break
+   - critical
+   - group 后面跟着要显示的文字 
+     end 关键字关闭一个group，group是可以嵌套的。
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070103.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     alt successful case
+     Bob -> Alice: Authentication Accepted
+     else some kind of failure
+     Bob -> Alice: Authentication Failure
+     group My own label
+     Alice -> Log : Log attack start
+     loop 1000 times
+     Alice -> Bob: DNS Attack
+     end
+     Alice -> Log : Log attack end
+     end
+     else Another type of failure
+     Bob -> Alice: Please repeat
+     end
+     @enduml   
+   #+END_SRC
+
+** Notes on messages
+   消息也可以添加注解，可以是显示在左边，可以显示在右边，也可以多行显
+   示。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070104.png :cmdline -charset UTF-8
+     @startuml
+     Alice ->Bob : hello
+     note left: this is a first note
+     Bob ->Alice : ok
+     note right: this is another note
+     Bob ->Bob : I am thinking
+     note left
+     a note
+     can also be defined
+     on several lines
+     end note
+     @enduml           
+   #+END_SRC
+
+** Some other notes
+   注解也可以以某个注解的位置为参考进行显示，也可以修改背景色。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070105.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     participant Bob
+     note left of Alice #aqua
+     This is displayed
+     left of Alice.
+     end note
+     note right of Alice: This is displayed right of Alice.
+     note over Alice: This is displayed over Alice.
+     note over Alice , Bob #FFAAAA: This is displayed\n over Bob and Alice.
+     note over Bob , Alice
+     This is yet another
+     example of
+     a long note.
+     end note
+     @enduml   
+   #+END_SRC
+
+** Changing notes shape
+   可以使用 *hnote* 和 *rnote* 关键字改变注解的形状。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070106.png :cmdline -charset UTF-8
+     @startuml
+     caller -> server : conReq
+     hnote over caller : idle
+     caller <- server : conConf
+     rnote over server
+     "r" as rectangle
+     "h" as hexagon
+     endrnote
+     @enduml   
+   #+END_SRC
+
+** Creole and HTML
+   可以使用creale格式定义注解
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070107.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     participant "The **Famous** Bob" as Bob
+     Alice -> Bob : hello --there --
+     ... Some ~~long delay~~ ...
+     Bob -> Alice : ok
+     note left
+     This is **bold**
+     This is //italics//
+     This is ""monospaced""
+     This is --stroked --
+     This is __underlined__
+     This is ~~waved~~
+     end note
+     Alice -> Bob : A //well formatted// message
+     note right of Alice
+     This is <back:cadetblue ><size:18>displayed </size ></back >
+     __left of__ Alice.
+     end note
+     note left of Bob
+     <u:red >This </u> is <color #118888> displayed </color >
+     ,**<color purple >left of </color > <s:red >Alice </strike > Bob**.
+     end note
+     note over Alice , Bob
+     <w:#FF33FF >This is hosted </w> by <img sourceforge.jpg >
+     end note
+     @enduml   
+   #+END_SRC
+
+** Divider
+   使用 == 将图拆分为一些逻辑步骤。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070108.png :cmdline -charset UTF-8
+     @startuml
+     == Initialization ==
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     == Repetition ==
+     Alice -> Bob: Another authentication Request
+     Alice <-- Bob: another authentication Response
+     @enduml   
+   #+END_SRC
+
+** Reference
+   可以使用 *ref over* 在图中使用引用。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070109.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     actor Bob
+     ref over Alice , Bob : init
+     Alice -> Bob : hello
+     ref over Bob
+     This can be on
+     several lines
+     end ref
+     @enduml   
+   #+END_SRC
+
+** Delay
+   可以使用 *...* 表示一个延迟。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070110.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     ...
+     Bob --> Alice: Authentication Response
+     ...5 minutes latter...
+     Bob --> Alice: Bye !
+     @enduml   
+   #+END_SRC
+
+** Space
+   使用 *|||* 来表示图中的一些空格。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070111.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: message 1
+     Bob --> Alice: ok
+     |||
+     Alice -> Bob: message 2
+     Bob --> Alice: ok
+     ||45||
+     Alice -> Bob: message 3
+     Bob --> Alice: ok
+     @enduml   
+   #+END_SRC
+
+** Lifeline Activation and Destruction
+   生命周期图, *active* 和 *deactive* 表示参与者的生命周期， *destroy*
+   表示一个参考者生命周期的结束。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070112.png :cmdline -charset UTF-8
+     @startuml
+     participant User
+     User -> A: DoWork
+     activate A
+     A -> B: << createRequest >>
+     activate B
+     B -> C: DoWork
+     activate C
+     C --> B: WorkDone
+     destroy C
+     B --> A: RequestCreated
+     deactivate B
+     A -> User: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+   生命周期图也可以嵌套。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070113.png :cmdline -charset UTF-8
+     @startuml
+     participant User
+     User -> A: DoWork
+     activate A #FFBBBB
+     A -> A: Internal call
+     activate A #DarkSalmon
+     A -> B: << createRequest >>
+     activate B
+     B --> A: RequestCreated
+     deactivate B
+     deactivate A
+     A -> User: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+** Participant creation
+   *create* 关键字表示在接收到某个消息后，会创建一个新对象。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070114.png :cmdline -charset UTF-8
+     @startuml
+     Bob -> Alice : hello
+     create Other
+     Alice -> Other : new
+     create control String
+     Alice -> String
+     note right : You can also put notes!
+     Alice --> Bob : ok
+     @enduml
+   #+END_SRC
+
+** Incoming and outgoing messages
+   当只表强调图的某个部分时，可以使用 "["和"]"分别表示图的左边和右边。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070115.png :cmdline -charset UTF-8
+     @startuml
+     [-> A: DoWork
+     activate A
+     A -> A: Internal call
+     activate A
+     A ->] : << createRequest >>
+     A<--] : RequestCreated
+     deactivate A
+     [<- A: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+   还可以使用如下语法：
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070116.png :cmdline -charset UTF-8
+     @startuml
+     [-> Bob
+     [o-> Bob
+     [o->o Bob
+     [x-> Bob
+     [<- Bob
+     [x<- Bob
+     Bob ->]
+     Bob ->o]
+     Bob o->o]
+     Bob ->x]
+     Bob <-]
+     Bob x<-]
+     @enduml
+   #+END_SRC
+
+** Stereotypes and Spots
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070117.png :cmdline -charset UTF-8
+     @startuml
+     participant "Famous Bob" as Bob << Generated >>
+     participant Alice << (C,#ADD1B2) Testable >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+    
+   使用 skinparam guillemet 改变原型显示的字体。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070118.png :cmdline -charset UTF-8
+     @startuml
+     skinparam guillemet false
+     participant "Famous Bob" as Bob << Generated >>
+     participant Alice << (C,#ADD1B2) Testable >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+
+   使用(X,color)add a spotted character in a colored circle
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070119.png :cmdline -charset UTF-8
+     @startuml
+     participant Bob << (C,#ADD1B2) >>
+     participant Alice << (C,#ADD1B2) >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+
+** More information on titles
+   标题格式化
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070120.png :cmdline -charset UTF-8
+     @startuml
+     title __Simple__ **communication** example
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+   标题中也可以包含换行符
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070121.png :cmdline -charset UTF-8
+     @startuml
+     title __Simple__ communication example\non several lines
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+   
+   也可以使用  *title* *end title* 关键字定义跨跃多行的标题。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070122.png :cmdline -charset UTF-8
+     @startuml
+     title
+     <u>Simple </u> communication example
+     on <i>several </i> lines and using <font color=red >html </font >
+     This is hosted by <img:sourceforge.jpg >
+     end title
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Participants encompass
+   可以使用框框把参考者框起来
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070123.png :cmdline -charset UTF-8
+     @startuml
+     box "Internal Service" #LightBlue
+     participant Bob
+     participant Alice
+     end box
+     participant Other
+     Bob -> Alice : hello
+     Alice -> Other : hello
+     @enduml   
+   #+END_SRC
+
+** Removing Footer
+   可以使用 *hide footbox* 来删除图的footer。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070124.png :cmdline -charset UTF-8
+     @startuml
+     hide footbox
+     title Footer removed
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Skinparam
+   可以使用 *skinparm* 来改变绘制时，使用的字体和颜色。
+   #+BEGIN_SRC plantuml ;exports both :file ./images/2016/2016070125.png :cmdline -charset UTF-8
+     @startuml
+     skinparam backgroundColor #EEEBDC
+     skinparam sequence {
+     ArrowColor DeepSkyBlue
+     ActorBorderColor DeepSkyBlue
+     LifeLineBorderColor blue
+     LifeLineBackgroundColor #A9DCDF
+     ParticipantBorderColor DeepSkyBlue
+     ParticipantBackgroundColor DodgerBlue
+     ParticipantFontName Impact
+     ParticipantFontSize 17
+     ParticipantFontColor #A9DCDF
+     ActorBackgroundColor aqua
+     ActorFontColor DeepSkyBlue
+     ActorFontSize 17
+     ActorFontName Aapex
+     }
+     actor User
+     participant "First Class" as A
+     participant "Second Class" as B
+     participant "Last Class" as C
+     User -> A: DoWork
+     activate A
+     A -> B: Create Request
+     activate B
+     B -> C: DoWork
+     activate C
+     C --> B: WorkDone
+     destroy C
+     B --> A: Request Created
+     deactivate B
+     A --> User: Done
+     deactivate A
+     @enduml
+   #+END_SRC
 * Use Case Diagram
 
 * Class Diagram

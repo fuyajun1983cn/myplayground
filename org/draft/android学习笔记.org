@@ -159,7 +159,7 @@
 ** Media Framework
 
 *** 基础知识
-    AMessage代表一个消息，对对应一个target， 根据这个target可以知道对
+    AMessage代表一个消息，对应一个target， 根据这个target可以知道对
     应的消息应该归哪个AHandler去处理。
 
     AHandler是处理消息的基类，它有一个id，处理与这个id相关联的AMessage，
@@ -424,16 +424,76 @@
     [[./images/2016/2016053011.png]]
 
 ** Wifi Framework
-   Android Framework中的wifi代码分为两部分，一部分面向应用开发者，提供
-   公共接口给应用开发者，另一部分则是框架的实现灵魂，代码分别位于：
-   Android 5.1
-   - frameworks\base\wifi\java\android\net\wifi
-   - frameworks\opt\net\wifi\service
 
-*** WifiConfigStore
-    
-    
+*** 传统WiFi
+    Android Framework中的wifi代码分为两部分，一部分面向应用开发者，提供
+    公共接口给应用开发者，另一部分则是框架的实现灵魂，代码分别位于：
+    Android 5.1
+    - frameworks\base\wifi\java\android\net\wifi
+    - frameworks\opt\net\wifi\service
 
+**** WifiConfigStore
+
+*** P2P/Miracast
+    
+**** 开启WifiSink的调用序列
+     DisplayManager.requestEnableSink
+     DisplayManager.enableSink
+     DisplayManagerGlobal.enableSink
+     DisplayManagerService.enableSink
+     DisplayManagerService.enableSinkInternal
+     WifiDisplayAdapter.requestEnableSinkLocked
+     WifiDisplayController.requestEnableSink
+
+
+     WifiDisplaySinkActivity
+     WfdSinkSurfaceFragment
+     WfdSinkExt.setupWfdSinkConnection
+     WfdSinkExt.setWfdMode(true)
+     WifiDisplayAdapter.requestEnableSinkLocked
+     ...
+     WifiDisplayController.startWaitConnection
+     WifiDisplayController.enterSinkState
+
+
+** Global Settings
+   设置和访问一个全局变量。
+   
+*** Settings.java
+    #+BEGIN_SRC java
+      //frameworks/base/core/java/android/provider/Settings.java
+      public final class Settings {
+          public static final String WIFI_AUTO_CONNECT = "wifi_auto_connect";
+          ...
+          MOVED_TO_GLOBAL.add(Settings.Global.WIFI_AUTO_CONNECT);
+      }
+    #+END_SRC
+
+*** defaults.xml
+    #+BEGIN_SRC xml
+      <!-- /packages/SettingsProvider/res/values/defaults.xml -->
+      <integer name="def_wifi_auto_connect">0</integer>
+    #+END_SRC
+
+*** DatabaseHelper.java
+    #+BEGIN_SRC java
+      public class DatabaseHelper extends SQLiteOpenHelper {
+          ...
+          loadIntegerSetting(stmt, Settings.Global.WIFI_AUTO_CONNECT,
+                             R.integer.def_wifi_auto_connect);
+
+          ...
+      }
+    #+END_SRC
+
+*** 访问
+    #+BEGIN_SRC java
+      //读取
+      Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.WIFI_AUTO_CONNECT);
+      //写入
+      Settings.Global.putInt(getContentResolver(), Settings.Global.WIFI_AUTO_CONNECT, 0);
+                             
+    #+END_SRC
 
 
 

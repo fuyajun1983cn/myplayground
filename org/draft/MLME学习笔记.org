@@ -131,7 +131,6 @@ IE_EXT_CAPABILITY
    STAHandleRxDataFrame (mt76x2 sta)
    rx_data_frm_announce (mt7603)
 
-
 * 数据发送
   
 ** 概述
@@ -169,3 +168,48 @@ IE_EXT_CAPABILITY
      //pAd->ScanTab.BssEntry[bss_idx].Channel
      bbp_set_bw(pAd, BW_20)
    #+END_SRC
+
+** p2p client连接流程
+    在p2p协商完成后，会开始WPS过程，这个过程会涉及关联
+    入口函数：
+    1. mt76xx_cfg80211_connect
+       cfg80211_ops中的connect回调函数。
+    
+    2. CFG80211DRV_P2pClientConnect
+       #+BEGIN_SRC c
+         pAd->cfg80211_ctrl.FlgCfg80211Connecting = TRUE;
+         Set_ApCli_Ssid_Proc(pAd, (PSTRING) Connect_SSID);
+         Set_ApCli_Enable_Proc(pAd, "1");
+         CFG80211DBG(RT_DEBUG_OFF, ("80211> APCLI CONNECTING SSID = %s\n", Connect_SSID));
+       #+END_SRC
+    3. STAMlmePeriodicExec
+       #+BEGIN_SRC c
+         /* YF_TODO */
+         #if defined(P2P_SUPPORT) || defined(RT_CFG80211_P2P_CONCURRENT_DEVICE)
+         if (RTMP_CFG80211_VIF_P2P_CLI_ON(pAd)) {
+           ...
+           if (pAd->Mlme.OneSecPeriodicRound % 2 == 1)
+             ApCliIfUp(pAd);
+           ...
+             }
+         #endif /* P2P_SUPPORT || RT_CFG80211_P2P_CONCURRENT_DEVICE */              
+       #+END_SRC
+    4. ApCliIfUp
+       #+BEGIN_SRC c
+         if (APCLI_IF_UP_CHECK(pAd, ifIndex)
+             && (pApCliEntry->Enable == TRUE)
+             && (pApCliEntry->Valid == FALSE)
+         #ifdef APCLI_CONNECTION_TRIAL
+             && (ifIndex == 0)
+         #endif /* APCLI_CONNECTION_TRIAL */
+             ) {
+           DBGPRINT(RT_DEBUG_TRACE,
+                    ("(%s) ApCli interface[%d] startup.\n", __func__, ifIndex));
+           MlmeEnqueue(pAd, APCLI_CTRL_STATE_MACHINE, APCLI_CTRL_JOIN_REQ, 0, NULL,
+                       ifIndex);
+          }
+                
+       #+END_SRC
+    5. ApCliCtrlJoinReqAction
+
+    

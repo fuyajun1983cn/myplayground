@@ -289,6 +289,123 @@
      - SU: Performed in STA
      - MU: Performed in AP, need to collect channel of all users.
 
+* How does 802.11n get to 600Mbps? [fn:1]
+  802.11n incorporates all earlier amendments to 802.11, including the
+  MAC enhancements in 802.11e for QoS and power savings.
+  The design goal of the 802.11n amendment is “HT” for High
+  Throughput. The throughput it claims is high indeed: up to 600 Mbps
+  in raw bit-rate. Let’s start with the maximum throughput of 802.11g
+  (54Mbps), and see what techniques 802.11n applies to boost it to 600
+  Mbps: 
+
+** More subcarriers
+   802.11g has 48 OFDM data subcarriers. 802.11n increases this number
+   to 52, thereby boosting throughput from 54Mbps to 58.5 Mbps.
+
+** FEC
+   802.11g has a maximum FEC (Forward Error Correction) coding rate of
+   3/4. 802.11n squeezes some redundancy out of this with a 5/6 coding
+   rate, boosting the link rate from 58.5 Mbps to 65 Mbps.
+
+** Guard Interval
+   802.11a has Guard Interval between transmissions of 800ns. 802.11n
+   has an option to reduce this to 400ns, which boosts the throughput
+   from 65 Mbps to 72.2 Mbps.
+
+** MIMO
+   thanks to the magical effect of spatial multiplexing, provided
+   there are sufficient multi-path reflections, the throughput of a
+   system goes up linearly with each extra antenna at both ends. Two
+   antennas at each end double the throughput, three antennas at each
+   end triple it, and four quadruple it. The maximum number of
+   antennas in the receive and transmit arrays specified by 802.11n is
+   four. This allows four simultaneous 72.2 Mbps streams, yielding a
+   total throughput of 288.9 Mbps.
+
+** 40 MHz channels
+   all previous versions of 802.11 have a channel bandwidth of
+   20MHz. 802.11n has an optional mode (controversial and not usable
+   in many circumstances) where the channel bandwidth is 40 MHz. While
+   the channel bandwidth is doubled, the number of data subcarriers is
+   slightly more than doubled, going from 52 to 108. This yields a
+   total channel throughput of 150 Mbps. So again combining four
+   channels with MIMO, we get 600 Mbps.
+
+** Lower MAC overhead
+   But raw throughput is not a very informative number.
+   The 11a/g link rate is 54 Mbps, but the higher layer throughput is
+   only 26 Mbps; the MAC overhead is over 50%! In 11n when the link
+   rate is 65 Mbps, the higher layer throughput is about 50 Mbps; the
+   MAC overhead is down to 25%.
+
+   Bear mind that these numbers are the absolute top speed you can get
+   out of the system. 802.11n has numerous modulation schemes to fall
+   back to when the conditions are less than perfect, which is most of
+   the time.
+
+   But to minimize these fall-backs, 11n contains additional
+   improvements to make the effective throughput as high as possible
+   under all circumstances. These improvements are described in the following
+   paragraphs.
+
+** Fast MCS feedback – rate selection
+   Existing equipment finds it hard to track rapid changes in the
+   channel. Say you walk through the shadow of a pole in the
+   building. The rate may go from 50 to 6 to 50 mbps in one
+   step. It’s hard for conventional systems to track this, because
+   they adapt based on transmit errors. With delay sensitive data like
+   voice you have to be very conservative, so adapting up is much
+   slower than down. 11n adds explicit per-packet feedback,
+   recommending the transmission speed for the next packet. This is
+   called Fast MCS (Modulation and Coding Scheme) Feedback.
+
+** LDPC (Low Density Partity Check) coding
+   LDPC is a super duper Forward Error Correction mechanism. Although
+   it is almost 50 years old, it is the most effective error
+   correcting code developed to date; it nears the theoretical limit
+   of efficiency. It was little used until recently because of its
+   high compute requirement. An interesting by-product of its
+   antiquity is that it is relatively free of patent issues.
+
+** Transmit beam-forming
+   The term beam-forming conjures up images of a laser-like beam of
+   radio waves pointing exactly at the client device, but it doesn’t
+   really work like that. If you look at a fine-resolution map of
+   signal intensity in a room covered by a Wi-Fi access point, it
+   looks like the surface of a pond disturbed by a gust of wind – it
+   is a patchwork of bumps and dips in signal intensity, some as small
+   as a few cubic inches in volume. Transmit beam-forming adjusts the
+   phase and transmit power at the various antennas to move one of the
+   maxima of signal intensity to where the client device is.
+
+** STBC
+   In a phone the chances are that there will only be one Wi-Fi
+   antenna, so there will be only one spatial channel. Even so, the
+   MIMO technique of STBC (Space-Time Block Coding) enables the
+   handset to take advantage of the multiple antennas on the Access
+   Point to improve range, both rate-at-range and limiting range.
+
+   Incidentally, to receive 802.11n certification by the Wi-Fi
+   Alliance, all devices must have two or more antennas except
+   handsets which can optionally have a single antenna. Several
+   considerations went into allowing this concession to handsets,
+   mainly size and power constraints. STBC is particularly useful to
+   handsets. It yields the robustness of MIMO without a second radio,
+   which saves all the power the second radio would burn. This power
+   saving is compounded with another: because of the greater
+   rate-at-range the radio is on for less time while transmitting a
+   given quantity of data. STBC is optional in 802.11n, though it
+   should always be implemented for systems that support 802.11n
+   handsets.
+
+   
+** Hardware assistance
+   Many of these features impose a considerable compute load. LDPC and
+   STBC fall into this category. This is an issue for handsets, since
+   computation costs battery life. Fortunately these features are
+   amenable to hardware implementation. With dedicated hardware the
+   computation happens rapidly and with little cost in power.
+
 * HT20 HT40 Coexistence
   11n有两种频宽模式：HT(High Throughput)20和HT40。
 
@@ -362,6 +479,11 @@
 *** HT40 to HT20
     
 *** HT20 to HT40
+
+* Footnotes
+
+[fn:1] http://www.wirevolution.com/2007/09/07/how-does-80211n-get-to-600mbps/
+
 
 
 

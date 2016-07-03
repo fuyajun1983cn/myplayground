@@ -603,7 +603,7 @@
      - WMM Traffic Streams and other latency-sensitive traffic
      - Absence signaling for off-channel activities (concurrent use,
        scanning, etc.)
-
+       
 ** P2P Power Management:Impact on Availability
    - P2P Power Management saves power at the expense of
      - Reduced P2P Group Owner availability

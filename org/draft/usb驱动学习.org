@@ -1,0 +1,22 @@
+
+* USB Basics
+
+** Speed
+   - USB 2.0
+     480Mbps
+   - USB 3.0 
+     4.8Gbps
+
+     
+
+* Inside USB Transfers
+
+* Tansfer Types
+
+* Enumeration
+
+* Chip Choices
+
+* Host Side Business
+
+* Managing Power

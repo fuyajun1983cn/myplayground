@@ -3,3 +3,9 @@
 #+TITLE: 算法设计学习笔记
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 算法复杂度速查表[fn:1]
+
+* Footnotes
+
+[fn:1] https://linux.cn/article-7480-1.html?utm_source=weixin

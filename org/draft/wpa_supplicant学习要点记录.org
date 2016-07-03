@@ -3,15 +3,50 @@
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-* =wpa_supplicant= 基本架构分析
+* =wpa_supplicant= 基本架构分析[fn:1] [fn:2]
 ** 模块结构图
      #+CAPTION:  =wpa_supplicant modules=
      [[./images/2015/2015121506.png]]
 ** 全局数据结构  
 *** =struct wpa_supplicant= 
 *** =struct wpa_global=
+*** =struct wpa_radio=
+    #+BEGIN_SRC c
+      /**
+       ,* struct wpa_radio - Internal data for per-radio information
+       ,*
+       ,* This structure is used to share data about configured interfaces
+       ,* (struct wpa_supplicant) that share the same physical radio, e.g., to allow
+       ,* better coordination of offchannel operations.
+       ,*/
+      struct wpa_radio {
+              char name[16]; /* from driver_ops get_radio_name() or empty if not
+                              ,* available */
+              unsigned int external_scan_running:1;
+              unsigned int num_active_works;
+              struct dl_list ifaces; /* struct wpa_supplicant::radio_list entries */
+              struct dl_list work; /* struct wpa_radio_work::list entries */
+      };
+          
+    #+END_SRC
 *** =struct wpa_radio_work= 
-    Radio work item
+    Radio work item, 数据结构定义如下：
+    #+BEGIN_SRC c
+      /**
+       ,* struct wpa_radio_work - Radio work item
+       ,*/
+      struct wpa_radio_work {
+              struct dl_list list;
+              unsigned int freq; /* known frequency (MHz) or 0 for multiple/unknown */
+              const char *type;
+              struct wpa_supplicant *wpa_s;
+              void (*cb)(struct wpa_radio_work *work, int deinit);
+              void *ctx;  //pointer to struct wpa_connect_work  ==>Yajun
+              unsigned int started:1;
+              struct os_reltime time;
+              unsigned int bands;
+      };
+    #+END_SRC
     相关的函数接口
     1. =radio_add_work=
     2. =radio_work_done=
@@ -68,6 +103,24 @@
     =struct nl_mgmt= 注册管理帧，如Action帧. 在设置设备模式
     =wpa_driver_nl80211_set_mode= 的时候，
     =wpa_supplicant= 会向Driver注册一些Action帧。
+*** =struct nl80211_global=
+    #+BEGIN_SRC c
+      struct nl80211_global {
+              struct dl_list interfaces;
+              int if_add_ifindex;
+              u64 if_add_wdevid;
+              int if_add_wdevid_set;
+              struct netlink_data *netlink;
+              struct nl_cb *nl_cb;
+              struct nl_handle *nl;
+              int nl80211_id;
+              int ioctl_sock; /* socket for ioctl() use */
+
+        //netlink socket
+        //接收Driver回报的一些事件(广播事件)，如scan, mlme, regulatory,vendor
+              struct nl_handle *nl_event;
+      };    
+    #+END_SRC
 ** =wpa_supplicant= 初始化分析
 *** =wpa_supplicant= 初始化执行过程
 
@@ -544,6 +597,11 @@
      - =LIST_NETWORKS=
      - DISCONNECT
      - SCAN
+       SCAN流程分析
+       wpa_supplicant_event --> EVENT_SCAN_RESULTS -->
+       wpa_supplicant_event_scan_results
+       每次扫描结束会，会调用 =wpas_select_network_from_last_scan= 来
+       选择一个网络进行连接。
      - =SCAN_RESULTS=
      - BSS
      - =SELECT_NETWORK= <network id>
@@ -1508,7 +1566,20 @@
     - =p2p_find=  
       | Command                                                    | Description                                            |
       |------------------------------------------------------------+--------------------------------------------------------|
-      | =p2p_find= [timeout (seconds)] [type <social \ progressive>] | Enables discovery – start sending probe request frames | 
+      | =p2p_find= [timeout (seconds)] [type <social \ progressive>] [dev_id=] [delay=] | Enables discovery – start sending probe request frames | 
+      #+TBLFM: $1=p2p_find= [timeout (seconds)] [type <social \ progressive>] [dev_id=] [delay=]
+
+      p2p_find默认的行为是开始做一次全信道扫描，然后扫描特定的信道。 
+      参数说明如下：
+      - 当type=social时，只会扫描社会信息，会跳过第一次全信道扫描。
+
+      - 当type=progressive时，行为类似默认情况下的行为，只不过在每一次
+        Search状态的回合中，依次扫描一个信道。
+
+      - dev_id : 可以指定单个要扫描的对端设备。
+
+      - delay: 是一个延时值。 
+
 
       当接受到 =p2p_find= 命令时，会进入入口函数： =p2p_ctrl_find= ，
       此时会决定两个参数：
@@ -1526,7 +1597,7 @@
 
       这些函数会准备执行 p2p find 所需要的一些参数 ，然后调用到
       p2p->cfg->p2p_scan 回调接口。 它有三种返回值：
-      - 0: 扫描请求发磅成功，设置扫描超时时间。
+      - 0: 扫描请求发送成功，设置扫描超时时间。
       - 1: 扫描请求失败，会等待上一个扫描动作完成后，再进行尝试，当前
         P2P状态机置为： =P2P_SEARCH_WHEN_READY= , 表示有个未决的扫描动
         作。相关函数： =p2p_search_pending=
@@ -1546,7 +1617,7 @@
       | Command                                                                   | Description                                                                    |
       |---------------------------------------------------------------------------+--------------------------------------------------------------------------------|
       |                                                                           | =GO_intent= – initiate connection to another device (using entered group intent) |
-      | =P2p_connect= <device address> <PBC \ PIN> [ =GO_intent= =<0-15> \ auth \ join] | Auth – WPS authorize incoming connection                                       |
+      | =p2p_connect= <device address> <PBC \ PIN> [ =GO_intent= =<0-15> \ auth \ join] | Auth – WPS authorize incoming connection                                       |
       |                                                                           | Join – connect to an existing GO                                               |
       |                                                                           | No input – initiate connection using default GO intent                         |
 
@@ -1554,16 +1625,23 @@
       =p2p_connect= 命令的参数后， 会进入  =wpas_p2p_connect= ，里面会
       执行一些重要的步骤：
       - =wpas_p2p_add_group_interface= 创建P2P虚拟接口
-      - =wpas_p2p_auth_go_neg= 只确认协商时使用的信息信息
+      - =wpas_p2p_auth_go_neg= 只确认协商时使用的信息
       - =wpas_p2p_start_go_neg= 开始 GO NEGOTIATION。
 
-        =p2p_connect_send=
+      在wps完成后，会启动重新关联过程,标记所有网络为禁用状态，从而触发
+      Roaming过程：
+      :wpas_wps_temp_disable(wpa_s, selected);
+      :wpa_s->reassociate = 1;
 
     - =p2p_listen=
       | Command                        | Description        |
       |--------------------------------+--------------------|
       | =P2p_listen= [timeout (seconds)] | Enable listen mode |
 
+      Listen状态可能不会立即开始，因为可能会有其他未决的操作正在进行，
+      一旦进入Listen状态，会调用p2p_listen_cb()函数通知P2P模块。一旦退
+      出Listen状态，会调用p2p_listen_end()函数通知P2P模块已经不再处于
+      Listen状态了。
 
       =p2p_listen= 流程分析：
       应用程序进入Miracast后，一般会调用 =p2p_listen= 命令，监听附近的
@@ -1590,6 +1668,13 @@
         将p2p listen命令通过netlink传递给驱动，
         并将p2p state设置为LISTEN ONLY。
         end note
+        split
+        :p2p_listen;
+        :start_listen;
+        :wpas_start_listen;
+        :wpas_start_listen_cb;
+        :wpa_drv_remain_on_channel;
+        split again
         :设置p2p_long_listen的值;
         note right
         如果当前设置的超时时间大于Driver一次在某个
@@ -1601,12 +1686,27 @@
         会发送一个CANCEL_REAMIN_ON_CHANNEL(EVENT_CANCEL_REMAIN_ON_CHANNEL)
         事件，将调用wpas_p2p_cancel_remain_on_channel_cb.
         end note
+        end split
         stop
         @enduml      
       #+END_SRC
 
       #+RESULTS:
       [[file:./images/2016/2016061001.png]]
+
+      在监听的过程，当驱动收到Probe Request请求后，会通过
+      =cfg80211_rx_mgmt= 上报给内核，并最终通知给 =wpa_supplicant= ，
+      调用路径为：
+      #+BEGIN_SRC plantuml :file ./images/2016/2016061201.png :cmdline -charset UTF-8
+        :mlme_event NL80211_CMD_FRAME
+        :mlme_event_mgmt;
+        :wpa_supplicant_event  EVENT_RX_MGMT
+        :for p2p WLAN_FC_STYPE_PROBE_REQ
+        :wpas_p2p_probe_req_rx;
+        :p2p_probe_req_rx;
+        :p2p_reply_probe;
+
+      #+END_SRC
 
     - =p2p_group_remove=
       | Command                      | Description                                                                      |
@@ -1867,6 +1967,93 @@
    #+END_SRC
 
    
+* wpa_supplicant代码修改
+
+** add a conf parameter to start a GO as HT40 if allowed
+   When specified in the conf file this parameter will make all
+   invocations of p2p_group_add and p2p_connect behave as if "ht40"
+   has been specified on the command line.
+   This shouldn't do harm since regulatory constraints and driver
+   capabilities are consulted anyway before starting HT40 mode.
+
+   #+BEGIN_SRC sh
+     ---
+      wpa_supplicant/config.c      |    1 +
+      wpa_supplicant/config.h      |   10 ++++++++++
+      wpa_supplicant/config_file.c |    2 ++
+      wpa_supplicant/ctrl_iface.c  |    4 ++--
+      4 files changed, 15 insertions(+), 2 deletions(-)
+
+     diff --git a/wpa_supplicant/config.c b/wpa_supplicant/config.c
+     index be21029..3f64b03 100644
+     --- a/wpa_supplicant/config.c
+     +++ b/wpa_supplicant/config.c
+     @@ -3000,6 +3000,7 @@ static const struct global_parse_data global_fields[] = {
+             { INT_RANGE(p2p_intra_bss, 0, 1), CFG_CHANGED_P2P_INTRA_BSS },
+             { INT(p2p_group_idle), 0 },
+             { FUNC(p2p_pref_chan), CFG_CHANGED_P2P_PREF_CHAN },
+     +       { INT(p2p_go_ht40), 0 },
+      #endif /* CONFIG_P2P */
+             { FUNC(country), CFG_CHANGED_COUNTRY },
+             { INT(bss_max_count), 0 },
+     diff --git a/wpa_supplicant/config.h b/wpa_supplicant/config.h
+     index b889ab8..9cf5468 100644
+     --- a/wpa_supplicant/config.h
+     +++ b/wpa_supplicant/config.h
+     @@ -747,6 +747,16 @@ struct wpa_config {
+              ,*     matching network block
+              ,*/
+             int auto_interworking;
+     +
+     +       /**
+     +        * p2p_go_ht40 - Default mode for HT40 enable when operating as GO.
+     +        *
+     +        * This will take effect for p2p_group_add and p2p_connect. Note that
+     +        * regulatory constraints and driver capabilities are consulted anyway,
+     +        * so setting it to 1 can't do real harm
+     +        * By default: 0 (disabled)
+     +        */
+     +       int p2p_go_ht40;
+      };
+      
+      
+     diff --git a/wpa_supplicant/config_file.c b/wpa_supplicant/config_file.c
+     index 531957a..bd9c17f 100644
+     --- a/wpa_supplicant/config_file.c
+     +++ b/wpa_supplicant/config_file.c
+     @@ -868,6 +868,8 @@ static void wpa_config_write_global(FILE *f, struct wpa_config *config)
+                     }
+                     fprintf(f, "\n");
+             }
+     +       if (config->p2p_go_ht40)
+     +               fprintf(f, "p2p_go_ht40=%u\n", config->p2p_go_ht40);
+      #endif /* CONFIG_P2P */
+             if (config->country[0] && config->country[1]) {
+                     fprintf(f, "country=%c%c\n",
+     diff --git a/wpa_supplicant/ctrl_iface.c b/wpa_supplicant/ctrl_iface.c
+     index ba2edff..c9c6826 100644
+     --- a/wpa_supplicant/ctrl_iface.c
+     +++ b/wpa_supplicant/ctrl_iface.c
+     @@ -3117,7 +3117,7 @@ static int p2p_ctrl_connect(struct wpa_supplicant *wpa_s, char *cmd,
+             auth = os_strstr(pos, " auth") != NULL;
+             automatic = os_strstr(pos, " auto") != NULL;
+             pd = os_strstr(pos, " provdisc") != NULL;
+     -       ht40 = os_strstr(pos, " ht40") != NULL;
+     +       ht40 = (os_strstr(cmd, "ht40") != NULL) || wpa_s->conf->p2p_go_ht40;
+      
+             pos2 = os_strstr(pos, " go_intent=");
+             if (pos2) {
+     @@ -3624,7 +3624,7 @@ static int p2p_ctrl_group_add(struct wpa_supplicant *wpa_s, char *cmd)
+             if (pos)
+                     freq = atoi(pos + 5);
+      
+     -       ht40 = os_strstr(cmd, "ht40") != NULL;
+     +       ht40 = (os_strstr(cmd, "ht40") != NULL) || wpa_s->conf->p2p_go_ht40;
+      
+             if (os_strncmp(cmd, "persistent=", 11) == 0)
+                     return p2p_ctrl_group_add_persistent(wpa_s, cmd + 11, freq,
+     --    
+   #+END_SRC
 
 * 常用代码片断
   记录 =wpa_supplicant= 源码中常见的一些代码片断。
@@ -1892,6 +2079,27 @@
        }
       }
    #+END_SRC
-* 参考资料
-  [1] https://w1.fi/wpa_supplicant/devel/index.html
-  [2] http://lists.shmoo.com/pipermail/hostap/
+
+** 遍历当前的接口(方法2)
+   #+BEGIN_SRC c
+     /*
+      ,* Check other interfaces to see if they share the same radio. If
+      ,* so, they get updated with this same scan info.
+      ,*/
+     struct wpa_supplicant *ifs, wpa_s;
+     ...
+     dl_list_for_each(ifs, &wpa_s->radio->ifaces, struct wpa_supplicant,
+                      radio_list) {
+       if (ifs != wpa_s) {
+         wpa_printf(MSG_DEBUG, "%s: Updating scan results from "
+                    "sibling", ifs->ifname);
+         ...
+       }
+     }   
+   #+END_SRC
+* Footnotes
+[fn:1] https://w1.fi/wpa_supplicant/devel/index.html
+[fn:2] http://lists.shmoo.com/pipermail/hostap/
+
+
+
