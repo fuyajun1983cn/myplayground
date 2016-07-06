@@ -8,13 +8,57 @@
 
 * 通用概念
 
+** Android应用程序框架
+
 ** UI基本开发
    
-
 ** Fragment
    
+** 安全策略
+   在Android中,安全涵盖了应用程序的部署和执行.对于部署来
+   说,Android应用程序必须被赋予一个数字证书才允许被安装到某个设备中.对
+   于运行来说,每个应用程序都在一个独立的应用程序中执行,每个进程都有一
+   个唯一的永久的用户ID(在安装的时候分配的).
 
+   注册应用程序需要三样东西:
+   1. 一个数字证书,
+   2. 一个.apk文件
+   3. 以及用于将数字签名应用到.apk文件的工具(jarsigner).
 
+   注册一个应用程序步骤如下: 
+
+   - 使用Keytool创建一个自注册的证书.
+ 　　
+     步骤1 Create a folder to hold the keystore, for example
+     : c:\android\release\.
+ 　　步骤2 在命名行中执行如下命令:
+     #+BEGIN_SRC sh
+       　　keytool -genkey -v -keystore "FULL PATH OF release.keystore FILE FROM STEP 1"
+       　　-alias androidbook -storepass paxxword -keypass paxxword -keyalg RSA
+       　　-validity 14000     
+     #+END_SRC
+
+     keytool的参数说明如下：
+     [[./images/2016/2016070502.png]]
+     
+   - 使用Jarsigner注册.apk文件
+     #+BEGIN_SRC sh
+       jarsigner -keystore "PATH TO YOUR release.keystore FILE" -storepass paxxword
+       -keypass paxxword "PATH TO YOUR APK FILE" androidbook(别名)      
+     #+END_SRC
+
+   - 用zipalign作字节对齐
+     命令如下:
+     : zipalign –v 4 infile.apk outfile.apk
+
+     验证一个.apk文件是否是4字节对齐,用如下命令
+     : zipalign –c –v 4 filename.apk
+
+   - 安装应用程序
+     : adb install "PATH TO APK FILE GOES HERE"(安装)
+     : adb uninstall packagename(卸载)
+     : adb install –r "PATH TO APK FILE GOES HERE"(重装)
+   
 * Framework
 
 ** Audio System
@@ -506,6 +550,42 @@
 
 
 
+
+
+
+
+* 我的技术文摘
+
+** 编写native activity
+   =android/native_activity.h= 提供的本地活动接口是基于应用程序提供的
+   一系列回调函数, 这些回调函数将在相应事件发生，在活动的主线程中调用，
+   所以这些回调函数不能阻塞。
+
+   理论上，我们只要编写相应的回调函数就可以了，方法简单， 直接了当，但
+   是，非常受限（因为在主线程中直接执行，会阻塞主线程）。为了解决这种
+   限制， *NDK* 包中提供了 =android_native_app_glue= 库，采用多线程方式，允许
+   应用程序在不同的线程上实现自己的主事件循环，它的要求如下：
+   1. 应用程序必须提供一个称为 =android_main()= 的函数，它将在活动创建时
+      被调用。它是单独开启一个线程执行的，不在活动的主线程里面。
+   2. =android_main()= 接受一个合法的 =android_app= 结构体指针，它包含
+      了对其他重要对象的引用，如应用程序运行于其中的ANativeActivity对
+      象实例。
+   3. =android_app= 对象拥有一个ALooper实例，它已经监听了两个重要的事件：
+      * 活动生命周期事件（如“暂停”，“恢复”）。
+        : ALooper_pollOnce：LOOPER_ID_MAIN
+      * 来自于依附于当前活动的AInputQueue的事件。
+        : ALooper_pollOnce：LOOPER_ID_INPUT
+        可以监听发生在其他的文件描述符上的事件，可以使用回调方式或设置
+        indent值为 =LOOPER_ID_USER= 
+        : ALooper_addFd（...）
+   4. 任何时候，收到 =LOOPER_ID_MAIN= 或 =LOOPER_ID_INPUT= 事件，返回的数
+      据是一个指向 =android_poll_source= 的结构体指针。可以调用它的 =process()=
+      函数，并在其中回调 =android_app->onAppCmd= 和 =android_app->onInputEvent=
+      处理应用程序相关的事件。当然，也可以调用底层的函数直接读取和处理
+      数据。
+
+      #+CAPTION: 函数调用序列图
+      [[./images/2016/2016070501.png]]
 
 
 
