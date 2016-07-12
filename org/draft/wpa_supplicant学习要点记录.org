@@ -1163,6 +1163,9 @@
 *** 基本连接流程
 
 **** 一般连接过程
+
+     #+CAPTION: P2P Standard Group Formation
+     [[./images/2016/2016071202.png]]
      
       1. 首先，P2P设备要能发现对方，会通过扫描来进行：要么在1，6，11信道
          上主动发送Probe Request来侦测P2P设备，要么停留在某个信息侦测
@@ -1279,6 +1282,10 @@
        [[file:./images/2016/2016012501.png]]
 
 **** 收到Invitation Request的交互过程
+     
+     #+CAPTION: P2P Persisten Group Formation
+     [[./images/2016/2016071203.png]]
+
      1. 当前设置处于 =P2P_Find= 阶段时，如果收到 =Invitation Request=
         Action帧，即 =P2P: Received Invitation Request from
         86:38:38:b0:ff:ee (freq=2462)= ，则首先会解析该Action帧携带的一些
@@ -1797,8 +1804,32 @@
 
       通过nl80211，用户程序可以注册接收指定类型的管理帧。
 
-*** 错误总结
-      当Associate  Request失败后，会尝试5次
+*** 问题调试
+
+**** P2p Standard Group Formation
+        - Could not find peer or be found by peer
+          - Check if framework triggered p2p find phase by =P2P_FIND=
+          - If so,  check if probe request/response handshake works
+            ok(sniffer if possible)
+        - Scan issues
+          - Check if has GO beacons and probe request from box and
+            probe response from GO when acts as GC
+          - Check if box has tx beacon and RX probe request from peer
+            when acts as GO(sniffer if possible)
+          - WPS handshake issues
+            - Check if WPS EAP handshake work ok in tcpdump log
+            - Need sniffer if WPS handshake not complete
+          - 4-way handshake issues
+            - Check if 4-way handshake work ok in tcpdump log
+            - Need sniffer if 4-way handshake not complete
+          - DHCP issues
+            - Check if DHCP handshake work OK in tcpdump log
+            - Need sniffer
+
+**** P2P persistent Group Formation
+        - Invitation request/response handshake work ok(need sniffer)
+        - 4-way handshake issues
+        - DHCP issues
 
 ** bgscan (roaming) IAPP(Inter Access Point Protocol)
 
@@ -1965,6 +1996,8 @@
      wpa_pairwise=TKIP
      wpa_ptk_rekey=600
    #+END_SRC
+
+   wifi.tethering.interface
 
    
 * wpa_supplicant代码修改

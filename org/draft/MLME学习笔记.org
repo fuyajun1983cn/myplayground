@@ -163,6 +163,177 @@ IE_EXT_CAPABILITY
      RTMP_IO_WRITE32(pAd, 0x1004, Value); 
    #+END_SRC
 
+** Dump Debug Register Values
+    #+BEGIN_SRC c
+      /* Dump Debug Register Values */
+      INT Set_Register_Dump(IN PRTMP_ADAPTER pAd, IN PSTRING arg)
+      {
+
+              UINT32 Value = 0;
+
+              /* Toggle Error */
+              DBGPRINT(RT_DEBUG_OFF, ("--dump_registers:--\n"));
+              read_reg(pAd, 0x40, 0x2820, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2820: 0x%x\n", Value));
+              /* Reset to default */
+              /* write_reg(ad, 0x40, 0x2820, 0x1); */
+              read_reg(pAd, 0x40, 0x023C, &Value); //common register
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_023C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x024c, &Value); //PCIE_REMAP_BASE4 default: 0x0
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_024C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0254, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0254: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1500, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1500: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1504, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1504: 0x%x\n", Value));
+      #ifdef RTMP_MAC_USB
+              read_reg(pAd, 0x40, 0x9018, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9018: 0x%x\n", Value));
+              if (Value == 0x0)
+                      DBGPRINT(RT_DEBUG_OFF, ("UDMA not enabled\n"));
+      #endif
+              read_reg(pAd, 0x40, 0x9100, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9100: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x9110, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9110: 0x%x\n", Value));
+
+              read_reg(pAd, 0x40, 0x2140, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2140: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2240, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2240: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2280, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2280: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2290, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2290: 0x%x\n", Value));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              read_reg(pAd, 0x41, 0x1004, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1004: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1200, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1200: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A38, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A38: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A30, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A30: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A34, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A34: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A0C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A0C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09C4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09C4: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09E0, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09E0: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09E8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09E8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F0, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F0: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F4: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09FC, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09FC: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x15F4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_15F4: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0x080c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_080c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1700, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1700: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1704, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1704: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1708, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1708: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x170C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_170C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0430, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0430: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0434, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0434: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0438, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0438: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x043C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_043C: 0x%x\n", Value));
+              /* FCE */
+              read_reg(pAd, 0x41, 0x0800, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0800: 0x%x\n", Value));
+              if (Value == 0x0)
+                      DBGPRINT(RT_DEBUG_OFF, ("FCE not enabled\n"));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              /* FW Traffic to Host or not */
+              read_reg(pAd, 0x41, 0x0A0C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A0C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x080c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_080c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0810, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0810: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0814, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0814: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0818, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0818: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0x0988, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0988: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x098C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_098C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0998, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0998: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x099C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_099C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09a8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09a8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09ac, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09ac: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09b8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09b8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09bc, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09bc: 0x%x\n", Value));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              /* USB IP CRs */
+              read_reg(pAd, 0x40, 0x2244, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2244: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2254, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2254: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2264, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2264: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2274, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2274: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2284, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2284: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2294, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2294: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x80, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_80: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0xa10, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a10: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa14, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a14: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa18, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a18: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa1c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a1c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa20, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a20: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa24, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a24: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa28, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a28: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa2c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a2c: 0x%x\n", Value));
+
+              /* RTUSBReadMACRegister(pAd, 0x738, &Value); */
+              read_reg(pAd, 0x41, 0x738, &Value);
+              DBGPRINT(RT_DEBUG_ERROR, ("F/W Heart beat(0x738): 0x%x\n", Value));
+
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+              return 0;
+      }
+          
+    #+END_SRC
 ** 设置HT Bandwidth
    #+BEGIN_SRC c
      //pAd->ScanTab.BssEntry[bss_idx].Channel
@@ -212,4 +383,81 @@ IE_EXT_CAPABILITY
        #+END_SRC
     5. ApCliCtrlJoinReqAction
 
-    
+** dump  发往上层的数据
+    #+BEGIN_SRC c
+      static void check_packet_loss_for_rtp(IN PRTMP_ADAPTER  pAd,  
+                                                     IN PNDIS_PACKET          pPacket)
+      {
+              UCHAR *data = NULL;
+              USHORT *eth_type;
+
+              DBGPRINT(RT_DEBUG_ERROR, ("check_packet_loss_for_rtp\n"));
+
+              data = GET_OS_PKT_DATAPTR(pPacket);
+      #if 0
+              if (OS_NTOHS(get_unaligned((USHORT*)(data + 12))) == 0x0800)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("%s::IP Packet\n", __FUNCTION__));
+              }
+      #endif
+              eth_type = (USHORT *)&data[12];
+              DBGPRINT(RT_DEBUG_ERROR, ("eth_type : 0x%04x\n", OS_NTOHS(get_unaligned(eth_type))));
+              if (*eth_type == cpu_to_be16(ETH_P_IP))  {//IP Header
+                      INT ip_h_len;
+                      UCHAR *ip_h;
+                      UCHAR *udp_h;
+                      UCHAR *rtp_h;
+                      USHORT udp_len;
+                      USHORT src_port = 0;
+                      USHORT dest_port = 0;
+                      USHORT rtp_seqNum = 0;
+                      static USHORT last_rtp_seqNum = 0;
+
+                      DBGPRINT(RT_DEBUG_ERROR, (">Receive IP Packet\n"));
+                  
+                      ip_h = data + 14;
+                      ip_h_len = (ip_h[0] & 0x0f)*4;
+                      
+                      if (ip_h[9] == 0x11)  {/* UDP */
+                              DBGPRINT(RT_DEBUG_ERROR, (">>Receive UDP Packet\n"));
+                              udp_h = ip_h + ip_h_len;        
+                              
+                              memcpy(&src_port, udp_h, 2);
+                              src_port = ntohs(src_port);
+                              memcpy(&dest_port, udp_h + 2, 2);
+                              dest_port = ntohs(dest_port);
+                              DBGPRINT(RT_DEBUG_TRACE, (">>UDP source port: %d, dest port: %d\n", src_port, dest_port));
+                              memcpy(&udp_len, udp_h + 4, 2);
+                              udp_len = ntohs(udp_len);
+                              if (udp_len > 20) {
+                                      rtp_h = udp_h + 8;
+                                      if (rtp_h[1] == 0x80 && rtp_h[0] == 0x21) {//RTP
+                                      
+                                              memcpy(&rtp_seqNum, rtp_h + 2, 2);
+                                              rtp_seqNum = ntohs(rtp_seqNum);
+                                              if (last_rtp_seqNum != 0 && last_rtp_seqNum + 1 != rtp_seqNum) {
+                                                      DBGPRINT(RT_DEBUG_ERROR, (">>>Lost Sequence %d, Current Sequence: %d!!!\n", last_rtp_seqNum + 1 , rtp_seqNum));
+                                              } 
+                                               last_rtp_seqNum = rtp_seqNum;
+                                      }
+                              }
+                              
+                      }else if (ip_h[9] == 0x06) {
+                              DBGPRINT(RT_DEBUG_ERROR, (">>Receive TCP Packet\n"));
+                      } else if (ip_h[9] == 0x01) {
+                              DBGPRINT(RT_DEBUG_TRACE, (">>Receive ICMP Packet\n"));
+                      }
+                      
+              }else if (*eth_type == cpu_to_be16(ETH_P_ARP)) {
+                      DBGPRINT(RT_DEBUG_TRACE,(">Receive a ARP Packet\n"));
+              } else if (*eth_type == cpu_to_be16(0x888e)) {
+                      DBGPRINT(RT_DEBUG_TRACE,(">Receive a EAPOL Packet\n"));
+              }
+              
+      }    
+    #+END_SRC
+
+** 发送速率调整
+    APMlmeDynamicTxRateSwitching
+
+    ref: http://blog.csdn.net/junglefly/article/details/48974077

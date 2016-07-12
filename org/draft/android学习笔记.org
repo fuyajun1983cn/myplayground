@@ -8,6 +8,8 @@
 
 * 通用概念
 
+** Android框架图
+    [[./images/2016/2016071201.png]]
 ** Android应用程序框架
 
 ** UI基本开发
@@ -308,6 +310,51 @@
 
      一开始是为了加速叠图而准备的一个HAL，目前作为所有显示的HAL。
 
+***** Overlay
+
+****** Overlay 是什么
+        在android 上面，屏幕上输出的画面都是由多个图层（layer）合成
+        （compsing）得到的结果. 所以在android上面，图像的合成是非常普
+        通而且常见(频繁)的操作, 如果有一个简单而省电的hardware(hw)来负
+        责图像合成, 可以很有效的降低功耗,而且也可以降低GPU的loading.
+
+        Overlay 就是一个专门负责图像合成的一个hw. 相比GPU 而言,
+        overlay 是一个非常简单图像处理hw. 和GPU具有的庞大的图形功能不
+        同, overlay只能负责简单的图像合成动作.
+
+        由于overlay 功能简单,所以hw的实现上相比GPU也要简单很多,工作起
+        来也会非常省电.
+
+        
+****** Overlay 有什么限制
+        由于overlay hw很简单，所以它只能处理简单的图像合成工作，太复杂
+        的图像合成工作还是要GPU来协助完成.
+
+        overlay 无法处理的case：
+        1. 需要旋转的图像
+        2. 需要缩放的图像
+        3. 图层超过4层
+
+        不过对于普通的android应用场景来说,很少会出现上述的那些cases.
+
+****** 没有overlay HW，图像合成流程
+        Surfaceflinger把需要合成的layers 交给GPU 做composing, 最终输出
+        到屏幕。
+
+        [[./images/2016/2016071204.png]]
+
+        
+****** 有Overlay HW, 图像合成的流程
+        Surfaceflinger把需要合成的layers 交给ovl做composing, 最终输出
+        到屏幕。
+
+        [[./images/2016/2016071205.png]]
+
+****** 有overlay HW,但需要GPU做图像合成流程
+        Overlay不能处理的layers, 会交给GPU做图像合成，GPU把图像合成为
+        一个layer, 然后再通过overlay 输出.
+
+        [[./images/2016/2016071206.png]]
 
 *** Android Sync Framework
 

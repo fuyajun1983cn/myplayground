@@ -1,0 +1,311 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: WiFi案例集锦racast无法连接
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* Miracast无法连接
+** 问题描述
+    客户平台的网卡从一家厂商的芯片更换为另一家的芯片，结果出现WiFi
+    Miracast无法连接成功的情况。
+** 问题分析
+    初步信息调查：
+    1. 客户平台内核版本为： 3.1.10
+    2. 实测发现，当平台作GC时，连接没有问题。
+    3. 分析手机端和平台端的 =wpa_supplicant.log= ，有如下一些发现：
+       - 平台端如下Log异常：
+         [[./images/2016/2016031101.png]]
+         Associaite Request中没有包含RSN IE等相关信息，这是P2P连接过程
+         中，所必须。
+       - 手机端有如下Log异常：
+         #+BEGIN_EXAMPLE
+            03-03 16:06:08.252 I/wpa_supplicant(  864): p2p0: WPS-M2D dev_password_id=0 config_error=12
+            03-03 16:06:08.255 D/wpa_supplicant(  864): EAPOL: txSuppRsp
+           03-03 16:06:08.255 D/wpa_supplicant(  864): TX EAPOL: dst=06:3d:98:a6:29:34
+           03-03 16:06:08.255 D/wpa_supplicant(  864): TX EAPOL - hexdump(len=78): 01 00 00 4a 02 4d 00 4a fe 00 37 2a 00 00 00 01 02 00 10 4a 00 01 10 10 22 00 01 0d 10 1a 00 10 ...
+           03-03 16:06:08.256 D/wpa_supplicant(  864): EAPOL: SUPP_BE entering state RECEIVE
+           03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Terminate connection due to WPS PBC session overlap
+           03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Group Formation failed with 06:3d:98:a6:29:34
+           03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: Clear timeout (state=PROVISIONING)
+           03-03 16:06:08.256 D/wpa_supplicant(  864): P2P: State PROVISIONING -> IDLE
+           03-03 16:06:08.256 I/wpa_supplicant(  864): P2P-GROUP-FORMATION-FAILURE 
+         #+END_EXAMPLE
+
+       =config_error=  的值为 12， 其意义为：　
+       =WPS_CFG_MULTIPLE_PBC_DETECTED= ，这个是GO在处理M1信息时，带上的。
+    4. 根据双方的Log， GO在处理GC发送过来的M1消息后，回复了M2D信息给GC，
+       从而中断了WPS的交互过程。从如下代码入手分析：
+
+       [[./images/2016/2016031102.png]]
+
+       函数 =wps_registrar_p2p_dev_addr_match= 中进行地址过滤时，发现了
+       线索：
+
+       [[./images/2016/2016031103.png]]
+
+       正常情况下， =reg->p2p_dev_addr= 的值应该与 =wps->p2p_dev_addr=
+       的值一致，但是从出错Log中发现 =wps->p2p_dev_addr= 的值为0。  
+       而 wps 相关的初始化是在 =eap_wsc_init= 在调用了 =wps_init= 来进
+       行初始化的。  如下图所示 ：
+
+       [[./images/2016/2016031104.png]]
+
+       有个条件引起来我们的注意：
+       =sm->assoc_p2p_ie=  
+       是否因为这个为NULL，导致 =wps_init= 初始化时， =p2p_dev_addr=  没有
+       得到赋值？
+    5. 分析 =wpa_supplicant= 处理Associate Request的函数代码：
+       在函数 =hostapd_notif_assoc= 里面，会解析 Associate Request 携带
+       的IE信息， 代码如下：  
+
+       [[./images/2016/2016031105.png]]
+
+       可以发现，并结合之前的Log发现， WPS， RSN， WPA等 IE信息都为空。
+       所以有理由 怀疑Driver送上来的Associate Request中就没有包含这些IE
+       信息， IE信息为空！！！
+    6. Driver层确认
+        在Driver处理Association Request的地方， 加一些打印Log确认收到的
+       IE是否为空，结果发现，Driver有收到这些IE信息的。 Driver在处理完
+       Associate Request后，如果OK，会送回一个Associate Response给对方
+       ，并调用 =cfg80211_new_sta= 将Associate Request事件通知到上层。
+       应该在这个地方可能将IE信息漏掉了。 
+
+** 解决方法
+    由于定位到问题的原因是：驱动在调用 =cfg80211_new_sta= 时，没有将 如
+    下标记设置：
+    
+    #+BEGIN_SRC c
+      struct station_info sinfo;
+      struct ieee80211_mgmt *mgmt;
+
+      NdisZeroMemory(&sinfo, sizeof(sinfo));
+
+      //因为这个标记没有置上，导致nl80211模块处理IE信息时，
+      //将assoc_req IE给过滤掉了, 正解就是要让这句执行。
+       sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
+
+       mgmt = (struct ieee80211_mgmt *) assoc_frame;
+       sinfo.assoc_req_ies_len = assoc_len - 24 - 4;
+      sinfo.assoc_req_ies = mgmt->u.assoc_req.variable;
+
+      return cfg80211_new_sta(pNetDev, mac_addr, &sinfo, GFP_KERNEL);
+
+    #+END_SRC
+
+* p2p虚拟网络接口打开时，出现设备忙
+
+** 问题描述
+    设备当GO时， p2p virtual interface 启动时，有时会出现Device or Resource is busy
+** 问题分析
+    p2p 协商成功后，会创建一个virtual interface, 即 调用
+    =wpa_driver_nl80211_if_add= ， 在该函数中，会调用
+    =linux_set_iface_flags= 将虚拟接口设置为UP状态， 查看该函数的代码如
+    下：
+
+    [[./images/2016/2016031106.png]]
+
+    在下这个命令时，出现上述错误。 kernel中处理该命令的函数为：
+    =devinet_ioctl=
+    进一步追下去，在该函数中： =__dev_change_flags= 有如下代码：
+
+    [[./images/2016/2016031107.png]]
+
+    UP会对应 =__dev_open= 函数。 这个函数会调用driver注册的打开网络接口
+    的回调函数。如下代码所示 ：
+
+    [[./images/2016/2016031108.png]]
+
+    从上述代码也可以看到，在打开设备之前，会发送一个 =NETDEV_PRE_UP= 通
+    知链消息。 在 =cfg80211_netdev_notifier_call= 函数中，会处理该消息：
+    这个逻辑主要是一些Sanity Check，即此时能不能打开该网络接口。
+
+    [[./images/2016/2016031109.png]]
+
+    最重要的处理函数是 =cfg80211_can_use_iftype_chan= ，在这个函数中会
+    分析当前打开网络接口是否有问题。
+** 解决方法
+   通过对上述代码的分析，结合driver的Log，做出了如下的修改：
+
+   [[./images/2016/2016031110.png]]
+
+* 在某个特定区域WiFi性能很差
+
+** 问题描述
+   客户报怨仓库某个指定的区域WiFi性能很差，WiFi速率很慢。如下是抓包过程
+   中，某个数据帧的情况：
+
+   [[./images/2016/2016031401.png]]
+
+** 问题分析
+   从上述抓包的信息来看，有两个信息值得注意：
+   1. 信号干扰
+   2. 重传
+   上述数据包是一个重传的数据包。 在Channel 6上重传概率大于30%。 
+   
+   [[./images/2016/2016031402.png]]
+
+   从WiSpy工具查看信号干扰情况，发现Channel 1～6 干扰很严重。
+   
+   [[./images/2016/2016031403.png]]
+
+** 解决方法
+
+   有发现周围有一个老旧的摄像机在周围，然而没有使用，但是通电着。这个摄
+   像机对Channel 1～6之间的信号干扰很大，导致出现较高的数据重传率。
+
+* 固件升级后，手机出现奇怪现象
+
+** 问题描述
+   固件升级后，一些手机出现奇怪的现象。 它们会连接到网络，然后断开并显
+   示定位网络服务的信息。这个过程是可重复的。
+
+** 问题分析
+   数据包抓取结果如下：
+   
+   [[./images/2016/2016031404.png]]
+
+   如上图红色标记，Duration的值太大，有点异常，一般情况下，应该只有几十
+   毫秒。
+
+** 解决方法
+   这个问题最后查出是手机Firmware代码的Bug，导致在处理与802.11n的AP交互时，
+   出现Duration值异常的情况。这会影响周围所有的WiFi设备，而不仅仅是这个
+   手机。
+
+* WiFi性能差，且有时连接不上WiFi网络
+
+** 问题描述
+   客户抱怨WiFi网络性能差，且有时甚至连接不上WiFi网络。
+
+** 问题分析
+   抓包信息如下：
+   
+   [[./images/2016/2016031405.png]]
+
+   可以看到出现了CRC错误， 这表明我的抓包工具不能正确地读取帧信息。当靠
+   近发送数据的设备时，CRC错误率会降低。 
+
+** 问题解决
+   当通信双方的距离大于一定值后，会出现CRC错误率变高的情况，尝试靠近一
+   下，看CRC错误率是否会降低。 
+
+* 客户报怨传输高分辨率的图片时很慢
+
+** 问题描述
+   客户报怨他们新的网卡传输高分辨率的图片时，速率非常慢。然而，在上星期
+   的售前演示时，却没有这样的问题。
+
+** 问题分析
+   抓取数据包如下：
+
+   [[./images/2016/2016031406.png]]
+
+   发现上述情况不断重复，即不停地进行Off-Channel扫描，然而网卡没有动，
+   且非常靠近AP。 
+
+   =一个设备在off-channel或休眠状态下是不会传输数据的。= NULL数据帧使用
+   power management位来通知AP为其缓存数据帧。 通常有如下两种原因：
+   1. 节省电力
+   2. 执行off-channel扫描来建立一个neighbor列表,以方便未来可能进行的漫
+      游动作。
+
+   在这个案例中，STA不停地尝试建立一个neighbor列表，可以看到它在正执行
+   off-channel扫描（在信息1,6,11之间不停地切换）。这表明STA正在尝试寻找
+   一个更好的AP去关联，有如下可能的原因会导致这种行为发生：
+   1. driver有错误。
+   2. STA错误地配置了高概率的漫游。
+   3. RF差，没有接收到数据。
+   4. 天线坏了或者是没有接好。
+   5. 干涉。
+
+** 解决方法
+   基于上述的分析以及可能的原因，发现USB接口的网卡插在显示器的背部，周
+   围几乎被金属包围。这样会导致USB性能很差，很能保持连接，会导致不停地
+   漫游到新的AP上。
+   [[./images/2016/2016031401.jpg]]
+
+
+* 连接老旧AP热点失败
+
+** 问题描述
+   连接一台比较旧的AP时，连接失败，被AP拒绝。对比其他平台，可以正常连接。
+
+** 问题分析 
+
+   这个问题看上去应该是AP兼容性问题，需要一份正常连接的Log和失败的Log进
+   行对比，以判断问题点。
+
+   1. 首先看AP回的Probe Response的信息
+
+      [[./images/2016/2016051301.png]]
+
+      从图中，可以看到几个信息：
+      - 此AP不包含HT Capability，说明是不支持11n的（注：在解决问题前，
+        是不清楚AP是很老旧的AP这个信息的。）
+
+      - 第二，就是AP的一些Capability信息。
+
+   2. 其次看下连接失败时，发送给AP的Association Request的包的信息
+
+      [[./images/2016/2016051302.png]]
+
+   3. 其他平台能正常连接到此AP时，发送给AP的Associaiton Request的包的信
+      息
+
+      [[./images/2016/2016051303.png]]
+
+
+   通过对比，可以发现有如下两个疑点：
+   1. Association Request中的immediate Bloack Ack Allowed这个位没有设置。
+   2. 在发送给AP的Association Request中的信息中包含有Extended
+      Capabilities信息。
+
+** 解决方法
+   针对上述两个疑点，发现连接不上的主要原因是在Association Request中携
+   带了Extended Capabilities IE信息。针对这种情况， =wpa_supplicant= 已
+   经有了一个修改的思路：
+
+   #+BEGIN_SRC c
+     /*
+      ,* Workaround: Add Extended Capabilities element only if the AP
+      ,* included this element in Beacon/Probe Response frames. Some older
+      ,* APs seem to have interoperability issues if this element is
+      ,* included, so while the standard may require us to include the
+      ,* element in all cases, it is justifiable to skip it to avoid
+      ,* interoperability issues.
+      ,*/
+     if (!bss || wpa_bss_get_ie(bss, WLAN_EID_EXT_CAPAB)) {
+             u8 ext_capab[18];
+             int ext_capab_len;
+             ext_capab_len = wpas_build_ext_capab(wpa_s, ext_capab,
+                                                  sizeof(ext_capab));
+             if (ext_capab_len > 0) {
+                     u8 *pos = wpa_ie;
+                     if (wpa_ie_len > 0 && pos[0] == WLAN_EID_RSN)
+                             pos += 2 + pos[1];
+                     os_memmove(pos + ext_capab_len, pos,
+                                wpa_ie_len - (pos - wpa_ie));
+                     wpa_ie_len += ext_capab_len;
+                     os_memcpy(pos, ext_capab, ext_capab_len);
+             }
+     }      
+   #+END_SRC
+
+* A模下吞吐量偏低的问题
+
+** 现象描述 
+      客户 有报在A模下吞吐量偏低的问题，
+       标准要求在20MBit/s, 但是测试到的结果低于10Mbit/s.
+
+** 原因分析
+           当在A模式下，设置AP在某些channel, driver会识别成其他的
+           Channel，这时吞吐量会偏低。
+               
+           在Side Band Channel听到比较弱的AP Beacon
+
+** 解决方案
+    过滤到非Ajacent信道上侦听到的Beacon。
+    
+
+

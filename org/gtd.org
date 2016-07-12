@@ -12,7 +12,7 @@
   :PROPERTIES:
   :CATEGORY: TASKS
   :END:
-** WiFI Driver持续学习 [0/1]
+** WiFI Driver持续学习 [1/1]
 *** Roaming Function
     - Next Action: 文档 E:\documents\wifi\学习资料\SOP\sta\MT76x2,
       MT7603 Linux WLAN Driver Study Materials\Roaming.ppx
@@ -36,10 +36,6 @@
       MT7603_MT7628_Single_SKU.pptx
       Single SKU MT76xx.pptx
       MT76XX_Single_Sku_V2_20140123.doc
-
-*** TX Power
-    - Next Action:
-      temperature_tx_power_compensation
 
 *** IGMP snooping
     - Next Action:
@@ -69,10 +65,6 @@
     - Next Action:
       usb_study_report_junqi_2_USB Driver Register.pdf
 
-*** 深入了解BA
-    - Next Action:
-      研究代码实现细节
-
 *** 深入了解TxRx原理
     - [ ] 深入研究代码实现细节
     - [ ] 帧聚合
@@ -95,13 +87,6 @@
 *** ☛ TODO CONFIG_OF device_node
 ** 备忘
 *** 研究在指定日期发送信息给自己的脚本
-** TODO 搭建Android以及Java开发环境
-   - Next Action: 研究利用notepad++搭建轻量级Java开发环境和Android开发
-     环境。
-** ⚑ WAITING 分析助手 [1/2]
-   - [X] 使用Python脚本实现
-   - [ ] 实现为Notepad++的插件形式
-
 ** ☛ TODO 阅读FreeMind代码，理清大体框架
 
 ** 802.11ac
@@ -116,6 +101,7 @@
 *** p2p协商时Channel的选择
     p2p_prepare_channel_best
 *** wps生成PMK时使用的原料
+*** hostpad学习
 ** emacs
 *** 研究emacs源码 [0/4]
 **** ☛ TODO =simple.el= 源码研究 
@@ -185,7 +171,6 @@
 **** 学习Python基本的网络编程方法
 **** https://automatetheboringstuff.com/
 *** 设计模式
-*** zsh
 ** 个人开发需求
 *** 编写一个Chrome Plugin，记录自己收藏的网址
 *** Wifi Debug Program                                               :PROJECT:
@@ -346,8 +331,10 @@
     WCNCR00082921
 *** gpiolib
 *** kallsyms_lookup_name() //查找对应symbol然后调用
-* Daily GTD [0/2]
+* Daily GTD [1/4]
 ** ☛ TODO [#C] IW源码学习
+** TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
+    - [X] 第一章
 ** 整理Android笔记
 *** WiFi Framework
 ** 整理以前的学习笔记 [0/8]
@@ -359,13 +346,8 @@
    - [ ] Java编程笔记
    - [ ] Unix下C编程学习笔记
    - [ ] 内核编程笔记
-** Rate Control
-   - Next Action:
-     WIFI Driver Study - Rate Control (20141021)
-   - http://blog.csdn.net/junglefly/article/details/48974077
 ** ☛ TODO 预约体检
-** 网卡订购电灯等
-
+** ☛ TODO 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
 * 已完成 
 
 ** 2016
@@ -1073,7 +1055,7 @@ Added: [2015-12-14 周一 16:30]
      - Next Action:
        MT76x2_Data_Path
 
-*** 6月[6/6]
+*** 6月[14/14]
 **** ✔ DONE TX & RX Ring                                              :Wifi Driver持续学习:
      CLOSED: [2016-06-01 周三 14:00]
      - Next Action:
@@ -1105,7 +1087,8 @@ Added: [2015-12-14 周一 16:30]
      - [X] 第十章 完整实例
 **** ✘ CANCELED fbterm导致死机的原因                               :ArchLinux:
      CLOSED: [2016-06-13 周一 17:45]
-**** ☛ TODO [#B] TCP/IP协议分析 [2/2]
+**** ✔ DONE [#B] TCP/IP协议分析 [2/2]
+     CLOSED: [2016-07-04 周一 14:20]
      - [X] TCP协议分析
      - [X] ICMP 
 
@@ -1143,7 +1126,37 @@ Added: [2015-12-14 周一 16:30]
 **** ✔ DONE 深入研究wpa_supplicant中SCAN的处理                :wpa_supplicant:
       CLOSED: [2016-06-29 周三 14:40]
      重点看下每一轮Scan的开始与结束为何
-*** 7月[/]
+*** 7月[1/1]
+**** ✔ DONE 网卡订购电灯等
+     CLOSED: [2016-07-04 周一 13:40]
+     
+**** ✔ DONE 分析助手 [1/2]                                           :Notepad:
+      CLOSED: [2016-07-07 周四 13:35]
+     - [X] 使用Python脚本实现
+     - [ ] 实现为Notepad++的插件形式
+
+**** ✔ DONE 深入了解BA                                      :Study:Wifi驱动持续学习:
+     CLOSED: [2016-07-08 周五 14:35]
+     - Next Action:
+       研究代码实现细节
+
+**** ✔ DONE Rate Control                                    :Driver持续学习:Study:
+      CLOSED: [2016-07-11 周一 11:50]
+     - Next Action:
+       WIFI Driver Study - Rate Control (20141021)
+       APMlmeDynamicTxRateSwitching
+     - http://blog.csdn.net/junglefly/article/details/48974077
+**** ✘ CANCELED TODO 搭建Android以及Java开发环境
+      CLOSED: [2016-07-11 周一 13:45]
+     - Next Action: 研究利用notepad++搭建轻量级Java开发环境和Android开发
+       环境。
+**** ✘ CANCELED zsh
+     CLOSED: [2016-07-11 周一 13:45]
+**** ✔ DONE TX Power                                        :Wifi驱动持续学习:Study:
+      CLOSED: [2016-07-11 周一 16:45]
+     - Next Action:
+       temperature_tx_power_compensation
+
 *** 8月[/]
 *** 9月[/]
 *** 10月[/]
