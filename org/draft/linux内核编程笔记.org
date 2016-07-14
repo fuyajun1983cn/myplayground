@@ -1,0 +1,1658 @@
+#+STARTUP: overview
+#+TITLE: Linux内核编程笔记
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 知识点1 内核线程
+  内核线程可以用户两种方法实现：
+  1. 古老的方法
+     创建内核线程：
+     : ret = kernel_thread(mykthread, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+
+     内核线程方法的实现
+     #+BEGIN_SRC c
+       static DECLARE_WAIT_QUEUE_HEAD(myevent_waitqueue);
+       rwlock_t myevent_lock;
+       extern unsigned int myevent_id;
+
+       static int mykthread(void *unused)
+       {
+         unsigned int event_id = 0;
+         DECLARE_WAITQUEUE(wait, current);
+         //将此线程作为kthreadd的子进程，成为一个内核线程，不占用用户资源
+         daemonize(“mykthread”);
+
+         //daemonize()默认阻塞所有信号，所以…
+         allow_signal(SIGKILL);
+
+         add_wait_queue(&myevent_waitqueue, &wait);
+
+         for ( ; ;)
+           {
+             set_current_state(TASK_INTERRUPTIBLE);
+             schedule();
+             if ( signal_pending(current) )
+               break;
+
+             read_lock(&myevent_lock);
+             if ( myevent_id)
+               {
+                 event_id = myevent_id;
+                 read_unlock(&myevent_lock);
+                 run_umode_handler(event_id);
+               }
+             else
+               {
+                 read_unlock(&myevent_lock);
+               }
+           }
+               
+         set_current_state(TASK_RUNNING);
+         remove_wait_queue(&myevent_waitqueue, &wait);
+         return 0;
+       }
+            
+     #+END_SRC
+
+  2. 现代方法（从2.6.23起）
+     创建内核线程更现代的方法是辅助函数 =kthread_create=
+     函数原型：
+     #+BEGIN_SRC c
+       struct task_struct *kthread_create(int (*threadfin)(void *data), 
+                                          　　void *data, 
+                                          const char namefmt[], 
+                                          …)     
+     #+END_SRC
+
+     例子如下：
+     #+BEGIN_SRC c
+       #include <linux/kthread.h>   // kernel thread helper interface
+       #include <linux/completion.h>
+       #include <linux/module.h>
+       #include <linux/sched.h>
+       #include <linux/init.h>
+
+       MODULE_LICENSE("Dual BSD/GPL");
+       MODULE_AUTHOR("fuyajun1983cn@yahoo.com.cn");
+
+       struct task_struct *my_task;                      
+
+       /* Helper thread */
+       static int
+       my_thread(void *unused)
+       {
+
+         while (!kthread_should_stop()) {
+           
+           set_current_state(TASK_INTERRUPTIBLE);
+           schedule();
+           printk("I am still running\n");
+
+         }
+
+         /* Bail out of the wait queue */
+         __set_current_state(TASK_RUNNING);
+
+         return 0;
+       }
+
+       /* Module Initialization */
+       static int __init
+       my_init(void)
+       {
+         /* ... */
+
+         /*   my_task = kthread_create(my_thread, NULL, "%s", "my_thread");
+              if (my_task) wake_up_process(my_task);
+         ,*/
+         /*kthread_run会调用kthread_create函数创建新进程，并立即唤醒它*/
+         kthread_run(my_thread, NULL, "%s", "my_thread");*/
+
+           /* ... */
+        
+
+           /* ... */
+           return 0;
+       }
+
+       /* Module Release */
+       static void __exit
+       my_release(void)
+       {
+         /* ... */
+         kthread_stop(my_task);
+         /* ... */
+       }
+
+       module_init(my_init);
+       module_exit(my_release);     
+     #+END_SRC
+
+* 知识点2 内核错误码处理宏
+  　　Linux有时候在操作成功时需要返回指针，而在失败时则返回错误码。但
+  是C语言每个函数只允许一个直接的返回值，因此，任何有关可能错误的信息
+  都必须编码到指针中。虽然一般而言，指针可以指向内存中的任意位置，而
+  Linux支持的每个体系结构的虚拟地址空间中都有一个从虚拟地址0到至少4K的
+  区域，该区域中没有任何有意义的信息。因此内核可以重用该地址范围来的编
+  码错误码。
+
+  =ERR_PTR= 是一个辅助宏，用于将数值常数编码为指针。相关的宏如下：
+
+| 宏名称      | 意义                       |
+|-------------+----------------------------|
+| =IS_ERR()=  | 返回值是否是错误码         |
+| =PTR_ERR()= | 将返回值转化为错误码       |
+| =ERR_PTR()= | 根据错误码返回对错误的描述 |
+
+判断内核版本号的宏如下：
+: #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+
+* 知识点3 内核数据结构之链表
+      内核中的许多数据结构都是通过链表来的维护的， Linux内核提供了链表的通
+  用处理操作，供内核中其他数据结构使用。只需将链表结构嵌入到目标数据结
+  构，就可以利用通用的链表操作目标数据结构了
+
+  数据结构定义：
+  #+BEGIN_SRC c
+    #include <linux/list.h>
+    /*内核中的通用链表数据结构定义*/
+    struct list_head
+    {
+      struct list_head *next, *prev;
+    };
+    /*内嵌了通用链表数据结构的自定义的数据结构*/
+    struct mydatastructure
+    {
+      struct list_head mylist;   /* Embed */
+      /*  …   */           /* Actual Fields */
+    };  
+  #+END_SRC
+
+  内核中链表的常用操作：
+  | 宏或函数                     | 意义                                 |
+  |------------------------------+--------------------------------------|
+  | =INIT_LIST_HEAD()=           | 初始化链表头                         |
+  |------------------------------+--------------------------------------|
+  | =list_add()=                 | 将元素增加到链表头后                 |
+  |------------------------------+--------------------------------------|
+  | =list_add_tail()=            | 将元素添加到链表尾                   |
+  |------------------------------+--------------------------------------|
+  | =list_del()=                 | 从链表中删除一个元素                 |
+  |------------------------------+--------------------------------------|
+  | =list_replace()=             | 将链表中的元素替换为另一个           |
+  |------------------------------+--------------------------------------|
+  | =list_entry()=               | 遍历链表中的每一个元素               |
+  |------------------------------+--------------------------------------|
+  | =list_for_each_entry()=      | 简化链表迭代接口                     |
+  |------------------------------+--------------------------------------|
+  | =list_for_each_entry_safe()= | 如果迭代过程中需要删除结点，则用这个 |
+  |------------------------------+--------------------------------------|
+  | =list_empty()=               | 检查链表是否为空                     |
+  |------------------------------+--------------------------------------|
+  | =list_splice()=              | 将两个链表合并                       |
+  |------------------------------+--------------------------------------|
+
+  一个例子：
+  #+BEGIN_SRC c
+    /*用于同步，以及串联逻辑数据结构的辅助结构*/
+    static struct _mydrv_wq {
+      struct list_head mydrv_worklist; /* Work List 链头*/
+      spinlock_t lock;                 /* Protect the list */
+      wait_queue_head_t todo;          /* Synchronize submitter
+                                          and worker */
+    } mydrv_wq;
+
+    /*逻辑相关的数据结构*/
+    struct _mydrv_work {
+      struct list_head mydrv_workitem; /* The work chain */
+      void (*worker_func)(void *);     /* Work to perform */
+      void *worker_data;               /* Argument to worker_func */
+      /* ... */                        /* Other fields */
+    } mydrv_work;
+
+    //Initialize Data Structures
+    static int __init
+    mydrv_init(void)
+    {
+      /* Initialize the lock to protect against
+         concurrent list access */
+      spin_lock_init(&mydrv_wq.lock);
+
+      /* Initialize the wait queue for communication
+         between the submitter and the worker */
+      init_waitqueue_head(&mydrv_wq.todo);
+
+      /* Initialize the list head */
+      INIT_LIST_HEAD(&mydrv_wq.mydrv_worklist);
+
+      /* Start the worker thread. See Listing 3.4 */
+      kernel_thread(mydrv_worker, NULL,
+                      CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+      return 0;
+    }
+  #+END_SRC
+
+  *哈希链表*
+  #+BEGIN_SRC c
+    struct hlist_head
+    {
+      struct hlist_node *first;
+    };
+
+    struct hlist_node
+    {
+      struct hlist_node *next, **pprev;
+    };  
+  #+END_SRC
+
+* 知识点4 内核中的通知链
+  通知链(Notifier Chains)：
+      通知链用于向请求通知的代码区发送状态变化消息，消息只在內核模塊間傳遞。
+  有四種類型的通知鏈：
+  1. Atomic notifier chains: Chain callbacks run in interrupt/atomic
+     context. Callouts are not allowed to block.
+  2. Blocking notifier chains: Chain callbacks run in process
+     context. Callouts are allowed to block.
+  3. Raw notifier chains: There are no restrictions on callbacks,
+     registration, or unregistration.  All locking and protection must
+     be provided by the caller.
+  4. SRCU notifier chains: A variant of blocking notifier chains, with
+     the same restrictions. 一般用於通知鏈被經常調用，而很少被刪除的情
+     形。
+
+  有几个内核中预定义的通知器：
+  - Die Notification: 当一个内核函数触发了一个由“opps”引起的陷阱或错误
+    时。
+  - Net device notification：当一个网卡禁用或启用时
+  - CPU frequency notification：当处理器频率发生变化时
+  - Internet address notification：当一个网卡IP地址发生变化时
+
+  自定义通知链：
+  　　使用 =BLOCKING_NOTIFIER_HEAD()= 初始化，通过
+  =blocking_notifier_chain_register()= 来注册通知链。在中断上下文中，使用
+  =ATOMIC_NOTIFIER_HEAD()= 初始化，通过
+  =atomic_notifier_chain_register()= 来注册
+  通知链。
+
+  代码示例：
+  #+BEGIN_SRC c
+    #include <linux/notifier.h>
+    #include <linux/kdebug.h>
+    #include <linux/netdevice.h>
+    #include <linux/inetdevice.h>
+
+    extern int register_die_notifier(struct notifier_block *nb);
+    extern int unregister_die_notifier(struct notifier_block *nb);
+
+    /* Die notification event handler */
+    int my_die_event_handler(struct notifier_block *self, unsigned long val, void *data)
+    {
+      struct die_args *args = (struct die_args *)data;
+
+      if (val == 1) { /* '1' corresponds to an "oops" */
+        printk("my_die_event: OOPs! at EIP=%lx\n", args->regs->eip);
+      } /* else ignore */
+      return 0;
+    }
+
+    /* Die Notifier Definition */
+    static struct notifier_block my_die_notifier = {
+      .notifier_call = my_die_event_handler,
+    };
+
+
+
+    /* Net Device notification event handler */
+    int my_dev_event_handler(struct notifier_block *self,
+                             unsigned long val, void *data)
+    {
+      printk("my_dev_event: Val=%ld, Interface=%s\n", val,
+             ((struct net_device *) data)->name);
+      return 0;
+    }
+
+    /* Net Device notifier definition */
+    static struct notifier_block my_dev_notifier = {
+      .notifier_call = my_dev_event_handler,
+    };
+
+
+    /* User-defined notification event handler */
+    int my_event_handler(struct notifier_block *self,
+                         unsigned long val, void *data)
+    {
+      printk("my_event: Val=%ld\n", val);
+      return 0;
+    }
+
+    /* User-defined notifier chain implementation */
+    static BLOCKING_NOTIFIER_HEAD(my_noti_chain);
+
+    static struct notifier_block my_notifier = {
+      .notifier_call = my_event_handler,
+    };
+
+    /* Driver Initialization */
+    static int __init
+    my_init(void)
+    {
+      /* ... */
+
+      /* Register Die Notifier */
+      register_die_notifier(&my_die_notifier);
+
+      /* Register Net Device Notifier */
+      register_netdevice_notifier(&my_dev_notifier);
+
+      /* Register a user-defined Notifier */
+      blocking_notifier_chain_register(&my_noti_chain, &my_notifier);
+
+      /* ... */
+      return 0;
+    }
+
+    //驱动模块初始化函数
+    static int __init hello3_init(void)
+    {
+      my_init();
+      blocking_notifier_call_chain(&my_noti_chain, 100, NULL);
+      return 0;
+    }
+
+    module_init(hello3_init);
+    //驱动模块注册函数
+    static void __exit hello3_exit(void)
+    {
+      unregister_die_notifier(&my_die_notifier);
+      unregister_netdevice_notifier(&my_dev_notifier);
+      blocking_notifier_chain_unregister(&my_noti_chain, &my_notifier);
+    }
+
+    module_exit(hello3_exit);  
+  #+END_SRC
+
+* 知识点5 条件编译在内核中的使用
+      当需要根据编译时配置，以不同方式执行某一任务时，一种可能的方法是，使
+  用两个不同的函数，每次调用时，根据某些预处理器条件来的选择正确的一个：
+  #+BEGIN_SRC c
+    void do_somehting()
+    {
+      …
+    #ifdef CONFIG_WORK_HARD
+        do_work_fast();
+    #else
+      do_work_at_your_leisure();
+    #endif
+      …
+    }  
+  #+END_SRC
+
+  由于这需要在每次调用函数时都使用预处理器，内核开发者认为这种方法代表
+  了糟糕的风格，更优雅的一个方案是根据选择不同的配置，来定义函数自身：
+  #+BEGIN_SRC c
+    #ifdef CONFIG_WORK_HARD
+    void do_work()
+    {
+    …
+    }
+    #else
+    void do_work()
+    {
+    …
+    }
+    #endif
+    void do_something()
+    {
+    …
+    do_work();
+    …
+    }  
+  #+END_SRC
+
+* 知识点6 procfs文件系统编程
+      proc文件系统是一种虚拟的文件系统，它只存在于内存当中，一般用来在内核
+  中输出一些信息到用户层，通常可以利用其来打印内核程序中的一些调试信息，
+  具体的操作如下代码。
+  #+BEGIN_SRC c
+    #include <linux/kernel.h>
+    #include <linux/module.h>
+    #include <linux/uaccess.h>
+    #include <linux/proc_fs.h>
+
+    MODULE_LICENSE("Dual BSD/GPL");
+    MODULE_AUTHOR("fu.yajun@byd.com");
+
+    // Entries for /proc/gdl and /proc/gdl/memory
+    static struct proc_dir_entry * mm_proc_mem; //对应目录项
+    static struct proc_dir_entry * mm_proc_dir;  //对应文件
+
+    static ssize_t procfs_test1_write(struct file * file, 
+                                      const char  __user * buffer, 
+                                      size_t count, 
+                                      loff_t *        data)
+    {
+      unsigned char file_name[80];
+      size_t   size_to_copy;
+      size_to_copy = count;
+      memset(file_name, 0x0, 80);
+      copy_from_user(file_name, buffer, size_to_copy);
+      printk("%s", file_name);
+      return size_to_copy;
+    }
+
+    static const struct file_operations procfs_test1_fops = {
+      .write = procfs_test1_write,
+    };
+
+    //----------------------------------------------------------------------------
+    // Initialize proc filesystem
+    //----------------------------------------------------------------------------
+    static int __init mm_procfs_init(void)
+    {
+      mm_proc_dir = 0;
+      mm_proc_mem = 0;
+
+      mm_proc_dir = proc_mkdir("gdl",0);//在/proc下创建一个目录
+      if (mm_proc_dir == 0)
+        {
+          printk(KERN_ERR "/proc/gdl/ creation failed\n");
+          return -1;
+        }
+      //创建/proc/gdl/memory文件
+      　　mm_proc_mem = proc_create("memory", 
+                                    　　                           S_IFREG|S_IRWXU|S_IRWXG|S_IRWXO, 
+                                    　　                         mm_proc_dir, &procfs_test1_fops);
+      if (mm_proc_mem == 0) {
+        printk(KERN_ERR "/proc/gdl/memory creation failed\n");
+        proc_remove(mm_proc_dir);
+        mm_proc_dir = 0;
+        return -1;
+      }
+      if (mm_proc_mem == 0)
+        {
+          printk(KERN_ERR "/proc/gdl/memory creation failed\n");
+          remove_proc_entry("gdl", 0);
+          mm_proc_dir = 0;
+          return -1;
+        }
+
+      return 0;
+    }
+
+
+    //----------------------------------------------------------------------------
+    // De-initialize proc filesystem
+    //----------------------------------------------------------------------------
+    static int __exit mm_procfs_deinit(void)
+    {
+      if (mm_proc_dir != 0)
+        {
+          if (mm_proc_mem != 0)
+            {
+              proc_remove(mm_proc_mem);
+              mm_proc_mem = 0;
+            }
+
+          proc_remove(mm_proc_dir);
+          mm_proc_dir = 0;
+        }
+
+      return 0;
+    }
+
+    module_init(mm_procfs_init);
+    module_exit(mm_procfs_deinit);  
+  #+END_SRC
+
+* 知识点7 内核中的几种内存分配器
+  内存管理是内核是最复杂同时也是最重要的一部分，其中就涉及到了多种内存
+  分配器，如果内核初始化阶段使用的bootmem分配器，分配大块内存的伙伴系
+  统，以及其分配较小块内存的slab、slub和slob分配器。
+
+  1. bootmem分配器
+     bootmem分配器用于在启动阶段早期分配内存。该分配器用一个位图来管理
+     页，位图比特位的数目与系统中物理内存页的数目相同。比特位为1表示已
+     用页，比特位为0，表示空闲页。在需要分配内存时，分配器逐位扫描位图，
+     直至找到一个能提供足够连续页的位置，即所谓的最先最佳或最先适配位
+     置。
+
+     该分配提供了如下内核接口：
+     | 内核接口                        | 说明                                         |
+     |---------------------------------+----------------------------------------------|
+     | =alloc_bootmem=                 | 按指定大小在 =ZONE_NORMAL= 内存域分配内存    |
+     | =alloc_bootmem_pages(size)=     |                                              |
+     |---------------------------------+----------------------------------------------|
+     | =alloc_bootmem_low=             | 功能同上，只是从 =ZONE_DMA= 内存域分配内存。 |
+     | =alloc_bootmem_low_pages(size)= |                                              |
+     |---------------------------------+----------------------------------------------|
+     | =free_bootmem=                  | 释放内存                                     |
+     |---------------------------------+----------------------------------------------|
+
+     每个分配器必须实现一组特定的函数，用于内存分配和缓存：
+     =kmalloc= 、 =__kmalloc= 和 =kmalloc_node= 是一般的内存分配函数。
+     =kmem_cache_alloc= 、 =kmem_cache_alloc_node= 提供特定类型的内核
+     缓存。
+
+  2. slab分配器
+     功能：提供小的内存块，也可用作一个缓存。
+         分配和释放内存在内核代码上很常见。为了使频繁分配和释放内存所导致
+     的开销尽量变小，程序员通常使用空闲链表。当分配的内在块不再需要时，
+     将这块内存插入到空闲链表中，而不是真正的释放掉，这种空闲链表相当
+     于内存块缓冲区。但这种方法的不足之处是，内核没有一种手段能够全局
+     地控制空闲链表的大小，实时地更新这些空闲链表的大小。事实上，内核
+     根本也不可能知道有多少空闲链表存在。
+
+     为了解决上述问题，内核心提供了slab层或slab分配器。它作为一个通用
+     的内核数据结构缓冲层。slab层使用了以下几个基本原理：
+     - 经常使用的数据结构一般来说会被经常分配或释放，所以应该缓存它们。
+
+     - 频繁地分配和释放内存会导致内在碎片（不能找到合适的大块连续的物
+       理地址空间）。为了防止这种问题，缓冲后的空闲链表被存放到连续的
+       物理地址空间上。由于被释放的数据结构返回到了空闲链表，所以没有
+       导致碎片。
+
+     - 在频繁地分配和释放内存空间在情况下，空闲链表保证了更好的性能。
+       因为被释放的对象空间可立即用于下次的分配中。
+
+     - 如果分配器能够知道诸如对象大小、页大小和总的缓冲大小时，它可以
+       作出更聪明的决定。
+
+     - 如果部分缓冲区为每-CPU变量，那么，分配和释放操作可以不需要SMP锁。
+
+     - 如果分配器是非一致内存，它能从相同的内存结点中完成分配操作。
+
+     - 存储的对象可以被着色，以防止多个对象映射到同一个缓冲。
+
+     　　linux中的slab层就是基于上述前提而实现的。
+     slab层将不同的对象进行分组，称之为“缓冲区(cache)”。一个缓冲区存储
+     一种类型的对象。每种类型的对象有一个缓冲区。kmalloc()的实现就是基
+     于slab层之上的，使用了一族通用的缓冲区。这些缓冲区被分成了一些
+     slab。这些slab是由一个或多个物理上连续的页组成的。每个缓冲区可包
+     含多个slab。
+
+     　　每个slab包含有一些数量的对象，也即被缓冲的数据结构。每个slab
+     问量处于三种状态之间：满、部分满、空。当内核请求一个新的对象时，
+     它总是先查看处于部分满状态的slab，查看是否有合适的空间，如果没有，
+     则在空的slab中分配空间。
+
+     [[./images/2016/2016071401.png]]
+
+     每个缓冲区由一个 =kmem_cache= 结构来表示。该结构包含了三个链表：
+     =slabs_full=, =slabs_partial= 和 =slabs_emppty= 。存储在一个
+     =kmem_list= 结构中。
+
+     #+CAPTION: slab分配器接口
+     | 接口名称             | 说明                          |
+     |----------------------+-------------------------------|
+     | =kmem_cache_create=  | 分配一个cache                 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_destroy= | 销毁一个cache                 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_alloc=   | 从一个cache中分配一个对象空间 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_free=    | 释放一个对象空间到cache中     |
+     |----------------------+-------------------------------|
+
+     这些接口不宜在中断上下文中使用。
+
+* 知识点8 内核同步机制——原子操作
+  内核为原子操作提供了两组接口。一组操作整数，一个组操作比特位。
+  1. 整数原子操作
+     数据类型为：
+     #+BEGIN_SRC c
+       typedef struct {
+         volatile int counter;
+       } atomic_t;     
+     #+END_SRC
+
+     [[./images/2016/2016071402.png]]
+
+     为了保持内核在各个平台兼容，以前规定 =atomic_t= 的值不能超过24位（都是
+     SPARC惹的祸），不过现在该规定已经不需要了。
+
+     相关操作如下：
+     #+BEGIN_SRC c
+       void atomic_set(atomic_t *v, int i);
+       atomic_t v = ATOMIC_INIT(0);//设置原子变量v的值 为整数i。
+       int atomic_read(atomic_t *v);//返回原子变量当前的值
+       void atomic_add(int i, atomic_t *v);//将i加到原子变量上
+       void atomic_sub(int i, atomic_t *v)//从原子变量的值中减去i
+       void atomic_inc(atomic_t *v);//增加原子变量的值
+       void atomic_dec(atomic_t *v);//减少原子变量的值     
+     #+END_SRC
+
+     执行相关的操作后测试原子变量的值是否为0
+     Perform the specified operation and test the result; if, after
+     the operation, the atomic value is 0, then the return value is
+     true; otherwise, it is false. Note that there is no
+     =atomic_add_and_test=.
+     #+BEGIN_SRC c
+       int atomic_inc_and_test(atomic_t *v);
+       int atomic_dec_and_test(atomic_t *v);
+       int atomic_sub_and_test(int i, atomic_t *v);     
+     #+END_SRC
+
+     Add the integer variable i to v. The return value is true if the
+     result is negative,false otherwise.
+     : int atomic_add_negative(int i, atomic_t *v);
+
+     Behave just like =atomic_add= and friends, with the exception that
+     they return the new value of the atomic variable to the caller.
+
+     #+BEGIN_SRC c
+       int atomic_add_return(int i, atomic_t *v);
+       int atomic_sub_return(int i, atomic_t *v);
+       int atomic_inc_return(atomic_t *v);
+       int atomic_dec_return(atomic_t *v);     
+     #+END_SRC
+
+     最近的内核也提供了64位的版本，即 =atomic64_t= ，方法和用法与32位类似，
+     方法名相应的地方换为atomic64。
+
+  2. 位操作
+     Sets bit number nr in the data item pointed to by addr.
+     : void set_bit(nr, void *addr);
+
+     Clears the specified bit in the unsigned long datum that lives at
+     addr. Its semantics are otherwise the same as =set_bit=.
+     : void clear_bit(nr, void *addr);
+     : void change_bit(nr, void *addr); // Toggles the bit.
+
+     This function is the only bit operation that doesn’t need to be
+     atomic; it simply returns the current value of the bit.
+     : test_bit(nr, void *addr);  
+
+     Behave atomically like those listed previously, except that they
+     also return the previous value of the bit.
+     #+BEGIN_SRC c
+       int test_and_set_bit(nr, void *addr);
+       int test_and_clear_bit(nr, void *addr);
+       int test_and_change_bit(nr, void *addr);     
+     #+END_SRC
+
+     使用场景：
+     #+BEGIN_SRC c
+       /* try to set lock */
+       while (test_and_set_bit(nr, addr) != 0)
+         wait_for_a_while( );
+       /* do your work */
+       /* release lock, and check... */
+       if (test_and_clear_bit(nr, addr) = = 0)
+         something_went_wrong( ); /* already released: error */     
+     #+END_SRC
+
+     内核也提供了一套非原子位操作函数，函数名就是原子版函数前面加两下
+     划线。
+
+* 知识点9 内核同步机制——自旋锁
+  由于关键代码区可以跨越了多个函数或数据结构，需要有更通用的同步方法：锁。
+  内核中最常见的一种锁就是自旋锁。相同的锁可用于多处。
+
+  自旋锁可用在不可睡眠的场景，如中断处理函数。自旋锁是一种互斥设备，只
+  有两个值 ：“锁定”和“非锁定”。它通常实现为一个整数值的某个比特位。想
+  获取某个锁的代码首先测试相关的位，如果锁可得，则该位的“锁定”位被置位，
+  代码继续执行，反之，代码将进入一个紧凑的循环，不停地检测锁定位直至自
+  旋锁变得可得。该循环是自旋锁的“旋转”部分。 自旋锁主要用于多处理器的
+  情况下。
+
+  1. 通用自旋锁
+     相关操作：
+     - 定义
+       #+BEGIN_SRC c
+         DEFINE_SPINLOCK(mr_lock)
+         spinlock_t my_lock = SPIN_LOCK_UNLOCKED;//静态初始化
+         //或
+         void spin_lock_init(spinlock_t *lock);//动态初始化       
+       #+END_SRC
+
+     - 获取自旋锁
+       : void spin_lock(spinlock_t *lock);//不可中断的
+
+     - 释放自旋锁
+       : void spin_unlock(spinlock_t *lock);
+
+     使用自旋锁时要禁止中断，禁止睡眠，并且应当尽可能减少占用自旋锁的
+     时间
+
+     其他函数
+     #+BEGIN_SRC c
+     void spin_lock(spinlock_t *lock);
+     //在获取自旋锁之前，禁止中断
+     void spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
+     void spin_lock_irq(spinlock_t *lock);
+     //禁止软件中断，但允许硬件中断
+     void spin_lock_bh(spinlock_t *lock)     
+     #+END_SRC
+
+     对应的解锁函数如下：
+     #+BEGIN_SRC c
+     void spin_unlock(spinlock_t *lock);
+     void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags);
+     void spin_unlock_irq(spinlock_t *lock);
+     void spin_unlock_bh(spinlock_t *lock);     
+     #+END_SRC
+
+     非阻塞自旋锁操作（成功返回非0,允许中断）
+     #+BEGIN_SRC c
+     int spin_trylock(spinlock_t *lock);
+     int spin_trylock_bh(spinlock_t *lock);     
+     #+END_SRC
+
+     　　如果被保护的共享资源只在进程上下文访问和软中断上下文访问，那
+     么当在进程上下文访问共享资源时，可能被软中断打断，从而可能进入软
+     中断上下文来对被保护的共享资源访问，因此对于这种情况，对共享资源
+     的访问必须使用 =spin_lock_bh= 和 =spin_unlock_bh= 来保护。当然使
+     用 =spin_lock_irq= 
+     和 =spin_unlock_irq= 以及 =spin_lock_irqsave= 和
+     =spin_unlock_irqrestore= 也可以，
+     它们失效了本地硬中断，失效硬中断隐式地也失效了软中断。但是使用
+     =spin_lock_bh= 和 =spin_unlock_bh= 是最恰当的，它比其他两个快。
+
+     　　如果被保护的共享资源只在进程上下文和tasklet或timer上下文访问，
+     那么应该使用与上面情况相同的获得和释放锁的宏，因为tasklet和timer
+     是用软中断实现的。
+
+     　　如果被保护的共享资源只在一个tasklet或timer上下文访问，那么不
+     需要任何自旋锁保护，因为同一个tasklet或timer只能在一个CPU上运行，
+     即使是在SMP环境下也是如此。实际上tasklet在调用 =tasklet_schedule= 标记
+     其需要被调度时已经把该tasklet绑定到当前CPU，因此同一个tasklet决不
+     可能同时在其他CPU上运行。timer也是在其被使用 =add_timer= 添加到timer队
+     列中时已经被帮定到当前CPU，所以同一个timer绝不可能运行在其他CPU上。
+     当然同一个tasklet有两个实例同时运行在同一个CPU就更不可能了。
+
+     如果被保护的共享资源只在两个或多个tasklet或timer上下文访问，那么
+     对共享资源的访问仅需要用 =spin_lock= 和 =spin_unlock= 来保护，不
+     必使用 =_bh= 版本，因为当tasklet或timer运行时，不可能有其他tasklet或timer在当前
+     CPU上运行。如果被保护的共享资源只在一个软中断（tasklet和timer除外）
+     上下文访问，那么这个共享资源需要用 =spin_lock= 和 =spin_unlock= 来保护，因
+     为同样的软中断可以同时在不同的CPU上运行。
+
+     如果被保护的共享资源在两个或多个软中断上下文访问，那么这个共享资
+     源当然更需要用 =spin_lock= 和 =spin_unlock= 来保护，不同的软中断能够同时在
+     不同的CPU上运行。
+
+     　　如果被保护的共享资源在软中断（包括tasklet和timer）或进程上下
+     文和硬中断上下文访问，那么在软中断或进程上下文访问期间，可能被硬
+     中断打断，从而进入硬中断上下文对共享资源进行访问，因此，在进程或
+     软中断上下文需要使用 =spin_lock_irq= 和 =spin_unlock_irq= 来保护对共享资源的
+     访问。而在中断处理句柄中使用什么版本，需依情况而定，如果只有一个
+     中断处理句柄访问该共享资源，那么在中断处理句柄中仅需要 =spin_lock=
+     和 =spin_unlock= 来保护对共享资源的访问就可以了。因为在执行中断处理句柄
+     期间，不可能被同一CPU上的软中断或进程打断。但是如果有不同的中断处
+     理句柄访问该共享资源，那么需要在中断处理句柄中使用 =spin_lock_irq= 和
+     =spin_unlock_irq= 来保护对共享资源的访问。
+
+     　　在使用 =spin_lock_irq= 和 =spin_unlock_irq= 的情况下，完全可以用
+     =spin_lock_irqsave= 和 =spin_unlock_irqrestore= 取代，那具体应该使用哪一个也
+     需要依情况而定，如果可以确信在对共享资源访问前中断是使能的，那么
+     使用 =spin_lock_irq= 更好一些，因为它比 =spin_lock_irqsave= 要快一些，但是如
+     果你不能确定是否中断使能，那么使用 =spin_lock_irqsave= 和
+     =spin_unlock_irqrestore= 更好，因为它将恢复访问共享资源前的中断标志而
+     不是直接使能中断。当然，有些情况下需要在访问共享资源时必须中断失
+     效，而访问完后必须中断使能，这样的情形使用 =spin_lock_irq= 和
+     =spin_unlock_irq= 最好。
+
+  2. 读/写自旋锁： =rwlock_t=
+     头文件：<linux/spinlock.h>
+     说明：读写自旋锁是一种比自旋锁粒度更小的锁机制，它保留了“自旋”的
+     概念，但是在写操作方面，只能最多有一个写进程，在读操作方面，同时
+     可以有多个读执行单元。当然，读写操作不能同时进行。
+
+     *初始化*
+     #+BEGIN_SRC c
+     rwlock_t my_rwlock = RW_LOCK_UNLOCKED; /* Static way */
+     rwlock_t my_rwlock;
+     rwlock_init(&my_rwlock);  /* Dynamic way */     
+     #+END_SRC
+
+     *读*
+     #+BEGIN_SRC c
+       void read_lock(rwlock_t *lock);
+       void read_lock_irqsave(rwlock_t *lock, unsigned long flags);
+       void read_lock_irq(rwlock_t *lock);
+       void read_lock_bh(rwlock_t *lock);
+       void read_unlock(rwlock_t *lock);
+       void read_unlock_irqrestore(rwlock_t *lock, unsigned long flags);
+       void read_unlock_irq(rwlock_t *lock);
+       void read_unlock_bh(rwlock_t *lock);     
+     #+END_SRC
+     
+     *写*
+     #+BEGIN_SRC c
+       void write_lock(rwlock_t *lock);
+       void write_lock_irqsave(rwlock_t *lock, unsigned long flags);
+       void write_lock_irq(rwlock_t *lock);
+       void write_lock_bh(rwlock_t *lock);
+       int write_trylock(rwlock_t *lock);
+       void write_unlock(rwlock_t *lock);
+       void write_unlock_irqrestore(rwlock_t *lock, unsigned long flags);
+       void write_unlock_irq(rwlock_t *lock);
+       void write_unlock_bh(rwlock_t *lock);     
+     #+END_SRC
+
+  3. 顺序锁：seqlocks
+     　　对读写锁的一种优化。使用顺序锁，读执行单元绝不会被写执行单元
+     阻塞，也就是说，读执行单元可以在写执行单元对被顺序锁保护的共享资
+     源进行写操作时仍然可以继续读，而不必等待写执行单元完成操作，写操
+     作也不需要等待所有读执行单元完成读操作才去进行写操作。用于受保护
+     的资源很小，简单且经常访问，适用于写操作很少但必须很快的场景。不
+     能保护有指针成员变量的数据结构。 
+
+     头文件：<linux/seqlock.h>
+     *示例*
+     #+BEGIN_SRC c
+       seqlock_t lock1 = SEQLOCK_UNLOCKED;
+       seqlock_t lock2;
+       seqlock_init(&lock2);
+       unsigned int seq;
+       do {
+         seq = read_seqbegin(&the_lock);
+         /* Do what you need to do */
+        } while (read_seqretry(&the_lock, seq));     
+     #+END_SRC
+
+     在中断处理函数中使用seqlock，则应当使用IRQ安全的版本：
+     : unsigned int read_seqbegin_irqsave(seqlock_t *lock, unsigned long flags);
+     : int read_seqretry_irqrestore(seqlock_t *lock, unsigned int seq, unsigned long flags);
+
+     获取一个写保护：
+     : void write_seqlock(seqlock_t *lock);
+     释放：
+     : void write_sequnlock(seqlock_t *lock);
+     类似函数:
+     #+BEGIN_SRC c
+       void write_seqlock_irqsave(seqlock_t *lock, unsigned long flags);
+       void write_seqlock_irq(seqlock_t *lock);
+       void write_seqlock_bh(seqlock_t *lock);
+       void write_sequnlock_irqrestore(seqlock_t *lock, unsigned long flags);
+       void write_sequnlock_irq(seqlock_t *lock);
+       void write_sequnlock_bh(seqlock_t *lock);     
+     #+END_SRC
+
+* 知识点10 内核同步机制——信号量
+  1. 通用版
+     信号量用于对一个或多个资源进行互斥访问。基本操作如下：
+     : void sema_init(struct semaphore *sem, int val);//信号量初始化函数
+     静态初始化：
+     #+BEGIN_SRC c
+       DECLARE_MUTEX(name);//初始化为1
+       DECLARE_MUTEX_LOCKED(name);//初始化为0     
+     #+END_SRC
+     
+     动态初始化：
+     #+BEGIN_SRC c
+       void init_MUTEX(struct semaphore *sem);
+       void init_MUTEX_LOCKED(struct semaphore *sem);     
+     #+END_SRC
+
+     在linux中， P函数称为down， V函数称为up。
+     #+BEGIN_SRC c
+       void down(struct semaphore *sem);//不可中断版本
+       int down_interruptible(struct semaphore *sem);//可中断版本
+       int down_trylock(struct semaphore *sem);//不等待版本， 立即返回，0表示成功。     
+     #+END_SRC
+
+     一般情况下使用 =down_interruptible= 函数，它允许一个在信号量上等待的
+     用户空间进程被用户打断。不过在使用该函数时必须记住要检查它的返回
+     值,并做出相应的处理。该函数被中断时返回一个非零值。
+
+     : void up(struct semaphore *sem); //释放占用的信号量
+
+  2. 读写信号量
+     读/写信号量: =rw_semaphore=
+     说明：允许一个进程写，多个进程读
+     头文件：<linux/rwsem.h>
+     *初始化函数：*
+     : void init_rwsem(struct rw_semaphore *sem);
+
+     *相关操作：*
+     #+BEGIN_SRC c
+       void down_read(struct rw_semaphore *sem);
+       Int down_read_trylock(struct rw_semaphore *sem);//非0表示成功
+       void up_read(struct rw_semaphore *sem);
+       void down_write(struct rw_semaphore *sem);
+       int down_write_trylock(struct rw_semaphore *sem);
+       void up_write(struct rw_semaphore *sem);
+       void downgrade_write(struct rw_semaphore *sem);     
+     #+END_SRC
+
+* 知识点11 内核同步机制——互斥量
+  *互斥量*
+  数组结构：struct mutex.
+  静态定义：
+  : DEFINE_MUTEX(name);
+  动态初始化：
+  : mutex_init(&mutex);
+  操作：
+  #+BEGIN_SRC c
+    mutex_lock(&mutex);
+    /* critical region ... */
+    mutex_unlock(&mutex);
+    mutex_trylock(struct mutex *)
+    mutex_is_locked (struct mutex *)  
+  #+END_SRC
+     
+  互斥量有如下一些特性：
+  1. 每次只能有一个任务可以获得互斥量。
+  2. 谁获得，谁释放，不能在一个上下文中获得锁，在另一个上下文中释放锁。
+  3. 不支持嵌套。
+  4. 进程在获得互斥量时不能退出。
+  5. 中断上下文中不能使用。
+  6. 只能使用以上的一些API操作互斥量。
+
+* 知识点12 内核同步机制——完成量
+  内核中的许多部分初始化某些活动为单独的执行线程，然后等待这些线程完成。
+  完成接口是一种有效并简单的方式来实现这样的代码模式。
+  
+  *对象创建*
+  #+BEGIN_SRC c
+    DECLARE_COMPLETION(my_completion);
+    //或
+    struct completion my_completion;/* ... */
+    init_completion(&my_completion);  
+  #+END_SRC
+
+  *操作*
+  #+BEGIN_SRC c
+    void wait_for_completion(struct completion *c); //执行一个不可中断的等待
+    void complete(struct completion *c);//唤醒一个线程
+    void complete_all(struct completion *c);//唤醒多个线程i  
+  #+END_SRC
+
+  当调用 complete时，可重用completion对象，当调用 =complete_all= 时，需要重
+  新初始化后才能重用complete对象，可使用宏 =INIT_COMPLETION=(struct
+  completion c)=
+
+  #+BEGIN_SRC c
+    /***********************************************************************/
+    //完成接口
+    //内核中的许多部分初始化某些活动为单独的执行线程，然后等待这些线程完成。
+    //完成接口是一种有效并简单的方式来实现这样的代码模式。
+    /***********************************************************************/
+
+    #include <linux/completion.h>
+    #include <linux/module.h>
+    #include <linux/sched.h>
+    #include <linux/init.h>
+
+
+    static DECLARE_COMPLETION(my_thread_exit);      /* Completion */
+    static DECLARE_WAIT_QUEUE_HEAD(my_thread_wait); /* Wait Queue */
+    int pink_slip = 0;                              /* Exit Flag */
+
+    /* Helper thread */
+    static int
+    my_thread(void *unused)
+    {
+      DECLARE_WAITQUEUE(wait, current);
+
+      daemonize("my_thread");
+      add_wait_queue(&my_thread_wait, &wait);
+
+      while (1) {
+        /* Relinquish processor until event occurs */
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
+        /* Control gets here when the thread is woken
+           up from the my_thread_wait wait queue */
+
+        /* Quit if let go */
+        if (pink_slip) {
+          break;
+        }
+        /* Do the real work */
+        /* ... */
+
+      }
+
+      /* Bail out of the wait queue */
+      __set_current_state(TASK_RUNNING);
+      remove_wait_queue(&my_thread_wait, &wait);
+
+      /* Atomically signal completion and exit */
+      complete_and_exit(&my_thread_exit, 0);
+    }
+
+    /* Module Initialization */
+    static int __init
+    my_init(void)
+    {
+      /* ... */
+
+      /* Kick start the thread */
+      kernel_thread(my_thread, NULL,
+                    CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+
+      /* ... */
+      return 0;
+    }
+
+    /* Module Release */
+    static void __exit
+    my_release(void)
+    {
+      /* ... */
+      pink_slip = 1;                        /* my_thread must go */
+      wake_up(&my_thread_wait);             /* Activate my_thread */
+      wait_for_completion(&my_thread_exit); /* Wait until my_thread
+                                               quits */
+      /* ... */
+    }
+
+    module_init(my_init);
+    module_exit(my_release);  
+  #+END_SRC
+
+* 知识点13 进程管理
+      进程创建使用系统调用fork()或vfork()，在内核中，这些函数是通过clone()
+  系统调用完成的。进程通过系统调用exit()退出。父进程通过系统调用
+  wait4()系统调用来查询一个停止的子进程的状态。基于wait4()系统调用的C
+  函数有wait(),waitpid(),wait3()和wait4()。
+
+  　　进程采用数据结构 =task_struct= 描述， =struct thread_info= 为进程的一个辅
+  助数据结构，一般存储在进程栈的边界处，通过它可以引用实现的进程数据结
+  构地址。进程描述符是进程的唯一标识。最大进程数可通过
+  =/proc/sys/kernel/pid_max=.来修改，默认为32768.
+
+  　　宏current引用当前的进程，在X86上，它等于
+  =current_thread_info()->task= 。 进程的状态可以通过如下函数进行设置：
+  : set_task_state(task, state);
+
+  　　方法 =set_current_state(state)= 等同于 =set_task_state(current,
+  state)= 。进程上下文是指当内核代表某个用户进程执行某个操作时，就称其
+  处于进程上下文中。
+
+  *进程树*
+   获取当前进程的父进程的代码如下：
+   : struct task_struct *my_parent = current->parent;
+
+   遍历一个进程的子进程的代码如下：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     struct list_head *list;
+     list_for_each(list, &current->children) {
+     　task = list_entry(list, struct task_struct, sibling);
+     　/* task now points to one of current’s children */
+     　　}   
+   #+END_SRC
+
+   初如任务进程的描述符静态分配为 =init_task= 。如下代码永远成功：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     for (task = current; task != &init_task; task = task->parent)
+     ;
+     /* task now points to init */   
+   #+END_SRC
+
+   获取任务列表中的下一个任务的代码如下：
+   : list_entry(task->tasks.next, struct task_struct, tasks)
+
+   获取任务列表中的前一个任务代码如下：
+   : list_entry(task->tasks.prev, struct task_struct, tasks)
+
+   上述代码段分别对应宏 =next_task(task)= 和 =prev_task(task)=
+   宏 =for_each_process(task)=, 遍历整个任务列表，在每次迭代中，task指
+   向列表中的下一个任务：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     for_each_process(task) {
+     　/* this pointlessly prints the name and PID of each task */
+     　　printk(“%s[%d]\n”, task->comm, task->pid);
+     　}   
+   #+END_SRC
+  
+   *创建线程*
+   创建线程采用的系统调用：
+   : clone(CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND, 0);
+   普通fork()调用：
+   : clone(SIGCHLD, 0);
+   vfork()调用：
+   : clone(CLONE_VFORK | CLONE_VM | SIGCHLD, 0);
+
+| Flag                   | Meaning                                                              |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_FILES=          | Parent and child share open files.                                   |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_FS=             | Parent and child share filesystem information.                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_IDLETASK=       | Set PID to zero (used only by the idle tasks).                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_NEWNS=          | Create a new namespace for the child.                                |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PARENT=         | Child is to have same parent as its parent.                          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PTRACE=         | Continue tracing child.                                              |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTID=         | Write the TID back to user-space.                                    |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTLS=         | Create a new TLS for the child.                                      |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SIGHAND=        | Parent and child share signal handlers and blocked signals.          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SYSVSEM=        | Parent and child share System V =SEM_UNDO= semantics.                |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_THREAD=         | Parent and child are in the same thread group.                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_VFORK=          | vfork() was used and the parent will sleep until the child wakes it. |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_UNTRACED=       | Do not let the tracing process force CLONE_PTRACE on the child.       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_STOP=           | Start process in the =TASK_STOPPED= state.                           |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTLS=         | Create a new TLS (thread-local storage) for the child.               |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_CHILD_CLEARTID= | Clear the TID in the child.                                          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_CHILD_SETTID=   | Set the TID in the child.                                            |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PARENT_SETTID=  | Set the TID in the parent.                                           |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_VM=             | Parent and child share address space.                                |
+|------------------------+----------------------------------------------------------------------|
+
+* 知识点14 内核热插拔管理
+  在可插拔的总线如USB（和Cardbus PCI）中，终端用户在主机运行时将设备插
+  入到总线上。在大部分情况下，用户期望设备立即可用。这意味着系统必须作
+  许多事情，包括：
+  - 找到一个可以处理设备的驱动。它可能包括装载一个内核模块，较新的驱动
+    可以用模块初始化工具将设备的支持发布到用户应用工具集中。
+  - 将一个驱动绑定到该设备中。总线框架使用设备驱动的probe()函数来为该
+    设备绑定一个驱动。
+  - 告诉其他的子系统配置新的设备。打印队列可能被使能，网络被开启，磁盘
+    分区被挂载等等。在一些情况下，还会有一些驱动相关的动作。
+
+  Policy Agent：是指当发生热插拔事件时，被内核触发的用户空间程序（如
+  /sbin/hotplug）。通常这些程序是一些shell脚本，通过该脚本去调用更多的
+  管理工具。
+
+  这种机制主要是通过kobject对象模型来实现的。
+  
+  *热插拔相关接口函数：*
+  
+  #+BEGIN_SRC c
+    /**
+     ,* kobject_uevent - notify userspace by ending an uevent
+     ,*
+     ,* @action: action that is happening
+     ,* @kobj: struct kobject that the action is happening to
+     ,*
+     ,* Returns 0 if kobject_uevent() is completed with success or the
+     ,* corresponding error when it fails.
+     ,*/
+    int kobject_uevent(struct kobject *kobj, enum kobject_action action);
+    //相当于kobject_uevent_env(kobj, action, NULL);
+    /**
+     ,* kobject_uevent_env - send an uevent with environmental data
+     ,*
+     ,* @action: action that is happening
+     ,* @kobj: struct kobject that the action is happening to
+     ,* @envp_ext: pointer to environmental data
+     ,*
+     ,* Returns 0 if kobject_uevent() is completed with success or the
+     ,* corresponding error when it fails.
+     ,*/
+    int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+                            char *envp[]);
+    /**
+     ,* add_uevent_var - add key value string to the environment buffer
+     ,* @env: environment buffer structure
+     ,* @format: printf format for the key=value pair
+     ,*
+     ,* Returns 0 if environment variable was added successfully or -ENOMEM
+     ,* if no space was available.
+     ,*/
+    int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
+            __attribute__((format (printf, 2, 3)));
+
+    /**
+     ,* kobject_action_type - translate action string to numeric type
+     ,*
+     ,* @buf: buffer containing the action string, newline is ignored
+     ,* @len: length of buffer
+     ,* @type: pointer to the location to store the action type
+     ,*
+     ,* Returns 0 if the action string was recognized.
+     ,*/
+    int kobject_action_type(const char *buf, size_t count,
+                            enum kobject_action *type);  
+  #+END_SRC
+
+  相关数据结构：
+
+  #+BEGIN_SRC c
+    enum kobject_action {
+            KOBJ_ADD,
+            KOBJ_REMOVE,
+            KOBJ_CHANGE,
+            KOBJ_MOVE,
+            KOBJ_ONLINE,
+            KOBJ_OFFLINE,
+            KOBJ_MAX
+    };
+    /* the strings here must match the enum in include/linux/kobject.h */
+    static const char *kobject_actions[] = {
+            [KOBJ_ADD] =            "add",
+            [KOBJ_REMOVE] =         "remove",
+            [KOBJ_CHANGE] =         "change",
+            [KOBJ_MOVE] =           "move",
+            [KOBJ_ONLINE] =         "online",
+            [KOBJ_OFFLINE] =        "offline",
+    };
+    struct kobj_uevent_env {
+            char *envp[UEVENT_NUM_ENVP];
+            int envp_idx;
+            char buf[UEVENT_BUFFER_SIZE];
+            int buflen;
+    };
+    //热插拔事件相关操作
+    struct kset_uevent_ops {
+            int (*filter)(struct kset *kset, struct kobject *kobj);//事件过滤函数
+            const char *(*name)(struct kset *kset, struct kobject *kobj);//获取总线名称，如USB
+            int (*uevent)(struct kset *kset, struct kobject *kobj,
+                          struct kobj_uevent_env *env);//提交热插拔事件
+    };  
+  #+END_SRC
+
+  相关函数：
+  #+BEGIN_SRC c
+    struct kset *kset_create_and_add(const char *name,
+                                     struct kset_uevent_ops *uevent_ops,
+                                     struct kobject *parent_kobj);  
+  #+END_SRC
+
+  其中 =struct kset_uevent_ops= 中指定具体的uevent函数。
+
+* 知识点15 系统调用
+  用户程序请求内核程序为其服务主要通过以下几种方式：
+  - 中断
+  - 系统调用
+  - 信号
+
+  其中，系统调用是一种常见方式，它在用户进程与硬件之间提供了一个层，该
+  层主要提供以下三个目的：
+  1. 它为用户空间提供了一个抽象的硬件接口
+  2. 它确保了系统的安全与稳定性。
+  3. 为虚拟化系统的实现提供支持。
+
+  操作系统内核提供了许多系统调用接口，一个典型的系统调用过程如下：
+  [[./images/2016/2016071403.png]]
+
+  在x86平台上，系统调用是通过软件中断来实现的，中断号为128（或0x80）。
+  系统调用需要提供系统调用号（传递给eax）以及一些参数（依次传递给ebx,
+  ecx, edx, esi, edi）, 系统调用处理函数通常名为system_call()， 定义在
+  entry.S 或entry_64.S中。它会检查系统调用号的合法性，即是否大于
+  =NR_syscalls= ， 如果是的话，返回-ENOSYS， 否则调用对应的函数：
+  : call  *sys_call_table(,%rax,8)
+
+  [[./images/2016/2016071404.png]]
+
+  *自定义一个系统调用* 
+
+  在Linux中实现一个系统调用不用户关心系统调用处理函数的行为，因此增加
+  一个系统调用非常容易
+  =SYSCALL_DEFINE0~6= 分别声明一个参数为0~6个的系统调用。
+  定义完系统调用函数后， 剩下的工作就是将其注册为一个内核系统调用函数：
+  - 在系统调用表中末尾添加一项，通常赋给该系统调用一个调用号（即在
+    entry.S中的ENTRY( =sys_call_table=)）。
+  - 对每个支持的平台，在<asm/unistd.h>中定义系统调用号。
+  - 将系统调用编译到内核镜像中（而不是编译成一个模块），可以将系统调用
+    函数放在kernel/sys.c文件中。
+
+  例子如下，我们要定义一个foo系统调用函数：
+  #+BEGIN_SRC c
+    /*
+     ,* sys_foo – everyone’s favorite system call.
+     ,*
+     ,* Returns the size of the per-process kernel stack.
+     ,*/
+    asmlinkage long sys_foo(void)// SYSCALL_DEFINE0(sys_foo)
+    {
+      　　return THREAD_SIZE;
+    }  
+  #+END_SRC
+
+  添加foo到entry.S文件中：
+  #+BEGIN_SRC c
+    ENTRY(sys_call_table)
+    .long sys_restart_syscall /* 0 */
+    .long sys_exit
+    .long sys_fork
+    .long sys_read
+    .long sys_write
+    .long sys_open /* 5 */
+
+            …
+    .long sys_rt_tgsigqueueinfo /* 335 */
+    .long sys_perf_event_open
+    .long sys_recvmmsg
+    .long sys_foo  
+  #+END_SRC
+
+  我们的系统调用号为：338
+  在<asm/unistd.h>
+  增加宏定义：
+  : #define __NR_foo 338
+
+  在用户空间中调用， _syscall0~6对应不同参数个数的系统调用
+  #+BEGIN_SRC c
+    #define __NR_foo 283
+    __syscall0(long, foo)
+    int main ()
+    {
+      long stack_size;
+      stack_size = foo ();
+      printf (“The kernel stack size is %ld\n”, stack_size);
+      return 0;
+    }
+      
+  #+END_SRC
+
+* 知识点16 等待队列——休眠与唤醒
+  　　内核中的休眠是通过等待队列来处理的。等待队列是一个由正在等待某个
+  事件发生的进程组成的一个简单链表。在内核用 =wait_queue_head_t= 来表
+  示。
+
+  定义：
+  : DECLARE_WAITQUEUE() （静态定义）
+  或
+  : init_waitqueue_head()  （动态定义）
+
+  在内核中实现休眠的方法有点复杂，实现的模板如下：
+  #+BEGIN_SRC c
+    　　/* ‘q’ is the wait queue we wish to sleep on */ 
+    　　DEFINE_WAIT(wait); 
+    　　add_wait_queue(q, &wait); //这个函数调用是可选
+    　　while (!condition) { /* condition is the event that we are waiting for */ 
+      　　prepare_to_wait(&q, &wait, TASK_INTERRUPTIBLE); 
+      　　if (signal_pending(current)) 
+        　　/* handle signal */ 
+        　　schedule(); 
+      　　} 
+    　　finish_wait(&q, &wait);   
+  #+END_SRC
+
+  一个进程执行如下步骤将自己加入到一个等待队列中：
+  - 通过宏 =DEFINE_WAIT()= 来创建一个等待队列项。
+  - 通过函数 =add_wait_queue()= 将该项加入到一个等待队列中。当等待的事件（条
+    件）为真时，等待队列会唤醒该进程项。当然，需要在其他地方调用
+    =wake_up()= 函数。
+  - 调用 =prepare_to_wait()= 函数将进程的状态改为 =TASK_INTERRUPTIBLE= 或
+    =TASK_UNINTERRUPTIBLE= 。该函数也会在必要的时候将进程加回到等待队列中，
+    在后续的迭代中会用到（提示：第二个步骤可选，因为该函数在任务列表为
+    空的时候也会将当前任务项加入到等待队列中）。
+  - 如果状态设置为 =TASK_INTERRUPTIBLE= ，一个信号会唤醒该进程。这称为伪休
+    眠。因此要检测和处理信号。
+  - 当进程被唤醒，它再次检测条件是否为真。如果为真，它会退出循环。否则，
+    再次调用schedule()然后重复上述过程。
+  - 当条件为真，该进程会将其状态设为 =TASK_RUNNING= 并将自己通过
+    =finish_wait()= 从等待队列中删除。
+
+  一个例子：
+  #+BEGIN_SRC c
+    static ssize_t inotify_read(struct file *file, char __user *buf,
+                                size_t count, loff_t *pos)
+    {
+      struct fsnotify_group *group;
+      struct fsnotify_event *kevent;
+      char __user *start;
+      int ret;
+      DEFINE_WAIT(wait);
+
+      start = buf;
+      group = file->private_data;
+
+      while (1) {
+        prepare_to_wait(&group->notification_waitq, &wait, TASK_INTERRUPTIBLE);
+
+        mutex_lock(&group->notification_mutex);
+        kevent = get_one_event(group, count);
+        mutex_unlock(&group->notification_mutex);
+
+        if (kevent) {
+          ret = PTR_ERR(kevent);
+          if (IS_ERR(kevent))
+            break;
+          ret = copy_event_to_user(group, kevent, buf);
+          fsnotify_put_event(kevent);
+          if (ret < 0)
+            break;
+          buf += ret;
+          count -= ret;
+          continue;
+        }
+
+        ret = -EAGAIN;
+        if (file->f_flags & O_NONBLOCK)
+          break;
+        ret = -EINTR;
+        if (signal_pending(current))
+          break;
+
+        if (start != buf)
+          break;
+
+        schedule();
+      }
+
+      finish_wait(&group->notification_waitq, &wait);
+      if (start != buf && ret != -EFAULT)
+        ret = buf - start;
+      return ret;
+    }  
+  #+END_SRC
+
+  另一种模板
+  #+BEGIN_SRC c
+    /* Helper thread */
+    static int
+    my_thread(void *unused)
+    {
+      DECLARE_WAITQUEUE(wait, current);
+
+      daemonize("my_thread");
+      add_wait_queue(&my_thread_wait, &wait);
+
+      while (1) {
+        /* Relinquish processor until event occurs */
+        　　set_current_state(TASK_INTERRUPTIBLE);
+        　　if (signal_pending(current))
+          　　/*##handle singal event##*/
+          schedule();
+        /* Control gets here when the thread is woken
+           up from the my_thread_wait wait queue */
+
+        /* Quit if let go */
+        if (pink_slip) {
+          break;
+        }
+        /* Do the real work */
+        /* ... */
+
+      }
+
+      /* Bail out of the wait queue */
+      __set_current_state(TASK_RUNNING);
+      remove_wait_queue(&my_thread_wait, &wait);
+
+      /* Atomically signal completion and exit */
+      complete_and_exit(&my_thread_exit, 0);
+    }  
+  #+END_SRC
+
+  唤醒
+  　　通过函数 =wake_up()= 唤醒，它将唤醒所有在特定等待队列上等待的进程。一
+  般情况下默认的唤醒函数为： =default_wake_function()= 。它会调用
+  =try_to_wake_up()= ，将被唤醒的进程状态设置为 =TASK_RUNNING= ，然后调用
+  =enqueue_task()= 将该进程加入到红黑树中，如果被唤醒的进程的优先级大于当
+  前进程的优先级，设置 =need_resched= 为1。休眠与唤醒之间的关系如下：
+  
+  #+CAPTION: 休眠与唤醒之间的关系图
+  [[./images/2016/2016071405.png]]
+
+  　　伪唤醒是指进程是因为接收到某个信号而被唤醒， 而不是等待事件发生
+  而导致其被唤醒。
+
+  　　在最新的内核代码中，一般会使用更高层的接口： =wait_event= 或
+  =wait_event_timeout= 接口。使用 =wake_up_all= 唤醒所有添加到某个等待队列链表中
+  的等待队列。使用模板如下：
+  1. 初始化一个等待队列头：
+     : init_waitqueue_head(&ret->wait_queue);
+     注： 判断队列是否为空： =waitqueue_active(...)= ， 返回false即表
+     示队列为空.
+  2. 等待某个条件发生：
+     =wait_event(...)= 或 =wait_event_timeout(...)=
+  3. 唤醒队列
+     =wake_up_all(...)=
+
+* 知识点17 内核数据结构之队列
+  　　在操作系统内核中，一个常见的编程模式就是生产者和消费者。实现这种
+  模式的最容易的方式就是队列。生产者将数据插入队列，消费者将数据移出队
+  列。消费者以数据进队的顺序消费数据。
+
+  　　内核中通用队列的实现称为kfifo，其实现文件位于kernel/kfifo.c中。
+  本部分讨论的API接口是基于2.6.33的。Linux的kfifo工作方式与其他队列一
+  样，提供两个主要的操作：enqueue()和dequeue()。kfifo对象维护了两个偏
+  移量：入口偏移量和出口偏移量。入口偏移量是下次进队发生的位置，出口偏
+  移量是出队发生的位置。出口偏移量问题小于或等于入口偏移量。enqueue操
+  作从入口偏移量处开始，将数据拷贝到队列中，操作完成后，入口偏移量相应
+  的增加（拷进的数据长度）。dequeue操作从出口偏移量处开始，将数据拷贝
+  出队列，操作完成后，出口偏移量相应地增加（拷出的数据长度）。
+
+  - 创建一个队列
+    : int kfifo_alloc(struct kfifo *fifo, unsigned int size, gfp_t gfp_mask);
+    该函数创建和初始化一个大小为size字节的队列。
+    例子：
+    #+BEGIN_SRC c
+      struct kfifo fifo;
+      int ret;
+      ret = kfifo_alloc(&kifo, PAGE_SIZE, GFP_KERNEL);
+      if (ret)
+        return ret;    
+    #+END_SRC
+
+  - 自建队列函数
+    : int kfifo_alloc(struct kfifo *fifo, unsigned int size, gfp_t gfp_mask);
+
+  - 静态定义一个队列
+    #+BEGIN_SRC c
+      DECLARE_KFIFO(name, size);
+      INIT_KFIFO(name);    
+    #+END_SRC
+
+    其中，队列的大小必须是2的指数。
+
+  - 入队
+    : unsigned int kfifo_in(struct kfifo *fifo, const void *from, unsigned int len);
+
+  - 出队
+    #+BEGIN_SRC c
+      unsigned int kfifo_out(struct kfifo *fifo, void *to, unsigned int len);
+      unsigned int kfifo_out_peek(struct kfifo *fifo, void *to, unsigned int len,
+                                      　　unsigned offset);    
+    #+END_SRC
+
+  - 获取队列的大小
+    #+BEGIN_SRC c
+      static inline unsigned int kfifo_size(struct kfifo *fifo);
+      //该函数用于获取用于存储kfifo队列的缓冲区的总大小。
+      static inline unsigned int kfifo_len(struct kfifo *fifo);
+      //该函数用于获取进入kfifo队列的字节数。
+      static inline unsigned int kfifo_avail(struct kfifo *fifo);
+      //队列中可用于写入的剩余缓冲区的大小。
+      static inline int kfifo_is_empty(struct kfifo *fifo);
+      static inline int kfifo_is_full(struct kfifo *fifo);
+      //上述两个函数分别用于判断队列是否为空或满。    
+    #+END_SRC
+
+  - 重置和销毁队列
+    : static inline void kfifo_reset(struct kfifo *fifo);
+
+  - 重置一个队列
+    : void kfifo_free(struct kfifo *fifo);
+
+    释放一个kfifo，与 =kfifo_alloc()= 对应。
+    如果创建kfifo的时候使用的是 =kfifo_init()= 函数，那么提供相应的函
+    数来释放缓冲区，而不是用户 =kfifo_free()= 。
+
+* 知识点18 内核数据结构之映射
+  　　映射也称之为关联数组，它是一组唯一键的集合，每个键与特定的值相关。
+  一般支持至少三个操作：
+  - Add(key, value)
+  - Remove(key)
+  - value=Lookup(key)
+
+    　　Linux提供了一个简单而有效的映射数据结构，它不是通用目的的映射，
+    而是为特殊用例设计的：将UID（唯一标识号）映射到一个指针。除了提供
+    三个主要的映射操作，还基于add操作的基础上提供了一个allocate操作。
+    allocate操作不仅将添加一个UID/值对到映射中，还产生了一个UID。
+
+    　　idr数据结构用于映射用户空间的UID，例如inotify监视描述符到它们
+    相关的内核数据结构中，如 =inotify_watch= 。
+
+    1. 初始化idr
+       先静态定义或动态定义一个idr结构，然后调用
+       : void idr_init(struct idr *idp);
+       如：
+       #+BEGIN_SRC c
+         struct idr id_huh; /* statically define idr structure */
+         idr_init(&id_huh); /* initialize provided idr structure */       
+       #+END_SRC
+
+    2. 分配一个新的UID
+       分两步进行，第一步告诉idr需要分配一个新的UID，使得它能在必要时
+       重置后备树的大小，对应的函数为：
+       : int idr_pre_get(struct idr *idp, gfp_t gfp_mask);
+
+       第二步，请求新的UID，相应的函数为：
+       : int idr_get_new(struct idr *idp, void *ptr, int *id);
+
+       例子如下：
+       #+BEGIN_SRC c
+         int id; 
+         do { 
+         　if (!idr_pre_get(&idr_huh, GFP_KERNEL)) 
+         　　return -ENOSPC; 
+         　ret = idr_get_new(&idr_huh, ptr, &id); 
+         　} while (ret == -EAGAIN);        
+       #+END_SRC
+
+       : int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
+       该函数的工作方式与 =idr_get_new()= 一样，不过它保证了新的UID大于或等
+       于 =starting_id= 。它确保某个UID不被重用，并且保证了分析的UID在系统
+       运行期间都是唯一的。
+
+       #+BEGIN_SRC c
+         int id;
+         do {
+           if (!idr_pre_get(&idr_huh, GFP_KERNEL))
+             return -ENOSPC;
+           ret = idr_get_new_above(&idr_huh, ptr, next_id, &id);
+          } while (ret == -EAGAIN);
+         if (!ret)
+           next_id = id + 1;       
+       #+END_SRC
+
+    3. 查找一个UID
+       : void *idr_find(struct idr *idp, int id);
+       #+BEGIN_SRC c
+         struct my_struct *ptr = idr_find(&idr_huh, id); 
+         if (!ptr) 
+           return -EINVAL; /* error */        
+       #+END_SRC
+
+    4. 删除一个UID
+       : void idr_remove(struct idr *idp, int id);
+
+    5. 销毁一个udr
+       : void idr_destroy(struct idr *idp);
+       如果想强制删除所有的UID，使用如下函数：
+       : void idr_remove_all(struct idr *idp);
+       不过在调用 =idr_destroy()= 之前，要先在该idr上调用
+       =idr_remove_all()= ，确
+       保所有的idr内存被释放。
+
+
+
