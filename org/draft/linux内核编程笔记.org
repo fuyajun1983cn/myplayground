@@ -1654,5 +1654,81 @@
        =idr_remove_all()= ，确
        保所有的idr内存被释放。
 
+* 知识点19 内核数据结构之红黑树
+  　　红黑树是一种自平衡的二叉查找树，是Linux主要的二叉树结构。红黑树
+  有一个特殊的颜色属性，要么红色，要么黑色。红黑树通过强制以下条件来保
+  证红黑树仍然是半平衡的。
+  - 所有结点要是红色或黑色的。
+  - 叶子结点是黑色的。
+  - 叶子结点不包含数据。
+  - 所有非叶子结点有两个孩子。
+  - 如果一个结点是红色，那么它的两个孩子都为黑色。
+  - 从某个结点出发，到达任何叶子结点的路径中包含的黑色结点相同。
+
+  　　上述属性表明，最深的叶子的深度不会超过最浅的叶子的深度的二倍。这
+  样，该树总是半平衡的。
+
+  　　在Linux中，红黑树称为rbtree。分别声明和定义在<linux/rbtree.h>和
+  lib/rbtree.c中。一个rbtree的根总是由结构 =rb_root= 来表示。为了创建一个新
+  的红黑树，我们要分配一个新的 =rb_root= 并将其初始化为特殊值 =RB_ROOT=
+  : struct rb_root  root = RB_ROOT
+
+  　　单个结点由结构 =rb_node= 来表示。由于C语言不支持泛型编程，所以rbtree
+  并没有提供查找和插入程序，编程人员必须自行定义，不过可以使用rbtree已
+  经提供的一些帮助函数。
+  
+  #+CAPTION: 红黑树查找程序实现的一个例子
+  #+BEGIN_SRC c
+    struct page * rb_search_page_cache(struct inode *inode,
+                                       unsigned long offset)
+    {
+      struct rb_node *n = inode->i_rb_page_cache.rb_node;
+      while (n) {
+        struct page *page = rb_entry(n, struct page, rb_page_cache);
+        if (offset < page->offset)
+          n = n->rb_left;
+        else if (offset > page->offset)
+          n = n->rb_right;
+        else
+          return page;
+      }
+      return NULL;
+    }  
+  #+END_SRC
+
+  #+CAPTION: 红黑树插入程序实现的一个例子
+  #+BEGIN_SRC c
+    struct page * rb_insert_page_cache(struct inode *inode,
+                                       unsigned long offset,
+                                       struct rb_node *node)
+    {
+      struct rb_node **p = &inode->i_rb_page_cache.rb_node;
+      struct rb_node *parent = NULL;
+      struct page *page;
+      while (*p) {
+        parent = *p;
+        page = rb_entry(parent, struct page, rb_page_cache);
+        if (offset < page->offset)
+          p = &(*p)->rb_left;
+        else if (offset > page->offset)
+          p = &(*p)->rb_right;
+        else
+          return page;
+      }
+      rb_link_node(node, parent, p);
+      rb_insert_color(node, &inode->i_rb_page_cache);
+      return NULL;
+    }  
+  #+END_SRC
+
+  *总结：何时，何地使用什么数据结构？*   
+
+  　　如果，主要的操作是迭代访问数据，使用链表。当性能不是很重要时，也
+  可考虑使用链表。当数据项目总数相对较少时，或需要与其他内核代码进行交互
+  时，使用链表。 
+　  　如果代码符合生产者/消费者模式，使用队列，特别是你想要一个固定大小的缓冲区。
+　　  如果需要将一个UID映射到一个对象，使用映射。
+      如果需要存储大量的数据并要有效地查找数据，使用红黑树。但是如果这些操作
+  不是对时间要求很高的，那么最好用链表。
 
 
