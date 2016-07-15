@@ -27,3 +27,4 @@ push_code.sh
 node_modules/
 .gradle/
 .sass-cache
+%APPDATA%/*

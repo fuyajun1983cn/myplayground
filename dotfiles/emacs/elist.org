@@ -35,8 +35,11 @@ body...)
      获取传入进来的参数值
 *** 内联函数
     定义内联函数使用 defsubst
+*** 声明一个函数
+    : (declare-function FN FILE &optional ARGLIST FILEONLY)
+    声明函数FN定义在文件FILE中。 
 ** 宏
-   宏的参数是隐匿引用起来的，也就是说，当宏被调用时，它的参数不会被解
+   宏的参数是隐式引用起来的，也就是说，当宏被调用时，它的参数不会被解
    析，而是原样传递到宏内部。
 *** 例子
     #+BEGIN_SRC emacs-lisp
@@ -58,8 +61,33 @@ body...)
                (goto-char ,orig-point-symbol)))))
     #+END_SRC
 
-    ",@"跟","一样，原封不动的保留传入进来的参数，且会自动去年最外层的
+    ",@"跟","一样，原封不动的保留传入进来的参数，且会自动去掉最外层的
     括号。
+** 变量
+*** 普通变量
+    : defvar
+*** 常量
+    : defconst
+*** 可配置变量
+    : defcustom
+    #+BEGIN_SRC emacs-lisp
+      (defcustom org-timer-display 'mode-line
+        "When a timer is running, org-mode can display it in the mode
+      line and/or frame title.
+      Allowed values are:
+
+      both         displays in both mode line and frame title
+      mode-line    displays only in mode line (default)
+      frame-title  displays only in frame title
+      nil          current timer is not displayed"
+        :group 'org-time
+        :type '(choice
+                (const :tag "Mode line" mode-line)
+                (const :tag "Frame title" frame-title)
+                (const :tag "Both" both)
+                (const :tag "None" nil)))
+          
+    #+END_SRC
 ** let
    create a name for a local variable
    =let*= : set each variable in its varlist in sequence
@@ -75,7 +103,6 @@ body...)
       (message "One kind of animal has %s and another is %s. " 
            zera tiger))     
     #+END_SRC
-
 
 ** if
    #+BEGIN_SRC emacs-lisp
@@ -117,6 +144,20 @@ body...)
     #+END_SRC
 ** unless
 ** condition-case
+** cond 
+    #+BEGIN_SRC emacs-lisp
+      (cond
+       ((integerp offset) (setq delta offset)) ;; 条件1
+       ((stringp offset) (setq delta (org-timer-hms-to-secs offset)));;条件2
+       (t  ;;默认条件，任何时候都会执行
+        (setq def (if (org-in-regexp org-timer-re)
+                      (match-string 0)
+                    "0:00:00")
+              s (read-string
+                 (format "Restart timer with offset [%s]: " def)))
+        (unless (string-match "\\S-" s) (setq s def))
+        (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))    
+    #+END_SRC
 ** make-symbol
    创建一个全新的对象，能确保不会与现存的对象冲突。
 ** 错误处理

@@ -617,6 +617,205 @@
      @enduml
    #+END_SRC
 * Use Case Diagram
+** Usecases
+    用例可以使用 '( )' 表示，或者使用关键字 *usecase* , 还可以使用
+    *as* 关键字来定义一个别名。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071210.png :cmdline -charset UTF-8
+      @startuml
+      (First usecase)
+      (Another usecase) as (UC2)
+      usecase UC3
+      usecase (Last\nusecase) as UC4
+      @enduml
+    #+END_SRC
+** Actors
+    活动者可以使用 ': :'表示，或者使用关键字 *actor* ，还可以使用 *as*
+    关键字来定义一个别名。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071211.png :cmdline -charset UTF-8
+      @startuml
+      :First Actor:
+      :Another\nactor: as Men2
+      actor Men3
+      actor :Last actor: as Men4
+      @enduml
+    #+END_SRC
+** Usecases description
+    可以使用如下一些分隔符来表示多行用例描述。 
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071212.png.png :cmdline -charset UTF-8
+      @startuml
+      usecase UC1 as "You can use
+      several lines to define your usecase.
+      You can also use separators.
+      --
+      Several separators are possible.
+      ==
+      And you can add titles:
+      ..Conclusion..
+      This allows large description."
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071212.png.png]]
+
+** Basic Example
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071213.png :cmdline -charset UTF-8
+      @startuml
+      User -> (Start)
+      User --> (Use the application) : A small label
+      :Main Admin: ---> (Use the application) : This is\nyet another\nlabel
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071213.png]]
+
+** Extension
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071214.png :cmdline -charset UTF-8
+      @startuml
+      :Main Admin: as Admin
+      (Use the application) as (Use)
+      User <|-- Admin
+      (Start) <|-- (Use)
+      @enduml
+    #+END_SRC
+
+** Using notes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071215.png :cmdline -charset UTF-8
+      @startuml
+      :Main Admin: as Admin
+      (Use the application) as (Use)
+      User -> (Start)
+      User --> (Use)
+      Admin ---> (Use)
+      note right of Admin : This is an example.
+      note right of (Use)
+      A note can also
+      be on several lines
+      end note
+      note "This note is connected\nto several objects." as N2
+      (Start) .. N2
+      N2 .. (Use)
+      @enduml
+    #+END_SRC
+
+** Stereotypes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071216.png :cmdline -charset UTF-8
+      @startuml
+      User << Human >>
+      :Main Database: as MySql << Application >>
+      (Start) << One Shot >>
+      (Use the application) as (Use) << Main >>
+      User -> (Start)
+      User --> (Use)
+      MySql --> (Use)
+      @enduml
+    #+END_SRC
+
+** Changing arrows direction
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071217.png :cmdline -charset UTF-8
+      @startuml
+      :user: --> (Use case 1)
+      :user: -> (Use case 2)
+      @enduml
+    #+END_SRC
+
+    You can also change directions by reversing the link:
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071218.png :cmdline -charset UTF-8
+      @startuml
+      (Use case 1) <.. :user:
+      (Use case 2) <- :user:
+      @enduml
+    #+END_SRC
+
+    还可以在箭头中直接使用 *left* *right* *up* *down* 等关键字指定
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071219.png :cmdline -charset UTF-8
+      @startuml
+      :user: -left -> (dummyLeft)
+      :user: -right -> (dummyRight)
+      :user: -up-> (dummyUp)
+      :user: -down -> (dummyDown)
+      @enduml
+    #+END_SRC
+
+    
+** Title the diagram
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071220.png :cmdline -charset UTF-8
+      @startuml
+      title Simple <b>Usecase </b>\nwith one actor
+      "Use the application" as (Use)
+      User -> (Use)
+      @enduml
+    #+END_SRC
+
+** Splitting diagrams
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071221.png :cmdline -charset UTF-8
+      @startuml
+      :actor1: --> (Usecase1)
+      newpage
+      :actor2: --> (Usecase2)
+      @enduml
+    #+END_SRC
+
+** Left to right direction
+    默认方向是从上到下。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071222.png :cmdline -charset UTF-8
+      @startuml
+      'default
+      top to bottom direction
+      user1 --> (Usecase 1)
+      user2 --> (Usecase 2)
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071223.png :cmdline -charset UTF-8
+      @startuml
+      left to right direction
+      user1 --> (Usecase 1)
+      user2 --> (Usecase 2)
+      @enduml
+    #+END_SRC
+
+** Skinparam
+    改变颜色和显示的字体
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071224.png :cmdline -charset UTF-8
+      @startuml
+      skinparam handwritten true
+      skinparam usecase {
+      BackgroundColor DarkSeaGreen
+      BorderColor DarkSlateGray
+      BackgroundColor << Main >> YellowGreen
+      BorderColor << Main >> YellowGreen
+      ArrowColor Olive
+      ActorBorderColor black
+      ActorFontName Courier
+      ActorBackgroundColor << Human >> Gold
+      }
+      User << Human >>
+      :Main Database: as MySql << Application >>
+      (Start) << One Shot >>
+      (Use the application) as (Use) << Main >>
+      User -> (Start)
+      User --> (Use)
+      MySql --> (Use)
+      @enduml
+    #+END_SRC
+
+** Complete example
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071225.png :cmdline -charset UTF-8
+      @startuml
+      left to right direction
+      skinparam packageStyle rect
+      actor customer
+      actor clerk
+      rectangle checkout {
+      customer -- (checkout)
+      (checkout) .> (payment) : include
+      (help) .> (checkout) : extends
+      (checkout) -- clerk
+      }
+      @enduml
+    #+END_SRC
 
 * Class Diagram
 

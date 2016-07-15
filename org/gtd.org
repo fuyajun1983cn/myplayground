@@ -97,19 +97,8 @@
 *** 11ac中的BF
 *** ☛ TODO 物理层                                                         :802.11ac学习:
 ** wpa_supplicant持续学习
-*** 研究use_p2p_group_interface=1选项的支持
-*** p2p协商时Channel的选择
-    p2p_prepare_channel_best
 *** wps生成PMK时使用的原料
-*** hostpad学习
 ** emacs
-*** 研究emacs源码 [0/4]
-**** ☛ TODO =simple.el= 源码研究 
-     Going
-**** ☛ TODO =paragraphs.el= 源码研究
-     
-**** ☛ TODO =loaddefs.el= 源码研究
-**** ☛ TODO =org.el= 源码研究
 *** 插件使用
 **** Hydra
        NEXT：https://github.com/abo-abo/hydra
@@ -117,15 +106,15 @@
 **** ☛ TODO 任务开始时，自动计时
      参考代码：
      #+BEGIN_SRC emacs-lisp
-          (setq org-log-done 'time)
-            (defadvice org-clock-in (after wicked activate)
-         "Mark STARTED when clocked in"
-         (save-excursion
-           (catch 'exit
-             (org-back-to-heading t)
-             (if (looking-at org-outline-regexp) (goto-char (1- (match-end 0))))
-             (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
-                 (org-todo "STARTED")))))     
+        (setq org-log-done 'time)
+          (defadvice org-clock-in (after wicked activate)
+       "Mark STARTED when clocked in"
+       (save-excursion
+         (catch 'exit
+           (org-back-to-heading t)
+           (if (looking-at org-outline-regexp) (goto-char (1- (match-end 0))))
+           (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
+               (org-todo "STARTED")))))     
      #+END_SRC
 **** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
 ** ArchLinux学习 [1/1]
@@ -189,7 +178,8 @@
 ** 802.11常见帧格式深入研究
 *** Beacon帧
     CHANNEL_SWITCH_ANNOUNCEMENT
-    
+*** CSA(Channel Switch Announcement
+    eCSA
 ** ☛ TODO WireShark学习目标
 *** 熟悉软件的基本使用 (1~13章) [4/7]
     - [X] 熟悉软件基本功能的定制
@@ -331,7 +321,7 @@
     WCNCR00082921
 *** gpiolib
 *** kallsyms_lookup_name() //查找对应symbol然后调用
-* Daily GTD [1/4]
+* Daily GTD [0/3]
 ** ☛ TODO [#C] IW源码学习
 ** TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
     - [X] 第一章
@@ -346,8 +336,13 @@
    - [ ] Java编程笔记
    - [ ] Unix下C编程学习笔记
    - [ ] 内核编程笔记
-** ☛ TODO 预约体检
 ** ☛ TODO 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
+** ☛ TODO hostpad学习
+** 查看公版分支上的修改
+** 研究wpa_supplicant上的修改记录
+** 研究emacs源码 [0/2]
+*** ☛ TODO org-timer源码研究
+*** ☛ TODO =org.el= 源码研究
 * 已完成 
 
 ** 2016
@@ -1126,7 +1121,7 @@ Added: [2015-12-14 周一 16:30]
 **** ✔ DONE 深入研究wpa_supplicant中SCAN的处理                :wpa_supplicant:
       CLOSED: [2016-06-29 周三 14:40]
      重点看下每一轮Scan的开始与结束为何
-*** 7月[1/1]
+*** 7月[10/10]
 **** ✔ DONE 网卡订购电灯等
      CLOSED: [2016-07-04 周一 13:40]
      
@@ -1157,6 +1152,13 @@ Added: [2015-12-14 周一 16:30]
      - Next Action:
        temperature_tx_power_compensation
 
+**** ✔ DONE 研究use_p2p_group_interface=1选项的支持       :wpa_supplicant源码分析:
+     CLOSED: [2016-07-12 周二 14:45]
+**** ✔ DONE p2p协商时Channel的选择                        :wpa_supplicant源码分析:
+     CLOSED: [2016-07-12 周二 15:05]
+     p2p_prepare_channel_best
+**** ✔ DONE 预约体检                                                 :个人私事:ME:
+      CLOSED: [2016-07-13 周三 13:40]
 *** 8月[/]
 *** 9月[/]
 *** 10月[/]
