@@ -628,6 +628,10 @@
       usecase (Last\nusecase) as UC4
       @enduml
     #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071210.png]]
+
 ** Actors
     活动者可以使用 ': :'表示，或者使用关键字 *actor* ，还可以使用 *as*
     关键字来定义一个别名。
@@ -639,6 +643,10 @@
       actor :Last actor: as Men4
       @enduml
     #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071211.png]]
+
 ** Usecases description
     可以使用如下一些分隔符来表示多行用例描述。 
     #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071212.png.png :cmdline -charset UTF-8
@@ -731,12 +739,15 @@
     还可以在箭头中直接使用 *left* *right* *up* *down* 等关键字指定
     #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071219.png :cmdline -charset UTF-8
       @startuml
-      :user: -left -> (dummyLeft)
-      :user: -right -> (dummyRight)
+      :user: -left-> (dummyLeft)
+      :user: -right-> (dummyRight)
       :user: -up-> (dummyUp)
-      :user: -down -> (dummyDown)
+      :user: -down-> (dummyDown)
       @enduml
     #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071219.png]]
 
     
 ** Title the diagram

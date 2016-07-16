@@ -104,17 +104,17 @@
 
 * EDCA Frame Priorities
 
-  [[./images/2016/2016051901.png]]
+  [[/images/2016/2016051901.png]]
 
 
 * EDCA Implementation Model
 
-  [[./images/2016/2016051902.png]]
+  [[/images/2016/2016051902.png]]
 
 
 * Arbitration InterFrame Space
 
-  [[./images/2016/2016051903.png]]
+  [[/images/2016/2016051903.png]]
 
 * Throughput Enhancements
 
@@ -127,13 +127,13 @@
 **** 2 types of Block Ack mechanisms:
      immediate and delayed
 
-     [[./images/2016/2016051906.png]]
+     [[/images/2016/2016051906.png]]
 
 *** Direct Link Protocol
     Ability to exchange data directly between two
     stations in the network, without traversing the AP.
 
-    [[./images/2016/2016051907.png]]
+    [[/images/2016/2016051907.png]]
 
 *** Automatic Power-Save Delivery
     Enhancing Power Saving mode in QoS Basic Service Set
@@ -146,7 +146,7 @@
     2. Scheduled APSD (S-APSD)
 
 **** Unscheduled APSD (U-APSD)
-     [[./images/2016/2016051904.png]]
+     [[/images/2016/2016051904.png]]
 
      Power-saving QoS-STA wakes up and send a “trigger”data
      frame belonging to “trigger-enabled” AC to QoS-AP
@@ -159,7 +159,7 @@
 
 **** Scheduled APSD (S-APSD)
 
-     [[./images/2016/2016051905.png]]
+     [[/images/2016/2016051905.png]]
 
      QoS-STA negotiates a APSD Schedule with QoS-AP
 
