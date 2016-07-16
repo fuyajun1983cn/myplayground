@@ -2328,8 +2328,8 @@
               }    
     #+END_SRC
 * Footnotes
-[fn:1] https://w1.fi/wpa_supplicant/devel/index.html
-[fn:2] http://lists.shmoo.com/pipermail/hostap/
+[fn:1] https://w1.fi/
+[fn:2] http://w1.fi/p/
 
 
 
