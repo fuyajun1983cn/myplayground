@@ -80,7 +80,6 @@
 
 ** LDD3学习 [0/6]
 *** ☛ TODO Chapter 06 Advanced Char Driver Operations
-*** ☛ TODO Chapter 13 USB Drivers
 *** ☛ TODO Chapter 14 The Linux Device Model
 *** ☛ TODO Chapter 16 Block Drivers
 *** ☛ TODO Chapter 18 TTY Drivers
@@ -181,19 +180,6 @@
 *** CSA(Channel Switch Announcement
     eCSA
 ** ☛ TODO WireShark学习目标
-*** 熟悉软件的基本使用 (1~13章) [4/7]
-    - [X] 熟悉软件基本功能的定制
-      Chapter 3, 5, 6
-    - [X] 汇总信息解读
-      第七章 page 119
-    - [X] Trace File文件格式研究
-      Chapter 4
-    - [X] Interpret Basic Trace File Statistics
-          page 129
-    - [ ] 研究Filter
-      Chapter 9 page 142
-    - [ ] Packets研究
-    - [ ] 了解专家系统
 *** Wireshark分析数据包 [0/9]
     - [ ] TCP/IP数据包
     - [ ] DNS
@@ -204,6 +190,10 @@
     - [ ] Chapter 31
     - [ ] Chapter 32
     - [ ] Chapter 33 (command tools)
+** mac80211学习
+*** hwsim源码分析
+*** mac80211源码分析
+** ☛ TODO [#C] IW源码学习
 * Calendar
   :PROPERTIES:
   :CATEGORY: CALENDAR
@@ -236,36 +226,11 @@
 ** 长虹 [1/1]
 ** Dajiang [2/2]
 ** Hisense [1/1]
+*** Miracast有时无法连接
+    send Invitation Response失败后，没有将pending action state恢复成原
+    值。
 ** TCL [1/1]
 ** Skyworth
-*** ☛ TODO [#A] Miracast连接上后断开 
-    - 0504
-      有看到Beacon Lost的Log出现。
-      主动断开：ApCliCtrlDeAuthAction
-    - 0508
-      打开 HAS_CS_SUPPORT 看下， 是否会有改善。 
-      加大了Beacon Lost的Timeout时间。
-    - 0510
-      查看平台当GO的情况下，p2p的连接情况。
-      另外，Dump下连接成功到发生Beacon Lost这段时间内，驱动的状态信息。
-    - 0513
-      发现有usb disconnect这种问题出现，先请硬件修改。
-    - 0524
-      reason code = 2
-      reason: IDLE
-
-      remap buffer
-    - 0527
-      在平台断开AP的情况下，p2p连接比较稳定, 力推平台端去实现如下需求：
-      1. 进入Miracast时，与AP完全断开，在Miracast退出前，不要自动重连，
-         退出Miracast后，AP自动重连。
-
-      2. 在Miracast期间，禁止如下操作：
-         1. 扫描
-
-         2. 获取扫描结果
-      
-
 *** ☛ TODO [#A] Miracast连接后丢包
     - 0512
       解决丢包问题，需要减少上层的扫描动作。
@@ -315,34 +280,59 @@
 
 *** RD
     Neil Wu (吳宗軒)
+    
+** 微鲸
 
+*** 项目信息
+
+    | 项目                          | 说明                                  |
+    |-------------------------------+---------------------------------------|
+    | 智能电视平台                  | Mstar 6A828/6A938，海思 Kirin 310/510 |
+    | 项目规划                      | 2016/Q4 Sample-run                    |
+    | 利尔达 的微鯨PM               | 焦绍华  ( jsh@lierda.com )            |
+    | 利尔达H/W &生产               | 淡江( danjiang@lierda.com )           |
+    | 利尔达S/W                     | 刘新鹏 ( liuxp@lierda.com )           |
+    | 微鲸商务                      | 袁寅（yuan.yin@whaley.cn）            |
+    | 微鲸硬件                      | 刘立峰（liu.lifeng@whaley.cn）        |
+    | 微鲸项目/软件                 | 袁磊（yuan.lei@whaley.cn）            |
+    | MTK support Window for Lierda | H/W: Frank                            |
+    |-------------------------------+---------------------------------------|
+    
 ** 案例
 *** p2p go dhcp failed after wlan0 linkdown
     WCNCR00082921
 *** gpiolib
 *** kallsyms_lookup_name() //查找对应symbol然后调用
-* Daily GTD [0/3]
-** ☛ TODO [#C] IW源码学习
+* Daily GTD [1/3]
 ** TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
     - [X] 第一章
-** 整理Android笔记
-*** WiFi Framework
-** 整理以前的学习笔记 [0/8]
+** Android WiFi Framework
+*** 传统WiFi流程
+*** Miracast流程
+*** SoftAp流程
+** 整理以前的学习笔记 [2/8]
    - [ ] Android研究文章整理
    - [ ] Android学习笔记
    - [ ] Android研究记录
    - [ ] CMake笔记
-   - [ ] C++学习笔记
+   - [X] C++学习笔记
    - [ ] Java编程笔记
    - [ ] Unix下C编程学习笔记
-   - [ ] 内核编程笔记
+   - [X] 内核编程笔记
 ** ☛ TODO 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
 ** ☛ TODO hostpad学习
 ** 查看公版分支上的修改
+*** Next Action: 153502
+*** 待深入了解的修改：
+      1. 155501   add p2p VHT 80 Draft Support
 ** 研究wpa_supplicant上的修改记录
+     - 2015-October
 ** 研究emacs源码 [0/2]
 *** ☛ TODO org-timer源码研究
-*** ☛ TODO =org.el= 源码研究
+*** ☛ TODO =org.el= 
+** 阅读 Secure Code in C&C++ 第二章
+    - Next Action:
+      Stack Management   page 27
 * 已完成 
 
 ** 2016
@@ -1159,6 +1149,51 @@ Added: [2015-12-14 周一 16:30]
      p2p_prepare_channel_best
 **** ✔ DONE 预约体检                                                 :个人私事:ME:
       CLOSED: [2016-07-13 周三 13:40]
+**** ✔ DONE Chapter 13 USB Drivers
+      CLOSED: [2016-07-26 周二 15:05]
+**** ✔ DONE [#A] Miracast连接上后断开                       :Skyworth:Project:
+     CLOSED: [2016-07-28 周四 10:35]
+     - 0504
+       有看到Beacon Lost的Log出现。
+       主动断开：ApCliCtrlDeAuthAction
+     - 0508
+       打开 HAS_CS_SUPPORT 看下， 是否会有改善。 
+       加大了Beacon Lost的Timeout时间。
+     - 0510
+       查看平台当GO的情况下，p2p的连接情况。
+       另外，Dump下连接成功到发生Beacon Lost这段时间内，驱动的状态信息。
+     - 0513
+       发现有usb disconnect这种问题出现，先请硬件修改。
+     - 0524
+       reason code = 2
+       reason: IDLE
+
+       remap buffer
+     - 0527
+       在平台断开AP的情况下，p2p连接比较稳定, 力推平台端去实现如下需求：
+       1. 进入Miracast时，与AP完全断开，在Miracast退出前，不要自动重连，
+          退出Miracast后，AP自动重连。
+
+       2. 在Miracast期间，禁止如下操作：
+          1. 扫描
+
+          2. 获取扫描结果
+       
+
+**** ✔ DONE 熟悉软件的基本使用 (1~13章) [7/7]                :WireShark:Study:
+     CLOSED: [2016-07-29 周五 17:05]
+     - [X] 熟悉软件基本功能的定制
+       Chapter 3, 5, 6
+     - [X] 汇总信息解读
+       第七章 page 119
+     - [X] Trace File文件格式研究
+       Chapter 4
+     - [X] Interpret Basic Trace File Statistics
+           page 129
+     - [X] 研究Filter
+       Chapter 9 page 142
+     - [X] Packets研究
+     - [X] 了解专家系统
 *** 8月[/]
 *** 9月[/]
 *** 10月[/]

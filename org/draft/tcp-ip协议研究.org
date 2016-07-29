@@ -45,18 +45,100 @@
 
 ** RTP [fn:1]
     
+*** wrong sequence
+    The nature of RTP transport over UDP is inherently
+    unreliable. Unreliable for delivery and order. So, wrong sequence
+    numbers are to be expected at the receiver side. 
+
+    For media playout the RTP packets have to be placed in order again
+    in the jitter buffer and the payloads accessed in that order. 
+
+    Therefore Wronng Sequence != Lost Packet.
+
+    Whether they are in time for playout is a whole different
+    matter. That depends on how large the jitter buffer is.
+
+    Let say packet size is 20ms, jitter buffer is 20ms. The packets
+    are received as such:
+    #+BEGIN_EXAMPLE
+      Rx_time=0, seq=0, RTP_ts=0
+      Rx_time=20, seq=1, RTP_ts=20    
+    #+END_EXAMPLE
+
+    All is fine.
+    #+BEGIN_EXAMPLE
+      Rx_time=40, seq=2, RTP_ts=40
+      Rx_time=57, seq=4, RTP_ts=80
+      Rx_time=60, seq=3, RTP_ts=60
+      Rx_time=100, seq=5, RTP_ts=100    
+    #+END_EXAMPLE
+
+    Here you see that RTP packet sequence number 4 overtook RTP packet
+    sequence number 3 during transport, but is early enough at the
+    receiver for playout. So this one is counted as sequence error,
+    but cannot be considered lost or too late.
+
+    Lets continue.
+    #+BEGIN_EXAMPLE
+      Rx_time=120, seq=6, RTP_ts=120
+      Rx_time=160, seq=8, RTP_ts=160
+      Rx_time=180, seq=9, RTP_ts=180
+      Rx_time=190, seq=7, RTP_ts=140    
+    #+END_EXAMPLE
+
+    Now RTP packet sequence number 7 is late. Assuming the =Rx_time= is
+    the same timebase as used for the jitter buffer, you can see that
+    =RTP_ts + jitter buffer size < Rx_time= for RTP packet sequence
+    number 7. Therefore it is too late for playout. So this one is
+    counted as sequence error, but cannot be considered lost, only too
+    late.
 
 ** 丢包问题分析
 
-*** 重传
+*** 影响因素
+**** 重传
 
-*** 干扰
+**** 干扰
 
-*** QoS策略
+**** QoS策略
 
-*** Flow control mechanism
+**** Flow control mechanism
 
-*** 传输的packet size 以及传输速率 
+**** 传输的packet size 以及传输速率 
+
+*** 常见因素
+    
+**** Latency
+     小于100ms是比较理想的结果
+**** Jitter
+     Occurs when packets do not arrive at a constant rate that exceeds
+     the buffering ability of the receiving device to compensate for
+     
+     If excessive Jitter occurs, larger Jitter buffers will be
+     required which cause longer latency
+     
+**** Packet Loss
+     Loss of > 10% (non-consecutive packets) will be perceived as a
+     bad connection
+
+**** Codec Choice
+     Add delay
+     - Processing
+     - Encoding / Decoding
+
+     Greater the compression factors result in lowered quality
+
+     
+**** Bandwidth Utilization
+     Less utilization = lower latency, jitter and loss due to
+     collisions
+
+**** Priority
+     Voice is extremely sensitive to delay
+
+     QoS is used to allow network devices to handle VoIP ahead of
+     other traffic. 
+
 
 * 应用层
 

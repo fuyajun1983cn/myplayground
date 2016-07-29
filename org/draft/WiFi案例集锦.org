@@ -353,8 +353,52 @@
     interface does not exists anymore at the point
     =wpas_group_formation_completed()= gets called.
 
-         
+* 案例10 Miracast过程中，视频卡住
 
+** 问题描述
+    当TV与RealTek的测试设备进行Miracast连接时，Miracast播放视频卡住。
+
+** 问题分析
+
+*** 现象梳理
+    1. P2P established successfully
+       p2p连接成功
+    2. Data Transmission over p2p is ok
+       相互之间是可以Ping通的
+    3. 从Video播放的日志来看， Video frame rate应该为30fps，但是实际
+       10fps都不到，且A/V一直在Drop Frame，这表明从Driver端收到的数据
+       不够快。
+    4. 这个问题只在2.4G的情况下出现 ，5G情况下不会出现。
+    5. 对比测试有如下现象：
+       - Dut run on 5GHz: Pass
+       - Dut act as GO: Pass
+       - Dut act as GC: Fail
+
+     怀疑管理帧有带错东西导致送数据的速率很低。
+      这个是Probe Request相关信息：
+       [[./images/2016/2016072001.png]]
+
+*** 问题根源
+    1. Realtek testbed transmit data frame using 40MHz in 2.4G (check with sniffer)
+    2. DUT is forced 20MHz Bandwidth in 2.4G
+
+** 问题解决
+       
+    在GC与GO关联的过程中，在Association  Request显示设置 HtCapability
+    IE ，根据情况，将ChannelWidth设置为20MHz
+    #+BEGIN_SRC c
+      static VOID ApCliMlmeAssocReqAction(IN PRTMP_ADAPTER pAd, IN MLME_QUEUE_ELEM * Elem)
+      {
+      …..
+      #ifdef CUSTOMIZED_BW_SETTING
+                              if (RTMP_GetCustomizedChannelBw(pAd,
+                                      apcli_entry->wdev.channel) == HT_BW_20) {
+                                      HtCapabilityTmp.HtCapInfo.ChannelWidth = BW_20;
+                              }
+      #endif /* CUSTOMIZED_BW_SETTING */
+      ...
+        }
+    #+END_SRC
 
 
 

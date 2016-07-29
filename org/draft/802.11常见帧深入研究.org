@@ -1,9 +1,0 @@
-#+STARTUP: overview
-#+STARTUP: hidestars
-#+TITLE: 802.11常见帧格式深入研究
-#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
-#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
-
-* 管理帧
-
-** Beacon帧

@@ -2003,9 +2003,68 @@
      wpa_key_mgmt=WPA-PSK 
      wpa_pairwise=TKIP
      wpa_ptk_rekey=600
+
+
+     interface=wlan0
+     logger_syslog=-1
+     logger_syslog_level=2
+     logger_stdout=-1
+     logger_stdout_level=2
+     ctrl_interface=/var/run/hostapd
+     ctrl_interface_group=0
+     ssid=test
+     hw_mode=g
+     channel=10
+     beacon_int=100
+     dtim_period=2
+     max_num_sta=10
+     rts_threshold=2347
+     fragm_threshold=2346
+     macaddr_acl=0
+     auth_algs=3
+     ignore_broadcast_ssid=0
+     wmm_enabled=0
+     wmm_ac_bk_cwmin=4
+     wmm_ac_bk_cwmax=10
+     wmm_ac_bk_aifs=7
+     wmm_ac_bk_txop_limit=0
+     wmm_ac_bk_acm=0
+     wmm_ac_be_aifs=3
+     wmm_ac_be_cwmin=4
+     wmm_ac_be_cwmax=10
+     wmm_ac_be_txop_limit=0
+     wmm_ac_be_acm=0
+     wmm_ac_vi_aifs=2
+     wmm_ac_vi_cwmin=3
+     wmm_ac_vi_cwmax=4
+     wmm_ac_vi_txop_limit=94
+     wmm_ac_vi_acm=0
+     wmm_ac_vo_aifs=2
+     wmm_ac_vo_cwmin=2
+     wmm_ac_vo_cwmax=3
+     wmm_ac_vo_txop_limit=47
+     wmm_ac_vo_acm=0
+     ap_max_inactivity=300
+     disassoc_low_ack=0
+     ieee80211n=1
+     eap_server=0
+     own_ip_addr=127.0.0.1
+     wpa=2
+     wpa_passphrase=password
+     wpa_pairwise=TKIP CCMP
+     rsn_pairwise=CCMP
    #+END_SRC
 
+   If you want to use the preconfigure passphrase, set the AP into
+   configured state instead (wps_state=2).
+
+   hostapd does not touch almost any of the Data frames going through
+   the AP. The only Data frames it uses are related to authentication
+   and key setup (EAPOL frames, RSN pre-authentication) and if
+   ProxyARP is enabled, some of ARP/NS/NA frames. 
+
 *** 数据结构
+
     1. =struct hapd_interfaces=
        #+BEGIN_SRC c
          struct hapd_interfaces {
@@ -2055,7 +2114,74 @@
       
       wifi.tethering.interface
 
-      
+*** 主要流程分析
+    
+**** hostapd初始化过程
+          #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016072902.png :cmdline -charset UTF-8
+            @startuml
+            autonumber 
+            actor User
+            User -> "main.c" as M : "hostapd hostapd.conf ..."
+            active M
+            M -> M : "解析命令参数"
+            M -> M : "设置消息处理函数以及输出日志设备"
+            M -> M : hostapd_global_init
+            M -> M : 注册hostapd_periodic周期性回调函数
+            note right of M
+            Periodic cleanup tasks
+            end note
+            M -> "fsc.c" : fst_global_init
+
+            M -> M: hostapd_interface_init
+            note right of M
+            Allocate and parse configuration for full interface files
+            end note
+
+            M -> M: hostapd_interface_init_bss
+            note right of M
+            Allocate and parse configuration for per-BSS files
+            end note
+
+            note right of M
+            Enable configured interfaces.
+            end note
+            M -> M: hostapd_driver_init
+            M -> "hostapd.c": hostapd_setup_interface
+            M -> "ctrl_iface.c": hostapd_global_ctrl_iface_init
+            M -> M: hostapd_global_run
+            ... after a long long time later ...
+            User -> M: Ctrl-D 或者其他原因退出
+            M -> "ctrl_iface.c": hostapd_global_ctrl_iface_deinit
+            M -> "hostapd.c": hostapd_interface_deinit_free
+            M -> M: 注销周期回调函数hostapd_periodic
+            M -> M: hostapd_global_deinit
+            M -> M: 关闭日志输出
+            M -> "fst.c": fst_global_deinit
+            M -> User: Quit
+            deactive M
+            @enduml
+          #+END_SRC
+
+**** 接口初始化分析
+     hostapd_interface_init
+
+     hostapd_init:  读取配置文件的参数设置， 设置bss等信息，返回
+     =struct hostapd_iface= 数据结构。
+
+     hostapd_driver_init
+     hostap_init
+     i802_init
+
+     hostapd_setup_interface
+     hostapd_ctrl_iface_init
+
+     处理上层传下来的命令：
+     hostapd_ctrl_iface_receive_process
+
+*** VLAN client
+
+    
+
 * =wpa_supplicant= 代码修改
 ** add a conf parameter to start a GO as HT40 if allowed
    When specified in the conf file this parameter will make all
