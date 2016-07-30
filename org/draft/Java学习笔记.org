@@ -219,6 +219,19 @@
     #+END_SRC
 
 ** Swing
+*** 主要类的继承关系
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/071801.png :cmdline -charset UTF-8
+      @startuml
+      Object <|-- Component
+      Component <|-- Container
+      Container <|-- JComponent
+      Container <|-- Window
+      JComponent <|-- JPanel
+      Window <|-- Frame
+      Frame <|-- JFrame
+      @enduml
+    #+END_SRC
+
 
 * 实用技巧
 

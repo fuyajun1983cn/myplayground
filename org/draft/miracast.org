@@ -24,7 +24,6 @@
    and manage sessions between the WFD Source and WFD Sink。 The
    protocol running on the Control Port is RTSP。
 
-
 ** WFD Capability Negotiation
    After a successful WFD Connection Setup (and establishment of a TCP
    connection), the WFD Capability Negotiation phase shall commence as
@@ -93,7 +92,7 @@
    由WFD Source发起，开始WFD能力协商过程,即看对方支持哪个方法原语。
 *** Request(Source => Sink)
     [[./images/2016/2016050602.png]]
-
+    
 *** Response(Sink => Source)
     [[./images/2016/2016050603.png]]
 
@@ -104,7 +103,7 @@
 
 *** Response(Source => Sink)
     [[./images/2016/2016050605.png]]
-
+    
 ** M3
     查询WFD Sink的属性与能力信息
 *** Request(Source => Sink)

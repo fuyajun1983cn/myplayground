@@ -580,7 +580,7 @@
 
 ** Skinparam
    可以使用 *skinparm* 来改变绘制时，使用的字体和颜色。
-   #+BEGIN_SRC plantuml ;exports both :file ./images/2016/2016070125.png :cmdline -charset UTF-8
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070125.png :cmdline -charset UTF-8
      @startuml
      skinparam backgroundColor #EEEBDC
      skinparam sequence {

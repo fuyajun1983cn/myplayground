@@ -4,14 +4,10 @@
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-
-
 * 通用概念
-
 ** Android框架图
     [[./images/2016/2016071201.png]]
 ** Android应用程序框架
-
 ** UI基本开发
    
 ** Fragment
@@ -525,6 +521,11 @@
 
 **** WifiConfigStore
 
+**** Scan周期
+        =config_wifi_supplicant_scan_interval=  
+        =config_wifi_framework_enable_associated_autojoin_scan=  关联
+        后是否允许扫描
+
 *** P2P/Miracast
     
 **** 开启WifiSink的调用序列
@@ -634,6 +635,345 @@
       #+CAPTION: 函数调用序列图
       [[./images/2016/2016070501.png]]
 
+** Binder通信过程中的结点管理
 
+    BpBinder类代表一个远程Binder对象（继承自BpRefBase）的通信功能部分。
+    它提供了linkToDeath方法，供其他对象监听自己所关联的本地结点的死亡
+    通知，本质上是通过调用IPCThreadState类的requestDeathNotification接
+    口。unlinkToDeath方法则是取消接收Binder结点的死亡通知。而
+    sendObituary则是向监听者发送结点的死亡通知。这两个接口都会通过
+    IPCThreadState类的clearDeathNotification将消息处理发送到Binder驱动
+    去处理。
 
+    一般BpBinder对象是包含于从BpRefBase继承过来的类中，也即BpINTERFACE
+    类的一个私有成员，代表IPC通信的一方与另一方进行通信。在Binder驱动，
+    要支持死亡通知机制，是通过 =binder_ref= 来实现的。 =binder_ref= 有一个成员
+    是指向 =struct binder_ref_death= 结构的指针。它的结构定义如下：
+    #+BEGIN_SRC c
+      struct binder_ref_death {
+              struct binder_work work;
+              binder_uintptr_t cookie;
+      };
+    #+END_SRC
 
+    其中，work是指提交给当前线程或进程处理的工作类型，一般为如下三种：
+    #+BEGIN_SRC c
+      BINDER_WORK_DEAD_BINDER, //dead binder
+      BINDER_WORK_DEAD_BINDER_AND_CLEAR, //clear dead binder
+      BINDER_WORK_CLEAR_DEATH_NOTIFICATION, //clear death notification
+    #+END_SRC
+
+    cookie则一般保存的是BpBinder对象的内存地址，主要用于标识当前的通信
+    会话。
+
+    *linkToDeath(…)接口代码分析*  
+
+    该接口的原型如下：
+    #+BEGIN_SRC c++
+      virtual status_t    linkToDeath(const sp<DeathRecipient>& recipient,
+                                          void* cookie = NULL,
+                                          uint32_t flags = 0);
+    #+END_SRC
+
+    使用示例如下，SurfaceFlinger将监听window manager进程的死亡消息：
+    #+BEGIN_SRC c++
+      void SurfaceFlinger::bootFinished()
+      ｛
+              。。。
+          // wait patiently for the window manager death
+          const String16 name("window");
+          sp<IBinder> window(defaultServiceManager()->getService(name));
+          if (window != 0) {
+              window->linkToDeath(static_cast<IBinder::DeathRecipient*>(this));
+          }
+              。。。
+      ｝    
+    #+END_SRC
+
+    下面看下linkToDeath方法调用的流程：
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016072801.png :cmdline -charset UTF-8
+      @startuml
+      [ -> BpBinder: linkToDeath
+      BpBinder -> IPCThreadState: requestDeathNotification
+      IPCThreadState -> Binder Driver: BC_REQUEST_DEATH_NOTIFICATION
+      @enduml
+    #+END_SRC
+
+    下面看下处理 =BC_REQUEST_DEATH_NOTIFICATION= 的代码逻辑：
+    
+    由于requestDeathNotification方法传入的两个参数一个是远程Binder结点
+    的句柄以及对象本身的内存地址（BpBinder对象），所以驱动依次拿到这两
+    个参数：
+
+    #+BEGIN_SRC c
+      int binder_thread_write(struct binder_proc *proc, struct binder_thread *thread,
+                              binder_uintptr_t binder_buffer, size_t size,
+                              binder_size_t *consumed)
+      {
+        …
+       case BC_REQUEST_DEATH_NOTIFICATION:
+       case BC_CLEAR_DEATH_NOTIFICATION: {
+         uint32_t target;
+         binder_uintptr_t cookie;
+         struct binder_ref *ref;
+         struct binder_ref_death *death;
+
+         if (get_user(target, (uint32_t __user *)ptr))
+           return -EFAULT;
+         ptr += sizeof(uint32_t);
+         if (get_user(cookie, (binder_uintptr_t __user *)ptr))
+           return -EFAULT;
+         ptr += sizeof(binder_uintptr_t);
+         //其中通过第一个参数在当前进程找到对应的binder_ref实例，
+           ref = binder_get_ref(proc, target);
+
+           //下面是处理BC_REQUEST_DEATH_NOTIFICATION的代码：
+
+           if (cmd == BC_REQUEST_DEATH_NOTIFICATION) {
+             如果ref->death不为空，则说明之前已经调用过requestDeathNotification，直接忽略这次调用。
+               if (ref->death) {
+                 binder_user_error("%d:%d BC_REQUEST_DEATH_NOTIFICATION death notification already set\n",
+                                   proc->pid, thread->pid);
+                 break;
+               }
+             //否则，则创建一个binder_ref_death实例，并绑定给上述的binder_ref实例。
+               death = kzalloc(sizeof(*death), GFP_KERNEL);
+             if (death == NULL) {
+               thread->return_error = BR_ERROR;
+               binder_debug(BINDER_DEBUG_FAILED_TRANSACTION,
+                            "%d:%d BC_REQUEST_DEATH_NOTIFICATION failed\n",
+                            proc->pid, thread->pid);
+               break;
+             }
+             binder_stats_created(BINDER_STAT_DEATH);
+             INIT_LIST_HEAD(&death->work.entry);
+             death->cookie = cookie;
+             ref->death = death;
+             //如果远程Binder结点所在的进程已经退出，则说明远程Binder结点已经死亡，应该发送死亡通知，是通过与之关联的binder_ref的死亡列表发送通知的。
+               if (ref->node->proc == NULL) {
+                 ref->death->work.type = BINDER_WORK_DEAD_BINDER;
+                 // 如果当前线程没有退出，就发送到线程的事件处理链表中，否则发送到进程的事件处理链表中。
+                   if (thread->looper & (BINDER_LOOPER_STATE_REGISTERED | BINDER_LOOPER_STATE_ENTERED)) {
+                     list_add_tail(&ref->death->work.entry, &thread->todo);
+                   } else {
+                     list_add_tail(&ref->death->work.entry, &proc->todo);
+                     wake_up_interruptible(&proc->wait);
+                   }
+               }
+           }
+           //这里说明下，当ref->death->work.entry链表为空，说明binder_ref关联的远程Binder结点还处于活跃状态，无需发送死亡通知。
+          
+    #+END_SRC
+    
+    *unlinkToDeath(…)* 
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016072802.png :cmdline -charset UTF-8
+      @startuml
+      [ -> BpBinder: unlinkToDeath
+      BpBinder -> IPCThreadState: clearDeathNotification
+      IPCThreadState -> Binder Driver: BC_CLEAR_DEATH_NOTIFICATION
+      @enduml
+    #+END_SRC
+    
+    下面来看处理 =BC_CLEAR_DEATH_NOTIFICATION= 的逻辑。
+
+    发出这个命令的情形有两种：
+    1. 结点没有死亡，此时提交的工作类型为
+       =BINDER_WORK_CLEAR_DEATH_NOTIFICATION= ，只是取消监听结点的死亡通知，
+       不影响其他对象对该结点的监听。
+    2. 结点已经死亡，此时提交的工作类型为
+       =BINDER_WORK_DEAD_BINDER_AND_CLEAR= ，
+       这时是要清除。
+
+       #+BEGIN_SRC c
+         int binder_thread_write(struct binder_proc *proc, struct binder_thread *thread,
+                                 binder_uintptr_t binder_buffer, size_t size,
+                                 binder_size_t *consumed)
+         {
+           …
+          case BC_REQUEST_DEATH_NOTIFICATION:
+          case BC_CLEAR_DEATH_NOTIFICATION: {
+            …
+              if (cmd == BC_REQUEST_DEATH_NOTIFICATION) {
+                …
+                  } else {
+                if (ref->death == NULL) {
+                  binder_user_error("%d:%d BC_CLEAR_DEATH_NOTIFICATION death notification not active\n",
+                                    proc->pid, thread->pid);
+                  break;
+                }
+                death = ref->death;
+                //通过cookie来标识当前通信会话
+                  if (death->cookie != cookie) {
+                    binder_user_error("%d:%d BC_CLEAR_DEATH_NOTIFICATION death notification cookie mismatch %016llx != %016llx\n",
+                                      proc->pid, thread->pid,
+                                      (u64)death->cookie, (u64)cookie);
+                    break;
+                  }
+                ref->death = NULL;
+                // ''如果death->work.entry为空，说明被监听的Binder结点还处于活跃状态，这时只是取消对该结点的死亡监听
+                  if (list_empty(&death->work.entry)) {
+                    death->work.type = BINDER_WORK_CLEAR_DEATH_NOTIFICATION;
+                    if (thread->looper & (BINDER_LOOPER_STATE_REGISTERED | BINDER_LOOPER_STATE_ENTERED)) {
+                      list_add_tail(&death->work.entry, &thread->todo);
+                    } else {
+                      list_add_tail(&death->work.entry, &proc->todo);
+                      wake_up_interruptible(&proc->wait);
+                    }
+                  } else {
+                    //  否则，该结点已经死亡，将当前工作类型修改为BINDER_WORK_DEAD_BINDER_AND_CLEAR
+                      BUG_ON(death->work.type != BINDER_WORK_DEAD_BINDER);
+                    death->work.type = BINDER_WORK_DEAD_BINDER_AND_CLEAR;
+                  }
+              }
+
+            …
+              }
+                
+       #+END_SRC
+
+       如下是处于当前线程或进程上的 =binder_work= 的处理过程：
+       #+BEGIN_SRC c
+         static int binder_thread_read(struct binder_proc *proc,
+                                       struct binder_thread *thread,
+                                       binder_uintptr_t binder_buffer, size_t size,
+                                       binder_size_t *consumed, int non_block)
+         {
+           …
+             while (1) {
+               …
+                 //从当前线程或进程中取出提交上来的工作类型
+                 if (!list_empty(&thread->todo))
+                   w = list_first_entry(&thread->todo, struct binder_work, entry);
+                 else if (!list_empty(&proc->todo) && wait_for_proc_work)
+                   w = list_first_entry(&proc->todo, struct binder_work, entry);
+                 else {
+                   …
+                     }
+               …
+                 switch (w->type) {
+                   …
+                 case BINDER_WORK_DEAD_BINDER:
+                 case BINDER_WORK_DEAD_BINDER_AND_CLEAR:
+                 case BINDER_WORK_CLEAR_DEATH_NOTIFICATION: {
+                   struct binder_ref_death *death;
+                   uint32_t cmd;
+
+                   death = container_of(w, struct binder_ref_death, work);
+                   if (w->type == BINDER_WORK_CLEAR_DEATH_NOTIFICATION)
+                     //被监听的结点没有死亡，通知用户空间减少对该结点的弱引用计数
+                       cmd = BR_CLEAR_DEATH_NOTIFICATION_DONE;
+                   else
+                     //被监听的结点已经死亡，发送BR_DEAD_BINDER通知用户空间处理
+                       cmd = BR_DEAD_BINDER;
+                   if (put_user(cmd, (uint32_t __user *)ptr))
+                     return -EFAULT;
+                   ptr += sizeof(uint32_t);
+                   if (put_user(death->cookie,
+                                (binder_uintptr_t __user *)ptr))
+                     return -EFAULT;
+                   ptr += sizeof(binder_uintptr_t);
+                   binder_stat_br(proc, thread, cmd);
+                   binder_debug(BINDER_DEBUG_DEATH_NOTIFICATION,
+                                "%d:%d %s %016llx\n",
+                                proc->pid, thread->pid,
+                                cmd == BR_DEAD_BINDER ?
+                                "BR_DEAD_BINDER" :
+                                "BR_CLEAR_DEATH_NOTIFICATION_DONE",
+                                (u64)death->cookie);
+
+                   if (w->type == BINDER_WORK_CLEAR_DEATH_NOTIFICATION) {
+                     //这种情况是要删除death实例
+                       list_del(&w->entry);
+                     kfree(death);
+                     binder_stats_deleted(BINDER_STAT_DEATH);
+                   } else
+                     // 将death实例的清理工作，提交到进程中延后处理（在收到BC_DEAD_BINDER_DONE时处理）
+                       list_move(&w->entry, &proc->delivered_death);
+                   //由于BR_DEAD_BINDER还要触发用户空间向Binder驱动发送后续命令BC_CLEAR_DEATH_NOTIFICATION， BC_DEAD_BINDER_DONE， 所以应当退出当前循环，以便当前线程能够处理上述命令。
+                     if (cmd == BR_DEAD_BINDER)
+                       goto done; /* DEAD_BINDER notifications can cause transactions */
+                 } break;
+                 }
+               …
+                 }
+                
+       #+END_SRC
+
+       如果在requestDeathNotification的时候结点已经退出，或Binder通信
+       结束，Binder结点被释放，调用了 =binder_node_release= ，驱动会返回
+       =BR_DEAD_BINDER= 命令，通知上层处理。
+       #+BEGIN_SRC c++
+         status_t IPCThreadState::executeCommand(int32_t cmd)
+         ｛
+                 。。。
+             case BR_DEAD_BINDER:
+                 {
+                     BpBinder *proxy = (BpBinder*)mIn.readInt32();
+                     proxy->sendObituary();
+                     mOut.writeInt32(BC_DEAD_BINDER_DONE);
+                     mOut.writeInt32((int32_t)proxy);
+                 } break;
+                 。。。
+         ｝
+                
+       #+END_SRC
+
+       首先，代表远程结点通信的BpBinder会调用sendObituary命令，清除对
+       它的死亡通知列表（会向驱动发送 =BC_CLEAR_DEATH_NOTIFICATION= 命
+       令），并调用监听者的回调函数通知监听者。之后，会向驱动发送
+       =BC_DEAD_BINDER_DONE= ，通知驱动善后处理。
+
+      下面看下 =BC_DEAD_BINDER_DONE= 的处理过程：
+       #+BEGIN_SRC c
+          case BC_DEAD_BINDER_DONE: {
+            struct binder_work *w;
+            binder_uintptr_t cookie;
+            struct binder_ref_death *death = NULL;
+            if (get_user(cookie, (binder_uintptr_t __user *)ptr))
+              return -EFAULT;
+
+            ptr += sizeof(void *);
+            //从当前进程的延迟处理列表中，取出要处理的工作类型
+              list_for_each_entry(w, &proc->delivered_death, entry) {
+              struct binder_ref_death *tmp_death = container_of(w, struct binder_ref_death, work);
+              //通过cookie来新知识对应的binder_ref_death实例
+                if (tmp_death->cookie == cookie) {
+                  death = tmp_death;
+                  break;
+                }
+            }
+            binder_debug(BINDER_DEBUG_DEAD_BINDER,
+                         "%d:%d BC_DEAD_BINDER_DONE %016llx found %p\n",
+                         proc->pid, thread->pid, (u64)cookie, death);
+            //如果相关信息无法找到，则直接退出，无需后续处理
+              if (death == NULL) {
+                binder_user_error("%d:%d BC_DEAD_BINDER_DONE %016llx not found\n",
+                                  proc->pid, thread->pid, (u64)cookie);
+                break;
+              }
+                                 
+            list_del_init(&death->work.entry);
+            //结点已经死亡，需要清理消息通知相关信息
+              if (death->work.type == BINDER_WORK_DEAD_BINDER_AND_CLEAR) {
+                death->work.type = BINDER_WORK_CLEAR_DEATH_NOTIFICATION;
+                if (thread->looper & (BINDER_LOOPER_STATE_REGISTERED | BINDER_LOOPER_STATE_ENTERED)) {
+                  list_add_tail(&death->work.entry, &thread->todo);
+                } else {
+                  list_add_tail(&death->work.entry, &proc->todo);
+                  wake_up_interruptible(&proc->wait);
+                }
+              }
+          } break;
+                
+       #+END_SRC
+
+       *IPC通信过程示例*
+
+       #+BEGIN_EXAMPLE
+         BC_DEAD_BINDER(binder_node_release或BC_REQUEST_DEATH_NOTIFICATION)
+         ->BR_DEAD_BINDER(binder_thread_read)
+         -> BC_CLEAR_DEATH_NOTIFICATION（如果结点已经死亡，则工作类型修改为BINDER_WORK_DEAD_BINDER_AND_CLEAR）
+         -> BC_DEAD_BINDER_DONE（将工作类型修改为BINDER_WORK_CLEAR_DEATH_NOTIFICATION，提交到当前线程或进程进一步处理）
+         -> BR_CLEAR_DEATH_NOTIFICATION_DONE       
+       #+END_EXAMPLE

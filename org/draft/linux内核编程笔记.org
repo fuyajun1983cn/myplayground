@@ -3950,3 +3950,803 @@ Vmalloc映射分三步：
 2. =allocate_page= ：从物理内存中请求单个物理页
 3. =map_vm_area= ：将申请的物理页依次顺序地映射到vamlloc区域
 　
+* 知识点41 Linux内核模块
+  Linux内核的整体结构非常庞大，其包含的组件也非常多，我们需要包含所需
+  的部分功能组件。有两种方法：一种是将所需的功能组件编译进内核。二是，
+  将所需的功能组件编译成独立于内核的模块，需要时动态加载进内核。通常采
+  用第二种方式，它的好处是：
+  - 模块本身不被编译入内核映像，从而控制了内核的大小。
+  - 模块一旦被加载，它就和内核中的其他部分完全一样。
+ 
+  #+CAPTION: 一个模块的简单示例
+ #+BEGIN_SRC c
+   #include <linux/init.h>
+   #include <linux/module.h>
+   MODULE_LICENSE("Dual BSD/GPL");
+   static int hello_init(void)
+   {
+     printk(KERN_INFO " Hello World enter\n");
+     return 0;
+   }
+    
+   static void hello_exit(void)
+   {
+     printk(KERN_INFO " Hello World exit\n ");
+   }
+    
+   module_init(hello_init);
+   module_exit(hello_exit);
+    
+   MODULE_AUTHOR("Song Baohua");
+   MODULE_DESCRIPTION("A simple Hello World Module");
+   MODULE_ALIAS("a simplest module");
+ #+END_SRC
+  
+  *Linux内核模块的程序结构*    
+
+  一个Linux内核模块主要由以下几部分组成：
+  - 模块加载函数（必须）
+  - 模块卸载函数（必须）
+  - 模块许可证声明（必须）
+    常见的有：MODULE_LICENSE(“Dual BSD/GPL”)
+  - 模块参数（可选）
+  - 模块导出符号（可选）
+  - 模块作者等信息声明（可选）
+
+  *模块加载函数* 
+
+  一般以 =__init= 标识声明，典型的加载函数的形式如下：
+  #+BEGIN_SRC c
+    static int __init initialization_function(void)
+    {
+      /*初始化代码*/
+    }
+    module_init(initialization_function);  
+  #+END_SRC
+
+  在Linux 2.6内核中，可以使用
+  : request_module(const char *fmt, …)
+  函数加载内核，如下所示:
+  : request_module(“char-major-%d-%d”, MAJOR(dev), MINOR(dev));
+
+  *模块卸载函数* 
+  
+  #+BEGIN_SRC c
+    static void __exit cleanup_function(void)
+    {
+      /*释放代码*/
+    }
+    module_exit(cleanup_function);  
+  #+END_SRC
+
+  *模块参数*
+
+  可以用:
+  : module_param(参数名，参数类型，参数读/写权限)
+  来定义一个参数。如：
+  #+BEGIN_SRC c
+    static char *book_name = “bookname”;
+    static int num = 4000;
+    module_param(book_name, charp, S_IRUGO);
+    module_param(num, int, S_IRUGO);  
+  #+END_SRC
+
+  参数类型可以是：byte, short, ushort, int , uint, long, ulong, charp,
+  bool, invbool(布尔的反)。
+  具体代码如下：
+  #+BEGIN_SRC c
+    #include <linux/init.h>                               
+    #include <linux/module.h>                               
+    MODULE_LICENSE("Dual BSD/GPL");                                
+                                   
+    static char *book_name = "dissecting Linux Device Driver";             
+    static int num = 4000;                               
+                                   
+    static int book_init(void)                                
+    {                               
+       printk(KERN_INFO " book name:%s\n",book_name);                       
+       printk(KERN_INFO " book num:%d\n",num);                              
+       return 0;                               
+    }                                
+    static void book_exit(void)                               
+    {                               
+       printk(KERN_INFO " Book module exit\n ");                           
+    }                               
+    module_init(book_init);                                
+    module_exit(book_exit);                               
+    module_param(num, int, S_IRUGO);                               
+    module_param(book_name, charp, S_IRUGO);
+                                   
+    MODULE_AUTHOR("Song Baohua, author@linuxdriver.cn");
+    MODULE_DESCRIPTION("A simple Module for testing module params");
+    MODULE_VERSION("V1.0");  
+  #+END_SRC
+
+  相应的Makefile文件如下：
+  #+BEGIN_SRC sh
+    obj-m := hello.o
+    obj-m += book.o
+     
+    all:
+       $(MAKE) -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
+     
+    clean:
+       rm -f *.o *.ko *.mod.o  
+  #+END_SRC
+
+  *符号导出*
+
+  命令
+  : cat /proc/kallsyms
+  可查看内核符号表。它记录了符号以及符号所在的内存地址。模块可以使用如
+  下宏导出符号到内核符号表：
+  #+BEGIN_SRC c
+    EXPORT_SYMBOL(符号名);
+    EXPORT_SYMBOL_GPL(符号名);只适用于包含GPL许可权的模块。  
+  #+END_SRC
+
+  例子如下：
+  #+BEGIN_SRC c
+    #include <linux/init.h>                               
+    #include <linux/module.h>                               
+    MODULE_LICENSE("Dual BSD/GPL");                               
+    int add_integar(int a,int b)                               
+    {                               
+       return a+b;                            
+    }
+    int sub_integar(int a,int b)                                
+    {                               
+       return a-b;                            
+    }   
+    EXPORT_SYMBOL(add_integar);
+    EXPORT_SYMBOL(sub_integar);  
+  #+END_SRC
+
+  *模块的声明与描述*
+
+  =MODULE_AUTHOR(author)=: 模块的作者
+  =MODULE_DESCRIPTION(description)= : 模块的描述
+  =MODULE_VERSION(version_string)= : 模块的版本
+  =MODULE_DEVICE_TABLE(table_info)= : 对于USB、PCI等设备
+  =MODULE_ALIAS(alternate_name)= : 模块别名
+
+  *模块的使用计数*
+
+  Linux2.4中，使用 =MOD_INC_USE_COUNT= 、 =MOD_DEC_USE_COUNT= 宏来管理自己被使
+  用的计数。
+
+  Linux2.6中，提供了模块计数管理接口：
+  #+BEGIN_SRC c
+    int try_module_get(struct module *module):
+    void module_put(struct module *module);
+  #+END_SRC
+* 知识点42 字符设备驱动程序框架
+  1. 设备号的内部表示形式
+     类型： =dev_t= 32=12(主设备号) + 20(次设备号)
+     相关宏：
+     #+BEGIN_SRC c
+       #include <linux/kdev_t.h>
+       MAJOR(dev_t dev)
+       MINOR(dev_t dev)
+       MKDEV(int major, int minor);     
+     #+END_SRC
+
+  2. 分配和释放设备号
+     相关函数：
+     #+BEGIN_SRC c
+       //静态分配设备号
+       int register_chrdev_region(dev_t first, unsigned int count,
+                                  char *name);
+       //动态分配设备号
+       int alloc_chrdev_region(dev_t *dev, unsigned int firstminor,
+                               unsigned int count, char *name);
+       void unregister_chrdev_region(dev_t first, unsigned int count);     
+     #+END_SRC
+
+  3. 获取设备号的通常写法
+     #+BEGIN_SRC c
+       if (scull_major) {
+         dev = MKDEV(scull_major, scull_minor);
+         result = register_chrdev_region(dev, scull_nr_devs, "scull");
+        } else {
+         result = alloc_chrdev_region(&dev, scull_minor, scull_nr_devs,
+                                      "scull");
+         scull_major = MAJOR(dev);
+        }
+
+       if (result < 0) {
+         printk(KERN_WARNING "scull: can't get major %d\n", scull_major);
+         return result;
+        }     
+     #+END_SRC
+
+  4. 一些重要的数据结构
+     #+BEGIN_SRC c
+       struct file_operations
+       {
+         //用于防止一个正在使用的模块被卸载，通常值为THIS_MODULE
+         struct module *owner;
+
+         //seek
+         loff_t (*llseek) (struct file *, loff_t, int);
+
+         //read
+         ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+         ssize_t (*aio_read)(struct kiocb *, char __user *, size_t, loff_t);
+
+         //write
+         ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+         ssize_t (*aio_write)(struct kiocb *, const char __user *, size_t, loff_t *);
+
+         //readdir
+         int (*readdir) (struct file *, void *, filldir_t);
+
+         //poll
+         unsigned int (*poll) (struct file *, struct poll_table_struct *);
+
+         //ioctl
+         int (*ioctl) (struct inode *, struct file *, unsigned int, unsigned long);
+
+         //mmap
+         int (*mmap) (struct file *, struct vm_area_struct *);
+
+         //open
+         int (*open) (struct inode *, struct file *);
+
+         //flush
+         int (*flush) (struct file *);
+
+         //release
+         int (*release) (struct inode *, struct file *);
+
+         //fsync
+         int (*fsync) (struct file *, struct dentry *, int);
+         int (*aio_fsync)(struct kiocb *, int);
+         int (*fasync) (int, struct file *, int);
+
+         //lock
+         int (*lock) (struct file *, int, struct file_lock *);
+
+         //readv writev
+         ssize_t (*readv) (struct file *, const struct iovec *, unsigned long, loff_t *);
+         ssize_t (*writev) (struct file *, const struct iovec *, unsigned long, loff_t *);
+
+         //sendfile
+         ssize_t (*sendfile)(struct file *, loff_t *, size_t, read_actor_t, void *);
+
+         //sendpage
+         ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *,
+                              int);
+
+         //get_unmapped_area
+         unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned
+                                            long, unsigned long, unsigned long);
+        
+         //check_flags
+         int (*check_flags)(int)
+
+         //dir_notify
+           int (*dir_notify)(struct file *, unsigned long);
+
+         ...
+
+       };
+
+        
+
+       //代表打开的文件
+       struct file
+       {
+         //读写权限
+         mode_t f_mode;
+
+         //文件读写位置
+         loff_t f_pos;
+
+         //文件标志(O_RDONLY, O_NONBLOCK, O_SYNC)
+         unsigned int f_flags;
+
+         //文件操作
+         struct file_operations *f_op;
+
+         //设备文件的私有数据
+         void *private_data;
+
+         //与文件相关的目录,
+         struct dentry *f_dentry;
+
+         ...
+
+       };
+
+        
+       struct inode
+       {
+         //对于设备文件来说，此域表示真实的设备号
+         dev_t i_rdev;
+
+         //当引结点指向一个字符设备时，代表内核内部结构的字符设备
+         struct cdev *i_cdev;
+
+       };
+
+       //从I结点中获取次设备号
+       unsigned int iminor(struct inode *inode);
+       // 从I结点中获取主设备号
+       unsigned int imajor(struct inode *inode);     
+     #+END_SRC
+
+  5. 注册字符设备
+     头文件：<linux/cdev.h>
+     cdev 结构体的定义：
+     #+BEGIN_SRC c
+       struct cdev
+       {
+         struct kobject kobj;        /*内嵌的kobject对象*/
+         struct module *owner;   /*所属模块*/
+         struct file_operations *ops; /*相关的文件操作*/
+         struct list_head list;
+         dev_t dev;      /*设备模块*/
+         unsigned int count;
+       };     
+     #+END_SRC
+     
+     分配和初始化字符设备相关结构:
+     - 方法1（将cdev作为单独的一个结构）
+       #+BEGIN_SRC c
+         struct cdev *my_cdev = cdev_alloc( ); //分配设备空间
+         my_cdev->ops = &my_fops;
+         //设备初始化
+         void cdev_init(struct cdev *cdev, struct file_operations *fops);
+         //添加设备
+         int cdev_add(struct cdev *dev, dev_t num, unsigned int count);
+         //删除设备
+         void cdev_del(struct cdev *dev);       
+       #+END_SRC
+
+     - 方法2（将cdev作为自定义设备结构的一个成员）
+       #+BEGIN_SRC c
+         struct mydev
+         {
+           …
+           struct cdev;
+         }       
+       #+END_SRC
+
+       设备分配初始化以及删除操作类似
+
+       2.6内核以前的字符设备注册方法
+       #+BEGIN_SRC c
+         int register_chrdev(unsigned int major, const char *name, struct file_operations *fops);
+
+         int unregister_chrdev(unsigned int major, const char *name);       
+       #+END_SRC
+
+  6. 字符设备驱动程序模板
+     字符设备驱动模块加载和卸载函数模板
+     #+BEGIN_SRC c
+       //设备结构体
+
+       struct xxx_dev_t
+
+       {
+
+         struct cdev cdev;
+
+         …
+
+       };
+
+       //设备驱动模块加载函数
+
+       static int __init xxx_init(void)
+
+       {
+
+         …
+
+           //初始化cdev
+           cdev_init(&xxx_dev.cdev, &xxx_fops);
+
+         //获取字符设备号
+         if(xxx_major)
+           {
+             register_chrdev_region(xxx_dev_no, 1, DEV_NAME);
+           }
+         else
+           {
+             alloc_chrdev_region(&xxx_dev_no, 0, 1, DEV_NAME);
+           }
+
+         //注册设备
+         ret = cdev_add(&xxx_dev.cdev, xxx_dev_no, 1);
+       }
+
+       //设备驱动模块卸载函数
+       static void __exit xxx_exit(void)
+       {
+         //释放占用的设备号
+         unregister_chrdev_region(xxx_dev_no, 1);
+         //注销设备
+         cdev_del(&xxx_dev.cdev);
+
+         …
+
+       }     
+     #+END_SRC
+
+     字符设备常用I/O操作函数模板
+     #+BEGIN_SRC c
+       //读设备
+       ssize_t xxx_read(struct file *filep, char __user *buf, size_t count, loff_t *f_pos)
+       {
+
+         …
+
+           copy_to_user(buf, …, …);
+
+         …
+
+       }
+
+       //写设备
+       ssize_t xxx_write(struct file *filep, const char __user *buf, size_t count, loff_t *f_pos)
+       {
+
+         …
+
+           copy_from_user(…, buf, …);
+
+         …
+
+       }
+
+       //ioctl函数
+       int xxx_ioctl(struct inode *inode, struct file *filep, unsigned int cmd, unsigned long arg)
+       {
+
+         …
+
+           switch(cmd)
+             {
+
+             case XXX_CMD1:
+
+               …
+
+                 break;
+
+             case XXX_CMD2:
+
+               …
+
+                 break;
+
+             default:
+
+               //不能支持的命令
+
+               return –ENOTTY;
+
+             }
+
+         return 0;
+
+       }     
+     #+END_SRC
+
+     用户空间与内核空间的数据传输
+
+     #+BEGIN_SRC c
+       //内核空间到用户空间数据的复制
+       unsigned long copy_to_user(void __user *to, const void *from,                         
+                                  unsigned long count);
+
+       //用户空间到内核空间的复制
+       unsigned long copy_from_user(void *to, const void __user *from,
+                                    unsinged long count);     
+     #+END_SRC
+     
+     上述函数均返回不能被复制的字节数，因此，如果完全复制成功，返回值
+     为0.
+     
+     如果要复制的内在是简单类型，如char, int,long等，则可以使用简单的
+     =put_user()= 和 =get_user()= 函数。
+     #+BEGIN_SRC c
+       int val;
+       …
+       get_user(val, (int*)arg);
+       …
+       put_user(val, (int*)arg);     
+     #+END_SRC
+
+  7. 示例
+     #+BEGIN_SRC c
+       /**
+        ,* @file   ebbchar.c
+        ,* @author Derek Molloy
+        ,* @date   7 April 2015
+        ,* @version 0.1
+        ,* @brief   An introductory character driver to support the second article of my series on
+        ,* Linux loadable kernel module (LKM) development. This module maps to /dev/ebbchar and
+        ,* comes with a helper C program that can be run in Linux user space to communicate with
+        ,* this the LKM.
+        ,* @see http://www.derekmolloy.ie/ for a full description and follow-up descriptions.
+        ,*/
+
+       #include <linux/init.h>           // Macros used to mark up functions e.g. __init __exit
+       #include <linux/module.h>         // Core header for loading LKMs into the kernel
+       #include <linux/device.h>         // Header to support the kernel Driver Model
+       #include <linux/kernel.h>         // Contains types, macros, functions for the kernel
+       #include <linux/fs.h>             // Header for the Linux file system support
+       #include <asm/uaccess.h>          // Required for the copy to user function
+       #include <linux/mutex.h>          // Required for the mutex functionality
+       #include <linux/cdev.h>
+       #include <linux/kdev_t.h>
+       #define  DEVICE_NAME "ebbchar"    ///< The device will appear at /dev/ebbchar using this value
+       #define  CLASS_NAME  "ebb"        ///< The device class -- this is a character device driver
+
+       MODULE_LICENSE("GPL");            ///< The license type -- this affects available functionality
+       MODULE_AUTHOR("Derek Molloy");    ///< The author -- visible when you use modinfo
+       MODULE_DESCRIPTION("A simple Linux char driver for the BBB");  ///< The description -- see modinfo
+       MODULE_VERSION("0.1");            ///< A version number to inform users
+
+       static int    majorNumber = 0;                  ///< Stores the device number -- determined automatically
+       static char   message[256] = {0};           ///< Memory for the string that is passed from userspace
+       static short  size_of_message;              ///< Used to remember the size of the string stored
+       static int    numberOpens = 0;              ///< Counts the number of times the device is opened
+       static struct cdev *ebb_cdev = NULL;
+       static struct class*  ebbcharClass  = NULL; ///< The device-driver class struct pointer
+       static struct device* ebbcharDevice = NULL; ///< The device-driver device struct pointer
+
+
+       static DEFINE_MUTEX(ebbchar_mutex);  /// A macro that is used to declare a new mutex that is visible in this file
+                                            /// results in a semaphore variable ebbchar_mutex with value 1 (unlocked)
+                                            /// DEFINE_MUTEX_LOCKED() results in a variable with value 0 (locked)
+
+       // The prototype functions for the character driver -- must come before the struct definition
+       static int     dev_open(struct inode *, struct file *);
+       static int     dev_release(struct inode *, struct file *);
+       static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
+       static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
+
+       /** @brief Devices are represented as file structure in the kernel. The file_operations structure from
+        ,*  /linux/fs.h lists the callback functions that you wish to associated with your file operations
+        ,*  using a C99 syntax structure. char devices usually implement open, read, write and release calls
+        ,*/
+       static struct file_operations fops =
+         {
+           .open = dev_open,
+           .read = dev_read,
+           .write = dev_write,
+           .release = dev_release,
+         };
+
+       /** @brief The LKM initialization function
+        ,*  The static keyword restricts the visibility of the function to within this C file. The __init
+        ,*  macro means that for a built-in driver (not a LKM) the function is only used at initialization
+        ,*  time and that it can be discarded and its memory freed up after that point.
+        ,*  @return returns 0 if successful
+        ,*/
+       static int __init ebbchar_init(void){
+         int result;
+         dev_t dev = MKDEV(majorNumber, 0);
+         printk(KERN_INFO "EBBChar: Initializing the EBBChar LKM\n");
+         /* Figure out our device number. */
+         if (majorNumber)
+           result = register_chrdev_region(dev, 1, DEVICE_NAME);
+         else {
+           result = alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME);
+           majorNumber = MAJOR(dev);
+         }
+         if (majorNumber<0){
+           printk(KERN_ALERT "EBBChar failed to register a major number\n");
+           return majorNumber;
+         }
+         printk(KERN_INFO "EBBChar: registered correctly with major number %d\n", majorNumber);
+
+         ebb_cdev = cdev_alloc();
+         cdev_init(ebb_cdev, &fops);
+         ebb_cdev->owner = THIS_MODULE;
+         result = cdev_add(ebb_cdev, dev, 1);
+         if (result)  {
+           printk(KERN_NOTICE "Error %d add char device.\n", result);
+           return -1;
+         }
+
+         // Register the device class
+         ebbcharClass = class_create(THIS_MODULE, CLASS_NAME);
+         if (IS_ERR(ebbcharClass)){                // Check for error and clean up if there is
+           unregister_chrdev(majorNumber, DEVICE_NAME);
+           printk(KERN_ALERT "Failed to register device class\n");
+           return PTR_ERR(ebbcharClass);          // Correct way to return an error on a pointer
+         }
+         printk(KERN_INFO "EBBChar: device class registered correctly\n");
+
+         // Register the device driver
+         ebbcharDevice = device_create(ebbcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
+         if (IS_ERR(ebbcharDevice)){               // Clean up if there is an error
+           class_destroy(ebbcharClass);           // Repeated code but the alternative is goto statements
+           unregister_chrdev(majorNumber, DEVICE_NAME);
+           printk(KERN_ALERT "Failed to create the device\n");
+           return PTR_ERR(ebbcharDevice);
+         }
+         printk(KERN_INFO "EBBChar: device class created correctly\n"); // Made it! device was initialized
+
+         mutex_init(&ebbchar_mutex); /// Initialize the mutex lock dynamically at runtime
+
+         return 0;
+       }
+
+       /** @brief The LKM cleanup function
+        ,*  Similar to the initialization function, it is static. The __exit macro notifies that if this
+        ,*  code is used for a built-in driver (not a LKM) that this function is not required.
+        ,*/
+       static void __exit ebbchar_exit(void){
+         device_destroy(ebbcharClass, MKDEV(majorNumber, 0));     // remove the device
+         class_unregister(ebbcharClass);                          // unregister the device class
+         class_destroy(ebbcharClass);                             // remove the device class
+         //   unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
+         unregister_chrdev_region(majorNumber, 1);
+         mutex_destroy(&ebbchar_mutex);        /// destroy the dynamically-allocated mutex
+         printk(KERN_INFO "EBBChar: Goodbye from the LKM!\n");
+       }
+
+       /** @brief The device open function that is called each time the device is opened
+        ,*  This will only increment the numberOpens counter in this case.
+        ,*  @param inodep A pointer to an inode object (defined in linux/fs.h)
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*/
+       static int dev_open(struct inode *inodep, struct file *filep){
+
+         if(!mutex_trylock(&ebbchar_mutex)){    /// Try to acquire the mutex (i.e., put the lock on/down)
+           /// returns 1 if successful and 0 if there is contention
+           printk(KERN_ALERT "EBBChar: Device in use by another process");
+           return -EBUSY;
+         }
+
+         numberOpens++;
+         printk(KERN_INFO "EBBChar: Device has been opened %d time(s)\n", numberOpens);
+         return 0;
+       }
+
+       /** @brief This function is called whenever device is being read from user space i.e. data is
+        ,*  being sent from the device to the user. In this case is uses the copy_to_user() function to
+        ,*  send the buffer string to the user and captures any errors.
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*  @param buffer The pointer to the buffer to which this function writes the data
+        ,*  @param len The length of the b
+        ,*  @param offset The offset if required
+        ,*/
+       static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
+         int error_count = 0;
+         // copy_to_user has the format ( * to, *from, size) and returns 0 on success
+         error_count = copy_to_user(buffer, message, size_of_message);
+
+         if (error_count==0){            // if true then have success
+           printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", size_of_message);
+           return (size_of_message=0);  // clear the position to the start and return 0
+         }
+         else {
+           printk(KERN_INFO "EBBChar: Failed to send %d characters to the user\n", error_count);
+           return -EFAULT;              // Failed -- return a bad address message (i.e. -14)
+         }
+       }
+
+       /** @brief This function is called whenever the device is being written to from user space i.e.
+        ,*  data is sent to the device from the user. The data is copied to the message[] array in this
+        ,*  LKM using the sprintf() function along with the length of the string.
+        ,*  @param filep A pointer to a file object
+        ,*  @param buffer The buffer to that contains the string to write to the device
+        ,*  @param len The length of the array of data that is being passed in the const char buffer
+        ,*  @param offset The offset if required
+        ,*/
+       static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+         sprintf(message, "%s(%d letters)", buffer, len);   // appending received string with its length
+         size_of_message = strlen(message);                 // store the length of the stored message
+         printk(KERN_INFO "EBBChar: Received %d characters from the user\n", len);
+         return len;
+       }
+
+       /** @brief The device release function that is called whenever the device is closed/released by
+        ,*  the userspace program
+        ,*  @param inodep A pointer to an inode object (defined in linux/fs.h)
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*/
+       static int dev_release(struct inode *inodep, struct file *filep){
+         printk(KERN_INFO "EBBChar: Device successfully closed\n");
+         mutex_unlock(&ebbchar_mutex);          /// Releases the mutex (i.e., the lock goes up)
+         return 0;
+       }
+
+       /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
+        ,*  identify the initialization function at insertion time and the cleanup function (as
+        ,*  listed above)
+        ,*/
+       module_init(ebbchar_init);
+       module_exit(ebbchar_exit);
+     #+END_SRC
+* 知识点43 在内核中读写文件
+  有时候，需要在内核中读写外部文件，如输出配置信息或读取配置信息等。
+  我们可以利用文件读写的系统调用，但是系统调用是供用户程序程序使用，所
+  以，要想在内核中使用，需要一点技巧，即基于如下方法：
+  一般系统调用会要求你使用的缓冲区不能在内核区。这个可以用 =set_fs()= 、
+  =get_fs()= 来解决。在读写文件前先得到当前fs：
+  : mm_segment_t   old_fs=get_fs();  
+  并设置当前fs为内核fs：
+  : set_fs(KERNEL_DS);   
+  在读写文件后，再恢复原先的fs:
+  : set_fs(old_fs);  
+
+  *背后原理解释*
+
+  系 统调用本来是提供给用户空间的程序访问的，所以，对传递给它的参数
+  （比如上面的buf），它默认会认为来自用户空间，在write()函数中， 为
+  了保护内核空间，一般会用 =get_fs()= 得到的值来和USER_DS进行比较，从而防
+  止用户空间程序“蓄意”破坏内核空间；
+
+  而现在要在内核空间使用系统调用，此时传递给write（）的参数地址就是
+  内核空间的地址了，在 =USER_DS= 之上( =USER_DS= ~ =KERNEL_DS=)，如果不做任何其
+  它处理，在write()函数中，会认为该地址超过了USER_DS范围，所以会认为是
+  用户空间的“蓄意破坏”，从 而不允许进一步的执行； 为了解决这个问题；
+  =set_fs(KERNEL_DS);= 将其能访问的空间限制扩大到 =KERNEL_DS=,这样就可以在内
+  核顺利使用系统调用了！
+
+  *示例*
+  #+BEGIN_SRC c
+    #include <linux/kernel.h>
+    #include <linux/module.h>
+    #include <linux/init.h>
+    #include <linux/fs.h>
+    #include <linux/string.h>
+    #include <linux/mm.h>
+    #include <linux/syscalls.h>
+    #include <asm/unistd.h>
+    #include <asm/uaccess.h>  //set_fs()/get_fs()
+
+    /**
+       -D__KERNEL_SYSCALLS__
+     ,*/
+
+    #define MY_FILE "/root/LogFile"
+
+    char buf[128];
+    struct file *file = NULL;
+
+
+
+    static int __init init(void)
+    {
+      mm_segment_t old_fs;
+      printk("Hello, I'm the module that intends to write messages to file.\n");
+
+
+      if(file == NULL)
+        file = filp_open(MY_FILE, O_RDWR | O_APPEND | O_CREAT, 0644);
+      if (IS_ERR(file)) {
+        printk("error occured while opening file %s, exiting...\n", MY_FILE);
+        return 0;
+      }
+
+      sprintf(buf,"%s", "The Messages.");
+
+      old_fs = get_fs();
+      set_fs(KERNEL_DS);
+      if (file->f_op && file->f_op->write)
+        file->f_op->write(file, (char *)buf, sizeof(buf), &file->f_pos);
+      set_fs(old_fs);
+
+      return 0;
+    }
+
+    static void __exit fini(void)
+    {
+      if(file != NULL)
+        filp_close(file, NULL);
+    }
+
+    module_init(init);
+    module_exit(fini);
+    MODULE_LICENSE("GPL");  
+  #+END_SRC
+

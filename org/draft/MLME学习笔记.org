@@ -383,7 +383,7 @@ IE_EXT_CAPABILITY
        #+END_SRC
     5. ApCliCtrlJoinReqAction
 
-** dump  发往上层的数据
+** dump发往上层的数据
     #+BEGIN_SRC c
       static void check_packet_loss_for_rtp(IN PRTMP_ADAPTER  pAd,  
                                                      IN PNDIS_PACKET          pPacket)
@@ -461,3 +461,31 @@ IE_EXT_CAPABILITY
     APMlmeDynamicTxRateSwitching
 
     ref: http://blog.csdn.net/junglefly/article/details/48974077
+
+    http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-being-equal-stronger-signal-strength-is-correlated-with-higher-data-transfer-sp.html
+
+** 判断当前是否处于2.4G信道
+   #+BEGIN_SRC c
+     if (pAd->LatchRfRegs.Channel <= 14) {
+       ...
+      }
+
+     //当前已经连接的Channel
+     pAd->CommonCfg.Channel
+   #+END_SRC
+
+** 判断当前TX Queue是否为空
+    #+BEGIN_SRC c
+      if (mt76x2_polling_txq_empty(pAd) != STATUS_SUCCESS)    {
+        DBGPRINT(RT_DEBUF_OFF, ("Tx buffer has data"))
+       }
+    #+END_SRC
+
+** 查询或设置当前Driver状态
+    #+BEGIN_SRC c
+      RTMP_TEST_FLAG(...)
+      RTMP_SET_FLAG(...)
+
+      OPSTATUS_TEST_FLAG(...)
+      OPSTATUS_SET_FLAG(...)
+    #+END_SRC

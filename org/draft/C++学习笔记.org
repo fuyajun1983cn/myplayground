@@ -1,6 +1,6 @@
 #+STARTUP: overview
 #+STARTUP: hidestars
-#+TITLE: C++学习笔记
+#+TITLE: C/C++学习笔记
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
@@ -56,6 +56,30 @@
    转换操作符重载函数必须为类的成员函数，且函数声明中不能有参数列表。
    （显示转换可以上explicit，这样就必须显示指定转换） 
    
+** 字符串
+    C标准库里面定义了两种字符串类型
+    - 普通字符   char
+      : "xyz"
+    - 宽字符   =wchar_t=
+      : L"xyz"
+      宽字符串正确分配内存的实例：
+      #+BEGIN_SRC c
+        wchar_t wide_str1[] = L"0123456789";
+        wchar_t *wide_str2 = (wchar_t *)malloc(
+                                               (wcslen(wide_str1) + 1) * sizeof(wchar_t)
+                                               );
+        if (wide_str2 == NULL) {
+          /* handle error */
+         }
+        /* ... */
+        free(wide_str2);
+        wide_str2 = NULL;      
+      #+END_SRC
+      
+
+      C语言中的字符串类型是 =char= 类型的字符数组，而C++语言中则是
+      =const char= 类型的字符数组， 所以在C语言中，字符串是可以修改的。
+
 ** 类
     类中的this指针默认是一个常量指针，它指向一个非常量版的类对象，
     即指针本身的值不可修改，但是其所指的对象是可以修改的。
@@ -140,7 +164,6 @@
 
 
    
-
 ** 对象与继承
    声明为const的一个类的对象只能调用声明为const的类的成员函数。 使用指
    针类型作为一个类的成员可以隐藏相关类型的具体实现。
@@ -420,4 +443,23 @@
       //[=]，表明lambda外部的变量通过传值的方式，给lambda内部访问，不能在内部进行修改。
       //[&], 表明lambda外部的变量通过引用的方式，给lambda内部访问，可以在内部进行修改。
     #+END_SRC
+
+* 话题
+
+** Stack & Heap
+    在Linux中，可以查看stack的大小：
+    : ulimit -s
+     You can change the default in (usually) the file /etc/security/limits.conf
+    可以使用函数 =setrlimit()= 进行调整。
+    #+BEGIN_SRC c
+      #include <sys/resource.h>
+      // ...
+      struct rlimit x;
+      if (getrlimit(RLIMIT_STACK, &x) < 0)
+          perror("getrlimit");
+      x.rlim_cur = RLIM_INFINITY;
+      if (setrlimit(RLIMIT_STACK, &x) < 0)
+          perror("setrlimit");    
+    #+END_SRC
+    
 
