@@ -7,6 +7,174 @@
 
 * 基础语法
 
+** 类加载器
+   类加载器加载一个类时，包含加载与链接两个过程，其中链接过程又可以分
+   为几个子步骤进行，如下图所示：
+   
+   #+CAPTION: Loading and linking (with subphases of linking)
+   [[./images/2016/2016072301.png]]
+
+   
+*** 类加载器的类型
+    - Primordial (or bootstrap) classloader
+      加载最基本的类库，属于虚拟机的一部分。
+    - Extension classloader
+      加载扩展的类库，一般包含安全方面的扩展。
+    - Application (or system) classloader
+      最广泛使用的类加载器，加载应用程序的类。
+    - Custom classloader
+      客制化的类加载器，一般用于特定环境。
+
+    [[./images/2016/2016072302.png]]
+
+*** Java反射机制(New In Jave 7)
+    
+**** MethodHandle
+     What is a MethodHandle ? The official answer is that it’s a typed
+     reference to a method (or field, constructor, and so on) that is
+     directly executable. Another way of saying this is that a method
+     handle is an object that represents the ability to call a method
+     safely. 
+
+     #+BEGIN_SRC java
+       MethodHandle mh = getTwoArgMH();
+       MyType ret;
+       try {
+           ret = mh.invokeExact(obj, arg0, arg1);
+       } catch (Throwable e) {
+           e.printStackTrace();
+       }     
+     #+END_SRC
+
+**** MethodType
+     A MethodType is an immutable object that represents the type
+     signature of a method.
+     Every method handle has a MethodType instance that includes the
+     return type and the argument types.
+
+     #+BEGIN_SRC java
+       MethodType mtToString = MethodType.methodType(String.class);
+       MethodType mtSetter = MethodType.methodType(void.class, Object.class);
+       MethodType mtStringComparator = MethodType.methodType(int.class,
+       String.class, String.class);     
+     #+END_SRC
+     
+     
+**** Looking up method handles
+     #+BEGIN_SRC java
+       public MethodHandle getToStringMH() {
+           MethodHandle mh;
+           MethodType mt = MethodType.methodType(String.class);
+           MethodHandles.Lookup lk = MethodHandles.lookup();
+           try {
+               mh = lk.findVirtual(getClass(), "toString", mt);
+           } catch (NoSuchMethodException | IllegalAccessException mhx) {
+               throw (AssertionError)new AssertionError().initCause(mhx);
+           }
+           return mh;
+       }
+     #+END_SRC
+
+**** Example : reflection vs. proxies vs. MethodHandles
+     使用三种不同的方法访问ThreadPoolManager的私有方法cancel(). 
+     #+BEGIN_SRC java
+       public class ThreadPoolManager {
+           private final ScheduledExecutorService stpe =
+               Executors.newScheduledThreadPool(2);
+           private final BlockingQueue<WorkUnit<String>> lbq;
+           public ThreadPoolManager(BlockingQueue<WorkUnit<String>> lbq_) {
+               lbq = lbq_;
+           }
+           public ScheduledFuture<?> run(QueueReaderTask msgReader) {
+               msgReader.setQueue(lbq);
+               return stpe.scheduleAtFixedRate(msgReader, 10, 10,
+                                               TimeUnit.MILLISECONDS);
+           }
+
+           private void cancel(final ScheduledFuture<?> hndl) {
+               stpe.schedule(new Runnable() {
+                       public void run() { hndl.cancel(true); }
+                   }, 10, TimeUnit.MILLISECONDS);
+           }
+
+           public Method makeReflective() {
+               Method meth = null;
+               try {
+                   Class<?>[] argTypes = new Class[] { ScheduledFuture.class };
+                   meth = ThreadPoolManager.class.getDeclaredMethod("cancel",
+                                                                    argTypes);
+                   meth.setAccessible(true);
+               } catch (IllegalArgumentException | NoSuchMethodException
+                        | SecurityException e) {
+                   e.printStackTrace();
+               }
+               return meth;
+           }
+           public static class CancelProxy {
+               private CancelProxy() { }
+               public void invoke(ThreadPoolManager mae_, ScheduledFuture<?> hndl_) {
+                   mae_.cancel(hndl_);
+               }
+           }
+
+           public CancelProxy makeProxy() {
+               return new CancelProxy();
+           }
+           public MethodHandle makeMh() {
+               MethodHandle mh;
+               MethodType desc = MethodType.methodType(void.class,
+                                                       ScheduledFuture.class);
+               try {
+                   mh = MethodHandles.lookup()
+                       .findVirtual(ThreadPoolManager.class, "cancel", desc);
+               } catch (NoSuchMethodException | IllegalAccessException e) {
+                   throw (AssertionError)new AssertionError().initCause(e);
+               }
+               return mh;
+           }
+       }
+     #+END_SRC
+
+     三种不同的调用形式：
+     #+BEGIN_SRC java
+       private void cancelUsingReflection(ScheduledFuture<?> hndl) {
+           Method meth = manager.makeReflective();
+           try {
+               System.out.println("With Reflection");
+               meth.invoke(hndl);
+           } catch (IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException e) {
+               e.printStackTrace();
+           }
+       }
+
+       private void cancelUsingProxy(ScheduledFuture<?> hndl) {
+           CancelProxy proxy = manager.makeProxy();
+           System.out.println("With Proxy");
+           proxy.invoke(manager, hndl);
+       }
+
+       private void cancelUsingMH(ScheduledFuture<?> hndl) {
+           MethodHandle mh = manager.makeMh();
+           try {
+               System.out.println("With Method Handle");
+               mh.invokeExact(manager, hndl);
+           } catch (Throwable e) {
+               e.printStackTrace();
+           }
+       }
+
+       BlockingQueue<WorkUnit<String>> lbq = new LinkedBlockingQueue<>();
+       manager = new ThreadPoolManager(lbq);
+       final QueueReaderTask msgReader = new QueueReaderTask(100) {
+               @Override
+               public void doAction(String msg_) {
+                   if (msg_ != null) System.out.println("Msg recvd: "+ msg_);
+               }
+           };
+       hndl = manager.run(msgReader);
+     #+END_SRC
+
 * 标准库
 
 ** 数据结构
