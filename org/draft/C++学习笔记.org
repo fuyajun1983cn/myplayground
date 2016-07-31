@@ -80,6 +80,20 @@
       C语言中的字符串类型是 =char= 类型的字符数组，而C++语言中则是
       =const char= 类型的字符数组， 所以在C语言中，字符串是可以修改的。
 
+      #+CAPTION: Field width Member
+      #+BEGIN_SRC c++
+        #include <iostream>
+
+        int main(void)
+        {
+          char buf[12];
+
+          std::cin.width(12);
+          std::cin>>buf;
+          std::cout<<"echo: "<<buf<<std::endl;
+        }
+      #+END_SRC
+
 ** 类
     类中的this指针默认是一个常量指针，它指向一个非常量版的类对象，
     即指针本身的值不可修改，但是其所指的对象是可以修改的。
@@ -163,7 +177,6 @@
 
 
 
-   
 ** 对象与继承
    声明为const的一个类的对象只能调用声明为const的类的成员函数。 使用指
    针类型作为一个类的成员可以隐藏相关类型的具体实现。
@@ -444,7 +457,7 @@
       //[&], 表明lambda外部的变量通过引用的方式，给lambda内部访问，可以在内部进行修改。
     #+END_SRC
 
-* 话题
+* 模块
 
 ** Stack & Heap
     在Linux中，可以查看stack的大小：

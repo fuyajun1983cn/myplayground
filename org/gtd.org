@@ -330,10 +330,6 @@
 ** 研究emacs源码 [0/2]
 *** ☛ TODO org-timer源码研究
 *** ☛ TODO =org.el= 
-** 阅读 Secure Code in C&C++ 第二章
-    - Next Action:
-      Stack Management   page 27
-** 上传无线通信基础电子书
 * 已完成 
 
 ** 2016
@@ -1112,7 +1108,7 @@ Added: [2015-12-14 周一 16:30]
 **** ✔ DONE 深入研究wpa_supplicant中SCAN的处理                :wpa_supplicant:
       CLOSED: [2016-06-29 周三 14:40]
      重点看下每一轮Scan的开始与结束为何
-*** 7月[10/10]
+*** 7月[15/15]
 **** ✔ DONE 网卡订购电灯等
      CLOSED: [2016-07-04 周一 13:40]
      
@@ -1195,6 +1191,12 @@ Added: [2015-12-14 周一 16:30]
        Chapter 9 page 142
      - [X] Packets研究
      - [X] 了解专家系统
+**** ✔ DONE 上传无线通信基础电子书
+     CLOSED: [2016-07-30 六 23:05]
+**** ✔ DONE 阅读 Secure Code in C&C++ 第二章
+     CLOSED: [2016-07-31 日 21:55]
+      - Next Action:
+        Stack Management   page 27
 *** 8月[/]
 *** 9月[/]
 *** 10月[/]
