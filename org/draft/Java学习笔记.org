@@ -7,6 +7,317 @@
 
 * 基础语法
 
+** 概述
+   1. 不能创建一个泛型类型的数组
+      #+BEGIN_SRC java
+        public class ArrayOfGenericType<T> {
+            T[] array; // OK
+            @SuppressWarnings("unchecked")
+            public ArrayOfGenericType(int size) {
+                //! array = new T[size]; // Illegal
+                array = (T[])new Object[size]; // "unchecked" Warning
+            }
+            // Illegal:
+            //! public <U> U[] makeArray() { return new U[10]; }
+        }      
+      #+END_SRC
+      不过，可以将一个数组向上转换为泛型类型的数组：
+      : LinkedList<MapEntry<K,V>>[] buckets =　new LinkedList[SIZE];
+
+   2. 对于想使用”foreach”的Java对象，必须实现Iterable接口。
+
+   3. Java对象垃圾回收
+      普通Java对象，如果没有其他引用，就可能被垃圾回收器回收了。但是，
+      如果想继续保持该Java对象是可用的，即最大限度延缓被虚拟机回收的时
+      间，同时又保证它是可被回收的，则需要使用引用类型将对象包裹起
+      来——Reference。Java定义了三种引用类型：SoftReference，
+      WeakReference，PhantomReference。它们的语义依次变弱。
+      SoftReference一般用于实现内存敏感的缓存。WeakReference用于实现”
+      规范化映射”——对象的实例可同时用在一个程序的不同地方，以节省存储
+      空间。PhantomReference用于以一种更灵活的方式调用垃圾回收机制，它
+      的实现基于ReferenceQueue。
+
+   4. New IO, 基础类，FileChannel以及ByteBuffer
+      [[./images/2016/2016073102.png]]
+
+      Buffer类是一个抽象类，它有众多的具体子类，包括ByteBuffer，
+      CharBufer，DoubleBuffer，IntBuffer，LongBuffer和ShortBuffer。每
+      个Buffer都具有：
+      - 一个容量，它永远不能改变。
+      - 一个读写位置，下一个值将在此进行读写。
+      - 一个界限，超过它进行读写是没有意义的。
+      - 一个可选的标记，用于重复一个读入或写出操作。
+
+      这些值满足下面的条件：
+      0 <= 标记 <= 位置 <= 界限 <= 容量
+
+      文件锁：
+      : FileLock lock = channel.lock();
+      或
+      : FileLock lock = channel.tryLock();
+
+   5. 对象序列化
+      要使对象能序列化，该对象必须实现接口：Serializable. 如果想在对象
+      序列化的过程中进行一些客制化操作，则必须实现接口：Externalizable。
+      重写它的两个接口：readExternal()和writeExternal()方法，在调用
+      readObject以及writeObject时，会自动调用上述两个接口。另外，当被
+      序列化的对象实现Externalizable接口时，必须提供默认的构造函数，且
+      访问权限是Public的。另外，如果对象继承自Externalizable接口，则可
+      以完全控制对象序列时，哪些成员被序列化，哪些则不被序列化。然而，
+      当对象直接从Serializable接口继承时，则默认情况下，所有成员变量都
+      会被自动序列化，除非我们显示指定修饰符：transient。不过，此时如
+      果我们显示在对象中添加了如下两个方法：
+
+      #+BEGIN_SRC java
+        private void writeObject(ObjectOutputStream stream)
+            throws IOException;
+        private void readObject(ObjectlnputStream stream)
+            throws IOException, ClassNotFoundException      
+      #+END_SRC
+
+      则在对象序列化中，也会自动被调用。在上述两个接口中，也可以自定义
+      对象序列化的过程。
+
+      补充：
+      向遗留代码中所有类型安全的枚举（Java5之前的版本）及向所有支持单
+      例设计模式的类中添加readResolve方法。（它是一种特殊的序列化方法，
+      在对象序列化之后就会调用它，它必须返回一个对象，而该对象之后会成
+      为readObject的返回值）
+
+   6. Annotation（标注）
+      三个标准的标注：
+      - @Override
+      - @Deprecated
+      - @SuppressWarning
+
+      以及4个用于标注Annotation的标注：
+      | @Target     | 该标注应用的范围：ElementType的值为：                |
+      |             | CONSTRUCTOR：构造函数声明                            |
+      |             | FIELD：成员变量声明，包含Enum常量                    |
+      |             | =LOCAL_VARIABLE= ：局部变量声明                      |
+      |             | METHOD：成员方法声明                                 |
+      |             | PACKAGE：包声明                                      |
+      |             | PARAMETER：参数声明                                  |
+      |             | TYPE：类，接口（包含标注类型）或enum声明             |
+      |-------------+------------------------------------------------------|
+      | @Retention  | 标注保持多久。RetantionPolicy的值为：                |
+      |             | SOURCE：编译器将丢弃标注                             |
+      |             | CLASS：被编译器保留在Class文件中，但是可能被VM丢弃。 |
+      |             | RUNTIME：被VM保留，可通过反射读取                    |
+      |-------------+------------------------------------------------------|
+      | @Documented | 包含该标注到Javvdoc中。                              |
+      |-------------+------------------------------------------------------|
+      | @Inherited  | 允许子类继承父类的标注                               |
+      |-------------+------------------------------------------------------|
+
+      实例：
+      #+BEGIN_SRC java
+      @Target(ElementType.METHOD)
+      @Retention(RetentionPolicy.RUNTIME)
+      public @interface Test {}      
+      #+END_SRC
+
+      其中@Target定义该annotation应用的范围，如应用于方法还是变量？
+      @Retention定义了该annotation保持的阶段，SOURCE（源码中），CLASS（类文件中）或RUNTIME（运行时）
+      Annotation通常会包含元素（参数），它类似接口方法，并可以声明默认值。
+      不包含元素的Annotation称为标记Annotation。
+
+   7. enable Asserts
+      #+BEGIN_SRC java
+        ClassLoader.getSystemClassLoader()
+            .setDefaultAssertionStatus(true); // Enable asserts      
+      #+END_SRC
+
+   8. 线程
+      java.util.concurrent.Executors简化了多线程编程。
+      #+BEGIN_SRC java
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.exectute(new Runnable() {...});      
+      #+END_SRC
+
+      　　Executor可以创建不同的Executor，如FixedThreadPool就限制了执
+      行提交任务的线程数量。SingleThreadExecutor则只创建一个线程。
+
+      Runnable会开启一个独立的任务，但是他不会返回结果。如果需要返回结
+      果，则可以实现Callable接口。
+
+   9. 关键字volatile: try to ensure that no compiler optimizaitons are
+      performed.
+      　　保证变量访问的原子型以及可见性。如果多个线程访问同一个变量，
+      该变量应该声明为volatile。否则，该变量的访问就必须用synchronized
+      修饰。另外，volatile也不能保证原子操作，只是阻止编译器做优级化
+      （如将变量的值缓存在一个寄存器中），避免多个线程看到的变量值不一
+      值。
+
+   10. Daemon线程
+       #+BEGIN_SRC java
+         Thread daemon = new Thread(new SimpleDaemons());
+         daemon.setDaemon(true); // Must call before start()
+         daemon.start();       
+       #+END_SRC
+
+       　　查看一个线程是否Daemon线程，可以调用方法isDaemon()，如果一
+       个线程是Daemon线程，则通过它创建的任何线程都自动成为Daemon线程。
+
+       　　Daemon线程退出他们的run方法，不会执行finally语句里面的代码。
+
+       等待另一个线程完成，调用方法：join()
+       怎样捕捉传递到run()方法外的异常？
+       #+BEGIN_SRC java
+         public class ExceptionThread implements Runnable {
+             public void run() {
+                 throw new RuntimeException();
+             }
+             public static void main(String[] args) {
+                 ExecutorService exec = Executors.newCachedThreadPool();
+                 exec.execute(new ExceptionThread());
+             }
+         } ///:~       
+       #+END_SRC
+
+       上述线程方法中抛出了一个无法捕捉的异常，用 =try-catch= 无效。
+       为了解决这个问题，可以自定义一个Thread.UncaughtExceptionHandler。
+       然后，对每个线程对象调用
+       : setUncaughtExceptionHandler(...)
+
+       如果，想在全局范围内替换的话，需要调用：
+       : Thread.setDefaultUncaughtExceptionHandler(...)
+
+       这样，当某个线程以及所在线程组都没有设置Handler的情况下，会调用
+       上述设置的Handler。
+
+   11. 线程同步
+       *synchronized*
+
+       　　Lock对象（处理特殊情况时使用）：ReentrantLock(一个尝试获取
+       该类型的锁的线程可被其他线程中断)
+
+       使用模式：
+       #+BEGIN_SRC java
+         Lock.lock();
+         Try {
+         ...
+         Return ..;
+         } finally {
+         Lock.unlock();
+         }       
+       #+END_SRC
+
+       　　原子操作：不可分割的操作，即在这个操作完成前，不会发生上下
+       文切换。对基本数据类型的操作就是原子操作，但是对long及double类
+       型的数据操作就不能保证是原子操作。不过，如果使用volatile修饰符
+       的话，就可以保证原子性。
+
+       *Atomic类*
+
+       Java SE5引入了原子变量类型如AtomicInteger，AtomicLong，
+       AtomicReference。这些类主要是利用一些处理器的机器层面的原子性。
+
+       *线程本地存储*
+
+       ThreadLocal类，它是一个Generic类，通过声明为类的一个静态成员变
+       量，且它的值通过get()和set()来访问。
+
+       *停止一个被Blocking的线程*
+
+       　　调用interrupt()或interrupted()。另外，一般推荐通过
+       ExecutService来间接停止线程。首先通过调用它的submit()方法，提交
+       一个Runnale对象。然后调用cancel(true)来中止一个线程。但是，无法
+       中断一个试图获取Synchronized的锁或试图执行I/O的线程。然而，
+       Block在ReentrantLock的线程可以被中断。
+
+   12. 线程间的协作
+       线程间的协作通常Mutex（Synchronized或Lock）并配合使用Object对象
+       的wait()和notifyAll()方法。另外，JavaSE5的同步库同样提供了
+       Condition类，它有await()和signal()方法。不过，通常等待的条件可
+       能产生竞态，需要提供保护。
+
+       　　另外，sleep()和yield()方法都不会释放对象锁，但是wait()方法
+       会中断当前线程执行，并且释放对象锁。
+
+       　　另外，只能在如下三种地方调用wait()和notify()等方法：
+       1. Synchronized限定的方法
+       2. Synchronized限定的代码块
+       3. Synchronized限定的类的静态成员方法
+
+       否则，会抛出IllegalMonitorStateException异常。
+
+       更复杂的情况下，可以使用Lock和Condition对象。
+
+   13. 同步队列
+       　　BlockingQueue是一个同步队列接口，当线程往里面取元素时，而此
+       时队列为空的话，则会掛起当前线程，直到队列不为空为止。有两个实
+       现类：LinkedBlockingQueue和ArrayBlockingQueue。
+       LinkedBlockingQueue无固定大小，而ArrayBlockingQueue有固定大小。
+       还有一个SynchronousQueue，不过它的大小是1，一般用于如下情景：
+
+       　　切换线程，当运行于一个线程中的对象必须与运行于另一个线程中
+       的对象同步时，即它要传递一些信息，如事件或任务等。
+
+       　　DelayQueue是一个无固定大小的BlockingQueue，不过它实现了
+       Delayed接口，该队列中的元素按delay的大小排序，位于队首的元素拥
+       有最大的已经逝去的超时值。如果没有delay到期，则队首元素为空，此
+       时poll()函数返回null。
+
+       　　PriorityBlockingQueue是一个按优先级排序的队列。
+
+       　　PipedReader和PipedWriter其实类似同步队列，只不过它先于
+       BlockingQueue出现，PipedReader在管道无数据时，会自动掛起当前线
+       程。另外，跟同步队列一样，管道也是可以被中断的。而普通的
+       in.read()则不能被中断。
+
+   14. 死锁
+       形成死锁的四个条件：
+       1. 互斥：一个资源一次只能被一个线程访问。
+       2. 至少有一个线程正在占有一个资源并等待另一个被其他线程占用的资源。
+       3. 其他线程不能强制占用当前线程获取的资源。
+       4. 循环等待。
+
+       只要上述任何一个条件不成立，则可以避免死锁发生。
+
+   15. JavaSE5java.util.concurrent库新引入的一些类
+       *CountDownLatch*
+
+       　　这个类一般用于同步一个或多个线程。这些线程都要等待其他线程
+       执行的一系列操作。
+
+       　　使用时，传递一个初始值count给CountDownLatch，任何调用
+       await()的线程就会阻塞直到count减为0。它是一次性的，不可重复。调
+       用countDown()方法的线程不会被阻塞。
+
+       *CyclicBarrier*
+
+       与CountDownLatch类似，只不过可以重复使用多次。它还接受一个
+       Runnable的参数，当Count为零时，会自动执行。
+
+       *Semaphore*
+
+       信号量，可以同时控制多个共享资源的访问，获取资源访问权，用
+       acquire()，返还资源访问权用release()。
+
+       *Exchanger*
+
+       它是一个barrier，用于在两个线程之间交换对象。
+
+   16. Lock-free容器
+       CopyOnWriteArrayList：在遍历元素的时候，可以删除元素。
+
+       ConpyOnWriteArraySet，ConcurrentHasMap，ConcurrentLinkedQueue.
+
+   17. Java SE 5.0引入了4个附加的接口
+
+       Closeable: void close()  throws IOException
+       
+       Flushable: void flush() 清空这个Flushable
+
+       Readable：int read(CharBuffer cb)，尝试读入cb可以持有的数量的
+       char值。返回讲稿的char值的数量，无法再获得更多的值时，返回-1.
+
+       Appendable: Appendable append(char c), Appendable
+       append(CharSequence cs)
+       向这个Appendable中追加给定的码元或者给定的序列中的所有码元，返
+       回this。
+
 ** 类加载器
    类加载器加载一个类时，包含加载与链接两个过程，其中链接过程又可以分
    为几个子步骤进行，如下图所示：
@@ -232,6 +543,144 @@
       @enduml
     #+END_SRC
 
+* JNI
+  
+* 虚拟机
+
+** 虚拟机的结构
+   Java虚拟机的基本功能要求就是能读取.class格式的文件，将执行里面定义
+   的操作即可。其他的一些实现细节，如运行时数据区域的内存布局，使用的
+   垃圾回收算法以及任何Java虚拟机指令的内部优化等，都与具体实现有关。
+
+   　　Java虚拟机也是操作两种类型的数据：原始数据类型和引用数据类型。
+   所有的类型检测都在运行前由编译器完成，虚拟机不做数据类型检查。针对
+   不同的数据类型，虚拟机都有对应的指令。
+
+       *原始数据类型:*
+
+   　　byte, short, int, long, char, float, double, boolean,
+   returnAddress，其中returnAddress的值是指向Java虚拟机指令的操作码，
+   与Java语言的类型无直接联系。
+
+       *引用数据类型：*
+
+   　　类，数组以及接口。
+
+   *运行时的数据区域*
+
+   1. pc寄存器
+      每个虚拟机线程拥有自己的pc寄存器。任何时候，每个虚拟机线程都在执
+      行本线程的方法，如果当前执行的方法不是本地方法，则pc寄存器包含虚
+      拟机当前执行的地址，如果当前执行的方法是本地方法，则pc寄存器的值
+      是未定义。pc寄存器足够宽，能容纳一个returnAddress或一个本地指针
+      大小。
+
+   2. Java虚拟机栈
+      每个虚拟机线程有一个私有的栈，创建于虚拟机线程本身产生时。栈存储
+      帧。栈与一般的编程语言（C语言）的栈作用类似：保存局部变量和中间
+      结果，在方法调用和返回时扮演一定作用。一般不会对栈直接进行操作，
+      除非执行push和pop帧操作，所以帧可以是基于堆分配的，栈所需的内存
+      也不需要是连续的。
+
+      虚拟机栈的大小可以是固定的，也可以是动态调整的。对于栈大小是固定
+      的情形，每个虚拟机栈的大小设置可以在栈创建的时候独立设置。而对于
+      动态调整的情形，一般允许用户指定一个上限和一个下限。如果线程中的
+      计算需要栈大小超过允许值，会抛出StackOverflowError异常。如果栈是
+      动态可调整的，但是没有足够的内存，则会抛出OutOfMemoryError异常。
+
+   3. 堆
+      Java虚拟机有一个堆，它在所有虚拟机线程中是共享的。它是运行时的一
+      个数据区域，提供所有类实例与已分配数组的内存。
+
+      　　堆在虚拟机启动的时候就创建了。对象所占用的堆存储空间被一个自
+      动的存储管理系统回收（即垃圾回收系统）。对象从来不需要显示地析构。
+      垃圾回收机制与具体的虚拟机实现强相关。
+
+      堆的大小可以是固定的，也可以是动态调整的。堆所占用的内存不需要是
+      连续的。
+
+   4. 方法区域
+      Java虚拟机有一个方法区域，它是被所有虚拟机线程共享的。方法区域的
+      作用类似于一般编程语言编译后的代码或一个UNIX进程的text段。它存储
+      了每个类的结构如运行时常量池，域和方法数据以及方法和构造方法的代
+      码，包含一个用于类，实例初始化和接口初始化的特殊方法。
+
+   5. 运行时常量池
+      一个运行时常量池是在.class文件中每个类或每个接口的运行时
+      constant_pool表的表现形式。它包含几种类型的常量，如果编译阶段就
+      已经知道的数字常量，以及运行时才能解析的域，方法。运行时常量池类
+      似一般编程语言的符号表，不过它包含更大范围的数据。
+
+      每个运行时常量池是从Java虚拟机的方法区域分配的。一般是在类或接口
+      创建的时候。
+
+   6. 本地方法栈
+      本地方法栈一般由Java虚拟机的指令解释器使用，通常本地栈在每个线程
+      创建的时候分配。
+
+   7. 帧
+      　　帧用于存储数据和中间结果，同时也执行动态链接，返回方法调用结
+      果以及分发异常。每当一个方法调用时，就会创建一个新的帧，当对应的
+      方法调用结束，帧就会销毁。帧是在该帧的线程的虚拟机栈中分配的。每
+      个帧都有自己的局部变量数组，自己的操作数栈，以及当前方法所在的类
+      的运行时常量池的一个引用。
+
+      本地变量数组的大小以及操作栈在编译时就确定了。
+
+      　　任何时候，只有一个帧处于活跃状态，称之为当前帧，它的方法称为
+      当前方法，方法所在的类称为当前类。当方法调用了另外一个方法或本身
+      调用完成，则当前帧就不在是当前帧了。帧可以扩展一些与具体实现相关
+      的信息，如调试信息。
+
+   8. 局部变量
+      　　每个帧都包含称之为局部变量的数组。局部变量数组的长度在编译期
+      间确定，并以一个类或接口以及与帧相关的方法的代码的二进制表示形式
+      一起提供。
+
+      　　单个局部变量可以持有boolean, byte, char, short, int, float,
+      reference或returnAddress类型。一对(两个局部变量的组合)局部变量可
+      以持有long或double类型的值。
+
+      　　本地变量通过索引来寻址。第一个局部变量的索引值为零，通常为
+      this。
+
+   9. 操作数栈
+      每个帧包含一个LIFO的栈，称为操作数栈。栈的最大深度在编译时已经确
+      定。操作数栈在帧则创建时，是空的。Java虚拟机提供了指令从局部变量
+      或域中加载常量或值到操作数栈中。虚拟机提供了指令从操作数栈中拿操
+      作数，在他们上面执行操作，并将结果放进操作数栈。操作数栈也用于准
+      备传递给方法的参数和接收方法的结果。
+
+   10. 动态链接
+       　　每个帧包含一个运行时常量池的引用。动态链接将代码中的符号方
+       法引用转换成具体的方法引用，必要时加载类以解析当前仍末定义的符
+       号，并将这些符号访问转换成合适的偏移值（与这些变量运行时位置相
+       关的存储结构）。
+
+       [[./images/2016/2016073101.png]]
+
+   11. 特别命名的初始化方法
+       　　Java虚拟机中，每个类的构造方法都被视为一个名字为”<init>”的
+       对象实例化方法。它只能通过Java虚拟机的特别指令：invokespecial调
+       用。另外，类和接口的初始化方法也有一个特别的名字“<clinit>”，它
+       只能由Java虚拟机隐式调用，不会被Java虚拟机指令直接调用。上述特
+       别的命名是由编译器提供的。
+
+   12. 异常
+       　　Java虚拟机中的一个异常由Throwable或其子类的实例表示。异常可
+       以是异步发生，也可以是同步发生。
+
+   13. 指令集
+       　　Java虚拟机指令由一般由一个字节长的操作码跟着零个或多个操作数
+       组成。不考虑异常发生的话，总体执行逻辑如下：
+
+       #+BEGIN_SRC c
+         do {
+             atomically calculate pc and fetch opcode at pc;
+         if (operands) fetch operands;
+             execute the action for the opcode;
+         } while (there is more to do);       
+       #+END_SRC
 
 * 实用技巧
 
