@@ -977,3 +977,671 @@
          -> BC_DEAD_BINDER_DONE（将工作类型修改为BINDER_WORK_CLEAR_DEATH_NOTIFICATION，提交到当前线程或进程进一步处理）
          -> BR_CLEAR_DEATH_NOTIFICATION_DONE       
        #+END_EXAMPLE
+
+** Looper类代码分析
+   　　本文将分析一下Looper类的实现及其应用，代码位于
+   frameworks/native/lib/utils/Looper.cpp。主要分为如下几个部分：
+   1. epoll系统调用接口简介
+   2. Looper类代码分析
+   3. Looper类应用实例分析
+
+   *一、epoll系统调用接口简介*
+
+   Looper事件机制实际上是依赖系统调用epoll实现的。它是一种I/O复用模型，
+   即可以同时监控多个I/O事件。对于Looper来说，所谓的I/O事件就是所监控
+   的文件描述符上没有有数据到达。epoll的主要接口如下所示 ：
+   1. =epoll_create()=
+      创建一个epoll实例，返回引用该实例的文件描述符。
+      原型如下所示 ：
+      : int epoll_create(int size );
+      参数size指定了我们想通过epoll实例监控文件描述符的数量。
+   2. =epoll_ctl()=
+      　　操作与该epoll实例相关联的兴趣列表：添加一个文件描述符到兴趣
+      列表中，从兴趣列表中删除一个现存的文件描述符以及修改事件掩码以决
+      定要监控文件描述符上发生的哪个事件。
+      原型如下所示：
+      : int epoll_ctl(int epfd , int op , int fd , struct epoll_event * ev );
+
+      其中参数op可以取如下一些值：
+      |---------------+--------------------------|
+      | EPOLL_CTL_ADD | 将fd加入了监控列表       |
+      |---------------+--------------------------|
+      | EPOLL_CTL_MOD | 修改当前监控的fd相关信息 |
+      |---------------+--------------------------|
+      | EPOLL_CTL_DEL | 将fd从监控列表中删除     |
+      |---------------+--------------------------|
+   3. =epoll_wait()=
+      从I/O Ready列表中返回与epoll实例相关联的项，即返回有事件发生的文
+      件描述符的数量。
+      原型如下所示：
+      : int epoll_wait(int epfd , struct epoll_event * evlist , int maxevents , int timeout );
+      其中timeout值为-1时，表示无限等待直到有事件发生。为0时，执行一个
+      非阻塞检查后立即返回。大于0时，表示一个超时时间值。
+
+      另外， =struct epoll_event= 结构定义如下所示 ：
+      #+BEGIN_SRC c
+        struct epoll_event {
+            uint32_t events;  /* epoll events (bit mask) */
+            epoll_data_t data; /* User data */
+        };      
+      #+END_SRC
+
+      主要的事件掩码有：
+      EPOLLIN：代表有数据可读
+      EPOLLOUT：代表有数据可写
+
+      =epoll_data_t= 的数据结构定义如下：
+      #+BEGIN_SRC c
+        typedef union epoll_data {
+            void *ptr;  /* Pointer to user-defined data */
+            int fd;  /*File descriptor */
+            uint32_t u32; /* 32-bit integer */
+            uint64_t u64; /* 64-bit integer */
+        } epoll_data_t;      
+      #+END_SRC
+
+      使用实例:
+      #+BEGIN_SRC c
+        int epfd;
+        struct epoll_event ev;
+        epfd = epoll_create(5);
+        if (epfd == -1)
+            errExit("epoll_create");
+        ev.data.fd = fd;
+        ev.events = EPOLLIN;
+        if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, ev) == -1)
+            errExit("epoll_ctl");
+        ...
+        epoll_wait(...);      
+      #+END_SRC
+
+   *二、Looper类代码分析*
+
+   Looper类定义了一种事件接口，这里所谓的事件就是文件描述符上的I/O数据
+   是否可读或可写。它提供了一系列接口来支持事件通知和响应，通过轮询，
+   利用epoll系统调用，可以侦测到发生在文件描述符上的I/O事件。
+
+   在分析Looper类之前，我们先来看两个与之相关的接口：
+   1. Looper消息处理接口。
+      #+BEGIN_SRC c
+        class MessageHandler : public virtual RefBase {
+        protected:
+            virtual ~MessageHandler() { }
+
+        public:
+            /**
+             ,* Handles a message.
+             ,*/
+            virtual void handleMessage(const Message& message) = 0;
+        };      
+      #+END_SRC
+
+      与之相关的Looper类的几个成员函数定义如下：
+      #+BEGIN_SRC c
+            /**
+             ,* Enqueues a message to be processed by the specified handler.
+             ,*/
+            void sendMessage(const sp<MessageHandler>& handler, const Message& message);
+
+            /**
+             ,* Enqueues a message to be processed by the specified handler after all pending messages
+             ,* after the specified delay.
+             ,*/
+            void sendMessageDelayed(nsecs_t uptimeDelay, const sp<MessageHandler>& handler,
+                    const Message& message);
+
+            /**
+             ,* Enqueues a message to be processed by the specified handler after all pending messages
+             ,* at the specified time.
+             ,*/
+            void sendMessageAtTime(nsecs_t uptime, const sp<MessageHandler>& handler,
+                    const Message& message);
+
+            /**
+             ,* Removes all messages for the specified handler from the queue.
+             ,*/
+            void removeMessages(const sp<MessageHandler>& handler);
+
+            /**
+             ,* Removes all messages of a particular type for the specified handler from the queue.
+             ,*/
+            void removeMessages(const sp<MessageHandler>& handler, int what);
+              
+      #+END_SRC
+
+      　　从上述成员函数的定义可以看到，Looper对MessageHandler都拥有强
+      引用，所以需要通过显式调用remoeveMessage将其删掉。
+
+      　　此外，也定义了一个WeakMessageHandler类，它通过一个弱引用来引
+      用一个MessageHandler对象，在需要的时候强化为强引用。
+
+   2. Looper回调函数接口。
+      回调函数类定义如下：
+      #+BEGIN_SRC c
+        /**
+         ,* A looper callback.
+         ,*/
+        class LooperCallback : public virtual RefBase {
+        protected:
+            virtual ~LooperCallback() { }
+
+        public:
+            /**
+             ,* Handles a poll event for the given file descriptor.
+             ,* It is given the file descriptor it is associated with,
+             ,* a bitmask of the poll events that were triggered (typically ALOOPER_EVENT_INPUT),
+             ,* and the data pointer that was originally supplied.
+             ,*
+             ,* Implementations should return 1 to continue receiving callbacks, or 0
+             ,* to have this file descriptor and callback unregistered from the looper.
+             ,*/
+            virtual int handleEvent(int fd, int events, void* data) = 0;
+        };      
+      #+END_SRC
+
+      同样地，也定义了一个辅助类SimpleLooperCallback，它支持接受一个回
+      调函数指针。
+      : typedef int (*ALooper_callbackFunc)(int fd, int events, void* data);
+
+      与之相关的Looper类的成员函数如下所示 ：
+      : int addFd(int fd, int ident, int events, ALooper_callbackFunc callback, void* data);
+      : int addFd(int fd, int ident, int events, const sp<LooperCallback>& callback, void* data);
+
+      　　这两个成员函数的主要作用是：将要监控的fd加入到Looper的事件监
+      控列表中。这里，可以指定回调函数。当有事件发生时，Looper实例会自
+      动调用回调函数。如果回调函数为空，则由调用者处理发生的事件。
+
+      　　下面将分析Looper类的实现。先分析下成员变量的意义：
+
+      #+BEGIN_SRC c++
+        const bool mAllowNonCallbacks; // immutable
+
+        int mWakeReadPipeFd;  // immutable
+        int mWakeWritePipeFd; // immutable
+        Mutex mLock;
+
+        Vector<MessageEnvelope> mMessageEnvelopes; // guarded by mLock
+        bool mSendingMessage; // guarded by mLock
+
+        int mEpollFd; // immutable
+
+        // Locked list of file descriptor monitoring requests.
+        KeyedVector<int, Request> mRequests;  // guarded by mLock
+
+        // This state is only used privately by pollOnce and does not require a lock since
+        // it runs on a single thread.
+        Vector<Response> mResponses;
+        size_t mResponseIndex;
+        nsecs_t mNextMessageUptime; // set to LLONG_MAX when none      
+      #+END_SRC
+
+      　　它们的表示的意义如下所示:
+      　　mAllowNonCallbacks: 表示是否允许将文件描述符加入监控对象时，
+      指定回调函数为空。
+
+      　　mWakeReadPipeFd：Looper类默认构造的双向管道的只读端。
+      
+      　　mWakeWritePipeFd：Looper类默认构造的双向管道的只写端。
+
+          mLock：互斥访问保护锁，主要Looper类的一些成员变量的并发访问。
+
+      　　mMessageEnvelopes：Looper实例包含的“消息信封”集合。消息信封
+      主要包含如下属性：时间戳，消息处理函数指针以及消息本身。
+
+      　　mSendingMessage：当前Looper实例是否正在发送消息。
+
+      　　mEpollFd：epoll实例对应的描述符。
+
+      mRequests：当前Looper实例中的文件描述符监控请求。对就的数据结构
+      struct Request定义如下：
+
+      #+BEGIN_SRC c
+        struct Request {
+          int fd;
+          int ident;
+          sp<LooperCallback> callback;
+          void* data;
+        };      
+      #+END_SRC
+
+      其中，fd表示监控的文件描述符，ident表示表示监控的事件标识。
+      callback是事件发生时，对应的回调函数。data为传递给回调函数的自定
+      义数据。
+
+      mResponses：当前的响应集合。数据结构Response的定义如下：
+
+      #+BEGIN_SRC c
+        struct Response {
+          int events;
+          Request request;
+        };      
+      #+END_SRC
+
+      mResponseIndex：响应索引号。
+
+      mNextMessageUptime：下一个消息处理的时间。
+
+      　　接下来，看构造函数声明：
+      : Looper(bool allowNonCallbacks);
+
+      　　参数allowNonCallbacks表示是否允许将文件描述符加入监控对象时，
+      指定回调函数为空。
+
+      　　其实现如下所示：
+      　　首先，它创建了一个双向管道，一端读，一端写。并将其设置为非阻
+      塞模式。然后创建epoll实例，将只读端管道文件描述符中入到epoll的监
+      控列表中，这样保护epoll实例中至少包含有一个文件描述符在其事件监
+      控列表中。详细代码如下所示 ：
+
+      #+BEGIN_SRC c++
+        Looper::Looper(bool allowNonCallbacks) :
+          mAllowNonCallbacks(allowNonCallbacks), mSendingMessage(false),
+          mResponseIndex(0), mNextMessageUptime(LLONG_MAX) {
+          int wakeFds[2];
+          int result = pipe(wakeFds);
+          LOG_ALWAYS_FATAL_IF(result != 0, "Could not create wake pipe.  errno=%d", errno);
+
+          mWakeReadPipeFd = wakeFds[0];
+          mWakeWritePipeFd = wakeFds[1];
+
+          result = fcntl(mWakeReadPipeFd, F_SETFL, O_NONBLOCK);
+          LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake read pipe non-blocking.  errno=%d",
+                              errno);
+
+          result = fcntl(mWakeWritePipeFd, F_SETFL, O_NONBLOCK);
+          LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake write pipe non-blocking.  errno=%d",
+                              errno);
+
+          // Allocate the epoll instance and register the wake pipe.
+          mEpollFd = epoll_create(EPOLL_SIZE_HINT);
+          LOG_ALWAYS_FATAL_IF(mEpollFd < 0, "Could not create epoll instance.  errno=%d", errno);
+
+          struct epoll_event eventItem;
+          memset(& eventItem, 0, sizeof(epoll_event)); // zero out unused members of data field union
+          eventItem.events = EPOLLIN;
+          eventItem.data.fd = mWakeReadPipeFd;
+          result = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mWakeReadPipeFd, & eventItem);
+          LOG_ALWAYS_FATAL_IF(result != 0, "Could not add wake read pipe to epoll instance.  errno=%d",
+                              errno);
+        }      
+      #+END_SRC
+
+      　　再来看与线程相关的几个类的静态函数：
+      : static sp<Looper> prepare(int opts);
+      　　将一个Looper实例与调用者所在的线程关联。Opts的值为： 
+      　　 =ALOOPER_PREPARE_ALLOW_NON_CALLBACKS= 或0，它返回该Looper实
+      例。
+
+      : static void setForThread(const sp<Looper>& looper);
+      设置looper对象与当前线程关联。如果当前looper对象已经存在，则替换
+      掉。如果looper为NULL，则删除当前关联的looper对象。
+
+      : static sp<Looper> getForThread();
+      　　返回当前线程关联的Looper实例。
+
+      接下来看下两个比较重要的成员函数：
+      : int Looper::addFd(int fd, int ident, int events, const sp<LooperCallback>& callback, void* data)
+      该函数主要是将fd加入到Looper的事件监控列表中。如果
+      allowNonCallbacks为false，则必须指定回调函数，且此时ident值为
+      =ALOOPER_POLL_CALLBACK(-2)= ，忽略传入的indent的值，而回调函数为空
+      时，传入的ident值不能小于0 。实际上会通过系统调用epoll_ctl将fd加
+      入到epoll实例的事件监控列表中。同时，也记录下此次的监控信息，封
+      装成一个Request实例，加入到成员变量mRequests当中。如果fd已经存在，
+      则替换掉旧的Request对象。
+
+      : void Looper::sendMessageAtTime(nsecs_t uptime, const sp<MessageHandler>& handler, const Message& message) 
+      该函数主要作用就是发送一个Message对象，实现就是注册一个
+      MessageEnvelop（消息信封）实例，加入到成员变量mMessageEnvelopes，
+      它是按消息触发的时间排序的。
+
+      最后，我们来看下它的核心成员函数pollOnce，基本流程图如下所示 ：
+      [[./images/2016/2016073001.jpg]]
+
+      　　下面来分析上述过程：
+      1. Handle response
+         #+BEGIN_SRC c++
+           for (;;) {
+             while (mResponseIndex < mResponses.size()) {
+               const Response& response = mResponses.itemAt(mResponseIndex++);
+               int ident = response.request.ident;
+               if (ident >= 0) {
+                 int fd = response.request.fd;
+                 int events = response.events;
+                 void* data = response.request.data;
+           #if DEBUG_POLL_AND_WAKE
+                 ALOGD("%p ~ pollOnce - returning signalled identifier %d: "
+                       "fd=%d, events=0x%x, data=%p",
+                       this, ident, fd, events, data);
+           #endif
+                 if (outFd != NULL) *outFd = fd;
+                 if (outEvents != NULL) *outEvents = events;
+                 if (outData != NULL) *outData = data;
+                 return ident;
+               }
+             }         
+         #+END_SRC
+
+         　　针对回调函数为空的情况，ident值必为一个大于等于0的值（注：
+         有回调函数时，indent的值为-2）。所以上述这段代码只会发生在回
+         调函数为空的情况，此时将返回发生事件的描述符，发生的事件以及
+         返回的数据，供调用者进一步处理。
+
+      2. Handle result.
+         #+BEGIN_SRC c++
+           for(;;) {
+           ...
+                  if (result != 0) {
+           #if DEBUG_POLL_AND_WAKE
+                       ALOGD("%p ~ pollOnce - returning result %d", this, result);
+           #endif
+                       if (outFd != NULL) *outFd = 0;
+                       if (outEvents != NULL) *outEvents = 0;
+                       if (outData != NULL) *outData = NULL;
+                       return result;
+                   }
+           ...
+           }         
+         #+END_SRC
+
+         这段代码实际上是根据pollInner的结果进行处理，实际上是针对设置
+         了回调函数的情况，因为设置了回调函数，所以已经对发生的事件做
+         了处理了，所以，不需要将发生事件的相关信息再返回给调用者了。
+
+      3. pollInner
+         #+BEGIN_SRC c++
+           for(;;) {
+           ...
+            result = pollInner(timeoutMillis);
+           }         
+         #+END_SRC
+
+         1. Ajust the time out.
+            #+BEGIN_SRC c++
+              int Looper::pollInner(int timeoutMillis) {
+                  ...
+                  // Adjust the timeout based on when the next message is due.
+                  if (timeoutMillis != 0 && mNextMessageUptime != LLONG_MAX) {
+                      nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+                      int messageTimeoutMillis = toMillisecondTimeoutDelay(now, mNextMessageUptime);
+                      if (messageTimeoutMillis >= 0
+                              && (timeoutMillis < 0 || messageTimeoutMillis < timeoutMillis)) {
+                          timeoutMillis = messageTimeoutMillis;
+                      }
+              　　...
+              　　}
+              　　...
+              }            
+            #+END_SRC
+            　　为什么要调整超时时间值，原因很简单：因为对于消息来说，
+            可能有多个消息，且每个消息触发的时间点不同，一次事件的触发
+            导致epoll_wait返回并不能处理完所有的消息，所有会多次调用
+            epoll_wait函数，由于超时值是第一次调用时指定的，所以再次调
+            用时，需要重新计算，要去掉已经消耗的时间。代码中now记录当
+            前的时间值，toMillisecondTimeoutDelya(...)计算这本次循环的
+            超时值。上述的判断条件指明了什么情况下需要做些调整：
+            - 当前的消息触发时间不早于当前时间。（即消息没有过时）
+
+            - 上轮 =epoll_wait= 指定的超时值为-1或一个较大的数值（>
+              messageTimeoutMillis）。
+
+         2. wait for event(epoll wait)
+            #+BEGIN_SRC c++
+                  ...
+                  struct epoll_event eventItems[EPOLL_MAX_EVENTS];
+              　　int eventCount = epoll_wait(mEpollFd, eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
+              　　...            
+            #+END_SRC
+
+            主要通过 =epoll_wait= 系统调用检测事件的发生。
+
+         3. handle the event
+
+            #+BEGIN_SRC c++
+              ...
+                for (int i = 0; i < eventCount; i++) {
+                      int fd = eventItems[i].data.fd;
+                      uint32_t epollEvents = eventItems[i].events;
+                      if (fd == mWakeReadPipeFd) {
+                          if (epollEvents & EPOLLIN) {
+                              awoken();
+                          } else {
+                              ALOGW("Ignoring unexpected epoll events 0x%x on wake read pipe.", epollEvents);
+                          }
+                      } else {
+                          ssize_t requestIndex = mRequests.indexOfKey(fd);
+                          if (requestIndex >= 0) {
+                              int events = 0;
+                              if (epollEvents & EPOLLIN) events |= ALOOPER_EVENT_INPUT;
+                              if (epollEvents & EPOLLOUT) events |= ALOOPER_EVENT_OUTPUT;
+                              if (epollEvents & EPOLLERR) events |= ALOOPER_EVENT_ERROR;
+                              if (epollEvents & EPOLLHUP) events |= ALOOPER_EVENT_HANGUP;
+                              pushResponse(events, mRequests.valueAt(requestIndex));
+                          } else {
+                              ALOGW("Ignoring unexpected epoll events 0x%x on fd %d that is "
+                                      "no longer registered.", epollEvents, fd);
+                          }
+                      }
+              　　}
+              　　...            
+            #+END_SRC
+
+            　　对于Looper对象内置的管道，处理EPOLLIN事件，而对于其他
+            监听的文件描述符，则分别记录下EPOLLIN， EPOLLOUT，
+            EPOLLERR， EPOLLHUP并打包成Response对象加入到mResponses中
+            进行处理。
+
+         4. invoke pending message callbacks
+            #+BEGIN_SRC c++
+                // Invoke pending message callbacks.
+                  mNextMessageUptime = LLONG_MAX;
+                  while (mMessageEnvelopes.size() != 0) {
+                      nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+                      const MessageEnvelope& messageEnvelope = mMessageEnvelopes.itemAt(0);
+                      if (messageEnvelope.uptime <= now) {
+                          // Remove the envelope from the list.
+                          // We keep a strong reference to the handler until the call to handleMessage
+                          // finishes.  Then we drop it so that the handler can be deleted *before*
+                          // we reacquire our lock.
+                          { // obtain handler
+                              sp<MessageHandler> handler = messageEnvelope.handler;
+                              Message message = messageEnvelope.message;
+                              mMessageEnvelopes.removeAt(0);
+                              mSendingMessage = true;
+                              mLock.unlock();
+
+              #if DEBUG_POLL_AND_WAKE || DEBUG_CALLBACKS
+                              ALOGD("%p ~ pollOnce - sending message: handler=%p, what=%d",
+                                      this, handler.get(), message.what);
+              #endif
+                              handler->handleMessage(message);
+                          } // release handler
+
+                          mLock.lock();
+                          mSendingMessage = false;
+                          result = ALOOPER_POLL_CALLBACK;
+                      } else {
+                          // The last message left at the head of the queue determines the next wakeup time.
+                          mNextMessageUptime = messageEnvelope.uptime;
+                          break;
+                      }
+                  }            
+            #+END_SRC
+
+            messageEnvelope.uptime代表该消息被处理的时机，先处理掉已经
+            过时的消息，即messageEnvelope.uptime <= now， 如果还有未过
+            时的消息，则记录下它应该被处理的时间：mNextMessageUptime =
+            messageEnvelope.uptime；也即下次被触发的时间。这个值也作为
+            3.1中调整epoll_wait超时时间的值。
+
+         5. invoke all response callback
+            　　对于回调函数不为空的情形，在事件触发后，就会自动执行调
+            用者提供的回调函数，如下面代码所示：
+
+            #+BEGIN_SRC c++
+               // Invoke all response callbacks.
+                  for (size_t i = 0; i < mResponses.size(); i++) {
+                      Response& response = mResponses.editItemAt(i);
+                      if (response.request.ident == ALOOPER_POLL_CALLBACK) {
+                          int fd = response.request.fd;
+                          int events = response.events;
+                          void* data = response.request.data;
+              #if DEBUG_POLL_AND_WAKE || DEBUG_CALLBACKS
+                          ALOGD("%p ~ pollOnce - invoking fd event callback %p: fd=%d, events=0x%x, data=%p",
+                                  this, response.request.callback.get(), fd, events, data);
+              #endif
+                          int callbackResult = response.request.callback->handleEvent(fd, events, data);
+                          if (callbackResult == 0) {
+                              removeFd(fd);
+                          }
+                          // Clear the callback reference in the response structure promptly because we
+                          // will not clear the response vector itself until the next poll.
+                          response.request.callback.clear();
+                          result = ALOOPER_POLL_CALLBACK;
+                      }            
+            #+END_SRC
+
+   *三、Looper类应用实例分析*
+
+   　　下面来看下Looper类的API的使用。
+   1. Looper对象初始化
+      #+BEGIN_SRC c++
+        sp<Looper> mLooper = new Looper(true);
+        ...
+        mLooper.clear();      
+      #+END_SRC
+   2. pollOnece函数的使用
+      #+BEGIN_SRC c++
+        StopWatch stopWatch("pollOnce");
+        int result = mLooper->pollOnce(1000);
+        int32_t elapsedMillis = ns2ms(stopWatch.elapsedTime());      
+      #+END_SRC
+      返回值为 result = =ALOOPER_POLL_WAKE=
+   3. 设置CallBack
+      定义回调函数：
+      #+BEGIN_SRC c++
+        class CallbackHandler {
+        public:
+            void setCallback(const sp<Looper>& looper, int fd, int events) {
+                looper->addFd(fd, 0, events, staticHandler, this);
+            }
+
+        protected:
+            virtual ~CallbackHandler() { }
+
+            virtual int handler(int fd, int events) = 0;
+
+        private:
+            static int staticHandler(int fd, int events, void* data) {
+                return static_cast<CallbackHandler*>(data)->handler(fd, events);
+            }
+        };
+
+        class StubCallbackHandler : public CallbackHandler {
+        public:
+            int nextResult;
+            int callbackCount;
+
+            int fd;
+            int events;
+
+            StubCallbackHandler(int nextResult) : nextResult(nextResult),
+                    callbackCount(0), fd(-1), events(-1) {
+            }
+
+        protected:
+            virtual int handler(int fd, int events) {
+                callbackCount += 1;
+                this->fd = fd;
+                this->events = events;
+                return nextResult;
+            }
+        };      
+      #+END_SRC
+
+      使用实例：
+      #+BEGIN_SRC c++
+        Pipe pipe;
+        StubCallbackHandler handler(true);
+
+        pipe.writeSignal();
+        handler.setCallback(mLooper, pipe.receiveFd, ALOOPER_EVENT_INPUT);
+
+        StopWatch stopWatch("pollOnce");
+        int result = mLooper->pollOnce(100);
+        int32_t elapsedMillis = ns2ms(stopWatch.elapsedTime());
+        　　...      
+      #+END_SRC
+
+      result的值为 =ALOOPER_POLL_CALLBACK= 。
+   4. Callback为空的情形
+      　　若设置Callback为空，此时事件的标识符ident必须是一个大于或等
+      于0的值。如下代码所示：
+      #+BEGIN_SRC c++
+        const int expectedIdent = 5;
+        void* expectedData = this;
+
+        Pipe pipe;
+
+        pipe.writeSignal();
+        mLooper->addFd(pipe.receiveFd, expectedIdent, ALOOPER_EVENT_INPUT, NULL, expectedData);
+
+        StopWatch stopWatch("pollOnce");
+        int fd;
+        int events;
+        void* data;
+        int result = mLooper->pollOnce(100, &fd, &events, &data);
+        int32_t elapsedMillis = ns2ms(stopWatch.elapsedTime());      
+      #+END_SRC
+      
+      此时返回值result等于ident的值。
+   5. 通过Looper发送消息
+      　　此种情况下一般不需要调用addFd，通过Looper默认创建的管道来监
+      听事件就行了。它的使用示例如下：
+      　　首先要定义一个MessageHandler的派生类，用于处理消息：
+      #+BEGIN_SRC c++
+        class StubMessageHandler : public MessageHandler {
+        public:
+            Vector<Message> messages;
+
+            virtual void handleMessage(const Message& message) {
+                messages.push(message);
+            }
+        };      
+      #+END_SRC
+
+      接着就可以通过SendMessage相关的函数发送消息到Looper实例上：
+
+      #+BEGIN_SRC c++
+        nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+        sp<StubMessageHandler> handler = new StubMessageHandler();
+        mLooper->sendMessageAtTime(now + ms2ns(100), handler, Message(MSG_TEST1));
+
+        StopWatch stopWatch("pollOnce");
+        int result = mLooper->pollOnce(1000);
+        int32_t elapsedMillis = ns2ms(stopWatch.elapsedTime());
+
+        ...
+
+        result = mLooper->pollOnce(1000);
+        elapsedMillis = ns2ms(stopWatch.elapsedTime());
+
+        ...
+        result = mLooper->pollOnce(100);
+        elapsedMillis = ns2ms(stopWatch.elapsedTime());
+
+                  
+      #+END_SRC
+
+      #+BEGIN_EXAMPLE
+        第一次
+        elapsedMillis = 0;
+        result = ALOOPER_POLL_WAKE
+        Message size = 0;
+        第二次
+        elapsedMillis = 100
+        result = ALOOPER_POLL_CALLBACK
+        Message size = 1
+        第三次
+        result = ALOOPER_POLL_TIMEOUT
+        没有消息需要处理。      
+      #+END_EXAMPLE

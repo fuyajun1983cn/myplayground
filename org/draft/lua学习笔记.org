@@ -3,3 +3,382 @@
 #+TITLE: lua学习笔记
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 基础语法
+  
+** 一个简单例子
+   #+BEGIN_SRC lua :exports both
+     -- this is a test
+
+     helpful_guys = {
+        "hello", "山庄来客", "lua编程"
+     }
+
+     for _,e in ipairs(helpful_guys) do
+        print(e)
+     end
+   #+END_SRC
+
+   #+RESULTS:
+   : hello
+   : 山庄来客
+   : lua编程
+
+** Chunks
+   Chunk 是一系列语句, Lua 执行的每一块语句,比如一个文件或者交互模式下
+   的每一行都是一个 Chunk 。
+
+   每个语句结尾的分号( ; )是可选的,但如果同一行有多个语句最好用;分开
+
+   一个 Chunk 可以是一个语句,也可以是一系列语句的组合,还可以是函数,
+   Chunk可以很大,在 Lua 中几个 MByte 的 Chunk 是很常见的。 
+
+   可以通过指定参数让 Lua 执行一系列 Chunk 。例如:假定一个文件 a 内有
+   单个语句x=1 ;另一个文件 b 有语句 print(x) 
+   : prompt> lua -la -lb
+
+   另一个连接外部 Chunk 的方式是使用 dofile 函数, dofile 函数加载文件
+   并执行它 .假设有一个文件 :
+   #+BEGIN_SRC lua
+     -- file 'lib1.lua'
+     function norm (x, y)
+        local n2 = x^2 + y^2
+        return math.sqrt(n2)
+     end
+     function twice (x)
+        return 2*x
+     end   
+   #+END_SRC
+   在交互模式下:
+   #+BEGIN_SRC sh
+     > dofile("lib1.lua")
+     -- load your library
+     > n = norm(3.4, 1.0)
+     > print(twice(n))
+     --> 7.0880180586677   
+   #+END_SRC
+
+** 全局变量
+   全局变量不需要声明,给一个变量赋值后即创建了这个全局变量,访问一个没
+   有初始化的全局变量也不会出错,只不过得到的结果是: nil.
+
+   如果你想删除一个全局变量,只需要将变量赋值为 nil
+   
+   换句话说 , 当且仅当一个变量不等于 nil 时,这个变量才认为存在。
+
+** 词法约定
+   标示符:字母 (letter) 或者下划线开头的字母、下划线、数字序列 . 最好
+   不要使用下划线加大写字母的标示符,因为 Lua 的保留字也是这样的。 Lua
+   中, letter 的含义是依赖于本地环境的。
+
+   注释:单行注释 :--
+   多行注释: 
+   : --[[ --]]
+
+** 命令行方式
+   : lua [options] [script [args]]
+   -e :直接将命令传入 Lua
+   : prompt> lua -e "print(math.sin(12))" --> -0.53657291800043
+   -l :加载一个文件 .
+   -i :进入交互模式 .
+   =_PROMPT= 内置变量作为交互模式的提示符
+   
+   Lua 的运行过程,在运行参数之前, Lua 会查找环境变量 LUA_INIT 的值,如
+   果变量存在并且值为 @filename , Lua 将加载指定文件。如果变量存在但不
+   是以 @开头,Lua 假定 filename 为 Lua 代码文件并且运行他。利用这个特
+   性,我们可以通过配置,灵活的设置交互模式的环境。可以加载包,修改提示符
+   和路径,定义自己的函数,修改或者重命名函数等。 
+
+   全局变量 arg 存放 Lua 的命令行参数。
+   : prompt> lua script a b c
+
+   在运行以前, Lua 使用所有参数构造 arg 表。脚本名索引为 0 ,脚本的参数
+   从 1 开始增加。脚本前面的参数从-1开始减少。
+
+   : prompt> lua -e "sin=math.sin" script a b
+   arg 表如下:
+   #+BEGIN_SRC lua
+     arg[-3] = "lua"
+     arg[-2] = "-e"
+     arg[-1] = "sin=math.sin"
+     arg[0] = "script"
+     arg[1] = "a"
+     arg[2] = "b"
+   #+END_SRC
+
+** 类型和值
+   8个基本数据类型
+   #+BEGIN_SRC lua
+     print(type("Hello world")) --> string
+     print(type(10.4*3)) --> number
+     print(type(print)) --> function
+     print(type(type)) --> function
+     print(type(true)) --> boolean
+     print(type(nil)) --> nil
+     print(type(type(X))) --> string   
+   #+END_SRC
+
+*** 字符串
+    用单引号或双引号都可以， 还可以使用 [[]]表示字符串，这种形式的字符
+    串可以包含多行也,可以嵌套且不会解释转义序列,如果第一个字符是换行符
+    会被自动忽略掉。这种形式的字符串用来包含一段代码是非常方便的。
+
+    #+BEGIN_SRC lua
+      page = [[
+      <HTML>
+      <HEAD>
+      <TITLE>An HTML Page</TITLE>
+      </HEAD>
+      <BODY>
+      Lua
+      [[a text between double brackets]]
+      </BODY>
+         </HTML>
+      ]]
+    #+END_SRC
+
+    .. 在 Lua 中是字符串连接符,当在一个数字后面写 .. 时,必须加上空格以
+    防止被解释错。
+
+** Functions
+   函数是第一类值(和其他变量相同),意味着函数可以存储在变量中,可以作为
+   函数的参数,也可以作为函数的返回值。
+
+   Lua 可以调用 lua 或者 C 实现的函数, Lua 所有标准库都是用 C 实现的。
+   标准库包括 string 库、 table 库、 I/O 库、 OS 库、算术库、 debug 库。
+
+** Userdata and Threads
+   userdata 可以将 C 数据存放在 Lua 变量中, userdata 在 Lua 中除了赋值
+   和相等比较外没有预定义的操作。
+
+** 表
+   表是 Lua 特有的功能强大的东西。最简单的构造函数是{},用来创建一个空
+   表。可以直接初始化数组 :
+   #+BEGIN_SRC lua
+     ays = {"Sunday", "Monday", "Tuesday", "Wednesday",
+            "Thursday", "Friday", "Saturday"}   
+   #+END_SRC
+
+   第一个元素索引为 1
+
+   #+BEGIN_SRC lua
+     polyline = {color="blue", thickness=2, npoints=4,
+                 {x=0,
+                  y=0},
+                 {x=-10, y=0},
+                 {x=-10, y=1},
+                 {x=0,
+                  y=1}
+     }   
+   #+END_SRC
+
+** 局部变量与代码块( block )
+   使用local创建一个局部变量,与全局变量不同,局部变量只在被声明的那个代
+   码块内有效。代码块:指一个控制结构内,一个函数体,或者一个 chunk (变量
+   被声明的那个文件或者文本串)。
+
+   应该尽可能的使用局部变量,有两个好处:
+   1. 避免命名冲突
+   2. 访问局部变量的速度比全局变量更快 .
+
+   #+BEGIN_SRC lua
+     do
+        local a2 = 2*a
+        local d = sqrt(b^2 - 4*a*c)
+        x1 = (-b + d)/a2
+        x2 = (-b - d)/a2
+     end
+     -- scope of 'a2' and 'd' ends here
+     print(x1, x2)   
+   #+END_SRC
+
+** 控制结构语句
+   if 语句,有三种形式:
+   #+BEGIN_SRC lua
+     if conditions then
+        then-part
+           end;
+     if conditions then
+        then-part
+           else
+              else-part
+                 end;
+     if conditions then
+        then-part
+      elseif conditions then
+              elseif-part
+              ---> 多个 elseif
+                 ..
+      else
+            else-part
+      end;
+   #+END_SRC
+   
+   while 语句:
+   #+BEGIN_SRC lua
+     while condition do
+        statements;
+     end;   
+   #+END_SRC
+
+   repeat-until 语句:
+   #+BEGIN_SRC lua
+     repeat
+        statements;
+     until conditions;   
+   #+END_SRC
+
+   for 语句有两大类:
+   第一,数值 for 循环:
+   #+BEGIN_SRC lua
+     for var=exp1,exp2,exp3 do
+        loop-part
+     end   
+   #+END_SRC
+   exp2是终止条件，exp3是步长
+
+   有几点需要注意:
+   1. 三个表达式只会被计算一次,并且是在循环开始前。
+      #+BEGIN_SRC lua
+        for i=1,f(x) do
+           print(i)
+        end
+        for i=10,1,-1 do
+           print(i)
+        end      
+      #+END_SRC
+   2. 控制变量 var 是局部变量自动被声明 , 并且只在循环内有效
+      #+BEGIN_SRC lua
+        for i=1,10 do
+           print(i)
+        end
+        max = i
+        -- probably wrong! 'i' here is global      
+      #+END_SRC
+   3. 循环过程中不要改变控制变量的值,那样做的结果是不可预知的。如果要
+      退出循环,使用 break 语句。
+
+
+   第二,范型 for 循环:
+   #+BEGIN_SRC lua
+     -- print all values of array 'a'
+     for i,v in ipairs(a) do print(v) end   
+   #+END_SRC
+
+** break 和 return 语句
+   break 语句用来退出当前循环( for 、 repeat 、 while )。在循环外部不
+   可以使用。
+
+   return 用来从函数返回结果,当一个函数自然结束时,结尾会有一个默认的
+   return. 
+
+   有时候为了调试或者其他目的需要在 block 的中间使用 return 或者 break
+   ,可以显式的使用do..end来实现:
+   #+BEGIN_SRC lua
+     function foo ()
+        return
+           --<< SYNTAX ERROR
+           -- 'return' is the last statement in the next block
+        do return end
+        -- OK
+        ...
+        -- statements not reached
+     end
+   #+END_SRC
+
+** 函数
+   语法:
+   #+BEGIN_SRC lua
+     function func_name (arguments-list)
+        statements-list;
+     end;   
+   #+END_SRC
+
+   调用函数的时候,如果参数列表为空,必须使用 () 表明是函数调用。
+
+   上述规则有一个例外,当函数只有一个参数并且这个参数是字符串或者表构造
+   的时候, () 可有可无:
+   #+BEGIN_SRC lua
+     print "Hello World" <--> print("Hello World")
+     dofile 'a.lua' <--> dofile ('a.lua')
+     print [[a multi-line <--> print([[a multi-line
+     message]]
+     message]])
+     f{x=10, y=20} <--> f({x=10, y=20})
+     type{} <--> type({})   
+   #+END_SRC
+
+   可以使用圆括号强制使调用返回一个值。
+   #+BEGIN_SRC lua
+     print((foo0())) --> nil
+     print((foo1())) --> a
+     print((foo2())) --> a   
+   #+END_SRC
+   
+*** 可变参数
+    Lua 函数可以接受可变数目的参数,和 C 语言类似在函数参数列表中使用三
+    点( ... )表示函数有可变的参数。 Lua 将函数的参数放在一个叫 arg 的
+    表中,除了参数以外, arg 表中还有一个域 n 表示参数的个数。
+
+    哑元( dummy variable ,下划线)
+    #+BEGIN_SRC lua
+      local _, x = string.find(s, p)
+      -- now use `x'    
+    #+END_SRC
+
+*** 命名参数
+    #+BEGIN_SRC lua
+      function rename (arg)
+         return os.rename(arg.old, arg.new)
+      end
+
+      rename{old="temp.lua", new="temp1.lua"}
+    #+END_SRC
+    
+*** 尾调用（尾递归）
+    函数的最后一句是调用另外一个函数，即函数调用另一个函数后，不需要返
+    回。
+
+    尾调用不会出现栈举出的情况，因为它不会增加额外的栈空间。
+
+** 迭代器与泛型for
+   我们写一个迭代器遍历一个文件内的所有匹配的单词。
+   #+BEGIN_SRC lua
+     function allwords()
+        local line = io.read() -- current line
+        local pos = 1 -- current position in the line
+        return function () -- iterator function
+           while line do
+              -- repeat while there are lines
+              local s, e = string.find(line, "%w+", pos)
+              if s then
+                 pos = e + 1
+                 -- found a word?
+                 -- next position is after this
+                 word
+                 return string.sub(line, s, e) -- return the
+                 word
+              else
+                 line = io.read()
+                 -- word not found; try next
+                 line
+                 pos = 1
+                 -- restart from first position
+              end
+           end
+           return nil
+           -- no more lines: end of traversal
+        end
+     end
+   #+END_SRC
+
+   使用：
+   #+BEGIN_SRC lua
+     for word in allwords() do
+        print(word)
+     end   
+   #+END_SRC
+
+
+* 模块
