@@ -109,12 +109,12 @@
 
 * EDCA Implementation Model
 
-  [[/images/2016/2016051902.png]]
+  [[./images/2016/2016051902.png]]
 
 
 * Arbitration InterFrame Space
 
-  [[/images/2016/2016051903.png]]
+  [[./images/2016/2016051903.png]]
 
 * Throughput Enhancements
 
@@ -136,6 +136,8 @@
     [[/images/2016/2016051907.png]]
 
 *** Automatic Power-Save Delivery
+    =ps-poll= is inefficient for current product, one poll one packet.
+
     Enhancing Power Saving mode in QoS Basic Service Set
 
     *QoS-AP* automatically delivers downlink frames,which belong to some
@@ -146,7 +148,11 @@
     2. Scheduled APSD (S-APSD)
 
 **** Unscheduled APSD (U-APSD)
-     [[/images/2016/2016051904.png]]
+     [[./images/2016/2016051904.png]]
+
+     STA will announce its capability for uapsd (ac) through wmm ie
+     . it will tell ap which AC is supported for STA. u can check the
+     (re)association packet to get the information .
 
      Power-saving QoS-STA wakes up and send a “trigger”data
      frame belonging to “trigger-enabled” AC to QoS-AP
@@ -159,7 +165,7 @@
 
 **** Scheduled APSD (S-APSD)
 
-     [[/images/2016/2016051905.png]]
+     [[./images/2016/2016051905.png]]
 
      QoS-STA negotiates a APSD Schedule with QoS-AP
 

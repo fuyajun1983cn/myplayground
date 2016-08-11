@@ -56,6 +56,25 @@
       或
       : FileLock lock = channel.tryLock();
 
+      映射一个文件：
+      #+BEGIN_SRC java
+        public static long checksumMappedFile(String filename) throws IOException
+        {
+            FileInputStream in = new FileInputStream(filename);
+            FileChannel channel = in.getChannel();
+
+            CRC32 crc = new CRC32();
+            int length = (int)channel.size();
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, length);
+
+            for (int p = 0; p < length; p++) {
+                int c = buffer.get(p);
+                crc.update(c);
+            }
+            return crc.getValue();
+        }
+      #+END_SRC
+
    5. 对象序列化
       要使对象能序列化，该对象必须实现接口：Serializable. 如果想在对象
       序列化的过程中进行一些客制化操作，则必须实现接口：Externalizable。
