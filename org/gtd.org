@@ -2,19 +2,16 @@
 #+STARTUP: overveiw
 #+STARTUP: hidestars align fold nodlcheck oddeven lognotestate
 #+STARTUP: logdone
-#+PROPERTY: Effort_ALL  0:10 0:20 0:30 1:00 2:00 4:00 6:00 8:00
+#+PROPERTY: Effort_ALL  0:10 0:20 0:30 1:00 2:00 4:00 6:00 8:00 20:00
 #+COLUMNS: %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}
 #+PROPERTY: Effort_ALL 0 0:10 0:20 0:30 1:00 2:00 3:00 4:00 8:00
 #+TAGS:       Study(s) Project(p) Fix(f) Check(c) 
 
-* Tasks(Planning)
+* Tasks
   :PROPERTIES:
   :CATEGORY: TASKS
   :END:
 ** WiFI Driver持续学习 [1/1]
-*** Roaming Function
-    - Next Action: 文档 E:\documents\wifi\学习资料\SOP\sta\MT76x2,
-      MT7603 Linux WLAN Driver Study Materials\Roaming.ppx
 *** Power Management
     - Next Action:
       Linux MT7603 STA Legacy_PSP and Fast_PSP Driver Control Flow
@@ -51,11 +48,7 @@
 *** Thermal Protection
     - Next Action:
       YF_20141216_driver_study_thermal_protection
-
-*** PMF(Protected Management Frame)
-    - Next Action:
-      PMF_intro_0915
-
+      DRS (Date Rate Switching)
 *** Smart Connection
     - Next Action:
       MT7687 - Smart Connection Introduction .pptx
@@ -67,8 +60,7 @@
 *** 深入了解TxRx原理
     - [ ] 深入研究代码实现细节
     - [ ] 帧聚合
-
-*** CTS/RTS设置
+    - [ ] 重点研究TX流程，特别是VLAN的支持
 
 *** Sniffer Mode
     - Next Action: Introduction of Monitor Mode
@@ -94,12 +86,7 @@
 
 *** 11ac中的BF
 *** ☛ TODO 物理层                                                         :802.11ac学习:
-** wpa_supplicant持续学习
-*** wps生成PMK时使用的原料
 ** emacs
-*** 插件使用
-**** Hydra
-       NEXT：https://github.com/abo-abo/hydra
 *** 工作流优化
 **** ☛ TODO 任务开始时，自动计时
      参考代码：
@@ -118,7 +105,6 @@
 ** ArchLinux学习 [1/1]
 *** 了解systemd工作原理
 ** 个人杂事
-** TCP/IP体系结构研究
 ** 技术修炼
 *** 读书计划 [1/3]
 **** ☛ TODO Learn More Study Less
@@ -129,10 +115,11 @@
 **** Break-Throuhgh Rapid Reading
 **** The Art of Learning
 **** 提早六小时下班的高效工作术
-*** 技术课程
+*** 技术书箱
 **** Digital Communication Systems
      http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/index.htm
-
+**** 计算机语言的构造与解释
+**** 编译原理（龙书）
 ** 编程语言捂热计划
 *** 网络编程
 *** C++
@@ -194,6 +181,114 @@
     - Action: 制定研究计划
 ** ☛ TODO [#C] IW源码学习
    - Action: 制定研究计划
+** 在发送Association Request之前禁用一些HT/VHT的速率
+    http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
+
+** ☛ TODO Android WiFi Framework
+    制定研究计划
+*** 传统WiFi流程
+*** Miracast流程
+*** SoftAp流程
+** ☛ TODO 整理以前的学习笔记 [2/8]
+   - [ ] Android研究文章整理
+   - [ ] Android学习笔记
+   - [ ] Android研究记录
+   - [ ] CMake笔记
+   - [X] C++学习笔记
+   - [ ] Java编程笔记
+   - [ ] Unix下C编程学习笔记
+   - [X] 内核编程笔记
+** ☛ TODO TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
+    SCHEDULED: <2016-08-15 周一>
+    - [X] 第一章
+** 研究emacs源码
+*** ☛ TODO org-timer源码研究
+** ☛ TODO CWTS学习                                                    :Study:
+CWTS学习， 内容属性简单级别
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO CWAP学习                                                    :Study:
+内容属性较难级别
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO  CWSP学习                                               :Study:
+808.11 Security相关的知识学习
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO  吞吐量问题分析SOP学习                                  :Study:
+TPUT_study
+Added: [2016-08-10 周三 13:45]
+** ☛ TODO demo 4k miracast                                          :Project:
+    SCHEDULED: <2016-08-15 周一>
+Follow 4k Miracast Demo的事情
+Added: [2016-08-10 周三 13:50]
+** ☛ TODO TODO 整理plantuml语法参考笔记                               :Study:
+    SCHEDULED: <2016-08-13 周六>
+    CLOCK: [2016-08-11 周四 11:44]--[2016-08-11 周四 11:58] =>  0:14
+    CLOCK: [2016-08-10 周三 19:08]--[2016-08-10 周三 19:53] =>  0:45
+    CLOCK: [2016-08-09 周二 18:04]--[2016-08-09 周二 18:45] =>  0:41
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+      整理PlantUML文档
+Added: [2016-08-09 周二 18:00]
+
+** ☛ TODO 复习CWNA内容                                                :Study:
+    DEADLINE: <2016-09-02 周五> SCHEDULED: <2016-08-15 周一>
+    CLOCK: [2016-08-11 周四 09:53]--[2016-08-11 周四 11:29] =>  1:36
+    CLOCK: [2016-08-09 周二 10:14]--[2016-08-09 周二 11:10] =>  0:56
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+    - [X] 第一章
+    - [X] 第二章
+** ☛ TODO 数据结构与算法设计学习                                       :Study:
+    SCHEDULED: <2016-08-13 周六>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+    数据结构与常见算法思想学习
+Added: [2016-08-11 周四 13:25]
+** ☛ TODO 整理问题集                                                   :Study:
+    SCHEDULED: <2016-08-13 周六>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+将问题集写到个人知识库里面
+Added: [2016-08-11 周四 17:15]
+
+** ☛ TODO 查看公版分支上的修改                                        :Study:
+    SCHEDULED: <2016-08-15 周一>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+*** Next Action: 153502
+*** 待深入了解的修改：
+      1. 155501   add p2p VHT 80 Draft Support
+** ☛ TODO 研究wpa_supplicant上的修改记录                              :Study:
+    SCHEDULED: <2016-08-15 周一>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+     - 2015-October
+** ☛ TODO hostpad学习                                                 :Study:
+    SCHEDULED: <2016-08-15 周一>
+    CLOCK: [2016-08-09 周二 13:56]--[2016-08-09 周二 15:51] =>  1:55
+    CLOCK: [2016-08-09 周二 13:24]--[2016-08-09 周二 13:56] =>  0:32
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+** ☛ TODO 设计模式学习                                                 :Study:
+    SCHEDULED: <2016-08-13 周六>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+    设计模式学习
+    Added: [2016-08-11 周四 19:15]
+** ☛ TODO =org.el= 
+   SCHEDULED: <2016-08-15 周一>
+   CLOCK: [2016-08-11 周四 19:32]--[2016-08-11 周四 20:36] =>  1:04
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+   - 406行
 * Calendar
   :PROPERTIES:
   :CATEGORY: CALENDAR
@@ -226,45 +321,8 @@
 ** 长虹 [1/1]
 ** Dajiang [2/2]
 ** Hisense [1/1]
-*** Miracast有时无法连接
-    send Invitation Response失败后，没有将pending action state恢复成原
-    值。
 ** TCL [1/1]
 ** Skyworth
-*** ☛ TODO [#A] Miracast连接后丢包
-    - 0512
-      解决丢包问题，需要减少上层的扫描动作。
-      调整接收者的Buffer
-    - 0517
-      存在丢包，乱序的情况
-    - 0523
-      go intent = 15
-      force frequency
-      30.5
-    - 对比（公版平台对比）
-      选择一个干净的信道测试
-      重传次数太多会导致速率降低
-      False CCA
-      RTS/CTS Threshold
-    - 对比测试实现 
-      1. 平台不连接AP的情况下
-
-         1) 手机不连接AP的情况
-            17.4 Mbps
-
-            15.8 Mbps
-
-         2) 手机连接AP的情况(Xiaomi_2.4G 2437)
-            31 Mbps
-            20.9 Mbps
-
-         3) 手机连接AP的情况(Cisco_sa1, 2442)
-            35.4 Mbps
-            34.9 Mbps
-
-         4) 手机清掉已经保存的AP (5785)
-            14.4Mbs
-
 *** 网络拔掉后，Wifi回连时间较长
     0608
 
@@ -307,38 +365,11 @@
   :PROPERTIES:
   :CATEGORY: TASKS
   :END:
-
-** ☛ TODO TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
-    - [X] 第一章
-** ☛ TODO Android WiFi Framework
-   制定研究计划
-*** 传统WiFi流程
-*** Miracast流程
-*** SoftAp流程
-** ☛ TODO 整理以前的学习笔记 [2/8]
-   - [ ] Android研究文章整理
-   - [ ] Android学习笔记
-   - [ ] Android研究记录
-   - [ ] CMake笔记
-   - [X] C++学习笔记
-   - [ ] Java编程笔记
-   - [ ] Unix下C编程学习笔记
-   - [X] 内核编程笔记
-** ☛ TODO 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
-   SCHEDULED: <2016-08-02 二>
-   CLOCK: [2016-08-02 二 17:24]
-   :PROPERTIES:
-   :Effort:   0:30
-   :END:
-** ☛ TODO hostpad学习
-** 查看公版分支上的修改
-*** Next Action: 153502
-*** 待深入了解的修改：
-      1. 155501   add p2p VHT 80 Draft Support
-** 研究wpa_supplicant上的修改记录
-     - 2015-October
-** 研究emacs源码
-*** ☛ TODO org-timer源码研究
-*** ☛ TODO =org.el= 
-
-
+** ☛ TODO P2P Invitation的问题                                      :Project:
+    SCHEDULED: <2016-08-12 周五>
+    P2P Invitation失败的问题
+    TODO:
+    打开wpa_supplicant日志
+    测试禁用persistent group的情况。update_config=0
+    Set_WirelessMode_Proc失败的原因
+    Added: [2016-08-10 周三 14:00]

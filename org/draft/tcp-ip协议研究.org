@@ -12,6 +12,9 @@
   #+CAPTION: Linux network stack and OSI model
   [[./images/2016/2016052001.png]]
   
+  Network Simulator NS 2
+
+  netem  Linux Kernel Network Emulator
 * 网络层
 
 ** ICMP
@@ -29,20 +32,26 @@
    [[./images/2016/2016052303.png]]
 
 * 传输层
+  4个维度：
+  1. reliable data transfer
+  2. throughput
+  3. timing
+  4. security
 
 ** Sliding window protocol
     https://en.wikipedia.org/wiki/Sliding_window_protocol
    Segment
 ** UDP
-   RFC 768
+   RFC 768,  mainly used for Voip, and Video Conference.  tolerate for
+   packet loss, but not latency.
 *** UDP segment structure
     [[./images/2016/2016050402.png]]
 
 ** TCP
-   拥塞控制，可靠传输
+   拥塞控制，可靠传输 TCP congestion-control mechanism
    
    socket send  --> inet_sendmsg() --> tcp_sendmsg()
-
+   mainly used for streaming media, 
 ** RTP [fn:1]
     
 *** wrong sequence
@@ -128,7 +137,6 @@
 
      Greater the compression factors result in lowered quality
 
-     
 **** Bandwidth Utilization
      Less utilization = lower latency, jitter and loss due to
      collisions
@@ -142,6 +150,8 @@
 
 * 应用层
 
+** DNS
+    use UDP
 ** RTSP
    Real Time Streaming Protocol
    实时流协议，作为多媒体服务器的“网络遥控器”。通过表示描述

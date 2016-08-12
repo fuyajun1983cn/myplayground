@@ -1,10 +1,25 @@
 #+STARTUP: overview
 #+STARTUP: hidestars
-#+TITLE: 算法设计学习笔记
+#+TITLE: 数据结构与算法设计学习笔记
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 算法复杂度速查表[fn:1]
+
+* 数据结构
+
+** 线性表
+
+** 队列
+
+** 栈
+
+** 二叉树
+
+* 常见算法
+
+* 面试题集锦
+[[http://www.hawstein.com/posts/ctci-solutions-contents.html][Cracking the coding interview--问题与解答]]
 
 * Footnotes
 

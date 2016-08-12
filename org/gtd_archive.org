@@ -872,9 +872,97 @@ Added: [2015-12-14 周一 16:30]
     CLOSED: [2016-07-31 日 21:55]
      - Next Action:
        Stack Management   page 27
-** 8月[1/1]
+** 8月[11/11]
 *** ✔ DONE hwsim源码分析
     CLOSED: [2016-08-02 二 21:30]
+*** ✔ DONE CTS/RTS设置                                 :Wifi Driver持续学习:Study:
+    CLOSED: [2016-08-03 周三 14:30]
+    
+*** ✔ DONE Miracast有时无法连接
+    CLOSED: [2016-08-08 周一 11:40]
+    send Invitation Response失败后，没有将pending action state恢复成原
+    值。
+*** ✔ DONE 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
+     CLOSED: [2016-08-09 周二 17:15] SCHEDULED: <2016-08-09 周二>
+    CLOCK: [2016-08-09 周二 16:25]--[2016-08-09 周二 17:13] =>  0:48
+    :PROPERTIES:
+    :Effort:   0:30
+    :END:
+*** ✔ DONE TODO 研究Python属性                                         :Study:
+    CLOSED: [2016-08-09 周二 17:45] SCHEDULED: <2016-08-09 周二>
+    CLOCK: [2016-08-09 周二 17:16]--[2016-08-09 周二 17:43] =>  0:27
+   :PROPERTIES:
+   :Effort:   0:30
+   :END:
+      研究getattr, setattr
+Added: [2016-08-09 周二 16:40]
+*** ✔ DONE 插件使用
+    CLOSED: [2016-08-10 周三 12:35]
+**** Hydra
+       NEXT：https://github.com/abo-abo/hydra
+*** ✔ DONE [#A] Miracast连接后丢包                          :Skyworth:Project:
+    CLOSED: [2016-08-10 周三 13:40]
+    - 0512
+      解决丢包问题，需要减少上层的扫描动作。
+      调整接收者的Buffer
+    - 0517
+      存在丢包，乱序的情况
+    - 0523
+      go intent = 15
+      force frequency
+      30.5
+    - 对比（公版平台对比）
+      选择一个干净的信道测试
+      重传次数太多会导致速率降低
+      False CCA
+      RTS/CTS Threshold
+    - 对比测试实现 
+      1. 平台不连接AP的情况下
+
+         1) 手机不连接AP的情况
+            17.4 Mbps
+
+            15.8 Mbps
+
+         2) 手机连接AP的情况(Xiaomi_2.4G 2437)
+            31 Mbps
+            20.9 Mbps
+
+         3) 手机连接AP的情况(Cisco_sa1, 2442)
+            35.4 Mbps
+            34.9 Mbps
+
+         4) 手机清掉已经保存的AP (5785)
+            14.4Mbs
+
+         打印Driver上报给上层的RTP包的序号与TCPDUMP抓到的数据能对应起
+         来。看来确实是我们这边在接收数据时，有些包没有收到。
+
+*** ✔ DONE 修改Org Capture配置                                          :个人需求:
+     CLOSED: [2016-08-10 周三 19:55] SCHEDULED: <2016-08-10 周三>
+*** ✔ DONE Roaming Function                            :Wifi Driver持续学习:Study:
+     CLOSED: [2016-08-11 周四 09:45] SCHEDULED: <2016-08-11 周四>
+     CLOCK: [2016-08-11 周四 09:15]--[2016-08-11 周四 09:44] =>  0:29
+    - Next Action: 文档 E:\documents\wifi\学习资料\SOP\sta\MT76x2,
+      MT7603 Linux WLAN Driver Study Materials\Roaming.ppx
+*** ✔ DONE PMF(Protected Management Frame)             :Wifi Driver持续学习:Study:
+     CLOSED: [2016-08-11 周四 09:50] SCHEDULED: <2016-08-11 周四>
+     CLOCK: [2016-08-11 周四 09:48]--[2016-08-11 周四 09:51] =>  0:03
+    - Next Action:
+      PMF_intro_0915
+
+*** ✔ DONE 整理正则表达式知识点                                        :Study:
+    CLOSED: [2016-08-12 周五 09:25] SCHEDULED: <2016-08-12 周五>
+    CLOCK: [2016-08-12 周五 09:12]--[2016-08-12 周五 09:22] =>  0:10
+   :PROPERTIES:
+   :Effort:   0:10
+   :END:
+整理正则表达式知识点到个人知识库
+Added: [2016-08-12 周五 09:10]
+*** ✔ DONE 打印执业药师专业知识1真题（2015所）                         :Study:
+    CLOSED: [2016-08-12 周五 13:55] SCHEDULED: <2016-08-12 周五>
+
+Added: [2016-08-12 周五 11:10]
 ** 9月[/]
 ** 10月[/]
 ** 11月[/]

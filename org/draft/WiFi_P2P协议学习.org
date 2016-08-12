@@ -297,7 +297,7 @@
          Owner, OR
        - Selected –P2P Group Owner role “established” at formation or
          at an application-level
-     - Provisioningof the P2P Group
+     - Provisioning of the P2P Group
        - Establishment of the P2P Group session using the appropriate credentials
        - Uses WiFi Protected Setup™ to exchange credentials
 

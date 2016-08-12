@@ -26,4 +26,8 @@ http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-b
 
 ** 控制帧
 
+*** EOSP
+         uapsd,  end of Service Period to tell STA it can go to sleep.
+         trigger frame: QoS data or QoS Null frame associated with an
+         AC the STA has configured to be trigger-enabled.
 ** 数据帧

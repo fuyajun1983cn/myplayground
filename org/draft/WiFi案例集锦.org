@@ -400,5 +400,57 @@
         }
     #+END_SRC
 
+* 案例11 TCP RX enhancement
 
+** 问题描述
+    |        | XXX       | BCM43569 |
+    |--------+------------------+----------|
+    | TCP RX | =Avg 220 Peek 250= |      257 |
+    | UDP RX | Avg 285 Peek 299 |      280 |
+    |--------+------------------+----------|
 
+    与对比平台相比，TCP吞吐量罗低。
+** 问题分析
+    在跟TCP RX时，出现很多Bulkout Pending， 如下图所示：
+    [[./images/2016/2016080302.png]]
+    怀疑可能是因为TCP ack TX过慢（波动较大）
+** 问题解决
+    针对TCP ack包，提高它的优先级.
+    [[./images/2016/2016080303.png]]
+
+* 案例12 hostapd启动时报错: nl80211: set_key failed
+  
+** 问题描述
+    在启动hostapd时，失败，有如下Log出现：
+    #+BEGIN_EXAMPLE
+      D/hostapd ( 2058): random: Got 5/20 bytes from /dev/random
+      I/hostapd ( 2058): random: Only 5/20 bytes of strong random data available from /dev/random
+      I/hostapd ( 2058): random: Not enough entropy pool available for secure operations
+      I/hostapd ( 2058): WPA: Not enough entropy in random pool for secure operations - update keys later when the first station connects
+      D/hostapd ( 2058): GMK - hexdump(len=32): [REMOVED]
+      D/hostapd ( 2058): Key Counter - hexdump(len=32): [REMOVED]
+      D/hostapd ( 2058): WPA: Delay group state machine start until Beacon frames have been configured
+      D/hostapd ( 2058): WPS: Building WPS IE for (Re)Association Response
+      D/hostapd ( 2058): WPS:  * Version (hardcoded 0x10)
+      D/hostapd ( 2058): WPS:  * Response Type (3)
+      D/hostapd ( 2058): WPS:  * Version2 (0x20)
+      D/hostapd ( 2058): nl80211: Set beacon (beacon_set=0)
+      D/hostapd ( 2058): WPA: Start group state machine to set initial keys
+      D/hostapd ( 2058): WPA: group state machine entering state GTK_INIT (VLAN-ID 0)
+      D/hostapd ( 2058): GTK - hexdump(len=16): [REMOVED]
+      D/hostapd ( 2058): WPA: group state machine entering state SETKEYSDONE (VLAN-ID 0)
+      D/hostapd ( 2058): wpa_driver_nl80211_set_key: ifindex=6 alg=3 addr=0x4006f0f1 key_idx=1 set_tx=1 seq_len=0 key_len=16
+      D/hostapd ( 2058):    broadcast key
+      D/hostapd ( 2058): nl80211: set_key failed; err=-2 No such file or directory)
+      D/hostapd ( 2058): wpa_driver_nl80211_set_operstate: operstate 0->1 (UP)    
+    #+END_EXAMPLE
+** 问题分析
+    因为Secure Key会通过 "/dev/random"去对Kernel做存储，SoftAp会透过这
+    种方法去储存和产生所有的Key Number。
+
+    hostapd去产生一个随机的dummy key时，产生错误，所以在调用 set key时
+    自然会失败。
+
+** 问题解决
+    失败的原因与Kernel中的一个选项有关： =CONFIG_CRYPTO_ANSI_CPRNG= ，
+    打开该选项后，就不会有这个问题。

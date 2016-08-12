@@ -511,6 +511,38 @@
     [[./images/2016/2016053011.png]]
 
 ** Wifi Framework
+    学习计划：
+    1. 先按顺序分析每个类
+    2. 总结重点流程
+
+*** Common
+
+**** WifiMonitor
+
+**** WifiNative
+
+**** WifiNetworkScoreCache
+
+**** WifiParser
+
+**** WifiSettingsStore
+
+**** WifiConfigStore
+
+**** WifiApConfigStore
+           存储热点的信息：
+           主要包含：SSID， KeyMgmt， 以及ShareKey。
+           配置文件路径："/data/misc/wifi/softap.conf"
+
+**** WifiTrafficPoller
+
+**** WifiWatchdogStateMachine
+
+**** WifiAutoJoinController
+
+**** SupplicantStateTracker
+
+**** RttManager
 
 *** 传统WiFi
     Android Framework中的wifi代码分为两部分，一部分面向应用开发者，提供
@@ -519,15 +551,19 @@
     - frameworks\base\wifi\java\android\net\wifi
     - frameworks\opt\net\wifi\service
 
-**** WifiConfigStore
+**** WifiScanningServiceImpl
 
 **** Scan周期
         =config_wifi_supplicant_scan_interval=  
         =config_wifi_framework_enable_associated_autojoin_scan=  关联
         后是否允许扫描
 
+**** WifiServiceImpl
+
 *** P2P/Miracast
-    
+
+**** WifiP2pServiceImpl
+     
 **** 开启WifiSink的调用序列
      DisplayManager.requestEnableSink
      DisplayManager.enableSink
@@ -547,6 +583,28 @@
      WifiDisplayController.startWaitConnection
      WifiDisplayController.enterSinkState
 
+*** SoftAp
+         NetworkManagementService服务启动hostapd
+         WifiStateMachine在InitialState中收到 =CMD_START_AP= ， 
+         变量 mWifiApState跟踪了SoftAp的状态
+
+         调用流程：
+         WifiManager.setWifiApEnabled
+         -> WifiServiceImpl.setWifiApEnabled : Send CMD_SET_AP to WifiController
+         -> WifiController 在ApDisabledState处理上述消息，调用
+         WifiStateMachine.setHostApRunning
+         -> WifiStateMachine向自己发送 CMD_START_AP
+         -> startSoftApWithConfig最终调用NetworkManagerService的
+         startAccessPoint
+
+         WifiStateMachine与SoftAp相关的状态为：
+            addState(mSoftApStartingState, mDefaultState);
+            addState(mSoftApStartedState, mDefaultState);
+                addState(mTetheringState, mSoftApStartedState);
+                addState(mTetheredState, mSoftApStartedState);
+                addState(mUntetheringState, mSoftApStartedState);
+         
+*** 主要流程总结
 
 ** Global Settings
    设置和访问一个全局变量。

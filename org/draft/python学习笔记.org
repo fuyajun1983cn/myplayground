@@ -6,6 +6,42 @@
 
 * 基础语法
 
+** 属性
+     getattr()函数是Python自省的核心函数，具体使用大体如下：
+     #+BEGIN_SRC python
+       class A:   
+           def __init__(self):   
+               self.name = 'Mike'
+               
+           def method(self):   
+               print("This is a test")
+         
+       Instance = A()   
+       print getattr(Instance , 'name, 'not find') #如果Instance 对象中有属性name则打印self.name的值，否则打印'not find'
+       print getattr(Instance , 'age', 'not find')   #如果Instance 对象中有属性age则打印self.age的值，否则打印'not find'
+       print getattr(a, 'method', 'default')   
+       #如果有方法method，否则打印其地址，否则打印default   
+       print getattr(a, 'method', 'default')()   
+       #如果有方法method，运行函数并打印None否则打印default       
+     #+END_SRC
+
+     setattr(obj, name, value)
+
+     参数是一个对象,一个字符串和一个任意值。字符串可能会列出一个现有的
+     属性或一个新的属性。这个函数将值赋给属性的。该对象允许它提供。例
+     如,setattr(x,“foobar”,123)相当于x.foobar = 123。
+
+     delattr(obj, name)
+
+     参数是由一个对象(记住python中一切皆是对象)和一个字符串组成的。
+     string参数必须是对象属性名之一。该函数删除该obj的一个由string指定
+     的属性。delattr(x, 'foobar')=del x.foobar
+
+     hasattr(object, name)
+
+     确定对象是否有name属性，返回一个boolean值。 
+    
+
 * 标准库
 
 ** 文本
@@ -832,5 +868,79 @@
        : python setup.py install
     4. 测试
 
+** 网络编程
 
-    
+*** TCP
+        - 服务器端代码
+          #+BEGIN_SRC python
+            #!/usr/bin/env python3
+            #coding:utf-8
+
+            from socket import *
+            serverPort = 12000
+            serverSocket = socket(AF_INET, SOCK_STREAM)
+            serverSocket.bind(('', serverPort))
+            serverSocket.listen(1)
+            print("The server is ready to receive:")
+            while 1:
+                connectSocket, addr = serverSocket.accept()
+                sentence = connectSocket.recv(1024)
+                capitalizeSentense = sentence.upper()
+                connectSocket.send(capitalizeSentense)
+          #+END_SRC
+        - 客户端代码
+          #+BEGIN_SRC python
+            #!/usr/bin/env python3
+            #coding:utf-8
+
+            from socket import *
+            serverName = 'localhost'
+            serverPort = 12000
+            clientSocket = socket(AF_INET, SOCK_STREAM)
+            clientSocket.connect((serverName,serverPort))
+            sentence = input('Input lowercase sentence:')
+            clientSocket.send(sentence.encode())
+            modifiedSentence = clientSocket.recv(1024)
+            print('From Server: ', modifiedSentence.decode())
+            clientSocket.close()
+          #+END_SRC
+
+*** UDP
+         - 服务器端代码
+           #+BEGIN_SRC python
+             #!/usr/bin/env python3
+             #coding:utf-8
+
+             from socket import *
+
+             serverPort = 12000
+             serverSocket = socket(AF_INET, SOCK_DGRAM)
+             serverSocket.bind(('', serverPort))
+             print("The server is read to receive")
+             while 1:
+                 message, clientAddress = serverSocket.recvfrom(2048)
+                 modifiedMessage = message.upper()
+                 serverSocket.sendto(modifiedMessage, clientAddress)
+           #+END_SRC
+
+         - 客户端代码
+           #+BEGIN_SRC python
+             #!/usr/bin/env python3
+             #coding:utf-8
+
+             from socket import *
+
+             serverName ='localhost'
+             serverPort = 12000
+             clientSocket = socket(AF_INET, SOCK_DGRAM)
+             message = input('请输入小写字母语句：')
+             #sockets by themselves always
+             #deal in binary byte strings, not text.
+             #need use the two methods to convert between them
+             #str.encode  from text to byte strings
+             #bytes.decode from byte strings to text
+             clientSocket.sendto(message.encode(), (serverName, serverPort))
+             modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+             print(modifiedMessage.decode())
+             clientSocket.close()
+           #+END_SRC

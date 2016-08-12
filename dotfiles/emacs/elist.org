@@ -144,6 +144,18 @@ body...)
     #+END_SRC
 ** unless
 ** condition-case
+    #+BEGIN_SRC emacs-lisp
+      (condition-case nil
+              (load (concat (file-name-directory load-file-name)
+                            "org-loaddefs.el")
+                    nil t t t)
+            (error
+             (message "WARNING: No org-loaddefs.el file could be found from where org.el is loaded.")
+             (sit-for 3)
+             (message "You need to run \"make\" or \"make autoloads\" from Org lisp directory")
+             (sit-for 3)))    
+    #+END_SRC
+    条件处理函数，包含一系列的HANDLER处理
 ** cond 
     #+BEGIN_SRC emacs-lisp
       (cond
@@ -180,7 +192,43 @@ body...)
       #+END_SRC
 ** 数组
 ** 字符串
+    - replace-regexp-in-string
+      替换匹配模式的字符串中字符
+    - intern
+      #+BEGIN_SRC emacs-lisp
+        require (intern (concat "ob-" lang))      
+      #+END_SRC
+      返回规范的符号
+
 ** 列表
+*** 普通列表
+          - delete-dups
+            删除重复元素
+          - copy-sequence
+            复制列表
+*** Assocation List
+    
+*** Property List
+        #+BEGIN_SRC emacs-lisp
+           (plist-get '(foo 4) 'foo)
+               ⇒ 4
+          (plist-get '(foo 4 bad) 'foo)
+               ⇒ 4
+          (plist-get '(foo 4 bad) 'bad)
+               ⇒ nil
+          (plist-get '(foo 4 bad) 'bar)
+               ⇒ nil       
+        #+END_SRC
+
+       主要函数：
+       - plist-get plist property
+       - plist-put plist property value
+       - lax-plist-get plist property
+         使用equal比较属性
+       - lax-plist-put plist property value
+         使用equal比较属性
+       - plist-member plist property
+     
 * evaluate an expression
 ** C-x C-e
 * Syntax Table
@@ -436,3 +484,7 @@ body...)
 
       ;;; strace-mode.el ends here    
     #+END_SRC
+* 一些功能函数
+** sit-for
+    重新显示，并等待几秒钟
+    : (sit-for 3)

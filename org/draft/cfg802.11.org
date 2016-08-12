@@ -893,10 +893,13 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
        调用了 =wiphy_register=
     会添加一个默认的接口。 
 
+** nl80211
+    https://patchwork.kernel.org/patch/8663901/
 
-   
-
-
+*** =NL80211_CMD_NEW_INTERFACE=
+         添加一个新的网络接口， 由 =nl80211_create_iface= (
+         =wpa_supplicant= )触发。
+     
 * Footnotes
 [fn:1] http://linuxwireless.org/en/users/Documentation/
 [fn:2] https://wireless.wiki.kernel.org/en/developers/Regulatory

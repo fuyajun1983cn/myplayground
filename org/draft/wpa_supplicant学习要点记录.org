@@ -9,6 +9,52 @@
      [[./images/2015/2015121506.png]]
 ** 全局数据结构  
 *** =struct wpa_supplicant= 
+        #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081220.png :cmdline -charset UTF-8
+          @startuml
+          object wpa_supplicant {
+          ...
+          /**
+            ,*  BSS相关的变量
+            /
+          struct dl_list bss; /* struct wpa_bss::list */
+          struct dl_list bss_id; /* struct wpa_bss::list_id */
+          size_t num_bss;
+          /**
+           每次扫描后，扫描结果中如果有些bss，就会更新一下此值
+           ,*/
+          unsigned int bss_update_idx;
+          unsigned int bss_next_id;
+
+          ...
+          }
+          @enduml
+        #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016081220.png]]
+*** =struct wpa_config=
+         #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080921.png :cmdline -charset UTF-8
+           @startuml
+           object wpa_config {
+           ...
+           /**
+              Expire BSS after number of scans
+              如果某个BSS在许多轮的扫描中都
+              没有看到，则会被删除。 该变量的值
+              如果为1，表示只要出现一次扫描结束后
+              未发现该BSS，则会将该bss删除。一般
+              设置为大于1的数，避免过早地删除一个BSS。
+           ,*/
+           unsigned int bss_expiration_scan_count;
+           ...
+           }
+
+           @enduml
+         #+END_SRC
+
+         #+RESULTS:
+         [[file:./images/2016/2016080921.png]]
+
 *** =struct wpa_global=
 *** =struct wpa_radio=
     #+BEGIN_SRC c
@@ -693,7 +739,7 @@
      
      0: MPM lives in the driver
 
-     1: wpa_supplicant provides an MPM which handles peering (default)
+     1: =wpa_supplicant= provides an MPM which handles peering (default)
    - =max_peer_links= 
      Maximum number of mesh peering currently maintained by the STA.
      Maximum number of peer links (0-255; default: 99)
@@ -884,7 +930,7 @@
     ，这与传送层的地址结构定义是不一样的，其长度为20字节（在TCP/IP的链
     路层地址中使用了18字节），而传送层的地址结构长度为16字节。
 
-    Sockaddr_ll结构如下：
+    =Sockaddr_ll= 结构如下：
     #+BEGIN_SRC c
       struct sockaddr_ll
       {
@@ -1133,7 +1179,31 @@
 ** P2P
 *** 数据结构分析与初始化流程 
 **** 主要数据结构
-     
+**** 配置文件示例
+           #+BEGIN_SRC sh
+             ctrl_interface=/data/misc/wifi/sockets
+             driver_param=use_p2p_group_interface=1
+             update_config=1
+             device_name=Android_9bf5
+             manufacturer=ABC Inc.
+             model_name=ABC Wireless Model
+             model_number=1.0
+             serial_number=2.0
+             device_type=10-0050F204-5
+             os_version=01020300
+             config_methods=virtual_push_button physical_display keypad
+             p2p_listen_reg_class=81
+             p2p_listen_channel=1
+             p2p_oper_reg_class=81
+             p2p_oper_channel=1
+             p2p_go_intent=14
+             p2p_ssid_postfix=-Android_9bf5
+             persistent_reconnect=1
+             p2p_no_group_iface=1           
+           #+END_SRC
+          其中  =update_config= 选项用于支持实时更新配置信息，比如保存
+          p2p persistent group。 如果想禁用persistent group，则将该选
+          项配置为0是一种取巧的办法。
 **** 初始化流程
      当Driver支持一个非网络接口的P2P Device接口时,
      #+BEGIN_SRC c
@@ -1164,7 +1234,8 @@
      =p2p_expiration_timeout= ，这个函数会周期性检查当前P2P Peers端是
      否处于活跃状态（当我们是GO的时候，需要做这样的检查，以维护peer
      device list列表）
-
+*** P2P属性解析
+    函数 =p2p_parse_p2p_ie= 分析
 *** 基本连接流程
 **** 一般连接过程
 
@@ -1813,7 +1884,6 @@
       通过nl80211，用户程序可以注册接收指定类型的管理帧。
 
 *** 问题调试
-
 **** P2p Standard Group Formation
         - Could not find peer or be found by peer
           - Check if framework triggered p2p find phase by =P2P_FIND=
@@ -2062,8 +2132,10 @@
    the AP. The only Data frames it uses are related to authentication
    and key setup (EAPOL frames, RSN pre-authentication) and if
    ProxyARP is enabled, some of ARP/NS/NA frames. 
-
+   
 *** 数据结构
+
+    [[./images/2016/2016080901.jpg]]
 
     1. =struct hapd_interfaces=
        #+BEGIN_SRC c
@@ -2095,7 +2167,661 @@
                 
        #+END_SRC
 
-       
+    2. =struct hostapd_config=
+       #+BEGIN_SRC c
+         /**
+          ,* struct hostapd_config - Per-radio interface configuration
+          ,*/
+         struct hostapd_config {
+                 struct hostapd_bss_config **bss, *last_bss;
+                 size_t num_bss;
+
+                 u16 beacon_int;
+                 int rts_threshold;
+                 int fragm_threshold;
+                 u8 send_probe_response;
+                 u8 channel;
+                 u8 acs;
+                 struct wpa_freq_range_list acs_ch_list;
+                 enum hostapd_hw_mode hw_mode; /* HOSTAPD_MODE_IEEE80211A, .. */
+                 enum {
+                         LONG_PREAMBLE = 0,
+                         SHORT_PREAMBLE = 1
+                 } preamble;
+
+                 int *supported_rates;
+                 int *basic_rates;
+
+                 const struct wpa_driver_ops *driver;
+                 char *driver_params;
+
+                 int ap_table_max_size;
+                 int ap_table_expiration_time;
+
+                 unsigned int track_sta_max_num;
+                 unsigned int track_sta_max_age;
+
+                 char country[3]; /* first two octets: country code as described in
+                                   ,* ISO/IEC 3166-1. Third octet:
+                                   ,* ' ' (ascii 32): all environments
+                                   ,* 'O': Outdoor environemnt only
+                                   ,* 'I': Indoor environment only
+                                   ,*/
+
+                 int ieee80211d;
+
+                 int ieee80211h; /* DFS */
+
+                 /*
+                  ,* Local power constraint is an octet encoded as an unsigned integer in
+                  ,* units of decibels. Invalid value -1 indicates that Power Constraint
+                  ,* element will not be added.
+                  ,*/
+                 int local_pwr_constraint;
+
+                 /* Control Spectrum Management bit */
+                 int spectrum_mgmt_required;
+
+                 struct hostapd_tx_queue_params tx_queue[NUM_TX_QUEUES];
+
+                 /*
+                  ,* WMM AC parameters, in same order as 802.1D, i.e.
+                  ,* 0 = BE (best effort)
+                  ,* 1 = BK (background)
+                  ,* 2 = VI (video)
+                  ,* 3 = VO (voice)
+                  ,*/
+                 struct hostapd_wmm_ac_params wmm_ac_params[4];
+
+                 int ht_op_mode_fixed;
+                 u16 ht_capab;
+                 int ieee80211n;
+                 int secondary_channel;
+                 int no_pri_sec_switch;
+                 int require_ht;
+                 int obss_interval;
+                 u32 vht_capab;
+                 int ieee80211ac;
+                 int require_vht;
+                 u8 vht_oper_chwidth;
+                 u8 vht_oper_centr_freq_seg0_idx;
+                 u8 vht_oper_centr_freq_seg1_idx;
+
+         #ifdef CONFIG_FST
+                 struct fst_iface_cfg fst_cfg;
+         #endif /* CONFIG_FST */
+
+         #ifdef CONFIG_P2P
+                 u8 p2p_go_ctwindow;
+         #endif /* CONFIG_P2P */
+
+         #ifdef CONFIG_TESTING_OPTIONS
+                 double ignore_probe_probability;
+                 double ignore_auth_probability;
+                 double ignore_assoc_probability;
+                 double ignore_reassoc_probability;
+                 double corrupt_gtk_rekey_mic_probability;
+                 int ecsa_ie_only;
+         #endif /* CONFIG_TESTING_OPTIONS */
+
+         #ifdef CONFIG_ACS
+                 unsigned int acs_num_scans;
+                 struct acs_bias {
+                         int channel;
+                         double bias;
+                 } *acs_chan_bias;
+                 unsigned int num_acs_chan_bias;
+         #endif /* CONFIG_ACS */
+         };       
+       #+END_SRC
+
+    3. =struct hostapd_bss_config=
+       #+BEGIN_SRC c
+         /**
+          ,* struct hostapd_bss_config - Per-BSS configuration
+          ,*/
+         struct hostapd_bss_config {
+                 char iface[IFNAMSIZ + 1];
+                 char bridge[IFNAMSIZ + 1];
+                 char vlan_bridge[IFNAMSIZ + 1];
+                 char wds_bridge[IFNAMSIZ + 1];
+
+                 enum hostapd_logger_level logger_syslog_level, logger_stdout_level;
+
+                 unsigned int logger_syslog; /* module bitfield */
+                 unsigned int logger_stdout; /* module bitfield */
+
+                 int max_num_sta; /* maximum number of STAs in station table */
+
+                 int dtim_period;
+                 int bss_load_update_period;
+
+                 int ieee802_1x; /* use IEEE 802.1X */
+                 int eapol_version;
+                 int eap_server; /* Use internal EAP server instead of external
+                                  ,* RADIUS server */
+                 struct hostapd_eap_user *eap_user;
+                 char *eap_user_sqlite;
+                 char *eap_sim_db;
+                 unsigned int eap_sim_db_timeout;
+                 int eap_server_erp; /* Whether ERP is enabled on internal EAP server */
+                 struct hostapd_ip_addr own_ip_addr;
+                 char *nas_identifier;
+                 struct hostapd_radius_servers *radius;
+                 int acct_interim_interval;
+                 int radius_request_cui;
+                 struct hostapd_radius_attr *radius_auth_req_attr;
+                 struct hostapd_radius_attr *radius_acct_req_attr;
+                 int radius_das_port;
+                 unsigned int radius_das_time_window;
+                 int radius_das_require_event_timestamp;
+                 struct hostapd_ip_addr radius_das_client_addr;
+                 u8 *radius_das_shared_secret;
+                 size_t radius_das_shared_secret_len;
+
+                 struct hostapd_ssid ssid;
+
+                 char *eap_req_id_text; /* optional displayable message sent with
+                                         ,* EAP Request-Identity */
+                 size_t eap_req_id_text_len;
+                 int eapol_key_index_workaround;
+
+                 size_t default_wep_key_len;
+                 int individual_wep_key_len;
+                 int wep_rekeying_period;
+                 int broadcast_key_idx_min, broadcast_key_idx_max;
+                 int eap_reauth_period;
+                 int erp_send_reauth_start;
+                 char *erp_domain;
+
+                 int ieee802_11f; /* use IEEE 802.11f (IAPP) */
+                 char iapp_iface[IFNAMSIZ + 1]; /* interface used with IAPP broadcast
+                                                 ,* frames */
+
+                 enum {
+                         ACCEPT_UNLESS_DENIED = 0,
+                         DENY_UNLESS_ACCEPTED = 1,
+                         USE_EXTERNAL_RADIUS_AUTH = 2
+                 } macaddr_acl;
+                 struct mac_acl_entry *accept_mac;
+                 int num_accept_mac;
+                 struct mac_acl_entry *deny_mac;
+                 int num_deny_mac;
+                 int wds_sta;
+                 int isolate;
+                 int start_disabled;
+
+                 int auth_algs; /* bitfield of allowed IEEE 802.11 authentication
+                                 ,* algorithms, WPA_AUTH_ALG_{OPEN,SHARED,LEAP} */
+
+                 int wpa; /* bitfield of WPA_PROTO_WPA, WPA_PROTO_RSN */
+                 int wpa_key_mgmt;
+         #ifdef CONFIG_IEEE80211W
+                 enum mfp_options ieee80211w;
+                 int group_mgmt_cipher;
+                 /* dot11AssociationSAQueryMaximumTimeout (in TUs) */
+                 unsigned int assoc_sa_query_max_timeout;
+                 /* dot11AssociationSAQueryRetryTimeout (in TUs) */
+                 int assoc_sa_query_retry_timeout;
+         #endif /* CONFIG_IEEE80211W */
+                 enum {
+                         PSK_RADIUS_IGNORED = 0,
+                         PSK_RADIUS_ACCEPTED = 1,
+                         PSK_RADIUS_REQUIRED = 2
+                 } wpa_psk_radius;
+                 int wpa_pairwise;
+                 int wpa_group;
+                 int wpa_group_rekey;
+                 int wpa_strict_rekey;
+                 int wpa_gmk_rekey;
+                 int wpa_ptk_rekey;
+                 int rsn_pairwise;
+                 int rsn_preauth;
+                 char *rsn_preauth_interfaces;
+                 int peerkey;
+
+         #ifdef CONFIG_IEEE80211R
+                 /* IEEE 802.11r - Fast BSS Transition */
+                 u8 mobility_domain[MOBILITY_DOMAIN_ID_LEN];
+                 u8 r1_key_holder[FT_R1KH_ID_LEN];
+                 u32 r0_key_lifetime;
+                 u32 reassociation_deadline;
+                 struct ft_remote_r0kh *r0kh_list;
+                 struct ft_remote_r1kh *r1kh_list;
+                 int pmk_r1_push;
+                 int ft_over_ds;
+         #endif /* CONFIG_IEEE80211R */
+
+                 char *ctrl_interface; /* directory for UNIX domain sockets */
+         #ifndef CONFIG_NATIVE_WINDOWS
+                 gid_t ctrl_interface_gid;
+         #endif /* CONFIG_NATIVE_WINDOWS */
+                 int ctrl_interface_gid_set;
+
+                 char *ca_cert;
+                 char *server_cert;
+                 char *private_key;
+                 char *private_key_passwd;
+                 int check_crl;
+                 unsigned int tls_session_lifetime;
+                 char *ocsp_stapling_response;
+                 char *ocsp_stapling_response_multi;
+                 char *dh_file;
+                 char *openssl_ciphers;
+                 u8 *pac_opaque_encr_key;
+                 u8 *eap_fast_a_id;
+                 size_t eap_fast_a_id_len;
+                 char *eap_fast_a_id_info;
+                 int eap_fast_prov;
+                 int pac_key_lifetime;
+                 int pac_key_refresh_time;
+                 int eap_sim_aka_result_ind;
+                 int tnc;
+                 int fragment_size;
+                 u16 pwd_group;
+
+                 char *radius_server_clients;
+                 int radius_server_auth_port;
+                 int radius_server_acct_port;
+                 int radius_server_ipv6;
+
+                 int use_pae_group_addr; /* Whether to send EAPOL frames to PAE group
+                                          ,* address instead of individual address
+                                          ,* (for driver_wired.c).
+                                          ,*/
+
+                 int ap_max_inactivity;
+                 int ignore_broadcast_ssid;
+                 int no_probe_resp_if_max_sta;
+
+                 int wmm_enabled;
+                 int wmm_uapsd;
+
+                 struct hostapd_vlan *vlan;
+
+                 macaddr bssid;
+
+                 /*
+                  ,* Maximum listen interval that STAs can use when associating with this
+                  ,* BSS. If a STA tries to use larger value, the association will be
+                  ,* denied with status code 51.
+                  ,*/
+                 u16 max_listen_interval;
+
+                 int disable_pmksa_caching;
+                 int okc; /* Opportunistic Key Caching */
+
+                 int wps_state;
+         #ifdef CONFIG_WPS
+                 int wps_independent;
+                 int ap_setup_locked;
+                 u8 uuid[16];
+                 char *wps_pin_requests;
+                 char *device_name;
+                 char *manufacturer;
+                 char *model_name;
+                 char *model_number;
+                 char *serial_number;
+                 u8 device_type[WPS_DEV_TYPE_LEN];
+                 char *config_methods;
+                 u8 os_version[4];
+                 char *ap_pin;
+                 int skip_cred_build;
+                 u8 *extra_cred;
+                 size_t extra_cred_len;
+                 int wps_cred_processing;
+                 int force_per_enrollee_psk;
+                 u8 *ap_settings;
+                 size_t ap_settings_len;
+                 char *upnp_iface;
+                 char *friendly_name;
+                 char *manufacturer_url;
+                 char *model_description;
+                 char *model_url;
+                 char *upc;
+                 struct wpabuf *wps_vendor_ext[MAX_WPS_VENDOR_EXTENSIONS];
+                 int wps_nfc_pw_from_config;
+                 int wps_nfc_dev_pw_id;
+                 struct wpabuf *wps_nfc_dh_pubkey;
+                 struct wpabuf *wps_nfc_dh_privkey;
+                 struct wpabuf *wps_nfc_dev_pw;
+         #endif /* CONFIG_WPS */
+                 int pbc_in_m1;
+                 char *server_id;
+
+         #define P2P_ENABLED BIT(0)
+         #define P2P_GROUP_OWNER BIT(1)
+         #define P2P_GROUP_FORMATION BIT(2)
+         #define P2P_MANAGE BIT(3)
+         #define P2P_ALLOW_CROSS_CONNECTION BIT(4)
+                 int p2p;
+         #ifdef CONFIG_P2P
+                 u8 ip_addr_go[4];
+                 u8 ip_addr_mask[4];
+                 u8 ip_addr_start[4];
+                 u8 ip_addr_end[4];
+         #endif /* CONFIG_P2P */
+
+                 int disassoc_low_ack;
+                 int skip_inactivity_poll;
+
+         #define TDLS_PROHIBIT BIT(0)
+         #define TDLS_PROHIBIT_CHAN_SWITCH BIT(1)
+                 int tdls;
+                 int disable_11n;
+                 int disable_11ac;
+
+                 /* IEEE 802.11v */
+                 int time_advertisement;
+                 char *time_zone;
+                 int wnm_sleep_mode;
+                 int bss_transition;
+
+                 /* IEEE 802.11u - Interworking */
+                 int interworking;
+                 int access_network_type;
+                 int internet;
+                 int asra;
+                 int esr;
+                 int uesa;
+                 int venue_info_set;
+                 u8 venue_group;
+                 u8 venue_type;
+                 u8 hessid[ETH_ALEN];
+
+                 /* IEEE 802.11u - Roaming Consortium list */
+                 unsigned int roaming_consortium_count;
+                 struct hostapd_roaming_consortium *roaming_consortium;
+
+                 /* IEEE 802.11u - Venue Name duples */
+                 unsigned int venue_name_count;
+                 struct hostapd_lang_string *venue_name;
+
+                 /* IEEE 802.11u - Network Authentication Type */
+                 u8 *network_auth_type;
+                 size_t network_auth_type_len;
+
+                 /* IEEE 802.11u - IP Address Type Availability */
+                 u8 ipaddr_type_availability;
+                 u8 ipaddr_type_configured;
+
+                 /* IEEE 802.11u - 3GPP Cellular Network */
+                 u8 *anqp_3gpp_cell_net;
+                 size_t anqp_3gpp_cell_net_len;
+
+                 /* IEEE 802.11u - Domain Name */
+                 u8 *domain_name;
+                 size_t domain_name_len;
+
+                 unsigned int nai_realm_count;
+                 struct hostapd_nai_realm_data *nai_realm_data;
+
+                 struct dl_list anqp_elem; /* list of struct anqp_element */
+
+                 u16 gas_comeback_delay;
+                 int gas_frag_limit;
+
+                 u8 qos_map_set[16 + 2 * 21];
+                 unsigned int qos_map_set_len;
+
+                 int osen;
+                 int proxy_arp;
+                 int na_mcast_to_ucast;
+         #ifdef CONFIG_HS20
+                 int hs20;
+                 int disable_dgaf;
+                 u16 anqp_domain_id;
+                 unsigned int hs20_oper_friendly_name_count;
+                 struct hostapd_lang_string *hs20_oper_friendly_name;
+                 u8 *hs20_wan_metrics;
+                 u8 *hs20_connection_capability;
+                 size_t hs20_connection_capability_len;
+                 u8 *hs20_operating_class;
+                 u8 hs20_operating_class_len;
+                 struct hs20_icon {
+                         u16 width;
+                         u16 height;
+                         char language[3];
+                         char type[256];
+                         char name[256];
+                         char file[256];
+                 } *hs20_icons;
+                 size_t hs20_icons_count;
+                 u8 osu_ssid[SSID_MAX_LEN];
+                 size_t osu_ssid_len;
+                 struct hs20_osu_provider {
+                         unsigned int friendly_name_count;
+                         struct hostapd_lang_string *friendly_name;
+                         char *server_uri;
+                         int *method_list;
+                         char **icons;
+                         size_t icons_count;
+                         char *osu_nai;
+                         unsigned int service_desc_count;
+                         struct hostapd_lang_string *service_desc;
+                 } *hs20_osu_providers, *last_osu;
+                 size_t hs20_osu_providers_count;
+                 unsigned int hs20_deauth_req_timeout;
+                 char *subscr_remediation_url;
+                 u8 subscr_remediation_method;
+         #endif /* CONFIG_HS20 */
+
+                 u8 wps_rf_bands; /* RF bands for WPS (WPS_RF_*) */
+
+         #ifdef CONFIG_RADIUS_TEST
+                 char *dump_msk_file;
+         #endif /* CONFIG_RADIUS_TEST */
+
+                 struct wpabuf *vendor_elements;
+
+                 unsigned int sae_anti_clogging_threshold;
+                 int *sae_groups;
+
+                 char *wowlan_triggers; /* Wake-on-WLAN triggers */
+
+         #ifdef CONFIG_TESTING_OPTIONS
+                 u8 bss_load_test[5];
+                 u8 bss_load_test_set;
+                 struct wpabuf *own_ie_override;
+         #endif /* CONFIG_TESTING_OPTIONS */
+
+         #define MESH_ENABLED BIT(0)
+                 int mesh;
+
+                 int radio_measurements;
+
+                 int vendor_vht;
+
+                 char *no_probe_resp_if_seen_on;
+                 char *no_auth_if_seen_on;
+         };       
+       #+END_SRC
+
+    4. =struct hostapd_data=
+
+       #+BEGIN_SRC c
+         /**
+          ,* struct hostapd_data - hostapd per-BSS data structure
+          ,*/
+         struct hostapd_data {
+                 struct hostapd_iface *iface;
+                 struct hostapd_config *iconf;
+                 struct hostapd_bss_config *conf;
+                 int interface_added; /* virtual interface added for this BSS */
+                 unsigned int started:1;
+                 unsigned int disabled:1;
+                 unsigned int reenable_beacon:1;
+
+                 u8 own_addr[ETH_ALEN];
+
+                 int num_sta; /* number of entries in sta_list */
+                 struct sta_info *sta_list; /* STA info list head */
+         #define STA_HASH_SIZE 256
+         #define STA_HASH(sta) (sta[5])
+                 struct sta_info *sta_hash[STA_HASH_SIZE];
+
+                 /*
+                  ,* Bitfield for indicating which AIDs are allocated. Only AID values
+                  ,* 1-2007 are used and as such, the bit at index 0 corresponds to AID
+                  ,* 1.
+                  ,*/
+         #define AID_WORDS ((2008 + 31) / 32)
+                 u32 sta_aid[AID_WORDS];
+
+                 const struct wpa_driver_ops *driver;
+                 void *drv_priv;
+
+                 void (*new_assoc_sta_cb)(struct hostapd_data *hapd,
+                                          struct sta_info *sta, int reassoc);
+
+                 void *msg_ctx; /* ctx for wpa_msg() calls */
+                 void *msg_ctx_parent; /* parent interface ctx for wpa_msg() calls */
+
+                 struct radius_client_data *radius;
+                 u32 acct_session_id_hi, acct_session_id_lo;
+                 struct radius_das_data *radius_das;
+
+                 struct iapp_data *iapp;
+
+                 struct hostapd_cached_radius_acl *acl_cache;
+                 struct hostapd_acl_query_data *acl_queries;
+
+                 struct wpa_authenticator *wpa_auth;
+                 struct eapol_authenticator *eapol_auth;
+
+                 struct rsn_preauth_interface *preauth_iface;
+                 struct os_reltime michael_mic_failure;
+                 int michael_mic_failures;
+                 int tkip_countermeasures;
+
+                 int ctrl_sock;
+                 struct wpa_ctrl_dst *ctrl_dst;
+
+                 void *ssl_ctx;
+                 void *eap_sim_db_priv;
+                 struct radius_server_data *radius_srv;
+                 struct dl_list erp_keys; /* struct eap_server_erp_key */
+
+                 int parameter_set_count;
+
+                 /* Time Advertisement */
+                 u8 time_update_counter;
+                 struct wpabuf *time_adv;
+
+         #ifdef CONFIG_FULL_DYNAMIC_VLAN
+                 struct full_dynamic_vlan *full_dynamic_vlan;
+         #endif /* CONFIG_FULL_DYNAMIC_VLAN */
+
+                 struct l2_packet_data *l2;
+                 struct wps_context *wps;
+
+                 int beacon_set_done;
+                 struct wpabuf *wps_beacon_ie;
+                 struct wpabuf *wps_probe_resp_ie;
+         #ifdef CONFIG_WPS
+                 unsigned int ap_pin_failures;
+                 unsigned int ap_pin_failures_consecutive;
+                 struct upnp_wps_device_sm *wps_upnp;
+                 unsigned int ap_pin_lockout_time;
+
+                 struct wps_stat wps_stats;
+         #endif /* CONFIG_WPS */
+
+                 struct hostapd_probereq_cb *probereq_cb;
+                 size_t num_probereq_cb;
+
+                 void (*public_action_cb)(void *ctx, const u8 *buf, size_t len,
+                                          int freq);
+                 void *public_action_cb_ctx;
+                 void (*public_action_cb2)(void *ctx, const u8 *buf, size_t len,
+                                           int freq);
+                 void *public_action_cb2_ctx;
+
+                 int (*vendor_action_cb)(void *ctx, const u8 *buf, size_t len,
+                                         int freq);
+                 void *vendor_action_cb_ctx;
+
+                 void (*wps_reg_success_cb)(void *ctx, const u8 *mac_addr,
+                                            const u8 *uuid_e);
+                 void *wps_reg_success_cb_ctx;
+
+                 void (*wps_event_cb)(void *ctx, enum wps_event event,
+                                      union wps_event_data *data);
+                 void *wps_event_cb_ctx;
+
+                 void (*sta_authorized_cb)(void *ctx, const u8 *mac_addr,
+                                           int authorized, const u8 *p2p_dev_addr);
+                 void *sta_authorized_cb_ctx;
+
+                 void (*setup_complete_cb)(void *ctx);
+                 void *setup_complete_cb_ctx;
+
+                 void (*new_psk_cb)(void *ctx, const u8 *mac_addr,
+                                    const u8 *p2p_dev_addr, const u8 *psk,
+                                    size_t psk_len);
+                 void *new_psk_cb_ctx;
+
+                 /* channel switch parameters */
+                 struct hostapd_freq_params cs_freq_params;
+                 u8 cs_count;
+                 int cs_block_tx;
+                 unsigned int cs_c_off_beacon;
+                 unsigned int cs_c_off_proberesp;
+                 int csa_in_progress;
+                 unsigned int cs_c_off_ecsa_beacon;
+                 unsigned int cs_c_off_ecsa_proberesp;
+
+                 /* BSS Load */
+                 unsigned int bss_load_update_timeout;
+
+         #ifdef CONFIG_P2P
+                 struct p2p_data *p2p;
+                 struct p2p_group *p2p_group;
+                 struct wpabuf *p2p_beacon_ie;
+                 struct wpabuf *p2p_probe_resp_ie;
+
+                 /* Number of non-P2P association stations */
+                 int num_sta_no_p2p;
+
+                 /* Periodic NoA (used only when no non-P2P clients in the group) */
+                 int noa_enabled;
+                 int noa_start;
+                 int noa_duration;
+         #endif /* CONFIG_P2P */
+         #ifdef CONFIG_INTERWORKING
+                 size_t gas_frag_limit;
+         #endif /* CONFIG_INTERWORKING */
+         #ifdef CONFIG_PROXYARP
+                 struct l2_packet_data *sock_dhcp;
+                 struct l2_packet_data *sock_ndisc;
+         #endif /* CONFIG_PROXYARP */
+         #ifdef CONFIG_MESH
+                 int num_plinks;
+                 int max_plinks;
+                 void (*mesh_sta_free_cb)(struct sta_info *sta);
+                 struct wpabuf *mesh_pending_auth;
+                 struct os_reltime mesh_pending_auth_time;
+         #endif /* CONFIG_MESH */
+
+         #ifdef CONFIG_SQLITE
+                 struct hostapd_eap_user tmp_eap_user;
+         #endif /* CONFIG_SQLITE */
+
+         #ifdef CONFIG_SAE
+                 /** Key used for generating SAE anti-clogging tokens */
+                 u8 sae_token_key[8];
+                 struct os_reltime last_sae_token_key_update;
+                 int dot11RSNASAERetransPeriod; /* msec */
+         #endif /* CONFIG_SAE */
+
+         #ifdef CONFIG_TESTING_OPTIONS
+                 unsigned int ext_mgmt_frame_handling:1;
+                 unsigned int ext_eapol_frame_io:1;
+
+                 struct l2_packet_data *l2_test;
+         #endif /* CONFIG_TESTING_OPTIONS */
+         };       
+       #+END_SRC
 
       WifiStateMachine: (Initial State)
       CMD_START_AP -->  setWifiApState
@@ -2115,14 +2841,13 @@
       wifi.tethering.interface
 
 *** 主要流程分析
-    
 **** hostapd初始化过程
           #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016072902.png :cmdline -charset UTF-8
             @startuml
             autonumber 
             actor User
             User -> "main.c" as M : "hostapd hostapd.conf ..."
-            active M
+            activate M
             M -> M : "解析命令参数"
             M -> M : "设置消息处理函数以及输出日志设备"
             M -> M : hostapd_global_init
@@ -2130,7 +2855,9 @@
             note right of M
             Periodic cleanup tasks
             end note
-            M -> "fsc.c" : fst_global_init
+
+            M -> "fst.c" : fst_global_init
+            activate "fst.c"
 
             M -> M: hostapd_interface_init
             note right of M
@@ -2146,41 +2873,100 @@
             Enable configured interfaces.
             end note
             M -> M: hostapd_driver_init
+
             M -> "hostapd.c": hostapd_setup_interface
+            activate "hostapd.c"
+
             M -> "ctrl_iface.c": hostapd_global_ctrl_iface_init
+            activate "ctrl_iface.c"
+
             M -> M: hostapd_global_run
             ... after a long long time later ...
             User -> M: Ctrl-D 或者其他原因退出
             M -> "ctrl_iface.c": hostapd_global_ctrl_iface_deinit
+            deactivate "ctrl_iface.c"
+
             M -> "hostapd.c": hostapd_interface_deinit_free
+            deactivate "hostapd.c"
+
             M -> M: 注销周期回调函数hostapd_periodic
             M -> M: hostapd_global_deinit
             M -> M: 关闭日志输出
             M -> "fst.c": fst_global_deinit
+            deactivate "fst.c"
             M -> User: Quit
-            deactive M
+            deactivate M
             @enduml
           #+END_SRC
 
-**** 接口初始化分析
-     hostapd_interface_init
+          #+RESULTS:
+          [[file:./images/2016/2016072902.png]]
 
-     hostapd_init:  读取配置文件的参数设置， 设置bss等信息，返回
-     =struct hostapd_iface= 数据结构。
+**** =hostapd_global_init=
+           #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080901.png :cmdline -charset UTF-8
+             @startuml
+             start
+             : hostapd_logger_register_cb;
+             note right
+             注册日志后台打印回调函数
+             end note
+             : eap_server_register_methods;
+             : eloop_init;
+             : random_init;  
+             note right: 为产生Key做准备
+             : 注册系统信息处理函数;
+             note right
+             <b>相关代码</b>
+             ====
+             #ifndef CONFIG_NATIVE_WINDOWS
+                     eloop_register_signal(SIGHUP, handle_reload, interfaces);
+                     eloop_register_signal(SIGUSR1, handle_dump_state, interfaces);
+             #endif /* CONFIG_NATIVE_WINDOWS */
+                     eloop_register_signal_terminate(handle_term, interfaces);
+             end note
+             : 初始化 struct hapd_global全局变量global;
+             note right
+             <b>相关代码</b>
+             ====
+             for (i = 0; wpa_drivers[i]; i++)
+                   global.drv_count++;
+             if (global.drv_count == 0) {
+                     wpa_printf(MSG_ERROR, "No drivers enabled");
+                     return -1;
+             }
+             global.drv_priv = os_calloc(global.drv_count, sizeof(void *));
+             if (global.drv_priv == NULL)
+                     return -1;
+             end note
+             stop
+             @enduml
+           #+END_SRC
 
-     hostapd_driver_init
-     hostap_init
-     i802_init
+           #+RESULTS:
+           [[file:./images/2016/2016080901.png]]
 
-     hostapd_setup_interface
-     hostapd_ctrl_iface_init
+**** =hostapd_interface_init=
+    
+           =hostapd_init=:  读取配置文件的参数设置， 初始化BSS数据，返回
+           =struct hostapd_iface= 数据结构。
+           
+**** =hostapd_interface_init_bss=
 
-     处理上层传下来的命令：
-     hostapd_ctrl_iface_receive_process
+           Read configuration file and init BSS data
+
+           This is similar to =hostapd_interface_init()=, but for a case
+           where the configuration is used to add a single BSS instead
+           of all BSSes for a radio. 
+           
+**** =hostapd_driver_init=
+
+**** =hostapd_setup_interface=
+
+**** =hostapd_global_ctrl_iface_init=
+
+**** =hostapd_global_ctrl_iface_run=
 
 *** VLAN client
-
-    
 
 * =wpa_supplicant= 代码修改
 ** add a conf parameter to start a GO as HT40 if allowed
@@ -2453,9 +3239,22 @@
                               params.bridge[i] = bss->conf->bridge;
               }    
     #+END_SRC
+
+** 遍历wpa_supplicant上的bss list
+    #+BEGIN_SRC c
+      struct wpa_bss *bss;
+      dl_list_for_each_reverse(bss, &wpa_s->bss, struct wpa_bss, list) {
+        u8 addr[ETH_ALEN];
+        if (p2p_parse_dev_addr((const u8 *) (bss + 1), bss->ie_len,
+                               addr) == 0 &&
+            os_memcmp(addr, dev_addr, ETH_ALEN) == 0)
+          return bss;
+      }    
+    #+END_SRC
 * Footnotes
 [fn:1] https://w1.fi/
 [fn:2] http://w1.fi/p/
 
 
 
+  

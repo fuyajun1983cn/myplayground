@@ -6,6 +6,8 @@
 
 
 * 构造模式
+
+  http://www.java2s.com/Tutorials/Java/Java_Design_Patterns/index.htm
   主要描述如何更好地表述一个对象。主要有如下一些具体模式：
 
 ** 抽象工厂(Abstract Factory)
@@ -80,3 +82,12 @@
 
 ** MVC(Model-View-Controller)
 
+* 扩展
+
+** Service Provider
+    研究类ImageIO
+
+** Reactor pattern
+    Java Selector   no blocking I/O
+** Proactor pattern
+    Java Asynchronous I/O

@@ -542,6 +542,20 @@
       Frame <|-- JFrame
       @enduml
     #+END_SRC
+** NIO
+    新引入Channel，Buffer，Charset等概念，新引入了Path类，代替File类中
+    的大部分接口：
+    #+BEGIN_SRC java
+       Path path = FileSystems.getDefault().getPath("logs", "access.log");
+       BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8);
+    #+END_SRC
+*** Non Blocking & Asynchronous I/O
+     With =non-blocking= I/O, you're getting events through a selector
+     when the channel is ready to do I/O. The asynchronous API gives
+     you a notification when the I/O is completed.
+
+     开发高性能和高扩展性的应用时，可以考虑使用 Apache MINA 框架，项目
+     地址为： http://mina.apache.org/
 
 * JNI
   

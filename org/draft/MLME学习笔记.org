@@ -4,7 +4,6 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * MLME总体分析
-
 ** 概述
 
 *** 处理接收到的管理帧 =STAHandleRxMgmtFrame rtmp_data.c=
@@ -23,6 +22,8 @@
    - get_netdev_from_bssid() is called for recognizing an Rx packet is belonging to which net device (ra0, p2p0, or uap0)
    - MacTableReset() and AsicDelWcidTab() are called while AP-liked interface is starting or stopping
      - The entry for the already connected STAs of P2P GO or SoftAP will be flushed and then disconnect
+   - UserCfgInit
+     初始化驱动的一些变量。
 
 ** 将数据包发往上层处理
    在 =cmm_mat.c= 中有定义 =MATProtoTb= ，用于相关协议数据包
@@ -99,8 +100,126 @@ IE_EXT_CAPABILITY
     1. =ASSOC_IDLE=
     2. =ASSOC_WAIT_RSP=
 
+* Device/Driver Init/Exit Module
+  [[./images/2016/2016080301.png]]
+
+  
+** RTMPInitTxRxRingMemory
+
 * 数据接收
 
+** 数据结构
+
+*** memory layout
+
+    /* ====================================================================
+	USB TX / RX Frame Descriptors format
+
+	Tx Memory Layout
+	1. Packet Buffer
+		TxINFO(4 bytes) + TXWI( 16 bytes) + 802.11
+	 31                                                                                                        0
+	+-------------------------------------------------------------------+
+	|                                   TXINFO[31:0]                                                      |
+	+-------------------------------------------------------------------+
+	|                                   TxWI                                                                  |
+	+                                                                                                            +
+	|                                                                                                            |
+	+                                                                                                            +
+	|                                                                                                            |
+	+	                                                                                                       +
+	|	                                                                                                       |
+	+-------------------------------------------------------------------+
+	|                                      802.11                                                             |
+	|                                      .........                                                             |
+	+-------------------------------------------------------------------+
+
+	Rx Memory Layout
+	1. Packet Buffer
+		RxDMALen(4 bytes) + RXWI(16 bytes) + 802.11 + RXINFO (4 bytes)
+	 31                                                                                                     0
+	+-----------------------------------------------------------------+
+	|                                  RXDMALen[31:0]                                                |
+	+-----------------------------------------------------------------+
+	|					 RxWI                                                                  |
+	+                                                                                                        +
+	|                                                                                                        |
+	+                                                                                                        +
+	|                                                                                                        |
+	+	                                                                                                   +
+	|	                                                                                                   |
+	+-----------------------------------------------------------------+
+	|                                  802.11                                                             |
+	|                                  .........                                                             |
+	+-----------------------------------------------------------------+
+	|                                  RXINFO                                                            |
+	+-----------------------------------------------------------------+
+
+=====================================================================*/
+
+*** =RX_BLK=
+    接收的数据包描述
+     #+BEGIN_SRC c
+       ypedef struct _RX_BLK {
+               UCHAR hw_rx_info[RXD_SIZE];     /* include "RXD_STRUC RxD" and "RXINFO_STRUC rx_info " */
+               RXINFO_STRUC *pRxInfo;  /* for RLT, in head of frame buffer, for RTMP, in hw_rx_info[RXINFO_OFFSET] */
+       #ifdef RLT_MAC
+               RXFCE_INFO *pRxFceInfo; /* for RLT, in in hw_rx_info[RXINFO_OFFSET], for RTMP, no such field */
+       #endif                          /* RLT_MAC */
+               RXWI_STRUC *pRxWI;      /*in frame buffer and after "rx_info" fields */
+               HEADER_802_11 *pHeader; /* poiter of 802.11 header, pointer to frame buffer and shall not shift this pointer */
+               PNDIS_PACKET pRxPacket; /* os_packet pointer, shall not change */
+               UCHAR *pData;           /* init to pRxPacket->data, refer to frame buffer, may changed depends on processing */
+               USHORT DataSize;        /* init to  RXWI->MPDUtotalByteCnt, and may changes depends on processing */
+               USHORT Flags;
+
+               /* Mirror info of partial fields of RxWI and RxInfo */
+               USHORT MPDUtotalByteCnt;        /* Refer to RXWI->MPDUtotalByteCnt */
+               UCHAR UserPriority;     /* for calculate TKIP MIC using */
+               UCHAR OpMode;           /* 0:OPMODE_STA 1:OPMODE_AP */
+               UCHAR wcid;             /* copy of pRxWI->wcid */
+               UCHAR U2M;
+               UCHAR key_idx;
+               UCHAR bss_idx;
+               UCHAR TID;
+               CHAR rssi[3];
+               CHAR snr[3];
+               CHAR freq_offset;
+               CHAR ldpc_ex_sym;
+               HTTRANSMIT_SETTING rx_rate;
+       #ifdef HDR_TRANS_SUPPORT
+               BOOLEAN bHdrRxTrans;    /* this packet's header is translated to 802.3 by HW  */
+               BOOLEAN bHdrVlanTaged;  /* VLAN tag is added to this header */
+               UCHAR *pTransData;
+               USHORT TransDataSize;
+       #endif                          /* HDR_TRANS_SUPPORT */
+       } RX_BLK;    
+     #+END_SRC
+
+*** =RX_CONTEXT=
+        #+BEGIN_SRC c
+          /*
+                  Structure to keep track of receive packets and buffers to indicate
+                  receive data to the protocol.
+          ,*/
+          typedef struct _RX_CONTEXT {
+                  PUCHAR TransferBuffer;
+                  PVOID pAd;
+                  PIRP pIrp;              /*used to cancel pending bulk in. */
+                  PURB pUrb;
+                  /*These 2 Boolean shouldn't both be 1 at the same time. */
+                  ULONG BulkInOffset;     /* number of packets waiting for reordering . */
+          /*      BOOLEAN                         ReorderInUse;   // At least one packet in this buffer are in
+                                                          reordering buffer and wait for receive indication */
+                  BOOLEAN bRxHandling;    /* Notify this packet is being process now. */
+                  BOOLEAN InUse;          /* USB Hardware Occupied. Wait for USB HW to put packet. */
+                  BOOLEAN Readable;       /* Receive Complete back. OK for driver to indicate receiving packet. */
+                  BOOLEAN IRPPending;     /* TODO: To be removed */
+                  /*atomic_t                              IrpLock; */
+                  NDIS_SPIN_LOCK RxContextLock;
+                  ra_dma_addr_t data_dma; /* urb dma on linux */
+          } RX_CONTEXT, *PRX_CONTEXT;        
+        #+END_SRC
 ** 基本函数调用流程
    #+BEGIN_SRC plantuml :file ./images/2016/2016032499.png :cmdline -charset UTF-8
      title mt76xx驱动数据接收流程
@@ -128,12 +247,14 @@ IE_EXT_CAPABILITY
    [[file:./images/2016/2016032499.png]]
 
    APRxDataFrameAnnounce (mt76x2 ap)
-   STAHandleRxDataFrame (mt76x2 sta)
+   STAHandleRxDataFrame (mt76x2 sta)  --> STARxDataFrameAnnounce --> CmmRxnonRalinkFrameIndicate
    rx_data_frm_announce (mt7603)
 
 * 数据发送
   
 ** 概述
+
+    RTUSBKickBulkOut
 
    deq_mgmt_frame
 
@@ -151,6 +272,69 @@ IE_EXT_CAPABILITY
 
    而这一切，是从 =struct net_device_ops= 中的回调接口
    =ndo_start_xmit= 触发的。
+
+
+** 函数调用流程
+    rt28xx_packet_xmit()
+    -> RTMPSendPackets()
+    -> wdev_tx_pkts()
+    -> STASendPacket()
+    -> RTMPCheckEtherType()
+
+* Roaming
+  MT76x2STA.dat相关配置：
+  AutoRoaming=0 (with same SSID)
+  RoamThreshold=70
+  FtSupport=0
+  在config.mk中，对应的配置项为： =HAS_DOT11R_FT_SUPPORT=n=
+
+  对于非便携式设备如TV Box，一般会禁用此功能。
+
+** 协议支持
+    1. 802.11k
+       802.11k allows a WLAN device to quickly identify nearby APs
+       that are available for roaming. When the signal strength of the
+       current AP weakens  and the WLAN device needs to roam to a new
+       AP, it will already know the  best candidate AP with which to
+       connect.
+    2. 802.11r
+       When a WLAN device roams from one AP to another on the same
+       network, 802.11r streamlines the authentication process using a
+       feature  called Fast Basic Service Set Transition (FT). FT
+       allows WLAN devices to associate with APs more
+       quickly. Depending on your Wi-Fi hardware  vendor, FT can work
+       with both preshared key (PSK) and 802.1X  authentication
+       methods.
+
+       Coupled with 802.11k's ability to quickly identify the target
+       AP, FT's faster association method may enhance application
+       performance and aims to provide a better Wi-Fi experience.
+
+** 相关代码
+    
+*** 控制变量
+         #+BEGIN_SRC c
+           /* Fast Roaming */
+           BOOLEAN bAutoRoaming;   /* 0:disable auto roaming by RSSI, 1:enable auto roaming by RSSI */
+           CHAR dBmToRoam;         /* the condition to roam when receiving Rssi less than
+                                    ,* this value. It's negative value.         
+         #+END_SRC
+
+*** 执行
+        在函数 STAMlmePeriodicExec 中，会检查是否需要进行Roaming。
+        当检查到Roaming需要发生时，会向MLME状态机中传递：
+        =MT2_MLME_ROAMING_REQ= 消息。对应的处理函数是：　
+        CntlMlmeRoamingProc
+
+* PMF
+  
+** 概述
+    PMF stands for Protected Management Frame, IEEE 802.11w is the PMF
+    standard, Its objective is to increase the security by providing
+    data confidentiality of management frames.  It has become a
+    required feature in TGac since 2014.07. 
+
+    一般在认证项目中会遇到这方面的问题。
 
 * 问题调试
 
@@ -210,7 +394,7 @@ IE_EXT_CAPABILITY
 
               read_reg(pAd, 0x41, 0x1004, &Value);
               DBGPRINT(RT_DEBUG_OFF, (" 0x41_1004: 0x%x\n", Value));
-              read_reg(pAd, 0x41, 0x1200, &Value);
+              read_reg(pAd, 0x41, 0x1200, &Value); //0x1200 is the status of MAC
               DBGPRINT(RT_DEBUG_OFF, (" 0x41_1200: 0x%x\n", Value));
               read_reg(pAd, 0x41, 0x0A38, &Value);
               DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A38: 0x%x\n", Value));
@@ -489,3 +673,26 @@ IE_EXT_CAPABILITY
       OPSTATUS_TEST_FLAG(...)
       OPSTATUS_SET_FLAG(...)
     #+END_SRC
+
+** 测试当前STA与AP的连接状态
+    判断是否已经获得AP的认证，即是否可以收发Class 3帧
+    #+BEGIN_SRC c
+      PMAC_TABLE_ENTRY pEntry = &pAd->MacTab.Content[i];
+      ...
+
+      if (pEntry->Sst == SST_ASSOC)
+        printk("can tx/rx class3 frames");
+
+      /* Value domain of pMacEntry->Sst */
+      typedef enum _Sst {
+              SST_NOT_AUTH,           /* 0: equivalent to IEEE 802.11/1999 state 1 */
+              SST_AUTH,               /* 1: equivalent to IEEE 802.11/1999 state 2 */
+              SST_ASSOC               /* 2: equivalent to IEEE 802.11/1999 state 3 */
+      } SST;
+    #+END_SRC
+
+** RTS阀值调整
+    修改dat文件中的默认值：
+    : RTSThreshold=2347
+    或者修改代码： rtmp_comm.h
+    : #define MAX_RTS_THRESHOLD               2347	/* byte count */
