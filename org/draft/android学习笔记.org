@@ -1703,3 +1703,346 @@
         result = ALOOPER_POLL_TIMEOUT
         没有消息需要处理。      
       #+END_EXAMPLE
+
+** Android Region代码分析
+   一、Region的定义和合法性检查
+   
+   　　在Android系统中，定义了Region的概念，它代表屏幕上的一个区域，它
+   是由一个或多个Rect组成的，代码位于
+   frameworks/native/libs/ui/Region.cpp。而Rect则代表屏幕上的一个方形
+   区域，这个区域可能是不可见的，部分可见或者完全不可见的。从代码实现
+   的角度来看Region的实现，它拥有一个私有的数据成员变量：mStorage，它
+   的类型为Vector<Rect>：
+   1. mStorage是一个有序数组，数组元素类型为Rect，除了包含构成Region区
+      域的Rect外，还额外地包含一个元素，它就是这块区域的边界。
+   2. 如果Region只是一个简单的方形区域，则mStorage只包含这个Rect类型的
+      元素。
+      　　从上述两点可知，mStorge的大小永远不可能为2，要想知道某个区域
+      的边界大小，只需返回mStorage的最后一个元素。
+   3. Rect与Region的关系是is-a关系，反之则不成立。
+
+      #+BEGIN_SRC c++
+        inline  bool        isEmpty() const     { return getBounds().isEmpty(); }
+        inline  bool        isRect() const      { return mStorage.size() == 1; }
+
+        inline  Rect        getBounds() const   { return mStorage[mStorage.size() - 1]; }
+        inline  Rect        bounds() const      { return getBounds(); }      
+      #+END_SRC
+
+
+   　　接下来研究的话题是Region的合法性。由于Region本身是由一系列Rect
+   组成的，所以，首先，构成的Rect本身必须是合法的。其次，构成的Rect必
+   须以Y方向和X方向排序，Y方向优先排序。这里引入另一个概念Span，它也是
+   一个区域的概念，也是由一个或多个Rect组成，可以认为它是一种特殊的
+   Region， 其本身也是构成Region的一部分，事实上，一个Region可以看成是
+   由许多Span构成的。不过这些构成Span的Rect必须在Y方向上，top和bottom
+   值与其他的Rect相同，即Y方向上不能重叠，在X上方向，left与right之间的
+   覆盖的区域不能与其他的Rect之间有重叠。基于上述的描述，要检查一个
+   Region是否合法，就要对上述的一些要求做检查，我们可以看Region的
+   validate()函数，它实际上就是这样做的：
+
+   1. 首先检查构成Region的Rect本身的合法性。
+      #+BEGIN_SRC c++
+        ...
+        if (cur->isValid() == false) {
+          ALOGE_IF(!silent, "%s: region contains an invalid Rect", name);
+          result = false;
+         }
+        if (cur->right > region_operator<Rect>::max_value) {
+          ALOGE_IF(!silent, "%s: rect->right > max_value", name);
+          result = false;
+         }
+        if (cur->bottom > region_operator<Rect>::max_value) {
+          ALOGE_IF(!silent, "%s: rect->right > max_value", name);
+          result = false;
+         }
+        ...      
+      #+END_SRC
+   2. 接下来，检查这些Rect是否是有序的。
+
+      #+BEGIN_SRC c++
+        if ((*prev < *cur) == false) {
+          ALOGE_IF(!silent, "%s: region's Rects not sorted", name);
+          result = false;
+         }      
+      #+END_SRC
+   3. 然后就是检查Span的合法性
+      #+BEGIN_SRC c++
+        if (cur->top == prev->top) {
+          if (cur->bottom != prev->bottom) {
+            ALOGE_IF(!silent, "%s: invalid span %p", name, cur);
+            result = false;
+          } else if (cur->left < prev->right) {
+            ALOGE_IF(!silent,
+                     "%s: spans overlap horizontally prev=%p, cur=%p",
+                     name, prev, cur);
+            result = false;
+          }
+         } else if (cur->top < prev->bottom) {
+          ALOGE_IF(!silent,
+                   "%s: spans overlap vertically prev=%p, cur=%p",
+                   name, prev, cur);
+          result = false;
+         }      
+      #+END_SRC
+   4. 当然，也要检查最后一个元素是不是该区域的边界。
+      #+BEGIN_SRC c++
+        if (b != reg.getBounds()) {
+          result = false;
+          ALOGE_IF(!silent,
+                   "%s: invalid bounds [%d,%d,%d,%d] vs. [%d,%d,%d,%d]", name,
+                   b.left, b.top, b.right, b.bottom,
+                   reg.getBounds().left, reg.getBounds().top, 
+                   reg.getBounds().right, reg.getBounds().bottom);
+         }      
+      #+END_SRC
+   5. 最后，要检查一种不可能出现的情况，即mStorage的大小为2。
+      #+BEGIN_SRC c++
+        if (reg.mStorage.size() == 2) {
+          result = false;
+          ALOGE_IF(!silent, "%s: mStorage size is 2, which is never valid", name);
+         }      
+      #+END_SRC
+
+      　　到此为上，Region合法性的讨论就结束了。
+
+      最后总结一下：前面主要引入三个概念: Rect, Span, Region，它们之间
+      的区别如下 ：
+      [[./images/2016/2016081201.png]]
+
+
+   二、Region的Boolean操作
+
+   Region的Boolean操作总体主要分主要有如下几种：
+   #+BEGIN_SRC c++
+     enum {
+         op_nand = region_operator<Rect>::op_nand,
+         op_and  = region_operator<Rect>::op_and,
+         op_or   = region_operator<Rect>::op_or,
+         op_xor  = region_operator<Rect>::op_xor
+     };   
+   #+END_SRC
+
+   　　下面我们主要以 =op_or= 操作为情景，分析Region如何执行这些boolean操
+   作的。显然，Region可以与Region或Rect之间进行上述的boolean操作。当然，
+   执行这些操作后，Region可能会变得不合法了，需要进行调整使新的Region
+   变为合法的，整个过程就会伴随着怎样将Region从不合法的状态调整成合法
+   的状态，这个过程会涉及到Rect的合并或分解。
+
+   　　下面我们将分析 =boolean_operation(...)= 函数的执行过程，因为所有的
+   这些boolean操作都是基于此函数实现的。我们直接进入关键代码段：
+   #+BEGIN_SRC c++
+     size_t lhs_count;
+     Rect const * const lhs_rects = lhs.getArray(&lhs_count);
+
+     region_operator<Rect>::region lhs_region(lhs_rects, lhs_count);
+     region_operator<Rect>::region rhs_region(&rhs, 1, dx, dy);
+     region_operator<Rect> operation(op, lhs_region, rhs_region);
+     { // scope for rasterizer (dtor has side effects)
+       rasterizer r(dst);
+       operation(r);
+     }   
+   #+END_SRC
+
+   　　我们将上述分为三步：
+   1. =region_operator<Rect> operation(op, lhs_region, rhs_region);=
+      这一步是初始化，为第二步做准备。传递了两个信息：Region进行的什么
+      操作，以及操作的两个Region对象，这两个Region对象的引用被传递给了
+      Spanner对象。 =region_operator= 这个类定义两个Region之间的boolean操
+      作的步骤，其中定义的内部类region_rasterizer主要作用就是将一个
+      Rect加入到当前的Region中，其中会涉及到Span与Rect之间的合并。
+
+      #+BEGIN_SRC c++
+        class region_rasterizer {
+          friend class region_operator;
+          virtual void operator()(const RECT& rect) = 0;
+        public:
+          virtual ~region_rasterizer() { };
+        };      
+      #+END_SRC
+
+   2. =rasterizer r(dst);=
+      　　类rasterrizer是Region类中内部类，它继承自上面提到的
+      =region_rasterizer= 类。主要实现了其中的operator()(const RECT&
+      rect)虚函数。它对Region进行了一些初始化，该Region将是执行boolean
+      操作后的结果Region。
+
+      #+BEGIN_SRC c++
+        rasterizer(Region& reg) 
+          : bounds(INT_MAX, 0, INT_MIN, 0), storage(reg.mStorage), head(), tail(), cur() {
+          storage.clear();
+        }      
+      #+END_SRC
+
+   3. operation(r);
+      这步进入了实际的操作过程，将执行如下的函数：
+      
+      #+BEGIN_SRC c++
+        void operator()(region_rasterizer& rasterizer) {
+          RECT current;
+          do {
+            SpannerInner spannerInner(spanner.lhs, spanner.rhs);
+            int inside = spanner.next(current.top, current.bottom);
+            spannerInner.prepare(inside);
+            do {
+              TYPE left, right;
+              int inside = spannerInner.next(current.left, current.right);
+              if ((op_mask >> inside) & 1) {
+                if (current.left < current.right && 
+                    current.top < current.bottom) {
+                  rasterizer(current);
+                }
+              }
+            } while(!spannerInner.isDone());
+          } while(!spanner.isDone());
+        }
+              
+      #+END_SRC
+
+      　　在详细分解这个函数的执行过程之前，我们简单描述下Spanner和
+      SpannerInner这两个类的作用。Spanner相当于Region内部Span集合的迭
+      代器，它会从Y轴增长的方向逐个迭代Span;而SpannerInner则相当于某个
+      Span的内部迭代器，它会从X轴增长的方向迭代包含于这个Span内的Rect
+      对象。
+
+      　　下面， 描述这个函数的执行步骤：
+      1. int inside = spanner.next(current.top, current.bottom);
+         这步首先会决定当前迭代的Span，以current.top, current.bottom来
+         指定当前所处的Span。另外，也会根据inside得到两个Region之间的
+         相对位置信息，其实质是比较两个Region的第一个Span的相对位置关
+         系：首先，看它们的top值，然后是bottom值。如果这两个Region在Y
+         轴方向有重叠，就会发生Span的在Y轴的分解，并通过更新
+         current.top, current.bottom记录下当前所处的新Span。
+
+      2. spannerInner.prepare(inside);
+         　　根据上一步得到的两个Region的相对位置信息，来决定X轴方向迭
+         代的起始值。
+
+      3. 进入循环，直到当前Span内的Rect迭代结束。
+         : int inside = spannerInner.next(current.left, current.right);
+
+         　　这步每执行一次会更新当前的current.left, current.right的值，
+         如果两个Region在X轴方向上有重叠，就会在Span内部发生Rect的分解，
+         并通过更新current.left, current.right记录下当前所处的新的Rect。
+         根据Region执行的boolean操作的语义，以决定当前所指的Rect是否应
+         该加入到操作后的结果Region中去，即
+
+         #+BEGIN_SRC c++
+           　　if ((op_mask >> inside) & 1) {
+             　　                    if (current.left < current.right && 
+                                         　　                            current.top < current.bottom) {
+               　　                        rasterizer(current);
+               　　                    }
+             　　                }         
+         #+END_SRC
+
+         　　下图是两个Region执行合并操作时的过程示意图：
+
+         [[./images/2016/2016081202.png]]
+
+         最后结果中，有三个Span，第一个Span包含Rect 1, 第二个Span包含
+         Rect 2,3,4， 第三个Span中包含Rect 5。不过上述也只是中间结果，
+         在执行rasterizer(current);之后，才是最终的结果，所以我们接着
+         看下rasterizer(current)的执行过程。根据C++虚函数的多态性，
+         　　这个调用实际会执行到Region::rasterizer类的
+         operator()(const Rect& rect) 方法，来看下它的具体实现过程：
+         
+         #+BEGIN_SRC c++
+           virtual void operator()(const Rect& rect) {
+             //ALOGD(">>> %3d, %3d, %3d, %3d",
+             //        rect.left, rect.top, rect.right, rect.bottom);
+             if (span.size()) {
+               if (cur->top != rect.top) {
+                 flushSpan();
+               } else if (cur->right == rect.left) {//two rect connected and will merge into one rect.
+                 cur->right = rect.right;
+                 return;
+               }
+             }
+             span.add(rect);
+             cur = span.editArray() + (span.size() - 1);
+           }
+                    
+         #+END_SRC
+         
+         　　简单描述下上述函数所反映的逻辑：如果传入的Rect对象是当前
+         Span的第一个Rect对象，则直接将其加入到向量span中，对于第二个
+         及之后加入的Rect，则进行这样的判断，如果当前Rect对象的top值不
+         等于当前Span的top值，说明是一个新的Span开始，则首先需要通过
+         fushSpan()将之前Span加入到结果Region中去，可能会涉及到合并的
+         操作，主要是指相邻两个Span之间的合并;如果当前Rect对象还属于同
+         一个Span，则看这个Rect是否可以与相邻的Rect进行合并。
+
+      4. 最后一步，执行Region::rasterizer类的析构函数
+
+         #+BEGIN_SRC c++
+           ~rasterizer() {
+             if (span.size()) {
+               flushSpan();
+             }
+             if (storage.size()) {
+               bounds.top = storage.itemAt(0).top;
+               bounds.bottom = storage.top().bottom;
+               if (storage.size() == 1) {
+                 storage.clear();
+               }
+             } else {
+               bounds.left  = 0;
+               bounds.right = 0;
+             }
+             storage.add(bounds);
+           }         
+         #+END_SRC
+
+         　　首先，执行最后一次flushSpan，确保所有的Span都加入到了结果
+         Region中，当然，也会执行必要的合并。最后，根据Region合法性的
+         要求，将Region的边界作为一个Rect对象加入到结果Region中。所以，
+         最后，我们看到的结果Region是这样的：
+         
+         [[./images/2016/2016081203.png]]
+   
+    三、T-Junction消除
+
+      T-Junction问题是图像渲染中的经常碰到的一个问题，特别是3D
+      Graphics Rendering技术中，T-Junction消除是其中的一个研究课题。那
+      什么是T-Junction问题呢？
+
+      下面是对T-Junction问题的描述：
+
+      　　“A T-Junction is a spot where two polygons meet along the
+      edge of another polygon”
+
+      如：
+      [[./images/2016/2016081204.png]]
+
+      另一种表述为：
+      “The location where a vertex of one polygon lies on the edge of
+      another polygon is called a T-Junction”
+
+      [[./images/2016/2016081205.png]]
+
+      T-Junction会产生什么后果呢，我们先看下Android代码中的描述：
+      “avoid T-junctions as they cause artifacts in between the
+      resultant geometry when complex transforms occur.”
+
+      我的理解是因为图像渲染过程中会基于顶点进行插值，顶点A处的插值点
+      在图形转换后，并不能保证与顶点A完全重合，所以在生成的图像中
+      T-Junction处产生亮点，与周围像素不协调。下面我们重点看Android源
+      码是怎样进行T-Junction消除的。
+
+      　　在Region类中，专门定义了一个函数：createTJunctionFreeRegion，
+      它对一个含有T-Junction的Region进行修改，使之变成没有T-Juncion的
+      Region。最终结果会出现对一些Span的分解。
+
+      　　根据RegionTest.cpp中的checkVertTJunction函数：
+      #+BEGIN_SRC c++
+        void checkVertTJunction(const Rect* lhs, const Rect* rhs) {
+          EXPECT_FALSE((rhs->right > lhs->left && rhs->right < lhs->right) ||
+                       (rhs->left > lhs->left && rhs->left < lhs->right));
+        }      
+      #+END_SRC
+
+      我们可以看到Android视如下几种情况为T-Juction:
+      [[./images/2016/2016081206.png]]
+
+      
