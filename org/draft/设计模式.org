@@ -11,6 +11,252 @@
   主要描述如何更好地表述一个对象。主要有如下一些具体模式：
 
 ** 抽象工厂(Abstract Factory)
+   抽象工厂也称为工厂的工厂，它创建其他的工厂。使用抽象工厂时，先创建
+   一个超级工厂，通过这个超级工厂，创建其他的工厂类，利用这些工厂类创
+   建对象。
+   
+*** 情景示例
+    假设创建一些形状和打印机两类对象，对于形状类型，我们有圆，长方形和正
+    方形，对于打印机类型，我们有纸质打印机，网络打印机以及屏幕打印机。
+    对于形状类型，接口定义如下：
+    #+BEGIN_SRC java
+      interface Shape {
+          void draw();
+      }    
+    #+END_SRC
+
+    接下来创建一些具体的形状类：
+    #+BEGIN_SRC java
+      class Rectangle implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Rectangle::draw() method.");
+          }
+      }
+      class Square implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Square::draw() method.");
+          }
+      }
+      class Circle implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Circle::draw() method.");
+          }
+      }    
+    #+END_SRC
+
+    然后创建打印机接口
+    #+BEGIN_SRC java
+      interface Printer{
+         void print();
+      }    
+    #+END_SRC
+
+    接着创建一些具体的打印机类
+    #+BEGIN_SRC java
+      class PaperPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Papter");
+          }
+      }
+
+      class WebPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Web");
+          }
+      }
+
+      class ScreenPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Screen");
+          }
+      }
+    #+END_SRC
+
+    最后创建一个抽象类来获取创建形状和打印机对象的工厂类
+    #+BEGIN_SRC java
+      abstract class AbstractFactory {
+         abstract Printer getPrinter(String type);
+         abstract Shape getShape(String shape) ;
+      }    
+    #+END_SRC
+
+    最后，我们创建一些具体的工厂类来创建对应的对象
+    #+BEGIN_SRC java
+      class ShapeFactory extends AbstractFactory {
+        
+          @Override
+          public Shape getShape(String shapeType){
+              if(shapeType == null){
+                  return null;
+              }    
+              if(shapeType.equalsIgnoreCase("CIRCLE")){
+                  return new Circle();
+              } else if(shapeType.equalsIgnoreCase("RECTANGLE")){
+                  return new Rectangle();
+              } else if(shapeType.equalsIgnoreCase("SQUARE")){
+                  return new Square();
+              }
+              return null;
+          }
+         
+          @Override
+          Printer getPrinter(String type) {
+              return null;
+          }
+      }
+      class PrinterFactory extends AbstractFactory {
+        
+          @Override
+          public Shape getShape(String shapeType){
+              return null;
+          }
+         
+          @Override
+          Printer getPrinter(String type) {
+              if(type == null){
+                  return null;
+              }    
+              if(type.equalsIgnoreCase("paper")){
+                  return new PaperPrinter();
+              } else if(type.equalsIgnoreCase("web")){
+                  return new WebPrinter();
+              } else if(type.equalsIgnoreCase("Screen")){
+                  return new ScreenPrinter();
+              }
+              return null;
+          }
+      }    
+    #+END_SRC
+
+    最后，创建一个工厂的产生类，通过不同的参数返回不同的工厂类：
+    #+BEGIN_SRC java
+      class FactoryProducer {
+          public static AbstractFactory getFactory(String choice){
+              if(choice.equalsIgnoreCase("SHAPE")){
+                  return new ShapeFactory();
+              } else if(choice.equalsIgnoreCase("Printer")){
+                  return new PrinterFactory();
+              }
+              return null;
+          }
+      }    
+    #+END_SRC
+
+    下面代码显示的如何使用抽象工厂类来创建不同的对象：
+    #+BEGIN_SRC java
+      public class Main {
+          public static void main(String[] args) {
+
+              //get shape factory
+              AbstractFactory shapeFactory = FactoryProducer.getFactory("SHAPE");
+
+              //get an object of Shape Circle
+              Shape shape1 = shapeFactory.getShape("CIRCLE");
+
+              //call draw method of Shape Circle
+              shape1.draw();
+
+              //get an object of Shape Rectangle
+              Shape shape2 = shapeFactory.getShape("RECTANGLE");
+
+              //call draw method of Shape Rectangle
+              shape2.draw();
+            
+              //get an object of Shape Square 
+              Shape shape3 = shapeFactory.getShape("SQUARE");
+
+              //call draw method of Shape Square
+              shape3.draw();
+
+              //get printer factory
+              AbstractFactory printerFactory = FactoryProducer.getFactory("printer");
+
+              Printer printer1 = printerFactory.getPrinter("Paper");
+              printer1.print();
+              Printer printer2 = printerFactory.getPrinter("Web");
+              printer2.print();
+              Printer printer3 = printerFactory.getPrinter("Screen");
+              printer3.print();
+          }
+      }
+    #+END_SRC
+
+    总体的类结果如下：
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081330.png :cmdline -charset UTF-8
+      @startuml
+      interface Shape {
+       void draw()
+      }
+      interface Printer {
+       void print()
+      }
+
+      class Rectangle {
+      void draw()
+      }
+      class Square {
+      void draw()
+      }
+      class Circle {
+      void draw()
+      }
+
+      Shape <|-- Rectangle
+      Shape <|-- Square
+      Shape <|-- circle
+
+      class PaperPrinter {
+      void print()
+      }
+
+      class WebPrinter {
+      void print()
+      }
+
+      class ScreenPrinter {
+      void print()
+      }
+
+      Printer <|-- PaperPrinter
+      Printer <|-- WebPrinter
+      Printer <|-- ScreenPrinter
+
+      abstract class AbstractFactory {
+         abstract Printer getPrinter(String type);
+         abstract Shape getShape(String shape) ;
+      }
+
+      class ShapeFactory
+      class PrinterFactory
+
+      AbstractFactory <|-- ShapeFactory
+      AbstractFactory <|-- PrinterFactory
+
+      class FactoryProducer {
+      static AbstractFactory getFactory(String choice)
+      }
+
+      class Main
+
+      FactoryProducer -- ShapeFactory
+      FactoryProducer -- PrinterFactory
+
+      Main -- FactoryProducer
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081330.png]]
 
 ** 构造器(Builder)
 

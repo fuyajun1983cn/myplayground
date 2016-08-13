@@ -2045,4 +2045,276 @@
       我们可以看到Android视如下几种情况为T-Juction:
       [[./images/2016/2016081206.png]]
 
+      在了解了存在T-Junction的几种存在情况后，我们来看具体是怎样消除
+      T-Junction的：
+      #+BEGIN_SRC c++
+        Region Region::createTJunctionFreeRegion(const Region& r) {
+            if (r.isEmpty()) return r;
+            if (r.isRect()) return r;
+
+            Vector<Rect> reversed;
+            reverseRectsResolvingJunctions(r.begin(), r.end(), reversed, direction_RTL);
+
+            Region outputRegion;
+            reverseRectsResolvingJunctions(reversed.begin(), reversed.end(),
+                    outputRegion.mStorage, direction_LTR);
+            outputRegion.mStorage.add(r.getBounds()); // to make region valid, mStorage must end with bounds
+
+        #if VALIDATE_REGIONS
+            validate(outputRegion, "T-Junction free region");
+        #endif
+
+            return outputRegion;
+        }      
+      #+END_SRC
+
+      可以看到，具体执行T-Junction消除的函数是
+      reverseRectsResolvingJunctions，而且被调用了两次，这其实也反映了
+      消除T-Junction过程中的步骤，在这个过程中，需要对Region按以Span为
+      单位进行两次扫描，第一次从Y轴减小的方向扫描，第二次，从Y轴增长的
+      方向扫描。每次扫描，都会将T-Junction点消除，进行两次扫描的原因是
+      因为每次扫描只能消除上述的5种情况。下图是T-Junction点消除后的情
+      况：
+
+      [[./images/2016/2016081220.png]]
+
+      红色虚线是分解边。可以看到，这个过程会产生许多新的Rect。
       
+  四、测试与验证
+
+  　　前面三部分是理论部分，主要是通过阅读源码得到的一些步骤和过程，下
+  面将通过测试程序来验证我们的理论，看我们的理解是否正正确：
+  1. 验证Region的boolean操作。
+     #+BEGIN_SRC c++
+       void test2()
+       {
+         Region r;
+         r.clear();
+         r.orSelf(Rect(0, 0, 2, 2));
+         r.orSelf(Rect(1, 1, 3, 3));
+         dump(r, "A|B");
+         echo("--------------");
+
+         r.clear();
+         r.orSelf(Rect(0, 0, 2, 2));
+         r.xorSelf(Rect(1, 1, 3, 3));
+         dump(r, "A xor B");
+         echo("----------------------------");
+
+         r.clear();
+         r.orSelf(Rect(0, 0, 2, 2));
+         r.subtractSelf(Rect(1, 1, 3, 3));
+         dump(r, "A-B");
+         echo("---------------------");
+       }     
+     #+END_SRC
+
+     输出结果：
+
+     #+BEGIN_EXAMPLE
+       Region: A|B, count = 3
+
+       [  0,   0,   2,   1]
+
+        [  0,   1,   3,   2]
+
+        [  1,   2,   3,   3]
+
+        ----------------------
+
+       Region: A xor B, count = 4
+
+       [  0,   0,   2,   1]
+
+        [  0,   1,   1,   2]
+
+        [  2,   1,   3,   2]
+
+        [  1,   2,   3,   3]
+
+        ----------------------
+
+       Region: A-B, count = 2
+
+       [  0,   0,   2,   1]
+
+        [  0,   1,   1,   2]
+
+        ----------------------     
+     #+END_EXAMPLE
+
+     结果完全符合预期。
+
+     [[./images/2016/2016081321.png]]
+
+  2. 验证T-Junction的消除结果是否与我们的预期一致。
+
+     #+BEGIN_SRC c++
+       void test1()
+       {
+         Region r;
+         r.clear();
+         r.orSelf(Rect(1, 0, 2, 1));
+         r.orSelf(Rect(0, 1, 3, 2));
+         dump(r, "1");
+         echo("----------------------------");
+         Region modified = Region::createTJunctionFreeRegion(r);
+         dump(modified, "1'");
+         echo("------------------------");
+
+         r.clear();
+         r.orSelf(Rect(0, 0, 1, 1));
+         r.orSelf(Rect(0, 1, 2, 2));
+         dump(r, "2");
+         echo("-------------------------");
+         modified = Region::createTJunctionFreeRegion(r);
+         dump(modified, "2'");
+         echo("-----------------------------");
+
+         r.clear();
+         r.orSelf(Rect(0, 0, 2, 1));
+         r.orSelf(Rect(1, 1, 3, 2));
+         dump(r, "3");
+         echo("-------------------");
+         modified = Region::createTJunctionFreeRegion(r);
+         dump(modified, "3'");
+         echo("--------------------------");
+
+         r.clear();
+         r.orSelf(Rect(1, 0, 2, 1);
+                  r.orSelf(Rect(0, 1, 2, 2));
+                  dump(r, "4");
+                  echo("------------------------");
+                  modified = Region::createTJunctionFreeRegion(r);
+                  dump(modified, "4'");
+                  echo("------------------------");
+
+                  r.clear();
+                  r.orSelf(Rect(1, 0, 3, 1));
+                  r.orSelf(Rect(0, 1, 2, 2));
+                  dump(r, "5");
+                  modified = Region::createTJunctionFreeRegion(r);
+                  dump(modified, "5'");
+                  echo("--------------------------");
+
+                  }     
+     #+END_SRC
+
+     输出结果：
+
+     #+BEGIN_EXAMPLE
+       Region: 1, count = 2
+
+       [  1,   0,   2,   1]
+
+        [  0,   1,   3,   2]
+
+        ----------------------
+
+       Region: 1', count = 4
+
+       [  1,   0,   2,   1]
+
+        [  0,   1,   1,   2]
+
+        [  1,   1,   2,   2]
+
+        [  2,   1,   3,   2]
+
+        ----------------------
+
+       Region: 2, count = 2
+
+       [  0,   0,   1,   1]
+
+        [  0,   1,   2,   2]
+
+        ----------------------
+
+       Region: 2', count = 3
+
+       [  0,   0,   1,   1]
+
+        [  0,   1,   1,   2]
+
+        [  1,   1,   2,   2]
+
+        ----------------------
+
+       Region: 3, count = 2
+
+       [  0,   0,   2,   1]
+
+        [  1,   1,   3,   2]
+
+        ----------------------
+
+       Region: 3', count = 4
+
+       [  0,   0,   1,   1]
+
+        [  1,   0,   2,   1]
+
+        [  1,   1,   2,   2]
+
+        [  2,   1,   3,   2]
+
+        ----------------------
+
+       Region: 4, count = 2
+
+       [  1,   0,   2,   1]
+
+        [  0,   1,   2,   2]
+
+        ----------------------
+
+       Region: 4', count = 3
+
+       [  1,   0,   2,   1]
+
+        [  0,   1,   1,   2]
+
+        [  1,   1,   2,   2]
+
+        ----------------------
+
+       Region: 5, count = 2
+
+       [  1,   0,   3,   1]
+
+        [  0,   1,   2,   2]
+
+        ----------------------
+
+       Region: 5', count = 4
+
+       [  1,   0,   2,   1]
+
+        [  2,   0,   3,   1]
+
+        [  0,   1,   1,   2]
+
+        [  1,   1,   2,   2]
+
+        ----------------------     
+     #+END_EXAMPLE
+
+     这个结果也符合预期。
+
+  3. 练习题
+
+     构造如下Region：
+     #+BEGIN_SRC c++
+               Region r;
+            // |xxxx   |
+            // | xxxx  |
+            // |  xxxx |
+            // |   xxxx|
+           for (int i = 0; i < 4; i++) {
+               r.orSelf(Rect(i,i,i+4,i+1));
+           }
+            
+     #+END_SRC
+
+     消除T-Junction前有4个Rect, 消除T-Junction后有16个Rect。
