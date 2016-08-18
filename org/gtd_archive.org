@@ -872,7 +872,7 @@ Added: [2015-12-14 周一 16:30]
     CLOSED: [2016-07-31 日 21:55]
      - Next Action:
        Stack Management   page 27
-** 8月[11/11]
+** 8月[22/22]
 *** ✔ DONE hwsim源码分析
     CLOSED: [2016-08-02 二 21:30]
 *** ✔ DONE CTS/RTS设置                                 :Wifi Driver持续学习:Study:
@@ -975,6 +975,51 @@ Added: [2016-08-12 周五 11:10]
       整理PlantUML文档
 Added: [2016-08-09 周二 18:00]
 
+*** ✔ DONE 提交报销单                                                   :个人私事:
+    CLOSED: [2016-08-16 周二 11:05] SCHEDULED: <2016-08-16 周二>
+
+Added: [2016-08-15 周一 17:25]
+*** ✔ DONE Test Mode
+    CLOSED: [2016-08-17 周三 10:20]
+    - Next Action:
+      WifiDriverStudy_TestMode
+*** ✔ DONE Sniffer Mode
+    CLOSED: [2016-08-17 周三 10:30]
+    - Next Action: Introduction of Monitor Mode
+
+*** ✔ DONE WDS
+    CLOSED: [2016-08-17 周三 10:45]
+    - Next Action:
+      WIFI_WDS_study
+
+*** ✔ DONE Thermal Protection
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      YF_20141216_driver_study_thermal_protection
+      DRS (Date Rate Switching)
+      当温度过高时，减少传输流
+*** ✔ DONE IGMP snooping
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      WIFI_IGMP_snooping_study_1023
+*** ✔ DONE Sigle SKU
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      MT7603_MT7628_Single_SKU.pptx
+      Single SKU MT76xx.pptx
+      MT76XX_Single_Sku_V2_20140123.doc
+
+*** ✔ DONE Wifi Repeater
+    CLOSED: [2016-08-17 周三 11:50]
+    - Next Action:
+      MT7603_Driver_study_Virtual_interface_and_Apcli_Repeater
+
+*** ✔ DONE [#A] demo 4k miracast                                     :Project:
+    CLOSED: [2016-08-17 周三 16:00] SCHEDULED: <2016-08-16 周二>
+    CLOCK: [2016-08-16 周二 15:38]--[2016-08-16 周二 17:16] =>  1:38
+    分辨率，刷新帧率（支持60fps, 也要支持30fps）, 
+Follow 4k Miracast Demo的事情
+Added: [2016-08-10 周三 13:50]
 ** 9月[/]
 ** 10月[/]
 ** 11月[/]
