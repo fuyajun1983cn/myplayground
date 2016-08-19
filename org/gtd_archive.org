@@ -1020,6 +1020,17 @@ Added: [2016-08-15 周一 17:25]
     分辨率，刷新帧率（支持60fps, 也要支持30fps）, 
 Follow 4k Miracast Demo的事情
 Added: [2016-08-10 周三 13:50]
+*** ✔ DONE [#A] P2P Invitation的问题                                 :Project:
+     CLOSED: [2016-08-18 周四 17:20] SCHEDULED: <2016-08-18 周四>
+     CLOCK: [2016-08-18 周四 09:58]--[2016-08-18 周四 15:36] =>  5:38
+     CLOCK: [2016-08-16 周二 13:38]--[2016-08-16 周二 15:32] =>  1:54
+     CLOCK: [2016-08-15 周一 14:41]--[2016-08-15 周一 17:24] =>  2:43
+     P2P Invitation失败的问题
+     TODO:
+     打开wpa_supplicant日志
+     测试禁用persistent group的情况。update_config=0
+     Set_WirelessMode_Proc失败的原因
+     Added: [2016-08-10 周三 14:00]
 ** 9月[/]
 ** 10月[/]
 ** 11月[/]
