@@ -1,0 +1,199 @@
+#+STARTUP: overview
+#+TITLE: Wifi驱动学习笔记（MT7668）
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 基本架构介绍
+  
+** Overal Architecture
+    
+    #+CAPTION: Device Driver Architecture
+    [[./images/2016/2016082301.png]]
+    
+*** GLUE Layer
+        1. Provides OS specific interface – A Driver
+           Entry(Open/Start/Stop/Remove), OID/IOCTL/CFG80211 part and
+           driver hooks as well.
+        2. Glue Layer will access the MT6630 WLAN Core Library to
+           invoke proper event to MT6630 Driver  Arbiter to complete
+           the operating system’s request.
+
+*** KAL
+        Provides kernel service to WLAN Core Library, This can be
+        divided into two part. 
+        1. First part is OS function/library access such as memory
+           access, host timer, event indication to supplicant and RX
+           packet  indication.
+        2. Second part is the wrapper of bus driver API or System IO
+           functions used by WLAN Core library to  read/write MCR,
+           send/receive incoming packets.
+
+*** WLAN Core Library
+         In MT6630 WLAN Core Library, we divide the library into 4 parts. They are
+         1. A centralized Arbiter Finite State Machine and its associated event handling
+         2. Management and Protocol Layer.
+         3. NIC Layer to maintain SW/HW synchronization, such as TX FIFO status, TX/RX Queue Operation.
+         4. HAL Layer to provide basic foundations for NIC Layer, such
+            as MCR value composing, read a specific  field for MIB
+            counter, A series of MCR write for a special
+            function..etc.
+
+** 主要数据结构
+
+*** =STA_RECORD=
+
+         Station Record , Capability and basic information of peer station 
+
+         相关API
+         1. MLME state (SAA and AAA)
+            - aaaFsmRunEventRxAuth
+            - saaFsmSendEventJoinComplete
+            - saaFsmRunEventRxAuth
+            - assocBuildCapabilityInfo
+         2. Client List operation
+            - cnmStaRoutinesForAbort
+            - cnmStaRecAlloc
+            - cnmStaRecFree
+            - bssAddClient
+            - bssAddClient
+         3. Queue management
+            - qmActivateStaRec
+            - qmDeactivateStaRec
+            - qmFlushStaTxQueues
+            - qmFlushStaRxQueue
+            - qmProcessPktWithReordering
+            - qmProcessBarFrame
+         4. QoS
+            - mqmGenerateWmmInfoIEByStaRec
+         5. STA_RECORD sync with firmware
+            - cnmStaSendUpdateCmd
+
+*** =BSS INFO=
+         主要信息有：
+         - AP capability and basic information 
+           SSID, BSSID...
+         - Operation Mode (ENUM_OP_MODE_T) - eCurrentOPMode 
+           INFRASTRUCTURE, AP…
+         - Connection State (ENUM_PARAM_MEDIA_STATE_T) - eConnectionState 
+           Connected, Disconnected 
+
+         相关API
+         1. Init
+            - cnmGetBssInfoAndInit
+            - cnmFreeBssInfo
+         2. AP setting
+            - bssBuildBeaconProbeRespFrameCommonIEs
+            - bssUpdateBeaconContent
+            - p2pFuncStartGO
+         3. Client List operation
+            - bssAddClient
+            - bssRemoveClient
+            - cnmStaFreeAllStaByNetwork
+         4. STA join
+            - bssInitForAP
+            - bssDetermineApBssInfoPhyTypeSet
+            - aisUpdateBssInfoForJOIN
+            - p2pFuncUpdateBssInfoForJOIN
+         5. BSS sync with firmware
+            - nicUpdateBss
+            - nicActivateNetwork
+            - nicDeactivateNetwork
+            - nicQmUpdateWmmParms
+
+       
+** Software Modules
+
+    #+CAPTION: Software Modules
+    [[./images/2016/2016082302.png]]
+
+    相关缩略说明如下：
+    - AIS 
+      Ad-Hoc, Infrastructure, Search
+    - AAA
+      AP(Hotspot) Auth/Assoc
+    - RLM
+      Radio link Management
+    - QM
+      Queue Management
+    - BOW
+      BT over Wi-Fi
+    - SAA
+      Station Auth/Assoc
+    - RRM
+      Radio Resource Measurement
+    - SCN
+      SCAN
+    - SEC
+      Security
+    - CNM
+      Concurrent Network Management
+
+** 命令的基本流程
+    
+*** TX
+        上层下命令经过的流程：
+        1. 通过nl80211回调注册的cfg80211的接口。
+        2. 通过kalloctl传递命令类型：GLUE_FLAG_OID_BIT, 唤醒tx thread。
+        3. 调用注册的发送命令的回调接口，通过kalloctl传入的。
+        4. 填写命令参数，通过GLUE_INFO_T传递， 再次唤醒tx thread
+        5. tx thread解析命令参数，通过wlanSendCommand发送命令。
+
+        #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016083001.png :cmdline -charset UTF-8
+          @startuml
+          participant ioctl
+          participant hard_start_xmit
+          participant Interrupt
+          participant Main_Thread
+          participant netif_rx
+          autonumber
+          activate hard_start_xmit
+          hard_start_xmit -> Main_Thread: send packets
+          activate Main_Thread
+          deactivate hard_start_xmit
+          Main_Thread -> Main_Thread: Send Tx Packets
+          activate Interrupt
+          Interrupt -> Main_Thread: Tx Interrupt
+          deactivate Interrupt
+          Main_Thread -> Main_Thread: Handle Tx done Interrupt,\n Queue mgmt flow control
+          deactivate Main_Thread
+          @enduml
+        #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016083001.png]]
+
+        
+*** RX
+
+         #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016083002.png :cmdline -charset UTF-8
+           @startuml
+           participant ioctl
+           participant hard_start_xmit
+           participant Interrupt
+           participant Main_Thread
+           participant netif_rx
+           autonumber
+           activate Interrupt
+           Interrupt -> Main_Thread: Rx Interrupt
+           deactivate Interrupt
+           activate Main_Thread
+           Main_Thread -> Main_Thread: Handle Rx Interrupt,\n Read Rx Packets
+           Main_Thread -> netif_rx
+           activate netif_rx
+           netif_rx -> netif_rx: Rx indication to kernel
+           netif_rx -> Main_Thread: return
+           deactivate netif_rx
+           deactivate Main_Thread
+           @enduml
+         #+END_SRC
+
+         #+RESULTS:
+         [[file:./images/2016/2016083002.png]]
+
+*** Reference Charts
+     
+        [[./images/2016/2016083003.png]]

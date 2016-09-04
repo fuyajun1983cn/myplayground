@@ -1020,7 +1020,7 @@
 
 *** Receiver(接收器)
 
-    The receiver is the fi nal component in the wireless medium.The
+    The receiver is the final component in the wireless medium.The
     receiver takes the carrier signal that is received from the
     antenna and translates the modulated signals into 1s and 0s.
 
@@ -1097,7 +1097,7 @@
 ** Noise Floor
    背景干扰信号， 来源很多，比如：附近802.11设备传输的信号，未调制过的
    来自其他类型设备的干扰波等。背景干扰信号的振幅随着环境的不同，也不
-   一样。在2.4 G ISM信道，背景干扰信号强度可能为-100dBm，然后，在RF环
+   一样。在2.4 G ISM信道，背景干扰信号强度可能为-100dBm，然而，在RF环
    境下，背景干扰信号强度可能为-90dBm。一般情况下，5G信道干扰信号强度
    要小些，因为5G 频段相对没有2.4G拥挤。
 
@@ -1114,7 +1114,7 @@
    Receive sensitivity: the power level of an RF signal required to be
    successfully received by the receiver radio.
 
-   在Wlan设置中，Receive Sensitivity通常被定义为网络速度的一个功能。
+   在wlan设置中，Receive Sensitivity通常被定义为网络速度的一个功能。
    Wi-Fi厂商一般指定各种速率下Receive Sensitity阀值。对于一个接收器来
    说，要支持更高速度，就需要更多的功率。不同的速率采用不同的信号调制
    技术和编码方法。更高速率下的编码方法更容易出现数据被破坏。
@@ -1161,7 +1161,396 @@
    这个区间值就是Fade Margin。对于Fade Margin为10 dB的情况，这时设定的
    Receive Sensitity的阀值为-70 dBm。
 
-   
+** Review Questions
+    1. What RF component is responsible for generating the AC signal?
+
+       A. Antenna
+
+       B. Receiver
+
+       C. =Transmitter=
+
+       D. Transponder
+
+          *答案解析*
+
+          C. The transmitter generates the AC signal and modifies it
+             by using a modulation technique to encode the data into
+             the signal.
+
+    2. A point source that radiates RF signal equally in all
+       directions is known as what?
+
+       A. Omnidirectional signal generator
+
+       B. Omnidirectional antenna
+
+       C. Intentional radiator
+
+       D. Nondirectional transmitter
+
+       E. =Isotropic radiator=
+
+          *答案解析*
+
+          E. An isotropic radiator is also known as a point source.
+
+    3. When calculating the link budget and system operating margin of
+       a point-to-point outdoor WLAN bridge link, what factors should
+       be taken into account? (Choose all that apply.)
+
+       A. =Distance=
+
+       B. =Receive sensitivity=
+
+       C. =Transmit amplitude=
+
+       D. Antenna height
+
+       E. =Cable loss=
+
+       F. =Frequency=
+
+          *答案解析*
+
+          A, B, C, E and F. When radio communications are deployed, a
+       link budget is the sum of all gains and losses from the
+       transmitting radio, through the RF medium, to the receiver
+       radio. Link budget calculations include original transmit gain
+       and passive antenna gain. All losses must be accounted for,
+       including free space path loss. Frequency and distance are
+       needed to calculate free space path loss. The height of an
+       antenna has no significance when calculating a link budget;
+       however, the height could affect the Fresnel and blockage to
+       it.
+
+    4. The sum of all the components from the transmitter to the
+       antenna, not including the antenna, is known as what? (Choose
+       two.)
+
+       A. =IR=
+
+       B. Isotropic radiator
+
+       C. EIRP
+
+       D. =Intentional radiator=
+
+          *答案解析*
+
+          A and D. IR is the abbreviation for intentional
+       radiator. The components making up the IR include the
+       transmitter, all cables and connectors, and any other equipment
+       (grounding, lightning arrestors, amplifiers, attenuators, and
+       so forth) between the transmitter and the antenna. The power of
+       the IR is measured at the connecter that provides the input to
+       the antenna. 
+
+    5. The highest RF signal strength that is transmitted from an
+       antenna is known as what?
+
+       A. =Equivalent isotropically radiated power=
+
+       B. Transmit sensitivity
+
+       C. Total emitted power
+
+       D. Antenna radiated power
+
+          *答案解析*
+
+          A. Equivalent isotropically radiated power, also known as
+             EIRP, is a measure of the strongest signal that is
+             radiated from an antenna.
+
+    6. Select the absolute units of power. (Choose all that apply.)
+
+       A. =Watt=
+
+       B. =Milliwatt=
+
+       C. Decibel
+
+       D. =dBm=
+
+       E. Bel
+
+          *答案解析*
+
+          A, B and D. Watts, milliwatts, and dBms are all absolute
+       power measurements. One watt is equal to 1 ampere (amp) of
+       current flowing at 1 volt. A milliwatt is 1/1,000 of 1
+       watt. dBm is decibels relative to 1 milliwatt. 
+
+    7. Select the units of comparison (relative). (Choose all that
+       apply.)
+
+       A. dBm
+
+       B. =dBi=
+
+       C. =Decibel=
+
+       D. =dBd=
+
+       E. =Bel=
+
+          *答案解析*
+
+          B, C, D and E. The unit of measurement known as a bel is a
+       relative expression and a measurement of change in power. A
+       decibel (dB) is equal to one-tenth of a bel. Antenna gain
+       measurements of dBi and dBd are relative measurements. dBi is
+       defined as decibels referenced to an isotropic radiator. dBd is
+       defined as decibels referenced to a dipole.
+
+    8. 2 dBd is equal to how many dBi?
+
+       A. 5 dBi
+
+       B. 4.41 dBi
+
+       C. =4.14 dBi=
+
+       D. The value cannot be calculated.
+
+          *答案解析*
+
+          C. To convert any dBd value to dBi, simply add 2.14 to the
+             dBd value.
+
+    9. 23 dBm is equal to how many mW?
+
+       A. =200 mW=
+
+       B. 14 mW
+
+       C. 20 mW
+
+       D. 23 mW
+
+       E. 400 mW
+
+          *答案解析*
+
+          A. To convert to mW, first calculate how many 10s and 3s are
+             needed to add up to 23, which is 0 + 10 + 10 + 3. To
+             calculate the mW, you must multiply 1 × 10 × 10 × 2. 
+
+    10. A wireless bridge is configured to transmit at 100 mW. The
+        antenna cable and connectors produce a 3 dB loss and are
+        connected to a 16 dBi antenna. What is the EIRP?
+
+        A. 20 mW
+
+        B. 30 dBm
+
+        C. =2,000 mW=
+
+        D. 36 dBm
+
+        E. 8 W
+
+    11. A WLAN transmitter that emits a 400 mW signal is connected to
+        a cable with a 9 dB loss. If the cable is connected to an
+        antenna with 19 dBi of gain, what is the EIRP?
+
+        A. =4 W=
+
+        B. 3,000 mW
+
+        C. 3,500 mW
+
+        D. 2 W
+
+    12. WLAN vendors use RSSI thresholds to trigger which radio card
+        behaviors? (Choose all that apply.)
+
+        A. Receive sensitivity
+
+        B. =Roaming=
+
+        C. Retransmissions
+
+        D. =Dynamic rate switching=
+
+           *答案解析*
+
+           B and D. RSSI thresholds are a key factor for clients when
+        they initiate the roaming handoff. RSSI thresholds are also
+        used by vendors to implement dynamic rate switching, which is
+        a process used by 802.11 radios to shift between data rates. 
+
+    13. Received signal strength indicator (RSSI) metrics are used by
+        802.11 radios to define which RF characteristics?
+
+        A. =Signal strength=
+
+        B. Phase
+
+        C. Frequency
+
+        D. Modulation
+
+           *答案解析*
+
+           A. The received signal strength indicator (RSSI) is a
+              metric used by 802.11 radio cards to measure signal
+              strength (amplitude). Some vendors use a proprietary
+              scale to also correlate to signal quality. Most vendors
+              erroneously define signal quality as the signal-to-noise
+              ratio (SNR). The signal-to-noise ratio is the difference
+              in decibels between the received signal and the
+              background noise (noise floor). 
+
+    14. dBi is a measure of what?
+
+        A. The output of the transmitter
+
+        B. =The signal increase caused by the antenna=
+
+        C. The signal increase of the intentional transmitter
+
+        D. The comparison between an isotropic radiator and the
+        transceiver
+
+        E. The strength of the intentional radiator
+
+           *答案解析*
+
+           B. dBi is defined as “decibel gain referenced to an
+              isotropic radiator” or “change in power relative to an
+              antenna.” dBi is the most common measurement of antenna
+              gain. 
+
+    15. Which of the following are valid calculations when using the
+        rule of 10s and 3s? (Choose all that apply.)
+
+        A. =For every 3 dB of gain (relative), double the absolute
+        power (mW).=
+
+        B. For every 10 dB of loss (relative), divide the absolute
+        power (mW) by a factor of 2.
+
+        C. For every 10 dB of loss (absolute), divide the relative
+        power (mW) by a factor of 3.
+
+        D. For every 10 mW of loss (relative), multiply the absolute
+        power (dB) by a factor of 10.
+
+        E. For every 10 dB of loss (relative), halve the absolute
+        power (mW).
+
+        F. =For every 10 dB of loss (relative), divide the absolute  power (mW) by a factor of 10.=
+
+        *答案解析*
+
+        A and F. The four rules of the 10s and 3s are as follows: For
+        every 3 dB of gain (relative), double the absolute power
+        (mW). For every 3 dB of loss (relative), halve the absolute
+        power (mW). For every 10 dB of gain (relative), multiply the
+        absolute power (mW) by a factor of 10. For every 10 dB of loss
+        (relative), divide the absolute power (mW) by a factor of 10.
+        
+    16. A WLAN transmitter that emits a 100 mW signal is connected to
+        a cable with a 3 dB loss.If the cable is connected to an
+        antenna with 7 dBi of gain, what is the EIRP at the antenna
+        element?
+
+        A. 200 mW
+
+        B. =250 mW=
+
+        C. 300 mW
+
+        D. 400 mW
+
+    17. In a normal wireless bridged network, the greatest loss of
+        signal is caused by what component?
+
+        A. Receive sensitivity
+
+        B. Antenna cable loss
+
+        C. Lightning arrestor
+
+        D. =Free space path loss=
+
+           *答案解析*
+
+           D. A distance of as little as 100 meters will cause FSPL of
+              80 dB, far greater than any other component. RF
+              components such as connectors, lightning arrestors, and
+              cabling all introduce insertion loss. However, FSPL will
+              always be the reason for the greatest amount of loss. 
+
+    18. To double the distance of a signal, the EIRP must be increased
+        by how many dBs?
+
+        A. 3 dB
+
+        B. =6 dB=
+
+        C. 10 dB
+
+        D. 20 dB
+
+           *答案解析*
+
+           B. The 6 dB rule states that increasing the amplitude by 6
+              decibels will double the usable distance of an RF
+              signal. The 6 dB rule is very useful for understanding
+              antenna gain because every 6 dBi of extra antenna gain
+              will double the usable distance of an RF signal.
+
+    19. During a site survey of a point-to-point link between
+        buildings at a manufacturing plant, the WLAN engineer
+        determines that the noise floor is extremely high because of
+        all the machinery that is operating in the buildings. The
+        engineer is worried about a low SNR and poor performance due
+        to the high noise floor. What is a suggested best practice to
+        deal with this scenario?
+
+        A. Increase the access points’ transmission amplitude.
+
+        B. Mount the access points higher.
+
+        C. Double the distance of the AP signal with 6 dBi of antenna
+        gain.
+
+        D. =Plan for coverage cells with a 5 dB fade margin.=
+
+        E. Increase the transmission amplitude of the client radios.
+
+           *答案解析*
+
+           D. In a high-multipath or noisy environment, a common best
+              practice is to add a 5 dB fade margin when designing for
+              coverage based on a vendor’s recommended received
+              signal strength or the noise floor, whichever is
+              louder. 
+
+    20. Which value should not be used to compare wireless network
+        cards manufactured by different WLAN vendors?
+
+        A. Receive sensitivity
+
+        B. Transmit power range
+
+        C. Antenna dBi
+
+        D. =RSSI=
+
+           *答案解析*
+
+           D. WLAN vendors execute RSSI metrics in a proprietary
+              manner. The actual range of the RSSI value is from 0 to
+              a maximum value (less than or equal to 255) that each
+              vendor can choose on its own (known as
+              RSSI_Max). Therefore, RSSI metrics should not be used to
+              compare different WLAN vendor radios because there is no
+              standard for the range of values or a consistent scale.
+
 * 第四章 无线射频信号与天线理论 :noexport:
   
 ** Azimuth and Elevation Charts (Antenna Radiation Envelopes)
@@ -1181,13 +1570,6 @@
    the radiation pattern of the antenna. 
 
    天线极化图：
-
-   
-
-   
-
-   
-
 
 * 第五章 IEEE 802.11 标准
 
@@ -1220,7 +1602,7 @@
        1. Clause 17 of the 802.11-2012 standard.
        2. The Physical layer medium is High-Rate DSSS (HR-DSSS)
        3. Frequency Space: 2.4 GHz to 2.4835 GHz ISM band.
-       4. 为了2.4G提高数据传输率，使用了不同的扩频和编码技术：CCK（Complementary Code Keying）。
+       4. 为了提高2.4G数据传输率，使用了不同的扩频和编码技术：CCK（Complementary Code Keying）。
        5. 支持1， 2， 5.5， 11Mbps的速率。
 
 *** 802.11a-1999
@@ -1371,7 +1753,7 @@
 *** 802.11p-2010
 
        加强802.11标准规范以支持Intelligent Transportation Systems
-       (ITS) applications。以更好地 支持高速移动下的数据传输。
+       (ITS) applications。以更好地支持高速移动下的数据传输。
 
        802.11p is also known as Wireless Access in Vehicular
       Environments (WAVE) and is a possible foundation for a US
@@ -1392,20 +1774,20 @@
       主要解决802.11网络与其他外部网络之间的问题。
 
       The 802.11u-2011 amendment is the basis for the Wi-Fi Alliance’s
-      Hotspot 2.0 specifi cation and its Passpoint certifi cation.
+      Hotspot 2.0 specification and its Passpoint certification.
 
 *** 802.11v-2011
 
       802.11v provides for an exchange of information that can
       potentially ease the configuration of client stations
-      wirelessly from a central point of management. 802.11v-2011 defi
-      nes Wireless Network Management (WNM)
+      wirelessly from a central point of management. 802.11v-2011
+      defines Wireless Network Management (WNM) 
 
 *** 802.11s-2011
 
       The 802.11s amendment proposes the use of a protocol for
       adaptive, autoconfiguring systems that support broadcast,
-      multicast, and unicast traffi cover a multihop mesh WDS.
+      multicast, and unicast traffic over a multihop mesh WDS.
 
 ** Post-2012 ratified amendments
 
@@ -1466,7 +1848,7 @@
 
 *** 802.11ah
 
-      The 802.11ah draft amendment defi nes the use of Wi-Fi in
+      The 802.11ah draft amendment defines the use of Wi-Fi in
       frequencies below 1 GHz.
 
 *** 802.11ai
@@ -1508,6 +1890,14 @@
 
      E. CSMA/CA    
 
+      *答案解析*
+
+      A and D. Support for both Extended Rate Physical DSSS
+      (ERP-DSSS/CCK) and Extended Rate Physical Orthogonal Frequency
+      Division Multiplexing (ERP-OFDM) are required in an ERP WLAN,
+      also known as an 802.11g WLAN. Support for ERPPBCC and DSSS-OFDM
+      PHYs are optional in an ERP WLAN. 
+
    2. The 802.11-2012 standard using an ERP-DSSS/CCK radio supports
       which data rates?
 
@@ -1520,6 +1910,14 @@
      D. 6, 12, and 24 Mbps
 
      =E. 1, 2, 5.5, and 11 Mbps=
+
+      *答案解析*
+
+      E. ERP (802.11g) radios mandate the support for both
+      ERP-DSSS/CCK and ERPOFDM spread spectrum
+      technologies. ERP-DSSS/CCK supports data rates of 1, 2, 5.5, and
+      11 Mbps and is backward compatible with HR-DSSS (802.11b) and
+      DSSS (802.11 legacy).
 
    3. Which types of devices were defined in the original 802.11
       standard? (Choose all that  apply.)
@@ -1536,6 +1934,13 @@
 
      F. ERP
 
+      *答案解析*
+
+      B, D and E. The original 802.11 standard defines three Physical
+      layer specifications. An 802.11 legacy network could use FHSS,
+      DSSS, or infrared. 802.11b defined the use of HR-DSSS, 802.11a
+      defined the use of OFDM, and 802.11g defined ERP. 
+
    4. Which 802.11 amendment defines wireless mesh networking
       mechanisms?
 
@@ -1548,6 +1953,17 @@
      D. 802.11v
 
      E. 802.11k
+
+      *答案解析*
+
+      C. The 802.11 Task Groups (TGs) has set forth the pursuit of
+      standardizing mesh networking using the IEEE 802.11 MAC/PHY
+      layers. The 802.11s amendment defines the use of mesh points,
+      which are 802.11 QoS stations that support mesh services. A mesh
+      point (MP) is capable of using a mandatory mesh routing protocol
+      called Hybrid Wireless Mesh Protocol (HWMP) that uses a default
+      path selection metric. Vendors may also use proprietary mesh
+      routing protocols and metrics. 
 
    5. A robust security network (RSN) requires the use of which
       security mechanisms? (Choose  all that apply.)
@@ -1564,6 +1980,16 @@
 
      =F. 802.1X=
 
+      *答案解析*
+
+      D and F. The required encryption method defined by an RSN
+      wireless network (802.11i) is Counter Mode with Cipher Block
+      Chaining Message Authentication Code Protocol (CCMP), which uses
+      the Advanced Encryption Standard (AES) algorithm. An optional
+      choice of encryption is the Temporal Key Integrity Protocol
+      (TKIP). The 802.11i amendment also requires the use of an
+      802.1X/EAP authentication solution or the use of preshared keys.
+
    6. An 802.11a radio card can transmit on the __  frequency and uses
       __ spread   spectrum technology.
 
@@ -1577,6 +2003,12 @@
 
      E. 5 GHz, DSSS
 
+      *答案解析*
+
+      D. 802.11a radio cards operate in the 5 GHz Unlicensed National
+      Information Infrastructure (U-NII) 1–3 frequency bands using
+      Orthogonal Frequency Division Multiplexing (OFDM).
+
    7. What are the required data rates of an OFDM station?
 
      A. 3, 6, and 12 Mbps
@@ -1588,6 +2020,13 @@
      =D. 6, 12, and 24 Mbps=
 
      E. 1, 2, 5.5, and 11 Mbps
+
+      *答案解析*
+
+      D. The IEEE 802.11-2012 standard requires data rates of 6, 12,
+      and 24 Mbps for both OFDM and ERP-OFDM radios. Data rates of 6,
+      9, 12, 18, 24, 36, 48, and 54 Mbps are typically supported. 54
+      Mbps is the maximum defined rate. 
  
    8. When implementing an 802.1X/EAP RSN network with a VoWiFi
       solution, what is needed  to avoid latency issues during
@@ -1603,6 +2042,15 @@
 
      E. Lightweight APs
 
+      *答案解析*
+
+      B. Fast basic service set transition (FT), also known as fast
+      secure roaming, defines fast handoffs when roaming occurs
+      between cells in a WLAN using the strong security defined in a
+      robust security network (RSN). Applications such as VoIP that
+      necessitate timely delivery of packets require the roaming
+      handoff to occur in 150ms or less. 
+
    9. Which new technologies debuted in the 802.11ac-2013 amendment?
       (Choose all that apply.)
 
@@ -1616,6 +2064,14 @@
 
      =E. 80 MHz channels=
 
+      *答案解析*
+
+      B, C and E. The 802.11ac amendment debuted and defined the use
+      of 256-QAM modulation, eight spatial streams, multi-user MIMO,
+      80 MHz channels, and 160 MHz channels. 802.11 MIMO technology
+      and 40 MHz channels debuted with the ratification of the 802.11n
+      amendment. 
+
    10. What is the primary reason that OFDM (802.11a) radios cannot
        communicate with ERP  (802.11g) radios?
 
@@ -1627,7 +2083,15 @@
 
      =D. 802.11a operates at 5 GHz, and 802.11g operates at 2.4 GHz.=
 
-     E. 802.11a requires dynamic frequency selection, and 802.11g does  not.
+     E. 802.11a requires dynamic frequency selection, and 802.11g does
+       not.
+
+       *答案解析*
+
+       D. Both 802.11a and 802.11g use OFDM technology, but because
+       they operate at different frequencies, they cannot communicate
+       with each other. 802.11a equipment operates in the 5 GHz U-NII
+       bands, whereas 802.11g equipment operates in the 2.4 GHz ISM band.
 
    11. What two technologies are used to prevent 802.11 radios from
        interfering with radar and  satellite transmissions at 5 GHz?
@@ -1641,6 +2105,15 @@
      D. Temporal Key Integrity Protocol
 
      =E. Transmit power control=
+
+       *答案解析*
+
+       A and E. The 802.11-2012 standard defines mechanisms for
+       dynamic frequency selection (DFS) and transmit power control
+       (TPC) that may be used to satisfy regulatory requirements for
+       operation in the 5 GHz band. This technology was originally
+       defined in the 802.11h amendment, which is now part of the
+       802.11-2012 standard. 
 
    12. Which 802.11 amendments provide for throughput of 1 Gbps or
        higher? (Choose all that  apply.)
@@ -1657,6 +2130,14 @@
 
      F. 802.11af
 
+       *答案解析*
+
+       C and D. The 802.11ac and 802.11ad amendments are often
+       referred to as the “gigabit Wi-Fi” amendments because they
+       define data rates of greater than 1 Gbps. The 802.11ac and
+       802.11ad Very High Throughput (VHT) task groups define
+       transmission rates of up to 7 Gbps in an 802.11 environment. 
+
    13. As defined by the 802.11-2012 standard, which equipment is
        compatible? (Choose all that  apply.)
 
@@ -1670,6 +2151,17 @@
 
      =E. DSSS and HR-DSSS=
 
+       *答案解析*
+
+       A, D and E. ERP (802.11g) requires the use of ERP-OFDM and
+       ERP-DSSS/CCK in the 2.4 GHz ISM band and is backward compatible
+       with 802.11b HR-DSSS and DSSS equipment. 802.11b uses HR-DSSS
+       in the 2.4 GHz ISM band and is backward compatible with only
+       legacy DSSS equipment and not legacy FHSS equipment. The
+       802.11h amendment defines use of TPC and DFS in the 5 GHz U-NII
+       bands and is an enhancement of the 802.11a amendment. OFDM
+       technology is used with all 802.11a- and 802.11h-compliant radios.
+
    14. Maximum data rates of are permitted using OFDM radios.
 
      A. 108 Mbps
@@ -1681,6 +2173,13 @@
      =D. 54 Mbps=
 
      E. 11 Mbps
+
+       *答案解析*
+
+       D. The 802.11-2012 standard using OFDM or ERP-OFDM radios
+       requires data rates of 6, 12, and 24 Mbps. Data rates of 6, 9,
+       12, 18, 24, 36, 48, and 54 Mbps are typically supported. 54
+       Mbps is the maximum defined rate. 
 
    15. What are the security options available as defined in the
        original IEEE Std 802.11-1999  (R2003)? (Choose all that
@@ -1698,6 +2197,13 @@
 
      F. TKIP
 
+       *答案解析*
+
+       B, D and E. The original 802.11 standard defined the use of WEP
+       for encryption. The original 802.11 standard also defined two
+       methods of authentication: Open System authentication and
+       Shared Key authentication. 
+
    16. The 802.11u-2011 amendment is also known as what?
 
      =A. Wireless Interworking with External Networks (WIEN)=
@@ -1709,6 +2215,13 @@
      D. Wireless Access in Vehicular Environments (WAVE)
 
      E. Wireless Access Protocol (WAP)
+
+       *答案解析*
+
+       A. The 802.11u draft amendment defines integration of IEEE
+       802.11 access networks with external networks in a generic and
+       standardized manner. 802.11u is often referred to as Wireless
+       Interworking with External Networks (WIEN). 
 
    17. The 802.11-2012 standard defines which two technologies for
        quality of service (QoS) in a WLAN?
@@ -1725,6 +2238,15 @@
 
      F. VoWiFi
 
+       *答案解析*
+
+       A and C. The 802.11e amendment (now part of the 802.11-2012
+       standard) defined two enhanced medium access methods to support
+       quality of service (QoS) requirements. Enhanced Distributed
+       Channel Access (EDCA) is an extension to DCF. Hybrid
+       Coordination Function Controlled Channel Access (HCCA) is an
+       extension to PCF. In the real world, only EDCA is implemented.
+
    18. The 802.11h amendment (now part of the 802.11-2012 standard)
        introduced what two major changes for 5 GHz radios?
 
@@ -1738,6 +2260,14 @@
 
      E. Frequency hopping spread spectrum
 
+       *答案解析*
+       
+       A and C. The 802.11h amendment effectively introduced two major
+       enhancements: more frequency space in the U-NII-2 extended band
+       and radar avoidance and detection technologies. All aspects of
+       the 802.11h ratified amendment can now be found in Clause 10.8
+       and Clause 10.9 of the 802.11-2012 standard. 
+
    19. The 802.11b amendment defined which PHY?
 
      =A. HR-DSSS=
@@ -1749,6 +2279,13 @@
      D. PBCC
 
      E. EIRP
+
+       *答案解析*
+
+       A. The 802.11b amendment defined systems that can transmit at
+       data rates of 5.5 Mbps and 11 Mbps using High-Rate DSSS
+       (HR-DSSS). 802.11b devices are also compatible with 802.11 DSSS
+       devices and can transmit at data rates of 1 and 2 Mbps. 
 
    20. Which layers of the OSI model are referenced in the 802.11
        standard? (Choose all that   apply.)
@@ -1764,7 +2301,13 @@
      E. Transport
 
      F. Network
-       
+
+       *答案解析*
+
+       B and D. The IEEE specifically defines 802.11 technologies at
+       the Physical layer and the MAC sublayer of the Data-Link
+       layer. By design, anything that occurs at the upper layers of
+       the OSI model is insignificant to 802.11 communications. 
 
 * 第六章 无线网络与扩频技术 
 
@@ -1840,8 +2383,7 @@
 
 ** Multipath Interference
 
-     =delay spread:= the delay between the main signal and the refl
-     ected signal
+     =delay spread:= the delay between the main signal and the reflected signal
 
      =intersymbol interference (ISI):= If the delay spread is too
      great, data from the reflected signal may interfere with the
@@ -1856,7 +2398,7 @@
      the way FHSS works is that it transmits data by using a small
      frequency carrier space, then hops to another small frequency
      carrier space and transmits data, then to another frequency, and
-     so on. FHSS适合用于narrowband传输中。
+     so on. FHSS适合用于narrowband传输中, 功耗高。
 
 *** Hopping Sequence
 
@@ -1864,14 +2406,14 @@
       hopping pattern or hopping set) comprising a series of small
       carrier frequencies, or hops.
 
-     The 802.11 standard defi nes hopping sequences that can be confi
-     gured on an FHSS access point, and the hopping sequence
+     The 802.11 standard defines hopping sequences that can be
+     configured on an FHSS access point, and the hopping sequence 
      information is delivered to client stations via the beacon
      management frame.
 
 *** Dwell Time
 
-      Dwell time is a defi ned amount of time that the FHSS system
+      Dwell time is a defined amount of time that the FHSS system
       transmits on a specific frequency before it switches to the next
       frequency in the hop set.
 
@@ -1959,14 +2501,404 @@
      legacy transmissions, and 60-70 percent of the data rates for
      802.11n/ac transmissions.
 
+** Review Questions
+
+    1. Which of the following are valid ISM bands? (Choose all that
+       apply.)
+
+       A. =902 MHz – 928 MHz=
+
+       B. =2.4 GHz – 2.5 GHz=
+
+       C. 5.725 GHz – 5.85 GHz
+
+       D. =5.725 GHz – 5.875 GHz=
+
+       *答案解析*
+
+       A, B and D. The ISM bands are 902 MHz – 928 MHz, 2.4 GHz – 2.5
+       GHz, and 5.725 GHz – 5.875 GHz. 5.725 GHz – 5.85 GHz is the
+       U-NII-3 band. 
+
+    2. Which of the following are valid U-NII bands? (Choose all that
+       apply.)
+       
+       A. =5.150 GHz – 5.250 GHz=
+
+       B. =5.470 GHz – 5.725 GHz=
+
+       C. =5.725 GHz – 5.85 GHz=
+
+       D. 5.725 GHz – 5.875 GHz
+
+       *答案解析*
+
+       A, B and C. The four current U-NII bands are 5.15 GHz – 5.25
+       GHz, 5.25 GHz – 5.35 GHz, 5.47 GHz – 5.725 GHz, and 5.725 GHz –
+       5.85 GHz. 
+
+    3. Which technologies are used in the 2.4 GHz ISM band? (Choose
+       all that apply.)
+
+       A. =FHSS=
+
+       B. =ERP=
+
+       C. =DSSS=
+
+       D. =HR-DSSS=
+
+       *答案解析*
+       
+       A, B, C and D. The 802.11-2012 standard allows for the use of
+       legacy FHSS radios (802.11), legacy DSSS radios (802.11),
+       HR-DSSS radios (802.11b), and ERP radios (802.11g).
+
+    4. 802.11n (HT radios) can transmit in which frequency bands?
+       (Choose all that apply.)
+
+       A. =2.4 GHz – 2.4835 GHz=
+
+       B. =5.47 GHz – 5.725 GHz=
+
+       C. 902 GHz – 928 GHz
+
+       D. =5.15 GHz – 5.25 GHz=
+
+       *答案解析*
+
+       A, B and D. The 802.11-2012 standard specifies that 802.11n HT
+       radios can transmit in the 2.4 GHz ISM band and all four of the
+       current 5 GHz U-NII bands. 
+
+    5. In the U-NII-1 band, what is the center frequency of channel
+       40?
+
+       A. =5.2 GHz=
+
+       B. 5.4 GHz
+
+       C. 5.8 GHz
+
+       D. 5.140 GHz
+
+       *答案解析*
+
+       A. The U-NII-1 band is between 5.15 GHz and 5.25 GHz, 5,150 MHz
+       to 5,250 MHz. To calculate the frequency in MHz from the
+       channel, multiply the channel by 5 (200) and then add 5,000 for
+       a center frequency of 5,200 MHz, or 5.2 GHz. 
+
+    6. What is the channel and band of a Wi-Fi transmission whose
+       center frequency is 5.300 GHz?
+
+       A. U-NII-1 channel 30
+
+       B. U-NII-1 channel 60
+
+       C. U-NII-2 channel 30
+
+       D. =U-NII-2 channel 60=
+
+       *答案解析*
+
+       D. To calculate the channel, first take the frequency in MHz
+       (5,300 MHz). Subtract 5,000 from the number (300) and then
+       divide the number by 5, resulting in channel 60.The U-NII-2
+       band is between 5.25 GHz and 5.35 GHz. 
+
+    7. The 802.11-2012 standard requires how much separation between
+       center frequencies for HR-DSSS channels to be considered
+       nonoverlapping? 
+
+       A. 22 MHz
+
+       B. =25 MHz=
+
+       C. 30 MHz
+
+       D. 35 MHz
+
+       E. 40 MHz
+
+       *答案解析*
+
+       B. HR-DSSS was introduced under the 802.11b amendment, which
+       states that channels need a minimum of 25 MHz of separation
+       between the center frequencies to be considered nonoverlapping.
+
+    8. What best describes hop time?
+
+       A. The period of time that the transmitter waits before hopping
+       to the next frequency
+
+       B. The period of time that the standard requires when hopping
+       between frequencies
+
+       C. =The period of time that the transmitter takes to hop to the
+       next frequency=
+
+       D. The period of time the transmitter takes to hop through all
+       of the FHSS frequencies
+
+       *答案解析*
+
+       C. The time that the transmitter waits before hopping to the
+       next frequency is known as the dwell time. The hop time is not
+       a required time but rather a measurement of how long the hop
+       takes. 
+
+    9. As defined by the IEEE-2012 standard, how much separation is
+       needed between center frequencies of channels in the U-NII-2
+       Extended band?
+
+       A. 10 MHz
+
+       B. =20 MHz=
+
+       C. 22 MHz
+
+       D. 25 MHz
+
+       E. 30 MHz
+
+       *答案解析*
+
+       B. The 802.11a amendment, which originally defined the use of
+       OFDM, required only 20 MHz of separation between the center
+       frequencies for channels to be considered nonoverlapping. All
+       25 channels in the 5 GHz U-NII bands use OFDM and have 20 MHz
+       of separation. Therefore, all 5 GHz OFDM channels are
+       considered nonoverlapping by the IEEE. However, it should be
+       noted that adjacent 5 GHz channels do have some sideband
+       carrier frequency overlap. 
+
+    10. When deploying an 802.11g (ERP-OFDM) wireless network with
+        only two access points, which of these channel groupings would
+        be considered nonoverlapping? (Choose all that apply.)
+
+        A. Channels 1 and 3
+
+        B. Channels 7 and 10
+
+        C. =Channels 3 and 8=
+
+        D. =Channels 5 and 11=
+
+        E. Channels 6 and 10
+
+        *答案解析*
+
+        C and D. In order for two ERP or HR-DSSS channels to be
+        considered nonoverlapping, they require 25 MHz of separation
+        between the center frequencies. Therefore, any two channels
+        must have at least a five-channel separation. The simplest way
+        to determine what other channels are valid is to add 5 or
+        subtract 5 from the channel you want to use. If you added 5,
+        then the number you calculated or any channel above that
+        number is valid. If you subtracted 5, then the number you
+        calculated or any channel below that number is
+        valid. Deployments of three or more access points in the 2.4
+        GHz ISM band normally use channels 1, 6, and 11, which are all
+        considered nonoverlapping. 
+
+    11. Which spread spectrum technology specifies data rates of 22
+        Mbps and 33 Mbps?
+
+        A. DSSS
+
+        B. =ERP-PBCC=
+
+        C. OFDM
+
+        D. PPtP
+
+        *答案解析*
+
+        B. Extended Rate Physical Packet Binary Convolutional Code
+        (ERP-PBCC) is the optional modulation technique that specifies
+        data rates of 22 and 33 Mbps. 
+
+    12. If data is corrupted by previous data from a reflected signal,
+        this is known as what?
+
+        A. Delay spread
+
+        B. =ISI=
+
+        C. Forward error creation
+
+        D. Bit crossover
+
+        *答案解析*
+
+        B. The cause of the problem is delay spread resulting in
+        intersymbol interference (ISI), which causes data corruption. 
+
+    13. Assuming all channels are supported by a 5 GHz access point,
+        how many possible 20 MHz channels can be configured on the
+        access point? 
+
+        A. 4
+
+        B. 11
+
+        C. 12
+
+        D. =25=
+
+        *答案解析*
+
+        D. The 802.11-2012 standard states that “the OFDM PHY shall
+        operate in the 5 GHz band, as allocated by a regulatory body
+        in its operational region.” A total of twentyfive 20 MHz wide
+        channels are available in the U-NII bands. 
+
+    14. Which of these technologies is the most resilient against the
+        negative effects of multipath?
+
+        A. FHSS
+
+        B. DSSS
+
+        C. HR-DSSS
+
+        D. =OFDM=
+
+        *答案解析*
+
+        D. Because of the lower subcarrier data rates, delay spread is
+        a smaller percentage of the symbol period, which means that
+        ISI is less likely to occur. In other words, OFDM technology
+        is more resistant to the negative effects of multipath than
+        DSSS and FHSS spread spectrum technologies.
+
+    15. HR-DSSS calls for data rates of 5.5 Mbps, and 11 Mbps. What is
+        the average amount of aggregate throughput percentage at any
+        data rate when legacy 802.11a/b/g radios are transmitting?
+
+        A. 80 percent
+
+        B. 75 percent
+
+        C. =50 percent=
+
+        D. 100 percent
+
+        *答案解析*
+
+        C. A medium access method known as Carrier Sense Multiple
+        Access with Collision Avoidance (CSMA/CA) helps to ensure that
+        only one radio can be transmitting on the medium at any given
+        time. Because of the half-duplex nature of the medium and the
+        overhead generated by CSMA/CA, the actual aggregate throughput
+        is typically 50 percent or less of the data rate when using
+        legacy 802.11a/b/g radios. The aggregate throughput of
+        802.11n/ac radios is about 65 percent. 
+
+    16. What are the names of the two additional U-NII bands proposed
+        by the FCC that provide for 195 MHz of additional spectrum at
+        5 GHz? (Choose all that apply.) 
+
+        A. U-NII-1
+
+        B. U-NII-2A
+
+        C. =U-NII-2B=
+
+        D. U-NII-2C
+
+        E. U-NII-3
+
+        F. =U-NII-4=
+
+        *答案解析*
+
+        C and F. The FCC has proposed two new U-NII bands. A new 120
+        MHz wide band called U-NII-2B occupies the frequency space of
+        5.35 GHz – 5.47 GHz with six potential 20 MHz
+        channels. Another new 75 MHz wide band called U-NII-4 occupies
+        the 5.85 GHz – 5.925 GHz frequency space with the potential of
+        four more 20 MHz channels.
+
+    17. In the United States, 802.11 radios were not allowed to
+        transmit on which range of frequencies to avoid interference
+        with Terminal Doppler Weather Radar (TDWR) systems? 
+
+        A. 5.15 GHz – 5.25 GHz
+
+        B. 5.25 GHz – 5.25 GHz
+
+        C. =5.60 GHz – 5.65 GHz=
+
+        D. 5.85 GHz – 5.925 GHz
+
+        *答案解析*
+
+        C. In 2009, the Federal Aviation Authority (FAA) reported
+        interference to Terminal Doppler Weather Radar (TDWR)
+        systems. As a result, the FCC suspended certification of
+        802.11 devices in the U-NII-2 and U-NII-2E bands that require
+        DFS. Eventually certification was re-established, however, the
+        rules changed and 802.11 radios are currently were not allowed
+        to transmit in the 5.60 - 5.65 GHz frequency space where TDWR
+        operates. Channels 120 -128 were not available for a number of
+        years. As of April 2014, the TDWR frequency space is once
+        again available for 802.11 transmissions in the United States.
+
+    18. What are the modulation types used by OFDM technology? (Choose
+        all that apply.)
+
+        A. =QAM=
+
+        B. =Phase=
+
+        C. Frequency
+
+        D. Hopping
+
+        *答案解析*
+
+        A and B. OFDM uses BPSK and QPSK modulation for the lower ODFM
+        data rates. The higher OFDM data rates use 16-QAM, 64-QAM, and
+        256-QAM modulation. QAM modulation is a hybrid of phase and
+        amplitude modulation. 
+
+    19. The Barker code converts a bit of data into a series of bits
+        that are referred to as what?
+
+        A. Chipset
+
+        B. =Chips=
+
+        C. Convolutional code
+
+        D. Complementary code
+
+        *答案解析*
+
+        B. When a data bit is converted to a series of bits, these
+        bits that represent the data are known as chips.
+
+    20. A 20 MHz OFDM channel uses how many 312.5 KHz data subcarriers
+        when transmitting?
+
+        A. 54
+
+        B. 52
+
+        =C. 48=
+
+        D. 36
+
+        *答案解析*
+
+        C. A 20 MHz OFDM channel uses 52 subcarriers, but only 48 of
+        them are used to transport data. The other 4 subcarriers are used as pilot carriers.
 
 * 第七章 无线局域网拓扑结构
 
 ** Wireless networking topologies
-
-** 802.11 topologies
-
-** 802.11 configuration modes
    
 *** Wireless wide area network (WWAN)
 
@@ -1999,6 +2931,8 @@
     enables delivery of MSDUs between the distribution system (DS) and
     a non-IEEE-802.11 LAN via a portal.
 
+    通常情况下，会涉及802.11与802.3帧转换。
+
 *** Distribution System
 
     a /distribution system/ (DS) that is used to interconnect a set of
@@ -2027,11 +2961,11 @@
     how such a mechanism or frame format would be used. This mechanism
     is known as a /wireless distribution system (WDS)/.
 
-    WDS examples: bridging, repeaters, mesh networks.
+    WDS examples: bridging(AP without beacon sending), repeaters(AP with beacon sending), mesh networks.
 
 *** Service Set Identifier
 
-    The service set identifi er (SSID) is a logical name used to
+    The service set identifier (SSID) is a logical name used ton
     identify an 802.11 wireless network.  不超过32个字符。
 
 *** Basic Service Set
@@ -2086,7 +3020,9 @@
 
     =Workgroup Bridge Mode=  The AP radio is transformed into a
     workgroup bridge which provides wireless backhaul for connected
-    802.3 wired clients. Repeater Mode The AP radio performs as a
+    802.3 wired clients. 
+
+    =Repeater Mode= The AP radio performs as a
     repeater AP which extends the coverage area of a portal AP on the
     same channel.
 
@@ -2105,9 +3041,414 @@
     - infrastructure mode
     - Ad Hoc mode
 
-      
-* 第八章 802.11媒介访问
+** Review Questions
 
+    1. An 802.11 wireless network name is known as which type of
+       address? (Choose all that apply.)
+
+       A. BSSID
+
+       B. MAC address
+
+       C. IP address
+
+       D. =SSID=
+
+       E. =Extended service set identifier=
+
+       *答案解析*
+
+       D and E. The service set identifier (SSID) is a 32-character,
+       case-sensitive, logical name used to identify a wireless
+       network. An extended service set identifier (ESSID) is the
+       logical network name used in an extended service set. ESSID is
+       often synonymous with SSID.
+
+    2. Which two 802.11 topologies require the use of an access point?
+
+       A. WPAN
+
+       B. IBSS
+
+       C. =Basic service set=
+
+       D. Ad hoc
+
+       E. =ESS=
+
+       *答案解析*
+
+       C and E. The 802.11 standard defines four service sets, or
+       topologies. A basic service set (BSS) is defined as one AP and
+       associated clients. An extended service set (ESS) is defined as
+       one or more basic service sets connected by a distribution
+       system medium. An independent basic service set (IBSS) does not
+       use an AP and consists solely of client stations (STAs).
+
+    3. The 802.11 standard defines which medium to be used in a
+       distribution system (DS)?
+
+       A. 802.3 Ethernet
+
+       B. 802.15
+
+       C. 802.5 token ring
+
+       D. Star-bus topology
+
+       E. =None of the above=
+
+       *答案解析*
+       
+       E. By design, the 802.11 standard does not specify a medium to
+       be used in the distribution system. The distribution system
+       medium (DSM) may be an 802.3 Ethernet backbone, an 802.5 token
+       ring network, a wireless medium, or any other medium. 
+
+    4. Which option is a wireless computer topology used for
+       communication of computer devices within close proximity of a
+       person? 
+
+       A. WWAN
+
+       B. Bluetooth
+
+       C. ZigBee
+
+       D. =WPAN=
+
+       E. WMAN
+
+       *答案解析*
+
+       D. A wireless personal area network (WPAN) is a short-distance
+       wireless topology. Bluetooth and ZigBee are technologies that
+       are often used in WPANs. 
+
+    5. Which 802.11 service set may allow for client roaming?
+
+       A. =ESS=
+
+       B. Basic service set
+
+       C. IBSS
+
+       D. Spread spectrum service set
+
+       *答案解析*
+
+       A. The most common implementation of an extended service set
+       (ESS) has access points with partially overlapping coverage
+       cells. The purpose behind an ESS with partially overlapping
+       coverage cells is seamless roaming. 
+
+    6. What factors might affect the size of a BSA coverage area of an
+       access point? (Choose all that apply.)
+
+       A. =Antenna gain=
+
+       B. CSMA/CA
+
+       C. =Transmission power=
+
+       D. =Indoor/outdoor surroundings=
+
+       E. Distribution system
+
+       *答案解析*
+
+       A, C and D. The size and shape of a basic service area can
+       depend on many variables, including AP transmit power, antenna
+       gain, and physical surroundings. 
+
+    7. What is the default configuration mode that allows an AP radio
+       to operate in a basic service set?
+
+       A. Scanner
+
+       B. Repeater
+
+       C. =Root=
+
+       D. Access
+
+       E. Nonroot
+
+       *答案解析*
+
+       C. The normal default setting of an access point is root mode,
+       which allows the AP to transfer data back and forth between the
+       DS and the 802.11 wireless medium. The default root
+       configuration of an AP allows it to operate inside a basic
+       service set (BSS). 
+
+    8. Which terms describe an 802.11 topology involving STAs but no
+       access points? (Choose all that apply.)
+
+       A. BSS
+
+       B. =Ad hoc=
+       
+       C. DSSS
+
+       D. Infrastructure
+
+       E. =IBSS=
+
+       F. =Peer-to-peer=
+
+       *答案解析*
+
+       B, E and F. The 802.11 standard defines an independent basic
+       service set (IBSS) as a service set using client peer-to-peer
+       communications without the use of an AP. Other names for an
+       IBSS include ad hoc and peer-to-peer. 
+
+    9. STAs operating in Infrastructure mode may communicate in which
+       of the following scenarios? (Choose all that apply.)
+
+       A. =802.11 frame exchanges with other STAs via an AP=
+
+       B. 802.11 frame exchanges with an AP in scanner mode
+
+       C. 802.11 frame peer-to-peer exchanges directly with other STAs
+
+       D. =Frame exchanges with network devices on the DSM=
+
+       *答案解析*
+
+       A and D. Clients that are configured in Infrastructure mode may
+       communicate via the AP with other wireless client stations
+       within a BSS. Clients may also communicate through the AP with
+       other networking devices that exist on the distribution system
+       medium, such as a server or a wired desktop. 
+
+    10. Which of these are included in the four topologies defined by
+        the 802.11-2012 standard? (Choose all that apply.)
+
+        A. DSSS
+
+        B. =ESS=
+
+        C. =BSS=
+
+        D. =IBSS=
+
+        E. FHSS
+
+        *答案解析*
+
+        B, C and D. The four topologies, or service sets, defined by
+        the 802.11-2012 standard are basic service set (BSS), extended
+        service set (ESS), independent basic service set (IBSS), and
+        mesh basic service set (MBSS). DSSS and FHSS are spread
+        spectrum technologies.
+
+    11. Which wireless topology provides citywide wireless coverage?
+
+        A. =WMAN=
+
+        B. WLAN
+
+        C. WPAN
+
+        D. WAN
+        
+        E. WWAN
+
+        *答案解析*
+
+        A. A wireless metropolitan area network (WMAN) provides
+        coverage to a metropolitan area such as a city and the
+        surrounding suburbs. 
+
+    12. At which layer of the OSI model will a BSSID address be used?
+
+        A. Physical
+
+        B. Network
+
+        C. Session
+
+        D. =Data-Link=
+
+        E. Application
+
+        *答案解析*
+
+        D. The basic service set identifier (BSSID) is a 48-bit
+        (6-octet) MAC address. MAC addresses exist at the MAC sublayer
+        of the Data-Link layer of the OSI model. 
+
+    13. The basic service set identifier address can be found in which
+        topologies? (Choose all that apply.)
+
+        A. FHSS
+
+        B. =IBSS=
+
+        C. =ESS=
+
+        D. HR-DSSS
+
+        E. =BSS=
+
+        *答案解析*
+
+        B, C and E. The BSSID is the layer 2 identifier of either a
+        BSS or an IBSS service set. The 48-bit (6-octet) MAC address
+        of an access point’s radio is the basic service set
+        identifier (BSSID) within a BSS. An ESS topology utilizes
+        multiple access points, thus the existence of multiple
+        BSSIDs. In an IBSS network, the first station that powers up
+        randomly generates a virtual BSSID in the MAC address
+        format. FHSS and HR-DSSS are spread spectrum technologies. 
+
+    14. Which 802.11 service set defines mechanisms for mesh
+        networking?
+
+        A. BSS
+
+        B. DSSS
+
+        C. ESS
+
+        D. =MBSS=
+
+        E. IBSS
+
+        *答案解析*
+        
+        D. The 802.11s-2011 amendment, which is now part of the
+        802.11-2012 standard, defined a new service set for an 802.11
+        mesh topology. When access points support mesh functions, they
+        may be deployed where wired network access is not
+        possible. The mesh functions are used to provide wireless
+        distribution of network traffic, and the set of APs that
+        provide mesh distribution form a mesh basic service set
+        (MBSS). 
+
+    15. What method of dialog communications is used within an 802.11
+        WLAN?
+
+        A. Simplex communications
+
+        B. =Half-duplex communications=
+
+        C. Full-duplex communications
+
+        D. Dual-duplex communications
+
+        *答案解析*
+
+        B. In half-duplex communications, both devices are capable of
+        transmitting and receiving; however, only one device can
+        transmit at a time. Walkie-talkies, or two-way radios, are
+        examples of half-duplex devices. IEEE 802.11 wireless networks
+        use half-duplex communications.
+
+    16. What are some operational modes in which an AP radio may be
+        configured? (Choose all that apply.)
+
+        A. =Scanner=
+
+        B. =Root=
+
+        C. =Bridge=
+
+        D. =Mesh=
+
+        E. =Repeater=
+
+        *答案解析*
+        
+        A, B, C, D and E. The default standard mode for an access
+        point is root mode. Other operational modes include bridge,
+        workgroup bridge, mesh, scanner, and repeater modes.
+
+    17. A network consisting of clients and two or more access points
+        with the same SSID connected by an 802.3 Ethernet backbone is
+        one example of which 802.11 topology? (Choose all that apply.)
+
+        A. =ESS=
+
+        B. Basic service set
+
+        C. =Extended service set=
+
+        D. IBSS
+
+        E. Ethernet service set
+
+        *答案解析*
+
+        A and C. An extended service set (ESS) is two or more basic
+        service sets connected by a distribution system. An ESS is a
+        collection of multiple access points and their associated
+        client stations, all united by a single distribution system
+        medium. 
+
+    18. What term best describes two access points communicating with
+        each other wirelessly while also allowing clients to
+        communicate through the access points? 
+
+        A. =WDS=
+
+        B. DS
+
+        C. DSS
+
+        D. DSSS
+
+        E. DSM
+
+        *答案解析*
+
+        A. A wireless distribution system (WDS) can connect access
+        points together using a wireless backhaul while allowing
+        clients to also associate to the radios in the access points.
+
+    19. What components make up a distribution system? (Choose all
+        that apply.)
+
+        A. HR-DSSS
+
+        B. =Distribution system services=
+
+        C. =DSM=
+
+        D. DSSS
+
+        E. Intrusion detection system
+
+        *答案解析*
+
+        B and C. The distribution system consists of two main
+        components. The distribution system medium (DSM) is a logical
+        physical medium used to connect access points. Distribution
+        system services (DSS) consist of services built inside an
+        access point, usually in the form of software. 
+
+    20. What type of wireless topology is defined by the 802.11
+        standard?
+
+        A. WAN
+
+        B. =WLAN=
+
+        C. WWAN
+
+        D. WMAN
+
+        E. WPAN
+
+        *答案解析*
+
+        B. The 802.11 standard is considered a wireless local area
+        network (WLAN) standard. 802.11 hardware can, however, be
+        utilized in other wireless topologies. 
+     
+* 第八章 802.11媒介访问
 ** CSMA/CA vs. CSMA/CD
 
    由于802.11媒介是半双工的方式进行数据传输，所以不能采用Ethernet中
@@ -2245,7 +3586,7 @@
 
 ** Hybrid Coordination Function
 
-   HCF结合了DCF和PCF的功能，并进行了加强，创造了两个访问信道的方法：
+   HCF结合了DCF和PCF的功能，并进行了加强，提供了两个访问信道的方法：
    1. Enhanced Distributed Channel Access (EDCA)
    2. HCF Controlled Channel Access (HCCA)
 
@@ -2262,10 +3603,10 @@
 
 ** Wi-Fi Multimedia
 
-   The 802.11e amendment defi ned the layer 2 MAC methods needed to
+   The 802.11e amendment defined the layer 2 MAC methods needed to
    meet the QoS requirements for time-sensitive applications over
    IEEE 802.11 wireless LANs. The Wi-Fi Alliance introduced the Wi-Fi
-   Multimedia (WMM) certifi cation as a partial mirror of 802.11e
+   Multimedia (WMM) certification as a partial mirror of 802.11e
    amendment.
 
 ** Airtime Fairness
@@ -2277,9 +3618,436 @@
       思想是时间分配均等，而不是竞争机会均等, 这样保证了高速率的设备
       能够较快地完成数据传输，不会受到低速率设备的影响。
 
+** Review Questions
+    
+    1. DCF is also known as what? (Choose all that apply.)
+       
+         A. Carrier Sense Multiple Access with Collision Detection
+         (CSMA/CD)
+
+         B. =Carrier Sense Multiple Access with Collision Avoidance (CSMA/CA)=
+
+         C. Data Control Function
+
+         D. =Distributed Coordination Function=
+
+       *答案解析*
+       
+       B and D. DCF is an abbreviation for Distributed Coordination
+       Function. CSMA/CA is an 802.11 media access control method that
+       is part of DCF. CSMA/CD is used by 802.3, not 802.11. There is
+       no such thing as Data Control Function. 
+
+    2. 802.11 collision detection is handled using which technology?
+       
+       A. Network allocation vector (NAV).
+
+       B. Clear channel assessment (CCA).
+
+       C. Duration/ID value.
+
+       D. Receiving an ACK from the destination station.
+
+       E. =Positive collision detection cannot be determined.=
+
+       *答案解析*
+
+       E. 802.11 technology does not use collision detection. If an
+       ACK frame is not received by the original transmitting radio,
+       the unicast frame is not acknowledged and will have to be
+       retransmitted. This process does not specifically determine
+       whether a collision occurs. Failure to receive an ACK frame
+       from the receiver means that either a unicast frame was not
+       received by the destination station or the ACK frame was not
+       received, but it cannot positively determine the cause. It may
+       be due to collision or to other reasons such as high noise
+       level. All of the other options are used to help prevent collisions.
+
+    3. ACK and CTS-to-self frames follow which interframe space?
+
+       A. EIFS
+
+       B. DIFS
+
+       C. PIFS
+
+       D. =SIFS=
+
+       E. LIFS
+
+       *答案解析*
+
+       D. ACK frames and CTS-to-self frames follow a SIFS. LIFS do not exist.
+
+    4. The carrier sense portion of CSMA/CA is performed by using
+       which of the following methods? (Choose all that apply.)
+
+       A. =Virtual carrier sense=
+
+       B. =Physical carrier sense=
+
+       C. Channel sense window
+
+       D. =Clear channel assessment=
+
+       *答案解析*
+
+       A, B and D. The NAV timer maintains a prediction of future
+       traffic on the medium based on duration value information seen
+       in a previous frame transmission. Virtual carrier sense uses
+       the NAV to determine medium availability. Physical carrier
+       sense checks the RF medium for carrier availability. Clear
+       channel assessment is another name for physical carrier
+       sense. Channel sense window does not exist. 
+
+    5. After the station has performed the carrier sense and
+       determined that no other devices are transmitting for a period
+       of a DIFS interval, what is the next step for the station? 
+
+       A. Wait the necessary number of slot times before transmitting
+       if a random backoff value has already been selected.
+
+       B. Begin transmitting.
+
+       C. =Select a random backoff value.=
+
+       D. Begin the random backoff timer.
+
+       *答案解析*
+
+       C. The first step is to select a random backoff value. After
+       the value is selected, it is multiplied by the slot time. The
+       random backoff timer then begins counting down the number of
+       slot times. When the number reaches 0, the station can begin
+       transmitting. 
+
+    6. If PCF is implemented, it can function in which of the
+       following network environments? (Choose all that apply.)
+
+       A. Ad hoc mode
+
+       B. =BSS=
+
+       C. IBSS
+
+       D. =Infrastructure mode=
+
+       E. BSA
+
+       *答案解析*
+
+       B and D. PCF requires an access point. Ad hoc mode and an
+       independent basic service set (IBSS) are the same and do not
+       use an access point. A basic service set (BSS) is a WLAN
+       topology, where 802.11 client stations communicate through an
+       access point. Infrastructure mode is the default client station
+       mode that allows clients to communicate via an access
+       point. Basic service area (BSA) is the area of coverage of a
+       basic service set.
+
+    7. Which of the following terms are affiliated with the virtual
+       carrier sense mechanism? (Choose all that apply.)
+
+       A. Contention window
+
+       B. =Network allocation vector=
+
+       C. Random backoff time
+
+       D. =Duration/ID field=
+
+       *答案解析*
+
+       B and D. The Duration/ID field is used to set the network
+       allocation vector (NAV), which is a part of the virtual carrier
+       sense process. The contention window and random backoff time
+       are part of the backoff process that is performed after the
+       carrier sense process.
+       
+
+    8. The goal of allocating equal time as opposed to equal
+       opportunity is known as what?
+
+       A. Access fairness
+
+       B. Opportunistic media access
+
+       C. CSMA/CA
+
+       D. =Airtime fairness=
+
+       *答案解析*
+
+       D. The goal of airtime fairness is to allocate equal time, as
+       opposed to equal opportunity. Access fairness and opportunistic
+       media access do not exist. CSMA/CA is the normal media access
+       control mode for Wi-Fi devices. 
+
+    9. CSMA/CA and DCF define which mechanisms that attempt to ensure
+       that only one 802.11 radio can transmit on the half-duplex RF
+       medium? (Choose all that apply.) 
+
+       A. =Random backoff timer=
+
+       B. =NAV=
+
+       C. CCMP
+
+       D. =CCA=
+
+       E. =Interframe spacing=
+
+       *答案解析*
+
+       A, B, D and E. DCF defines four checks and balances of CSMA/CA
+       and DCF to ensure that only one 802.11 radio is transmitting on
+       the half-duplex medium. Virtual carrier sense (NAV), physical
+       carrier sense (CCA), interframe spacing, and the random backoff
+       timer all work together. CCMP is the encryption protocol that
+       was introduced with 802.11i. 
+
+    10. The Wi-Fi Alliance certification called Wi-Fi Multimedia (WMM)
+        is based on which media access method defined by the
+        802.11-2012 standard? 
+        
+        A. DCF
+
+        B. PCF
+
+        C. =EDCA=
+
+        D. HCCA
+
+        E. HSRP
+
+        *答案解析*
+        
+        C. Currently, WMM is based on EDCA mechanisms defined by the
+        802.11e amendment, which is now part of the 802.11-2012
+        standard. The WMM certification provides for traffic
+        prioritization via four access categories. EDCA is a
+        subfunction of Hybrid Coordination Function (HCF). The other
+        subfunction of HCF is HCCA. 
+
+    11. Hybrid Coordination Function (HCF) defines what allotted
+        period of time in which a station can transmit multiple
+        frames?
+
+        A. Block acknowledgment
+
+        B. Polling
+
+        C. Virtual carrier sense
+
+        D. Physical carrier sense
+
+        E. =TXOP=
+
+        *答案解析*
+
+        E. HCF defines the ability for an 802.11 radio to send
+        multiple frames when transmitting on the RF medium. When an
+        HCF-compliant radio contends for the medium, it receives an
+        allotted amount of time to send frames called a transmit
+        opportunity (TXOP). During this TXOP, an 802.11 radio may send
+        multiple frames in what is called a frame burst. 
+
+    12. WMM is based on EDCA and provides for traffic prioritization
+        via which of the following access categories? (Choose all that
+        apply.) 
+
+        A. =WMM Voice priority=
+
+        B. =WMM Video priority=
+
+        C. WMM Audio priority
+
+        D. =WMM Best Effort priority=
+
+        E. =WMM Background priority=
+
+        *答案解析*
+        
+        A, B, D and E. WMM Audio priority does not exist. The WMM
+        certification provides for traffic prioritization via the four
+        access categories of Voice, Video, Best Effort, and Background.
+
+    13. The 802.11e amendment (now part of the 802.11-2012 standard)
+        defines which of the following medium access methods to
+        support QoS requirements? (Choose all that apply.)
+
+        A. Distributed Coordination Function (DCF)
+
+        B. =Enhanced Distributed Channel Access (EDCA)=
+
+        C. =Hybrid Coordination Function (HCF)=
+
+        D. Point Coordination Function (PCF)
+
+        E. =Hybrid Coordination Function Controlled Access (HCCA)=
+
+        *答案解析*
+
+        B, C and E. DCF and PCF were defined in the original 802.11
+        standard. The 802.11e quality of service amendment added a new
+        coordination function to 802.11 medium contention, known as
+        Hybrid Coordination Function (HCF). The 802.11e amendment and
+        HCF have since been incorporated into the 802.11-2012
+        standard. HCF combines capabilities from both DCF and PCF and
+        adds enhancements to them to create two channel access
+        methods, HCF Controller Channel Access (HCCA) and Enhanced
+        Distributed Channel Access (EDCA).
+
+    14. What information that comes from the wired network is used to
+        assign traffic into access categories on a WLAN controller?
+
+        A. Duration/ID
+
+        B. =802.1D priority tags=
+
+        C. Destination MAC address
+
+        D. Source MAC address
+
+        *答案解析*
+
+        B. The EDCA medium access method provides for the
+        prioritization of traffic via the use of 802.1D priority
+        tags. 802.1D tags provide a mechanism for implementing quality
+        of service (QoS) at the MAC level. Different classes of
+        service are available, represented in a 3-bit user priority
+        field in an IEEE 802.1Q header added to an Ethernet
+        frame. 802.1D priority tags from the Ethernet side are used to
+        direct traffic to different access-category queues.
+
+    15. What are the two reasons that 802.11 radios use physical
+        carrier sense? (Choose all that apply.)
+
+        A. =To synchronize incoming transmissions=
+
+        B. To synchronize outgoing transmissions
+
+        C. To reset the NAV
+
+        D. To start the random backoff timer
+
+        E. =To assess the RF medium=
+
+        *答案解析*
+
+        A and E. The first purpose is to determine whether a frame
+        transmission is inbound for a station to receive. If the
+        medium is busy, the radio will attempt to synchronize with the
+        transmission. The second purpose is to determine whether the
+        medium is busy before transmitting. This is known as the clear
+        channel assessment (CCA). The CCA involves listening for
+        802.11 RF transmissions at the Physical layer. The medium must
+        be clear before a station can transmit. 
+
+    16. What CSMA/CA mechanism is used for medium contention? (Choose
+        all that apply.)
+
+        A. =NAV=
+
+        B. =CCA=
+
+        C. =Random backoff timer=
+
+        D. =Contention window=
+
+        *答案解析*
+
+        A, B, C and D. An 802.11 radio uses a random backoff algorithm
+        to contend for the medium during a window of time known as the
+        contention window. The contention window is essentially a
+        final countdown timer and is also known as the random backoff
+        timer. The NAV timer and the clear channel assessment (CCA)
+        are also used in the medium contention process to determine
+        the availability of the medium. 
+
+    17. Which field in the MAC header of an 802.11 frame resets the
+        NAV timer for all listening 802.11 stations?
+
+        A. NAV
+
+        B. Frame control
+
+        C. =Duration/ID=
+
+        D. Sequence number
+
+        E. Strictly ordered bit
+
+        *答案解析*
+
+        C. When the listening radio hears a frame transmission from
+        another station, it looks at the header of the frame and
+        determines whether the Duration/ID field contains a Duration
+        value or an ID value. If the field contains a Duration value,
+        the listening station will set its NAV timer to this value.
+
+    18. The EDCA medium access method provides for the prioritization
+        of traffic via priority queues that are matched to eight
+        802.1D priority tags. What are the EDCA priority queues
+        called? 
+
+        A. TXOP
+
+        B. =Access categories=
+
+        C. Priority levels
+
+        D. Priority bits
+
+        E. PT
+
+        *答案解析*
+
+        B. Enhanced Distributed Channel Access provides differentiated
+        access for stations  by using four access categories The EDCA
+        medium access method provides for the prioritization of
+        traffic via the four access categories that are aligned to
+        eight 802.1D priority tags.
+
+    19. ACKs are required for which of the following frames?
+
+        A. =Unicast=
+
+        B. Broadcast
+
+        C. Multicast
+
+        D. Anycast
+
+        *答案解析*
+
+        A. ACKS are used for delivery verification of unicast 802.11
+        frames. Broadcast and multicast frames do not require an
+        acknowledgment. Anycast frames do not exist. 
+
+    20. What QoS mechanism can be used to reduce medium contention
+        overhead during a frame burst of low-latency traffic?
+        
+        A. Delayed Block ACK
+
+        B. Contention period
+
+        C. Contention window
+
+        D. Contention-free period
+
+        E. =Immediate Block ACK=
+
+        *答案解析*
+
+        E. A Block ACK improves channel efficiency by aggregating
+        several acknowledgments into one single acknowledgment
+        frame. There are two types of Block ACK mechanisms: immediate
+        and delayed. The immediate Block ACK is designed for use with
+        lowlatency traffic, whereas the delayed Block ACK is more
+        suitable for latency-tolerant traffic.
 
 * 第九章 802.11 MAC 架构
-
 ** Data-Link Layer
 
      802.11数据链路层分为两个子层：
@@ -2303,14 +4071,13 @@
 
        #+CAPTION: 802.11 MPDU
        [[./images/2015/2015120101.png]]
-
        
 ** Physical Layer
 
      物理层也分为两个子层：
      1. Upper Layer： Physical Layer Convergence Procedure (PLCP)
 
-        PLCP会MAC子层的帧打包成PLCP协议数据单元准备传输。
+        PLCP将MAC子层的帧打包成PLCP协议数据单元准备传输。
 
      2. Lower Layer： Physical Medium Dependent (PMD)
 
@@ -2336,7 +4103,8 @@
 
       802.11标准定义Integration Service（IS）可以使MSDU在DS与非802.11
       LAN之间通过Portal进行传输，其中Portal通常是一个AP或者WLAN控制器。
-      用更简单的话说，IS是一种帧格式的传输方式。
+      用更简单的话说，IS是一种帧格式的传输方式(涉及到例如802.11与802.3帧格
+      式之间的转换)。
 
       IS的主要任务是： 
       
@@ -2348,7 +4116,7 @@
 
 ** Three 802.11 Frame Types
    
-      总共有三种类型的帧：管理帧，　控制帧和数据帧。
+      总共有三种类型的帧：管理帧，控制帧和数据帧。
 
 *** Management Frames
 
@@ -2356,9 +4124,9 @@
     帧并不携带上层的信息，它只携带Layer2的IE。 802.11总共定义了14种管
     理帧：
 
-       - ssociation request
-       - ciation response
-       - sociation request
+       - association request
+       - association response
+       - association request
        - Reassociation response
        - Probe request
        - Probe response
@@ -2424,7 +4192,9 @@
         
         #+CAPTION: Passive scanning
         [[./images/2015/2015120104.png]]
-       
+
+**** Active Scanning
+
         STA主动发送Probe Request请求，然后监控AP的Probe Response帧。
 
         #+CAPTION: Active scanning
@@ -2436,7 +4206,8 @@
       是否合法的802.11设备，仅此而已。
 
       802.11定义了两种不同的认证方式：
-      1. Open System Authentication (not used any more)
+      1. Open System Authentication (not used any more, only a legacy
+         process now)
       2. Shared Key Authentication (used for backward compatibility)
 
 **** Open System Authentication
@@ -2449,9 +4220,9 @@
        Steps:
 
        1. The client station sends an authentication request to the AP.
-       2. The AP sends a cleartext challenge to the client station in
+       2. The AP sends a clear-text challenge to the client station in
           an authentication response.
-       3. The client station then encrypts the cleartext challenge and
+       3. The client station then encrypts the clear-text challenge and
           sends it back to the AP in the body of another
           authentication request frame.
        4. The AP then decrypts the station’s response and compares it
@@ -2590,7 +4361,7 @@
       存了所有在AP中缓存帧的STA列表，且会一直显示，直到缓存帧全部发送
       完成。
 
-      Beacon帧传送的频率是预知的，这个时间称为 /target beacon
+      Beacon帧传送的时间周期是预知的，这个时间称为 /target beacon
       transmission time (TBTT)/ 。 STA知道什么时候Beacon会到来，但是一
       般不必醒过来监听每个Beacon帧，可以选择隔几个Beacon帧听一次，这个
       时间是由 /Listen Interval/ 来指定的。 
@@ -2609,7 +4380,7 @@
        所有具备Power Management功能的STA都能及时醒来接收。 DTIM是一种
        特别类型的TIM，通过Beacon帧来传递。
 
-       =DTIM Interval= 决定了DTIM Beacon传输的频率。为3时，表示每3个
+       =DTIM Interval= 决定了DTIM Beacon传输的时间周期。为3时，表示每3个
        Beacon帧，会传递一次DTIM信息。 每个 TIM会有一个倒数计数器，来指
        定下一个DTIM何时到达，当TIM的倒数计数器值为0时，表示当前的TIM是
        DTIM。
@@ -2686,15 +4457,464 @@
 
        2. power save multi-poll (PSMP)
 
-          defined for use for HT (802.11n) radios。 
+          defined for use for HT (802.11n) radios。
 
-
-
-
-
-
-
+** Review Questions
     
+    1. What is the difference between association frames and
+       reassociation frames?
+
+       A. Association frames are management frames, whereas
+       reassociation frames are control frames.
+
+       B. Association frames are used exclusively for roaming.
+
+       C. =Reassociation frames contain the BSSID of the original AP.=
+
+       D. Only association frames are used to join a BSS.
+
+       *答案解析*
+
+       C. Both frames are used to join a BSS. Reassociation frames are
+       used during the roaming process. The reassociation frame
+       contains an additional field called Current AP Address. This
+       address is the BSSID of the original AP that the client is
+       leaving. 
+
+    2. Which of the following contains only LLC data and the IP packet
+       but does not include any 802.11 data?
+
+       A. MPDU
+
+       B. PPDU
+
+       C. PSDU
+
+       D. =MSDU=
+
+       E. MMPDU
+
+       *答案解析*
+
+       D. An IP packet consists of layer 3–7 information. The MAC
+       Service Data Unit (MSDU) contains data from the LLC sublayer
+       and/or any number of layers above the Data-Link layer. The MSDU
+       is the payload found inside the body of 802.11 data frames
+
+    3. Which of the following are protection mechanisms? (Choose all
+       that apply.)
+
+       A. NAV back-off
+
+       B. =RTS/CTS=
+
+       C. RTS-to-Self
+
+       D. =CTS-to-Self=
+
+       E. WEP encryption
+
+       *答案解析*
+
+       B and D. RTS/CTS and CTS-to-Self provide 802.11g protection
+       mechanisms, sometimes referred to as mixed-mode support. NAV
+       back-off and RTS-to-Self do not exist. WEP encryption provides
+       data security. 
+
+    4. The presence of what type of transmissions can trigger the
+       protection mechanism within an ERP basic service set? (Choose
+       all that apply.)
+
+       A. =Association of an HR-DSSS client=
+
+       B. Association of an ERP-OFDM client
+
+       C. =HR-DSSS beacon frame=
+
+       D. =ERP beacon frame with the =NonERP_Present= bit set to 1
+
+       E. Association of an FHSS client
+
+       *答案解析*
+
+       A, C and D. An ERP AP signals for the use of the protection
+       mechanism in the ERP information element in the beacon
+       frame. If a non-ERP STA associates to an ERP AP, the ERP AP
+       will enable the =NonERP_Present= bit in its own beacons, enabling
+       protection mechanisms in its BSS. In other words, an HR-DSSS
+       (802.11b) client association will trigger protection. If an ERP
+       AP hears a beacon with only an 802.11b or 802.11 supported rate
+       set from another AP or an IBSS STA, it will enable the
+       =NonERP_Present= bit in its own beacons, enabling protection
+       mechanisms in its BSS. 
+       
+    5. Which of the following information is included in a probe
+       response frame? (Choose all that apply.)
+
+       A. =Time stamp=
+
+       B. =Supported data rates=
+
+       C. =Service set capabilities=
+
+       D. =SSID=
+
+       E. Traffic indication map
+
+       *答案解析*
+
+       A, B, C and D. The probe response contains the same information
+       as the beacon frame, with the exception of the traffic indication map.
+
+    6. Which of the following are true about beacon management frames?
+       (Choose all that apply.)
+
+       A. Beacons can be disabled to hide the network from intruders.
+
+       B. =Time-stamp information is used by the clients to synchronize their clocks.=
+
+       C. In a BSS, clients share the responsibility of transmitting
+       the beacons.
+
+       D. =Beacons can contain vendor-proprietary information.=
+
+       *答案解析*
+
+       B and D. Beacons cannot be disabled. Clients use the time-stamp
+       information from the beacon to synchronize with the other
+       stations on the wireless network. Only APs send beacons in a
+       BSS; client stations send beacons in an IBSS. Beacons can
+       contain proprietary information.
+
+    7. If WMM-PS is not supported, after a station sees its AID set to
+       1 in the TIM, what typically is the next frame that the station
+       transmits?
+
+       A. CTS
+
+       B. =PS-Poll=
+
+       C. ATIM
+
+       D. ACK
+
+       *答案解析*
+
+       B. If a station finds its AID in the TIM, there is unicast data
+       on the AP that the station needs to stay awake for and request
+       to have downloaded. This request is performed by a PS-Poll frame.
+
+    8. When a station sends an RTS, the Duration/ID field notifies the
+       other stations that they must set their NAV timers to which of
+       the following values? 
+
+       A. 213 microseconds
+
+       B. The time necessary to transmit the DATA and ACK frames
+
+       C. The time necessary to transmit the CTS frame
+
+       D. =The time necessary to transmit the CTS, DATA, and ACK
+       frames=
+
+       *答案解析*
+
+       D. When the RTS frame is sent, the value of the Duration/ID
+       field is equal to the time necessary for the CTS, DATA, and ACK
+       frames to be transmitted. 
+
+    9. How does a client station indicate that it is using Power Save
+       mode?
+
+       A. It transmits a frame to the AP with the Sleep field set
+       to 1.
+
+       B. =It transmits a frame to the AP with the Power Management
+       field set to 1.=
+
+       C. Using DTIM, the AP determines when the client station uses
+       Power Save mode.
+
+       D. It doesn’t need to, because Power Save mode is the default.
+
+       *答案解析*
+
+       B. When the client station transmits a frame with the Power
+       Management field set to 1, it is enabling Power Save mode. The
+       DTIM does not enable Power Save mode; it only notifies clients
+       to stay awake in preparation for a multicast or broadcast. 
+
+    10. What would cause an 802.11 station to retransmit a unicast
+        frame? (Choose all that apply.) 
+
+        A. =The transmitted unicast frame was corrupted.=
+
+        B. =The ACK frame from the receiver was corrupted.=
+
+        C. The receiver’s buffer was full.
+
+        D. The transmitting station will never attempt to retransmit
+        the data frame.
+
+        E. The transmitting station will send a retransmit
+        notification.
+
+        *答案解析*
+
+        A and B. The receiving station may have received the data, but
+        the returning ACK frame may have become corrupted and the
+        original unicast frame will have to be retransmitted. If the
+        unicast frame becomes corrupted for any reason, the receiving
+        station will not send an ACK. 
+
+    11. If a station is in Power Save mode, how does it know that the
+        AP has buffered unicast frames waiting for it?
+
+        A. By examining the PS-Poll frame
+
+        B. =By examining the TIM field=
+
+        C. When it receives an ATIM
+
+        D. When the Power Management bit is set to 1
+
+        E. From the DTIM interval
+
+        *答案解析*
+
+        B. The PS-Poll frame is used by the station to request cached
+        data. The ATIM is used to notify stations in an IBSS of cached
+        data. The Power Management bit is used by the station to
+        notify the AP that the station is going into Power Save
+        mode. The DTIM is used to indicate to client stations how
+        often to wake up to receive buffered broadcast and multicast
+        frames. The traffic indication map (TIM) is a field in the
+        beacon frame used by the AP to indicate that there are
+        buffered unicast frames for clients in Power Save mode.
+
+    12. When is an ERP (802.11g) AP required by the IEEE 802.11-2012
+        standard to respond to probe request frames from nearby
+        HR-DSSS (802.11b) stations? (Choose all that apply.) 
+
+        A. =When the probe request frames contain a null SSID value=
+
+        B. When the AP supports only ERP-OFDM data rates
+
+        C. When the AP supports only HR/DSSS data rates
+
+        D. When the Power Management bit is set to 1
+
+        E. =When the probe request frames contain the correct SSID
+        value=
+
+        *答案解析*
+
+        A and E. All 802.11 APs are required to respond to directed
+        probe request frames that contain the correct SSID value. The
+        AP must also respond to null probe request frames that contain
+        a blank SSID value. Some vendors offer the capability to
+        respond to null probe requests with a null probe response. 
+
+    13. Which of the following are true about scanning? (Choose all
+        that apply.)
+
+        A. =There are two types of scanning: passive and active.=
+
+        B. Stations must transmit probe requests in order to learn
+        about local APs.
+
+        C. The 802.11 standard allows APs to ignore probe requests for
+        security reasons.
+
+        D. =It is common for stations to continue to send probe
+        requests after being associated to an AP.=
+
+        *答案解析*
+
+        A and D. There are two types of scanning: passive, which
+        occurs when a station listens to the beacons to discover an
+        AP, and active, which occurs when a station sends probe
+        requests looking for APs. Stations send probe requests only if
+        they are performing an active scan. After a station is
+        associated, it is common for the station to continue to learn
+        about nearby APs. All client stations maintain a “known AP”
+        list that is constantly updated by active scanning.
+
+    14. Given that an 802.11 MAC header can have as many as four MAC
+        addresses, which type of addresses are not found in an 802.3
+        MAC header? (Choose all that apply.)
+
+        A. SA
+
+        B. =BSSID=
+
+        C. DA
+
+        D. =RA=
+
+        E. =TA=
+
+        *答案解析*
+
+        B, D and E. Although there are similarities, the addressing
+        used by 802.11 MAC frames is much more complex than Ethernet
+        frames. 802.3 frames have only a source address (SA) and
+        destination address (DA) in the layer 2 header. The four MAC
+        addresses used by an 802.11 frame can be used as five
+        different types of addresses: receiver address (RA),
+        transmitter address (TA), basic service set identifier
+        (BSSID), destination address (DA), and source address (SA).
+
+    15. When a client station is first powered on, what is the order
+        of frames generated by the client station and AP?
+
+        A. Probe request/probe response, association request/response,
+        authentication request/response
+
+        B. =Probe request/probe response, authentication
+        request/response, association request/response=
+
+        C. Association request/response, authentication
+        request/response, probe request/probe response
+
+        D. Authentication request/response, association
+        request/response, probe request/probe response
+
+        *答案解析*
+
+        B. When the client first attempts to connect to an AP, it will
+        first send a probe request and listen for a probe
+        response. After it receives a probe response, it will attempt
+        to authenticate to the AP and then associate to the network.
+
+    16. WLAN users have recently complained about gaps in audio and
+        problems with the pushto-talk capabilities with the ACME
+        Company’s VoWiFi phones. What could be the cause of this
+        problem? 
+
+        A. Misconfigured TIM setting
+
+        B. =Misconfigured DTIM setting=
+
+        C. Misconfigured ATIM setting
+
+        D. Misconfigured BTIM setting
+
+        *答案解析*
+
+        B. The delivery traffic indication message (DTIM) is used to
+        ensure that all stations using power management are awake when
+        multicast or broadcast traffic is sent. The DTIM interval is
+        important for any application that uses multicasting. For
+        example, many VoWiFi vendors support push-to-talk capabilities
+        that send VoIP traffic to a multicast address. A misconfigured
+        DTIM interval would cause performance issues during a
+        push-to-talk multicast. 
+
+    17. The WLAN help desk gets a call that all of the sudden, all of
+        the HR-DSSS (802.11b) VoWiFi phones cannot connect to any of
+        the ERP (802.11g) lightweight APs that are managed by a
+        multiple-channel architecture WLAN controller. All the laptops
+        with ERP (802.11g) radios can still connect. What are the
+        possible causes of this problem? (Choose all that apply.)
+
+        A. =The WLAN admin disabled the 1, 2, 5.5, and 11 Mbps data
+        rates on the controller.=
+
+        B. The WLAN admin disabled the 6 and 9 Mbps data rates on the
+        controller.
+
+        C. =The WLAN admin enabled the 6 and 9 Mbps data rates on the controller as basic rates.=
+
+        D. The WLAN admin configured all the APs on channel 6.
+
+        *答案解析*
+
+        A and C. An ERP (802.11g) AP is backward compatible with
+        HR-DSSS and supports the data rates of 1, 2, 5.5, and 11 Mbps
+        as well as the ERP-OFDM data rates of 6, 9, 12, 18, 24, 36,
+        48, and 54 Mbps. If a WLAN admin disabled the 1, 2, 5.5, and
+        11 Mbps data rates, backward compatibility will effectively be
+        disabled and the HR-DSSS clients will not be able to
+        connect. The 802.11-2012 standard defines the use of basic
+        rates, which are required rates. If a client station does not
+        support any of the basic rates used by an AP, the client
+        station will be denied association to the BSS. If a WLAN admin
+        configured the ERP-OFDM data rates of 6 and 9 Mbps as basic
+        rates, the HR-DSSS clients would be denied association because
+        they do not support those rates. 
+
+    18. In a multiple-channel architecture, roaming is controlled by
+        the client station and occurs based on a set of proprietary
+        rules determined by the manufacturer of the wireless
+        radio. Which of the following parameters are often used when
+        making the decision to roam? (Choose all that apply.)
+
+        A. =Received signal level=
+
+        B. Distance
+
+        C. =SNR=
+
+        D. WMM access categories
+
+        *答案解析*
+
+        A and C. The amplitude of the received signals from the APs is
+        usually the main variable when clients make a roaming
+        decision. Client roaming mechanisms are often based on RSSI
+        values, including received signal levels and signal-to-noise
+        ratio (SNR). Distance and WMM access categories have nothing
+        to do with the client’s decision to roam to a new AP.
+        
+    19. What are some of the advantages of using U-APSD and WMM-PS
+        power management over legacy power-management methods? (Choose
+        all that apply.)
+
+        A. =Applications control doze time and trigger frames.=
+
+        B. U-APSD APs transmit all voice and video data immediately.
+
+        C. =The client does not have to wait for a beacon to request data.=
+
+        D. =Downlink traffic is sent in a frame burst.=
+
+        E. =Data frames are used as trigger frames. PS-Poll frames are not used.=
+
+        *答案解析*
+
+        A, C, D and E. Applications now control the power-save
+        management behavior by setting doze periods and sending
+        trigger frames. Clients using time-sensitive applications will
+        send triggers to the AP frequently, while clients using more
+        latency-tolerant applications will have a longer doze
+        period. The trigger and delivery method eliminates the need
+        for PS-Poll frames. The client can request to download
+        buffered traffic and does not have to wait for a beacon
+        frame. All the downlink application traffic is sent in a
+        faster frame burst during the AP’s TXOP. 
+
+    20. WMM-PS is based on which 802.11-2012 power-management method?
+
+        A. S-APSD
+
+        B. =U-APSD=
+
+        C. PSMP
+
+        D. SM Power Save
+
+        E. PS-Poll
+
+        *答案解析*
+
+        B. The IEEE 802.11-2007 standard defines an enhanced
+        power-management method called automatic power save delivery
+        (APSD). The two APSD methods that are defined are scheduled
+        automatic power save delivery (S-APSD) and unscheduled
+        automatic power save delivery (U-APSD). The Wi-Fi Alliance’s
+        WMM Power Save (WMM-PS) certification is based on U-APSD.
+   
 * 第十章 WLAN 架构
 
 ** Wireless LAN client devices
@@ -2716,19 +4936,22 @@
       提供用户配置网卡的软件工具。
 
 *** Management, control and data planes
-      Telecommunication networks are often defi ned as three logical
+      Telecommunication networks are often defined as three logical
       planes of operation:
-      - *Management Plane* The /management/ plane is defi ned by
+      - *Management Plane* The /management/ plane is defined by
         administrative network management, administration, and
         monitoring.
       - *Control Plane* The /control plane/ consists of control or
         signaling information and is often defined as network
         intelligence or protocols.
       - *Data Plane* The /data plane/, also known as the user plane, is
-        the location in a network where user traffi c is actually
+        the location in a network where user traffic is actually
         forwarded. 
 
 ** WLAN architecture
+
+    In most cases, the main purpose of 802.11 technologies is to
+    provide a wireless portal into a wired infrastructure network. 
 
 *** Autonomous WLAN architecture
       /autonomous AP/ are often referred to as fat APs: a standalone
@@ -2745,12 +4968,44 @@
       WLAN controller
       
 *** Cloud networking
+    
+      1. Cloud-Enabled Networking
+         the management plane resides in the cloud, but data plane
+         mechanisms such as switching and routing remain on the local
+         network and usually in hardware.
+      2. Cloud-Based Networking
+         the data plane is also moved to the cloud with the intent of
+         eliminating hardware other than that used to access the
+         Internet at the local network. 
 
 *** Centralized WLAN architecture
 
-*** Distributed WLAN architecture
+         This model uses a central WLAN controller that resides in the
+         core of the network.
+    
+         all planes were moved out of access points and into a WLAN
+         controller: 
 
+         *Management Plane*
+
+         Access points are configured and managed from the WLAN
+         controller using a subset of NMS capabilities.
+
+         *Control Plane*
+
+         Dynamic RF, load balancing, roaming handoffs, and other
+         mechanisms exist in the WLAN controller.
+
+         *Data Plane*
+
+         The WLAN controller exists as a data distribution point for
+         user traffi c. Access points tunnel all user traffi c to a central controller.
+         
+*** Distributed WLAN architecture
+         
 *** Unified WLAN architecture
+    
+         
 
 *** Hybrid architecture
 
@@ -2777,7 +5032,7 @@
 * 第十二章 WLAN 问题处理与设计 
   A bottoms-up approach to analyzing the OSI reference model layers
   also applies to wireless networking. A wireless networking
-  administrator should always try to fi rst determine whether problems
+  administrator should always try to first determine whether problems
   exist at layer 1 and layer 2.
 
   许多无线网络问题发生在Layer 1，即物理层，如无电力供应的AP或是CLIENT
@@ -2802,7 +5057,7 @@
    4. 隐藏结点
    5. near/far问题
    6. 功率匹配
-   7. 相邻信息干涉
+   7. 相邻信道干涉
 
 ** RF干涉
    有多种不同类型的干涉会极大地影响802.11无线网络的性能。干涉的设备会
@@ -2812,22 +5067,22 @@
    重传会极大地降低吞吐量。有如下几种干扰：
    
 *** 窄波干涉
-    窄波通常只占用小部分频宽，不会对一路上有你频宽造成DoS，比如2.4GHz
+    窄波通常只占用小部分频宽，不会对整个频段造成DoS，比如2.4GHz
     ISM频段。窄波信号通常振幅很高，会完全中断频率空间范围内的数据传输。
     窄波信号会中断一个或多个802.11信道。 解决之道就是用频谱分析仪定位
-    干涉的信道，并通常措施避开这些被干涉的信息。
+    干涉的信道，并采用措施避开这些被干涉的信道。
 
 *** 宽波干涉
     如果传输的信号会中断整个频段的通信，则认为是宽波干涉。宽波干涉会导
-    致整个2.4GHz的ISM频段出现DoS。唯一的解决办法是通常频谱分析仪定位于
+    致整个2.4GHz的ISM频段出现DoS。唯一的解决办法是通过频谱分析仪定位
     干涉的设备，并将其移开。 
 
 *** 全波段干涉
     这种情况一般发生在FHSS（Frequency Hopping Spread Spectrum）通信中。
-    FHSS设备不停地在整个频段跳跃，会影响在这个频段范围内的传输数据的设
+    FHSS设备不停地在整个频段跳跃，会影响在这个频段范围内传输数据的所有设
     备。 蓝牙设备是一种FHSS类型的设备， 会在整个2.4GHz ISM范围内进行跳
     变，会影响附近工作在2.4GHz的设备。解决的办法也只能是通过频谱分析仪
-    定准干涉的设备，并将其移开。
+    定位干涉的设备，并将其移开。
 
 *** Adjacent Channel Interference
     the 802.11-2012 standard requires 25 MHz of separation between the
@@ -2843,17 +5098,17 @@
 *** Low SNR
     背景干扰信号强度接近接收的信号，或者接收到的信号强度太低。SNR不是
     一个比率，而是接收到的信号与背景干扰信号之间的分贝差值（decibels）。
-    如果一个802.11设备接收到一个-70的信号，此时背景干扰信号强度为-95dBm，
+    如果一个802.11设备接收到一个-70dBm的信号，此时背景干扰信号强度为-95dBm，
     则SNR为25 dB。
 
     通常SNR在25以上，则认为信号质量好，而低于10则认为信号质量很差。 
 
 *** 功率设置不匹配
-    AP的功率与STA的功率设备不匹配，导致出现这种情况：AP发出的数据，STA
+    AP的功率与STA的功率设置不匹配，导致出现这种情况：AP发出的数据，STA
     能收到，但是STA回的ACK，AP却收不到。 
 
 *** Near/Far
-    离AP较近骨刺功率较大的设备会影响离AP较远，且功能偏低的设备与AP之间
+    离AP较近且功率较大的设备会影响离AP较远，且功能偏低的设备与AP之间
     的数据通信。 
 
 *** 隐藏结点问题
@@ -2880,15 +5135,12 @@
 
 *** Roaming
     Rooming问题的产生通常是由于差劲的网络设计或者是WiFi设备驱动的问题。
-    Rooming的决定一般跟WiFi芯片厂商有关，每个厂家的行为都可以是特有的，
+    Rooming的决定一般跟WiFi芯片厂商有关，每个厂家的行为都可能是特有的，
     但一般会根据如下一些条件决定是否进行Roaming：
     1. RSSI
     2. Noise Level
     3. bit-error rate
     4. 重传率
-
-
-Keith Parsons
 
 *** =Co-channel= Interference
     The unnecessary medium contention overhead that occurs because all
@@ -2897,12 +5149,560 @@ Keith Parsons
 
 ** Performance
    
-   
+     如下一些因素会影响一个WLAN的覆盖范围：
+     - Transmission Power Rates
+       传输功率
+     - Antenna Gain
+       天线增益
+     - Antenna Type
+       天线类型
+     - 波长
+       高频率的信号，波长短，衰减快。
+     - Free Space Path Loss
+       随着距离的增加，信号强度会成培衰减。
+     - Physical Environment
+       Wifi设备所处的物理环境，如墙壁等。
 
+     如下一些因素会影响一个WLAN的吞吐量：
+     - Carrier Sense Multiple Access with Collision Avoidance
+       (CSMA/CA)
+       不同的帧间间隔，物理载波侦测，虚拟载波侦测等等会产生开销并消耗
+       带宽。
+     - Encryption
+       各种加密算法也会产生开销。
+     - Application Use
+       不同的应用对带宽的消耗有区别。
+     - Number of Clients
+       同时在线的客户端数量也会影响网络整体的吞吐量。
+     - Layer 2 Retransmissions
+       数据重传也是影响吞吐量的一个重要因素。
 
+** Review Questions
+    
+    1. What are some recommended best practices when deploying a
+       high-density WLAN? (Choose all that apply.)
+
+       A. Deploying unidirectional MIMO patch antennas
+
+       B. Band steering of all clients to 5 GHz
+
+       C. Load balancing
+
+       D. Low AP transmit power
+
+       E. Layer 3 roaming
+
+       *答案解析*
+
+       A, C and D. Unidirectional MIMO patch antennas can be mounted
+       in the ceiling to provide sectorized coverage in a high-density
+       WLAN. Load balancing clients between multiple APs will help
+       with capacity. Lowering the AP transmit power effectively
+       reduces the cell size and minimizes co-channel
+       interference. Band steering can be useful if used to balance
+       the clients between both the 2.4 and 5 GHz radios. Steering all
+       the clients only to 5 GHz is not necessarily ideal in a
+       high-density environment. Layer 3 roaming is not part of high
+       client capacity design. 
+
+    2. If the access points transmit on the same frequency channel in
+       an MCA(Multi-Channel Architecture) architecture, what type of interference is caused by
+       overlapping coverage cells? 
+
+       A. Intersymbol interference
+
+       B. Adjacent channel interference
+
+       C. All-band interference
+
+       D. Narrowband interference
+
+       E. Co-channel interference
+
+       *答案解析*
+
+       E. In an MCA architecture, if all the access points are
+       mistakenly configured on the same channel, unnecessary medium
+       contention overhead is the result. If an AP is transmitting,
+       all nearby access points and clients on the same channel will
+       defer transmissions. The result is that throughput is adversely
+       affected. Nearby APs and clients have to wait much longer to
+       transmit because they have to take their turn. The unnecessary
+       medium contention overhead that occurs because all the APs are
+       on the same channel is called co-channel interference (CCI). In
+       reality, the 802.11 radios are operating exactly as defined by
+       the CSMA/CA mechanisms, and this behavior should really be
+       called co-channel cooperation. 
+
+    3. What variables might affect range in an 802.11 WLAN? (Choose
+       all that apply.)
+
+       A. Transmission power
+
+       B. CSMA/CA
+
+       C. Encryption
+
+       D. Antenna gain
+
+       E. Physical environment
+
+       *答案解析*
+
+       A, D and E. The original transmission amplitude will have an
+       impact on the range of an RF cell. Antennas amplify signal
+       strength and can increase range. Walls and other obstacles will
+       attenuate an RF signal and affect range. CSMA/CA and encryption
+       do not affect range but do affect throughput. 
+
+    4. What can be done to fix the hidden node problem? (Choose all
+       that apply.)
+
+       A. Increase the power on the access point.
+
+       B. Move the hidden node station.
+
+       C. Increase power on all client stations.
+
+       D. Remove the obstacle.
+
+       E. Decrease power on the hidden node station.
+
+       *答案解析*
+
+       B, C and D. The hidden node problem arises when client stations
+       cannot hear the RF transmissions of another client
+       station. Increasing the transmission power of client stations
+       will increase the transmission range of each station, resulting
+       in increased likelihood of all the stations hearing each
+       other. Increasing client power is not a recommended fix because
+       best practice dictates that client stations use the same
+       transmit power used by all other radios in the BSS, including
+       the AP. Moving the hidden node station within transmission
+       range of the other stations also results in stations hearing
+       each other. Removing an obstacle that prevents stations from
+       hearing each other also fixes the problem. The best fix to the
+       hidden node problem is to add another access point in the area
+       that the hidden node resides. 
+
+    5. Layer 2 retransmissions occur when frames become
+       corrupted. What are some of the causes of layer 2 retries?
+       (Choose all that apply.) 
+
+       A. High SNR
+       
+       B. Low SNR
+
+       C. Co-channel interference
+
+       D. RF interference
+
+       E. Adjacent channel interference
+
+       *答案解析*
+
+       B, D and E. If any portion of a unicast frame is corrupted, the
+       cyclic redundancy check (CRC) will fail and the receiving
+       802.11 radio will not return an ACK frame to the transmitting
+       802.11 radio. If an ACK frame is not received by the original
+       transmitting radio, the unicast frame is not acknowledged and
+       will have to be retransmitted. RF interference, low SNR, hidden
+       nodes, mismatched power settings, near/far problems, and
+       adjacent channel interference may all cause layer 2
+       retransmissions. Co-channel interference does not cause retries
+       but does add unnecessary medium contention overhead.
+
+    6. What scenarios might result in a hidden node problem? (Choose
+       all that apply.)
+
+       A. Distributed antenna system
+
+       B. Coverage cells that are too large
+
+       C. Coverage cells that are too small
+
+       D. Physical obstruction
+
+       E. Co-channel interference
+
+       *答案解析*
+
+       A, B and D. The hidden node problem arises when client stations
+       cannot hear the RF transmissions of another client
+       station. Distributed antenna systems with multiple antenna
+       elements are notorious for causing the hidden node
+       problem. When coverage cells are too large as a result of the
+       access point’s radio transmitting at too much power, client
+       stations at opposite ends of an RF coverage cell often cannot
+       hear each other. Obstructions such as a newly constructed wall
+       can also result in stations not hearing each other.
+
+    7. What are some of the negative effects of layer 2
+       retransmissions? (Choose all that apply.)
+
+       A. Decreased range
+
+       B. Excessive MAC sublayer overhead
+
+       C. Decreased latency
+
+       D. Increased latency
+
+       E. Jitter
+
+       *答案解析*
+
+       B, D and E. Excessive layer 2 retransmissions adversely affect
+       the WLAN in two ways. First, layer 2 retransmissions increase
+       MAC overhead and therefore decrease throughput. Second, if
+       application data has to be retransmitted at layer 2, the timely
+       delivery of application traffic becomes delayed or
+       inconsistent. Applications such as VoIP depend on the timely
+       and consistent delivery of the IP packet. Excessive layer 2
+       retransmissions usually result in increased latency and jitter
+       problems for time-sensitive applications such as voice and
+       video. 
+
+    8. Several users are complaining that their VoWiFi phones keep
+       losing connectivity. The WLAN administrator notices that the
+       frame transmissions of the VoWiFi phones are corrupted when
+       listened to with a protocol analyzer near the access point but
+       are not corrupted when listened to with the protocol analyzer
+       near the VoWiFi phone. What is the most likely cause of this
+       problem? 
+
+       A. RF interference
+
+       B. Multipath
+
+       C. Hidden node
+
+       D. Adjacent channel interference
+
+       E. Mismatched power settings
+
+       *答案解析*
+
+       E. An often overlooked cause of layer 2 retransmissions is
+       mismatched transmit power settings between an access point and
+       a client radio. Communications can break down if a client
+       station’s transmit power level is less than the transmit power
+       level of the access point. As a client moves to the outer edges
+       of the coverage cell, the client can “hear” the AP; however,
+       the AP cannot “hear” the client. If the client station’s
+       frames are corrupted near the AP but not near the client, the
+       most likely cause is mismatched power settings.
+
+    9. A single user is complaining that her VoWiFi phone has choppy
+       audio. The WLAN administrator notices that the user’s MAC
+       address has a retry rate of 25 percent when observed with a
+       protocol analyzer. However, all the other users have a retry
+       rate of about 5 percent when also observed with the protocol
+       analyzer. What is the most likely cause of this problem?
+
+       A. Near/far
+
+       B. Multipath
+
+       C. Co-channel interference
+
+       D. Hidden node
+
+       E. Low SNR
+
+       *答案解析*
+
+       D. If an end user complains of a degradation of throughput, one
+       possible cause is a hidden node. A protocol analyzer is a
+       useful tool in determining hidden node issues. If the protocol
+       analyzer indicates a higher retransmission rate for the MAC
+       address of one station when compared to the other client
+       stations, chances are a hidden node has been found. Some
+       protocol analyzers even have hidden node alarms based on
+       retransmission thresholds.
+
+    10. What type of interference is caused by overlapping coverage
+        cells with overlapping frequencies?
+
+        A. Intersymbol interference
+
+        B. Adjacent channel interference
+
+        C. All-band interference
+
+        D. Narrowband interference
+
+        E. Co-channel interference
+
+        *答案解析*
+
+        B. Overlapping coverage cells with overlapping frequencies
+        cause adjacent channel interference, which causes a severe
+        degradation in latency, jitter, and throughput. If overlapping
+        coverage cells also have frequency overlap, frames will become
+        corrupt, retransmissions will increase, and performance will
+        suffer significantly. 
+
+    11. Based on RSSI metrics, concentric zones of variable data rate
+        coverage exist around an access point due to the upshifting
+        and downshifting of client stations between data rates. What
+        is the correct name of this process, according to the IEEE
+        802.11-2012 standard? 
+
+        A. Dynamic rate shifting
+
+        B. Dynamic rate switching
+
+        C. Automatic rate selection
+
+        D. Adaptive rate selection
+
+        E. All of the above
+
+        *答案解析*
+
+        B. As client station radios move away from an access point,
+        they will shift down to lower bandwidth capabilities by using
+        a process known as dynamic rate switching (DRS). The objective
+        of DRS is upshifting and downshifting for rate optimization
+        and improved performance. Although dynamic rate switching is
+        the proper name for this process, all these terms refer to the
+        method of speed fallback that a wireless LAN client uses as
+        distance increases from the access point. 
+
+    12. Which of these weather conditions is a concern when deploying
+        a long-distance point-topoint bridge link?
+
+        A. Wind
+
+        B. Rain
+
+        C. Fog
+
+        D. Changes in air temperature
+
+        E. All of the above
+
+        *答案解析*
+
+        E. Highly directional antennas are susceptible to what is
+        known as antenna wind loading, which is antenna movement or
+        shifting caused by wind. Grid antennas may be needed to
+        alleviate the problem. Rain and fog can attenuate an RF
+        signal; therefore, a system operating margin (also known as
+        fade margin) of 20 dB is necessary. A change in air
+        temperature is also known as air stratification, which causes
+        refraction. K-factor calculations may also be necessary to
+        compensate for refraction. 
+
+    13. What variables might affect range in an 802.11 WLAN?
+
+        A. Wavelength
+
+        B. Free space path loss
+
+        C. Brick walls
+
+        D. Trees
+
+        E. All of the above
+
+        *答案解析*
+
+        E. Higher frequency signals have a smaller wavelength property
+        and will attenuate faster than a lower frequency signal with a
+        larger wavelength. Higher frequency signals therefore will
+        have shorter range. In any RF environment, free space path
+        loss (FSPL) attenuates the signal as a function of
+        distance. Loss in signal strength affects range. Brick walls
+        exist in an indoor physical environment, while trees exist in
+        an outdoor physical environment. Both will attenuate an RF
+        signal, thereby affecting range. 
+
+    14. Given: Wi-Fi clients can roam seamlessly at layer 2 if all the
+        APs are configured with the same SSID and same security
+        settings. However, if clients cross layer 3 boundaries, a
+        layer 3 roaming solution will be needed. Which device
+        functions as the home agent if a Mobile IP solution has been
+        implemented in an enterprise WLAN environment where no WLAN
+        controller is deployed?
+
+        A. Wireless network management server (WNMS)
+
+        B. Access layer switch
+
+        C. Layer 3 switch
+
+        D. Access point on the original subnet
+
+        E. Access point on the new subnet
+
+        *答案解析*
+
+        D. A mobile client receives an IP address also known as a home
+        address on the original subnet. The mobile client must
+        register its home address with a device called a home agent
+        (HA). The original access point on the client’s home network
+        serves as the home agent. The home agent is a single point of
+        contact for a client when it roams across layer 3
+        boundaries. Any traffic that is sent to the client’s home
+        address is intercepted by the home agent access point and sent
+        through a Mobile IP tunnel to the foreign agent AP on the new
+        subnet. The client is therefore able to retain its original IP
+        address when roaming across layer 3 boundaries. 
+
+    15. Which of the following can cause roaming problems? (Choose all
+        that apply.)
+
+        A. Too little cell coverage overlap
+
+        B. Too much cell coverage overlap
+
+        C. Free space path loss
+
+        D. CSMA/CA
+
+        E. Hidden node
+
+        *答案解析*
+
+        A and B. Although overlap cell coverage is a fallacy, cell
+        overlap is often used to refer to the duplicate cell coverage
+        heard from a client perspective. Roaming problems will occur
+        if there is not enough overlap in cell coverage. Too little
+        overlap will effectively create a roaming dead zone, and
+        connectivity may even temporarily be lost. If two RF cells
+        have too much overlap, a station may stay associated with its
+        original AP and not connect to a second access point even
+        though the station is directly underneath the second access point.
+
+    16. What are some problems that can occur when an access point is
+        transmitting at full power? (Choose all that apply.)
+
+        A. Hidden node
+
+        B. Co-channel interference
+
+        C. Mismatched power between the AP and the clients
+
+        D. Intersymbol interference
+
+        *答案解析*
+
+        A, B and C. A mistake often made when deploying access points
+        is to have the APs transmitting at full power. Effectively,
+        this extends the range of the access point but causes many
+        problems that have been discussed throughout this
+        chapter. Oversized coverage usually will not meet your
+        capacity needs. Oversized coverage cells can cause hidden node
+        problems. Access points at full power may not be able to hear
+        the transmissions of client stations with lower transmit
+        power. Access points at full power will most likely also
+        increase the odds of co-channel interference due to bleed-over
+        transmissions. If the access point’s coverage and range is a
+        concern, the best method of extending range is to increase the
+        AP’s antenna gain instead of increasing transmit power.
+
+    17. Why would a WLAN network administrator consider disabling the
+        two lowest rates on an 802.11b/g/n access point? (Choose all
+        that apply.)
+
+        A. Medium contention
+
+        B. Adjacent channel interference
+
+        C. Hidden node
+
+        D. Intersymbol interference
+
+        E. All of the above
+
+        *答案解析*
+
+        A and C. Medium contention, also known as CSMA/CA, requires
+        that all radios access the medium in a pseudorandom
+        fashion. Radios transmitting at slower data rates will occupy
+        the medium much longer, while faster radios have to wait. Data
+        rates of 1 and 2 Mbps can create very large coverage cells,
+        which may prevent a hidden node station at one edge of the
+        cell from being heard by other client stations at the opposite
+        side of the coverage cell. 
+
+    18. Which type of interference is caused by destructive multipath?
+
+        A. Intersymbol interference
+
+        B. All-band interference
+
+        C. Narrowband interference
+
+        D. Wideband interference
+
+        E. Physical interference
+
+        *答案解析*
+
+        A. Multipath can cause intersymbol interference (ISI), which
+        causes data corruption. Because of the difference in time
+        between the primary signal and the reflected signals, known as
+        the delay spread, the receiver can have problems demodulating
+        the RF signal’s information. The delay spread time
+        differential results in corrupted data and therefore layer 2
+        retransmissions. 
+
+    19. In a multiple-channel architecture (MCA) design, what is the
+        greatest number of nonoverlapping channels that can be
+        deployed in the 2.4 GHz ISM band? 
+
+        A. 3
+
+        B. 12
+
+        C. 11
+
+        D. 14
+
+        E. 4
+
+        *答案解析*
+
+        A. HR-DSSS (802.11b) and ERP (802.11g) channels require 25 MHz
+        of separation between the center frequencies to be considered
+        nonoverlapping. The three channels of 1, 6, and 11 meet these
+        requirements in the United States. In other countries,
+        threechannel plans such as 2, 7, and 12; 3, 8, and 13; and 4,
+        9, and 14 would work as well. Traditionally, 1, 6, and 11 are
+        chosen almost universally. 
+
+    20. What factors should be taken into consideration when designing
+        a channel reuse plan for 5 GHz access points? (Choose all that
+        apply.) 
+
+        A. Regulatory channels permitted
+
+        B. Number of VLANs permitted
+
+        C. Encryption
+
+        D. DFS support for the clients
+
+        E. DFS support for the APs
+
+        *答案解析*
+
+        A, D and E. Several factors should be considered when planning
+        a 5 GHz channel reuse pattern. One factor is what channels are
+        available legally in your country or region. Another factor to
+        consider is what channels the client population
+        supports. Wi-Fi radios must be certified to transmit in the
+        dynamic frequency selection (DFS) channels to avoid
+        interference with radar. A high likelihood exists that the
+        client population may not be certified for dynamic frequency
+        selection (DFS) channels in the UNII-2 and UNII-2e
+        bands. Additionally, many 5 GHz access points might also not
+        be certified to transmit in the DFS channels. 
 
 * 第十三章 802.11网络安全架构
-
 ** 802.11 security basics
      802.11无线网络安全主要包含如下5个要素：
      1. Data privacy and integrity
@@ -3068,7 +5868,7 @@ Keith Parsons
 
       Pre-RSN和RSN机制可以同时存在于一个BSS中。
 
-      A transition security network (TSN) supports RSN-defi ned
+      A transition security network (TSN) supports RSN-defined
       security, as well as legacy security such as WEP, within the
       same BSS, although most vendors do not support a TSN.
 
@@ -3077,7 +5877,7 @@ Keith Parsons
       Authentication：the verification of user identity and　
       credentials.
       Authorization involves whether a device or user is granted
-      access to　network resources and services.
+      access to network resources and services.
 
       在进行Authorization之前，必须通过了Authentication。　
     
@@ -3184,33 +5984,580 @@ Keith Parsons
       restricting system access to authorized users.
 
 ** Infrastructure security
-        
+
+        protect hardware and interface.
+
 *** Physical security
+
+        防止偷盗
        
 *** Interface security
 
+        通过一个安全的SSID，连接上AP，然后使用命令行界面对AP进行紧急处
+        理。
+
 ** VPN wireless security
 
-   
+      Use of VPN technology is mandatory for remote access.
+
 *** Layer 3 VPNs
+
+       The most commonly used layer 3 VPN technology is Internet
+       Protocol Security (IPsec).
 
 *** SSL VPN
 
+       SSL VPN is another VPN technology that operate at other layer
+       such as SSL tunneling.
+
 *** VPN deployment
 
+       #+CAPTION: VPN established from a public hotspot
+       [[./images/2016/2016082401.png]]
+
+       #+CAPTION: Site-to-site VPN
+       [[./images/2016/2016082402.png]]
+    
+
 *** Guest WLAN security
+      
+       提供访客通过WLAN访问网络的安全。
 
 *** Captive portal
 
+        Most hotspots and guest networks are secured by a captive
+        portal. A captive portal is essentially the integration of a
+        fi rewall with an authentication web page. 
 
-    
-    
+** Review Questions
+
+    1. Which WLAN security mechanism requires that each WLAN user have
+       unique authentication credentials?
+
+       A. WPA-Personal
+
+       B. 802.1X/EAP
+
+       C. Open System
+
+       D. WPA2-Personal
+
+       E. WPA-PSK
+
+       *答案解析*
+
+       B. As required by an 802.1X security solution, the supplicant
+       is a WLAN client requesting authentication and access to
+       network resources. Each supplicant has unique authentication
+       credentials that are verified by the authentication server. 
+
+    2. Which wireless security standards and certifications call for
+       the use of CCMP/AES encryption? (Choose all that apply.)
+
+       A. WPA
+
+       B. 802.11-2012
+
+       C. 802.1X
+
+       D. WPA2
+
+       E. 802.11 legacy
+
+       *答案解析*
+
+       B and D. The 802.11-2012 standard defines CCMP/AES encryption
+       as the default encryption method, and TKIP/RC4 is the optional
+       encryption method. This was originally defined by the 802.11i
+       amendment, which is now part of the 802.11-2012 standard. The
+       Wi-Fi Alliance created the WPA2 security certification, which
+       mirrors the robust security defined by the IEEE. WPA2 supports
+       both CCMP/AES and TKIP/RC4 dynamic encryption-key management. 
+
+    3. 128-bit WEP encryption uses a user-provided static key of what
+       size?
+
+       A. 104 bytes
+
+       B. 64 bits
+
+       C. 124 bits
+
+       D. 128 bits
+
+       E. 104 bits
+
+       *答案解析*
+
+       E. 128-bit WEP encryption uses a secret 104-bit static key that
+       is provided by the user (26 hex characters) and combined with a
+       24-bit initialization vector (IV) for an effective key strength of 128 bits.
+
+    4. What three main components constitute an 802.1X/EAP framework?
+       (Choose all that apply.)
+
+       A. Supplicant
+
+       B. Authorizer
+
+       C. Authentication server
+
+       D. Intentional radiator
+
+       E. Authenticator
+
+       *答案解析*
+
+       A, C and E. The supplicant, authenticator, and authentication
+       server work together to provide the framework for an 802.1X/EAP
+       solution. The supplicant requests access to network
+       resources. The authentication server authenticates the identity
+       of the supplicant, and the authenticator allows or denies
+       access to network resources via virtual ports.
+
+    5. The 802.11 legacy standard defines which wireless security
+       solution?
+
+       A. Dynamic WEP
+
+       B. 802.1X/EAP
+
+       C. 64-bit static WEP
+
+       D. Temporal Key Integrity Protocol
+
+       E. CCMP/AES
+
+       *答案解析*
+
+       C. The original 802.11 standard ratified in 1997 defined the
+       use of a 64-bit or 128-bit static encryption solution called
+       Wired Equivalent Privacy (WEP). Dynamic WEP was never defined
+       under any wireless security standard. The use of 802.1X/EAP,
+       TKIP/RC4, and CCMP/AES are all defined under the current
+       802.11-2012 standard. 
+
+    6. Paul has been hired as a consultant to secure the Levasseur
+       Corporation’s WLAN infrastructure. He has been asked to choose
+       a solution that will both protect the company’s equipment from
+       theft and hopefully protect the access point’s configuration
+       interfaces from outside attackers. What recommendations would
+       be appropriate? (Choose all that apply.) 
+
+       A. Mounting all access points in lockable enclosure units
+
+       B. Using an IPsec VPN
+
+       C. Configuring all access points via Telnet
+
+       D. Configuring access points from the wired side using HTTPS or
+       SSH
+
+       E. Implementing 802.1X/EAP
+
+       *答案解析*
+
+       A, D and E. Access points may be mounted in lockable enclosure
+       units to provide theft protection. All access points should be
+       configured from the wired side and never wirelessly. Encrypted
+       management interfaces such as HTTPS and SSH should be used
+       instead of HTTP or Telnet. An 802.1X/EAP solution guarantees
+       that only authorized users will receive an IP
+       address. Attackers can get an IP address prior to setting up an
+       IPsec VPN tunnel and potentially attack the access points. 
+
+    7. Which security solutions may be used to segment a wireless LAN?
+       (Choose all that apply.)
+
+       A. VLAN
+
+       B. WEP
+
+       C. RBAC
+
+       D. CCMP/AES
+
+       E. TKIP/RC4
+
+       *答案解析*
+
+       A and C. Virtual LANs are used to segment wireless users at
+       layer 3. The most common wireless segmentation strategy often
+       used in 802.11 enterprise WLANs is segmentation using VLANS
+       combined with role-based access control (RBAC)
+       mechanisms. CCMP/AES, TKIP/RC4, and WEP are encryption
+       solutions. 
+
+    8. What wireless security solutions are defined by Wi-Fi Protected
+       Access? (Choose all that apply.)
+
+       A. Passphrase authentication
+
+       B. LEAP
+
+       C. TKIP/RC4
+
+       D. Dynamic WEP
+
+       E. CCMP/AES
+
+       *答案解析*
+
+       A and C. The Wi-Fi Protected Access (WPA) certification was a
+       snapshot of the not-yetreleased 802.11i amendment, supporting
+       only the TKIP/RC4 dynamic encryption-key generation. 802.1X/EAP
+       authentication was required in the enterprise, and passphrase
+       authentication was required in a SOHO or home environment. LEAP
+       is Cisco proprietary and is not specifically defined by
+       WPA. Neither dynamic WEP nor CCMP/AES was defined for
+       encryption. CCMP/AES dynamic encryption is mandatory under the
+       WPA2 certification. 
+
+    9. Name the three main components of a role-based access control
+       solution.
+
+       A. EAP
+
+       B. Roles
+
+       C. Encryption
+
+       D. Permissions
+
+       E. Users
+
+       *答案解析*
+
+       B, D and E. Role-based access control (RBAC) is an approach to
+       restricting system access to authorized users. The three main
+       components of an RBAC approach are users, roles, and
+       permissions. 
+
+    10. What does 802.1X/EAP provide when implemented for WLAN
+        security? (Choose all that apply.)
+
+        A. Access to network resources
+
+        B. Verification of access point credentials
+
+        C. Dynamic authentication
+
+        D. Dynamic encryption-key generation
+
+        E. Verification of user credentials
+
+        *答案解析*
+
+        A, D and E. The purpose of 802.1X/EAP is authentication of
+        user credentials and authorization to network
+        resources. Although the 802.1X/EAP framework does not require
+        encryption, it highly suggests the use of encryption. A
+        by-product of 802.1X/EAP is the generation and distribution of
+        dynamic encryption keys.  
+
+    11. Which technologies use the RC4 cipher? (Choose all that
+        apply.)
+
+        A. Static WEP
+
+        B. Dynamic WEP
+
+        C. CCMP
+
+        D. TKIP
+
+        E. MPPE
+
+        *答案解析*
+
+        A, B, D and E. All forms of WEP encryption use the Rivest
+        Cipher 4 (RC4) algorithm. TKIP is WEP that has been enhanced
+        and also uses the RC4 cipher. PPTP uses 128-bit Microsoft
+        Point-to-Point Encryption (MPPE), which uses the RC4
+        algorithm. CCMP uses the AES cipher. 
+
+    12. What must occur to generate dynamic TKIP/RC4 or CCMP/AES
+        encryption keys? (Choose all that apply.)
+
+        A. Shared Key authentication and 4-Way Handshake
+
+        B. 802.1X/EAP authentication and 4-Way Handshake
+
+        C. Static WEP and 4-Way Handshake
+
+        D. PSK authentication and 4-Way Handshake
+
+        *答案解析*
+
+        B and D. Shared Key authentication is a legacy authentication
+        method that does not provide seeding material to generate
+        dynamic encryption keys. Static WEP uses static keys. A robust
+        security network association requires a four-frame EAP
+        exchange known as the 4-Way Handshake that is used to generate
+        dynamic TKIP or CCMP keys. The handshake may occur either
+        after an 802.1X/EAP exchange or as a result of PSK authentication.
+
+    13. For an 802.1X/EAP solution to work properly, which two
+        components must both support the same type of EAP? (Choose all
+        that apply.)
+
+        A. Supplicant
+
+        B. Authorizer
+
+        C. Authenticator
+
+        D. Authentication server
+
+        *答案解析*
+
+        A and D. An 802.1X/EAP solution requires that both the
+        supplicant and the authentication server support the same type
+        of EAP. The authenticator must be configured for 802.1X/EAP
+        authentication but does not care which EAP type passes
+        through. The authenticator and the supplicant must support the
+        same type of encryption. 
+
+    14. When you’re using an 802.11 wireless controller solution,
+        which device would be usually function as the authenticator? 
+
+        A. Access point
+
+        B. LDAP server
+
+        C. WLAN controller
+
+        D. RADIUS server
+
+        *答案解析*
+
+        C. WLAN controllers use lightweight access points, which are
+        dumb terminals with radio cards and antennas. The WLAN
+        controller is the authenticator. When an 802.1X/EAP solution
+        is deployed in a wireless controller environment, the virtual
+        controlled and uncontrolled ports exist on the WLAN
+        controller. 
+
+    15. Identify some aspects of the Temporal Key Integrity
+        Protocol. (Choose all that apply.) 
+
+        A. 128-bit temporal key
+
+        B. 24-bit initialization vector
+
+        C. Message integrity check
+
+        D. 48-bit IV
+
+        E. Diffie-Hellman Exchange
+
+        *答案解析*
+
+        A, C and D. TKIP starts with a 128-bit temporal key that is
+        combined with a 48-bit initialization vector (IV) and source
+        and destination MAC addresses in a process known as per-packet
+        key mixing. TKIP uses an additional data integrity check known
+        as the message integrity check (MIC). 
+
+    16. In a point-to-point bridge environment where 802.1X/EAP is
+        used for bridge authentication, what device in the network
+        acts as the 802.1X supplicant? 
+
+        A. Nonroot bridge
+
+        B. Controller
+
+        C. Root bridge
+
+        D. RADIUS server
+
+        E. Layer 3 core switch
+
+        *答案解析*
+
+        A. The root bridge would be the authenticator, and the nonroot
+        bridge would be the supplicant if 802.1X/EAP security is used
+        in a WLAN bridged network. 
+
+    17. CCMP encryption uses which AES key size?
+
+        A. 192 bits
+
+        B. 64 bits
+
+        C. 256 bits
+
+        D. 128 bits
+
+        *答案解析*
+
+        D. The AES algorithm encrypts data in fixed data blocks with
+        choices in encryptionkey strength of 128, 192, or 256
+        bits. CCMP/AES uses a 128-bit encryption-key size and encrypts
+        in 128-bit fixed-length blocks. 
+
+    18. Identify the security solutions that are defined by
+        WPA2. (Choose all that apply.)
+
+        A. 802.1X/EAP authentication
+
+        B. Dynamic WEP encryption
+
+        C. Optional CCMP/AES encryption
+
+        D. Passphrase authentication
+
+        E. DES encryption
+
+        *答案解析*
+
+        A and D. The WPA2 certification requires the use of an
+        802.1X/EAP authentication method in the enterprise and the use
+        of a preshared key or a passphrase in a SOHO environment. The
+        WPA2 certification also requires the use of stronger dynamic
+        encryption-key generation methods. CCMP/AES encryption is the
+        mandatory encryption method, and TKIP/RC4 is the optional
+        encryption method. 
+
+    19. What encryption method does the IEEE 802.11-2012 standard
+        mandate for robust security network associations and what
+        method is optional? 
+
+        A. WEP, AES
+
+        B. IPsec, AES
+
+        C. MPPE, TKIP
+
+        D. TKIP, WEP
+
+        E. CCMP, TKIP
+
+        *答案解析*
+
+        E. The 802.11-2012 standard defines what is known as a robust
+        security network (RSN) and robust security network
+        associations (RSNAs). CCMP/AES encryption is the mandated
+        encryption method, and TKIP/RC4 is an optional encryption
+        method. 
+
+    20. Which layer 2 protocol is used for authentication in an 802.1X
+        framework?
+        
+        A. Extensible Authorization Protocol
+
+        B. Extended Authentication Protocol
+
+        C. Extensible Authentication Protocol
+
+        D. CHAP/PPP
+
+        E. Open System
+
+        *答案解析*
+
+        C. The supplicant, authenticator, and authentication server
+        work together to provide the framework for 802.1X port-based
+        access control, and an authentication protocol is needed to
+        assist in the authentication process. The Extensible
+        Authentication Protocol (EAP) is used to provide user
+        authentication. 
+   
 * Ch14 Wireless Attacks, Intrusion Monitoring, and Policy           :noexport:
-  
 * Ch15 Radio Frequency Site Survey Fundamentals                     :noexport:
   
 * 第十六章 Site Survey Systems and Devices
+
   
+** Site survey defined
+
+    the site survey must encompass so much more than just determining
+    coverage, including looking for potential sources of interference
+    as well as the proper placement, installation, and confi guration
+    of 802.11 hardware and related components. 
+    
+*** Protocol and spectrum analysis
+    
+        分析收包包的信息，SSID，BSSID以及相关的安全信息，同时检测信号
+        强度的变化。
+
+        Wi-Fi-oriented spectrum and protocol analyzers fall into two
+        categories: standalone and Integrated
+
+*** Standalone
+
+        Wi-Fi接收器和频谱分析仪分别独立工作获取不同的信息，相互之间是
+        独立的。
+
+*** Integrated
+
+       将Wi-Fi网卡与频谱分析仪获取的信息进行综合，可以通过软件提供更专
+       业的信息。
+
+*** Spectrum analysis
+    
+        在进行覆盖分析测试之间，必须先定位干扰源。
+        
+        如果背景噪声信号强度超过了-85dBm，则无线网络的性能半会受到极大
+        影响。
+
+        这种环境下，也会导致Layer 2重传率升高，当超过10%的重传率时，网
+        络吞吐量将会受到极大影响。
+
+        2.4G下的常见干扰源：
+        - Microwave ovens
+        - 2.4 GHz cordless phones, DSSS and FHSS
+        - Fluorescent bulbs(荧光灯）
+        - 2.4 GHz video cameras
+        - Elevator motors
+        - Cauterizing devices(电烙铁设备)
+        - Plasma cutters（等离子切割机）
+        - Bluetooth radios
+        - Nearby 802.11, 802.11b, 802.11g, or 802.11n (2.4 GHz) WLANs
+
+
+        5G下潜在的干扰源：
+        - 5 GHz cordless phones
+        - Radar
+        - Perimeter sensors(外线传感器)
+        - Digital satellite
+        - Nearby 5 GHz WLANs
+        - Outdoor wireless 5 GHz bridges
+        
+*** Coverage analysis
+
+         #+CAPTION: WLAN data cell—vendor recommendations
+         | Data rate  | Minimum received signal | Minimum signal-to-noise ratio |
+         |------------+-------------------------+-------------------------------|
+         | 54 Mbps    | –71 dBm                 | 25 dB                         |
+         | 36 Mbps    | –73 dBm                 | 18 dB                         |
+         | 24 Mbps    | –77 dBm                 | 12 dB                         |
+         | 12/11 Mbps | –82 dBm                 | 10 dB                         |
+         | 6/5.5 Mbps | –89 dBm                 | 8 dB                          |
+         | 2 Mbps     | –91 dBm                 | 6 dB                          |
+         | 1 Mbps     | –94 dBm                 | 4 dB                              |
+         |------------+-------------------------+-----------------------------------|
+
+*** AP placement and configuration
+        
+*** Application analysis
+    
+** Site survey tools
+
+*** Indoor site survey tools
+
+*** Outdoor site survey tools
+
+** Coverage analysis
+
+*** Manual
+
+*** Predictive
+
+*** Dynamic RF
+
+*** Wireless network validation
+
 * 第十七章 Power over Ethernet(PoE)                                 :noexport:
   
 * 第十八章 802.11n
@@ -3222,7 +6569,6 @@ Keith Parsons
      802.11n可使用在2.4G和5G。
 
 ** Wi-Fi Alliance certification
-   
       
       Wi-Fi联盟针对802.11n有一个厂商认证项目称为WiFi CERTIFIED n。
       802.11n的产品必须通过一些强制测试项和可选项。所有认证过的802.11n
@@ -3262,8 +6608,8 @@ Keith Parsons
 
 *** Radio chains
 
-      A radio chain is defi ned as a single radio and all of its
-      supporting architecture, including mixers, amplifi ers, and
+      A radio chain is defined as a single radio and all of its
+      supporting architecture, including mixers, amplifiers, and
       analog/digital converters.
 
       一个MIMO系统包含多个Radio Chain，每个Radio Chain都有自己的天线。
@@ -3292,7 +6638,7 @@ Keith Parsons
 
       描述MIMO能力的格式： 3×3:2
       第一个数字代表TX数量，第二个数字代表RX数量，第三个代表发送或
-      接收的唯一的数据流数量。
+      接收唯一的数据流数量。
 
       #+CAPTION: Multiple spatial streams
       [[./images/2015/2015121103.png]]
@@ -3467,8 +6813,17 @@ Keith Parsons
 
 *** HT power management
 
+       802.11e QoS修订版引入了unscheduled automatic power save
+       delivery (U-APSD), 这个是WMM-PS使用的机制。11n引入了另外两个新
+       的省电机制。
+
       1. spatial multiplexing power save(SM power save)
+         这个机制允许一个使用MIMO技术的11n设备保留一个radio活跃的情况下，
+         关闭所有其他的radio。 
+         使用SM power save action帧来告知AP当前STA的ratio活跃状况。王
+
       2. Power Save Multi Poll (PSMP)
+         对APSD和U-APSD的一个扩展
 
 ** HT operation
 
@@ -3514,7 +6869,480 @@ Keith Parsons
           stations are associated to the HT access point.
 
 *** RTS/CTS and CTS-to-self
+         主要用于保护HT STA数据传输。
 
+** Review Questions
+
+    1. Thirty 2×2:2 access points have been deployed at a school
+       where all the client devices are 1×1:1 802.11n tablets. The
+       access points are transmitting on 20 MHz channels with the
+       standard guard interval of 800 ns. What is the highest 802.11n
+       data rate that can be used for communications between the APs
+       and tablets? 
+
+       A. 54 Mbps
+
+       B. 65 Mbps
+
+       C. 72 Mbps
+
+       D. 150 Mbps
+
+       E. 300 Mbps
+
+       *答案解析*
+
+       B. The majority of enterprise 802.1n access points are either
+       2×2:2 or 3×3:3. However, most 802.11n mobile devices, such as
+       smartphones and tablets, only have a 1×1:1 MIMO radio because
+       the addition of more radio chains would drain the battery life
+       of the mobile device too quickly. In the described scenario,
+       the highest available data rate for 1×1:1 communications is 65
+       Mbps. 
+
+    2. How can a MIMO system increase throughput at the Physical
+       layer? (Choose all that apply.)
+
+       A. Spatial multiplexing
+
+       B. A-MPDU
+
+       C. Transmit beamforming
+
+       D. 40 MHz channels
+
+       E. Dual-CTS protection
+
+       *答案解析*
+
+       A, C and D. Spatial multiplexing transmits multiple streams of
+       unique data at the same time. If a MIMO access point sends two
+       unique data streams to a MIMO client who receives both streams,
+       the throughput is effectively doubled. If a MIMO access point
+       sends three unique data streams to a MIMO client who receives
+       all three streams, the throughput is effectively
+       tripled. Because transmit beamforming results in constructive
+       multipath communication, the result is a higher signal-to-noise
+       ratio and greater received amplitude. Transmit beamforming will
+       result in higher throughput because of the higher SNR that
+       allows for the use of more complex modulation methods that can
+       encode more data bits. 40 MHz HT channels effectively double
+       the frequency bandwidth，which results in greater
+       throughput. A-MPDU and Dual-CTS protection are MAC layer
+       mechanisms. 
+
+    3. Which new power-management method defined by the 802.11n
+       amendment conserves power by powering down all but one radio?
+
+       A. A-MPDU
+
+       B. Power Save protection
+
+       C. PSMP
+
+       D. SM power save
+
+       E. PS mode
+
+       *答案解析*
+
+       D. Spatial multiplexing power save (SM power save) allows a
+       MIMO 802.11n device to power down all but one of its
+       radios. For example, a 4×4 MIMO device with four radio chains
+       would power down three of the four radios, thus conserving
+       power. SM power save defines two methods of operation: static
+       and dynamic. 
+
+    4. The guard interval is used as a buffer to compensate for what
+       type of interference?
+
+       A. Co-channel interference
+
+       B. Adjacent cell interference
+
+       C. RF interference
+
+       D. HT interference
+
+       E. Intersymbol interference
+
+       *答案解析*
+
+       E. The guard interval acts as a buffer for the delay spread,
+       and the normal guard interval is an 800-nanosecond buffer
+       between symbol transmissions. The guard interval will
+       compensate for the delay spread and help prevent intersymbol
+       interference. If the guard interval is too short, intersymbol
+       interference will still occur. HT radios also have the
+       capability of using a shorter 400-nanosecond GI. 
+
+    5. Name some of the factors that a modulation and coding scheme
+       (MCS) uses to define data rates for an HT radio. (Choose all
+       that apply.) 
+
+       A. Modulation method
+
+       B. Equal/unequal modulation
+
+       C. Number of spatial streams
+
+       D. GI
+
+       E. Channel size
+
+       *答案解析*
+
+       A, B, C, D and E. HT radios use modulation and coding schemes
+       to define data rates based on numerous factors, including
+       modulation type, the number of spatial streams, channel size,
+       guard interval, equal/unequal modulation, and other
+       factors. Each modulation and coding scheme (MCS) is a variation
+       of these multiple factors. A total of 77 modulation and coding
+       schemes exist for both 20 MHz HT channels and 40 MHz HT
+       channels. 
+
+    6. How can an HT radio increase throughput at the MAC sublayer of
+       the Data-Link layer? (Choose all that apply.)
+
+       A. A-MSDU
+
+       B. RIFS
+
+       C. A-MPDU
+
+       D. Guard interval
+
+       E. MTBA
+
+       *答案解析*
+
+       A, B, C and E. The 802.11n amendment introduces two new methods
+       of frame aggregation to help reduce overhead and increase
+       throughput. Frame aggregation is a method of combining multiple
+       frames into a single frame transmission. The two types of frame
+       aggregation are A-MSDU and A-MPDU. Multiple traffic ID block
+       acknowledgment (MTBA) frames are used to acknowledge
+       A-MPDUs. Block ACKs result in less overhead. RIFS is a
+       2-microsecond interframe space that can be used in an HT
+       Greenfield network during frame bursts. The 2-microsecond
+       interframe space is less overhead than the more commonly used
+       SIFS. Guard intervals are used at the Physical layer.
+
+    7. Transmit beamforming uses what type of frames to analyze the
+       MIMO channel before transmitting directed paths of data? 
+
+       A. Trigger frames
+
+       B. Beaming frames
+
+       C. Sounding frames
+
+       D. SM power save action frames
+
+       *答案解析*
+
+       C. An 802.11n transmitter that uses beamforming will try to
+       adjust the phase of the signals based on feedback from the
+       receiver using sounding frames. The transmitter is considered
+       the beamformer, and the receiver is considered the
+       beamformee. The beamformer and the beamformee work together to
+       educate each other about the characteristics of the MIMO channel.
+
+    8. A 3×3:2 MIMO radio can transmit and receive how many unique
+       streams of data?
+
+       A. Two.
+
+       B. Three.
+
+       C. Four.
+
+       D. Three equal and four unequal streams.
+
+       E. None—the streams are not unique data.
+
+       *答案解析*
+
+       A. MIMO radios transmit multiple radio signals at the same time
+       and take advantage of multipath. Each individual radio signal
+       is transmitted by a unique radio and antenna of the MIMO
+       system. Each independent signal is known as a spatial stream,
+       and each stream can contain different data than the other
+       streams transmitted by one or more of the other radios. A
+       3×3:2 MIMO system can transmit two unique data streams. A
+       3×3:2 MIMO system would use three transmitters and three
+       receivers; however, only two unique data streams are utilized. 
+
+    9. Name a capability not defined for A-MPDU.
+
+       A. Multiple QoS access categories
+
+       B. Independent data payload encryption
+
+       C. Individual MPDUs having the same receiver address
+
+       D. MPDU aggregation
+
+       *答案解析*
+
+       A. Multiple MPDUs can be aggregated into one frame. The
+       individual MPDUs within an A-MPDU must all have the same
+       receiver address. However, individual MPDUs must all be of the
+       same 802.11e quality-of-service access category. 
+
+    10. Which HT protection modes allow only for the association of HT
+        stations in the HT basic service set? (Choose all that apply.)
+
+        A. Mode 0—Greenfield mode
+
+        B. Mode 1—HT nonmember protection mode
+
+        C. Mode 2—HT 20 MHz protection mode
+
+        D. Mode 3—HT Mixed mode
+
+        *答案解析*
+
+        A, B and C. Modes 0, 1, and 2 all define protection to be used
+        in various situations where only HT stations are allowed to
+        associate to an HT access point. Mode 3—HT Mixed mode—defines
+        the use of protection when both HT and non-HT radios are
+        associated to an HT access point. 
+
+    11. Which of these capabilities are considered mandatory for an
+        802.11n access point as defined by the Wi-Fi Alliance’s
+        vendor certification program called Wi-Fi CERTIFIED n? (Choose
+        all that apply.) 
+
+        A. Three spatial streams in receive mode
+
+        B. WPA/WPA2
+
+        C. WMM
+
+        D. Two spatial streams in transmit mode
+
+        E. 2.4 GHz–40 MHz channels
+
+        *答案解析*
+
+        B, C and D. Some of the mandatory baseline requirements of
+        Wi-Fi CERTIFIED n include WPA/WPA2 certification, WMM
+        certification, and support for 40 MHz channels in the 5 GHz
+        U-NII bands. 40 MHz channels in 2.4 GHz are not
+        required. 802.11n access points must support at least two
+        spatial streams in both transmit and receive mode. Client
+        stations must support one spatial stream or better. 
+
+    12. MIMO radios use which mechanisms for transmit diversity?
+        (Choose all that apply.)
+
+        A. Maximum ratio combining (MRC)
+
+        B. Spatial multiplexing (SM)
+
+        C. Space-time block coding (STBC)
+
+        D. Cyclic shift diversity (CSD)
+
+        E. Multiple traffic ID block acknowledgment (MTBA)
+
+        *答案解析*
+
+        C and D. Cyclic shift diversity (CSD) is a method of transmit
+        diversity technique specified in the 802.11n standard. Unlike
+        STBC, a signal from a transmitter that uses CSD can be
+        received by legacy 802.11g and 802.11a devices. Maximum ratio
+        combining (MRC) is a method of receive diversity.
+
+    13. 802.11n (HT) radios are backward compatible with which of the
+        following types of 802.11 radios? (Choose all that apply.)
+
+        A. 802.11b radios (HR-DSSS)
+
+        B. 802.11a radios (OFDM)
+
+        C. 802.11 legacy radios (FHSS)
+
+        D. 802.11g radios (ERP)
+
+        *答案解析*
+
+        A, B and D. 802.11n (HT) radios are backward compatible with
+        older 802.11b radios (HR-DSSS), 802.11a radios (OFDM), and
+        802.11g radios (ERP). HT radios are not backward compatible
+        with legacy frequency hopping radios. 
+
+    14. How does transmit beamforming (TxBF) use multiple MIMO
+        antennas to increase range? 
+
+        A. Beamsteering
+
+        B. Phase shifting
+
+        C. Dynamic beamforming
+
+        D. Spatial multiplexing
+
+        *答案解析*
+
+        B. Transmit beamforming is a method that allows a MIMO
+        transmitter using multiple antennas to adjust the phase of the
+        outgoing transmissions in a coordinated method. If the
+        transmitter (TX) knows about the receiver’s location, the
+        phase of the multiple signals sent by a MIMO transmitter can
+        be adjusted. When the multiple signals arrive at the receiver,
+        they are in phase, resulting in constructive multipath instead
+        of the destructive multipath caused by out-of-phase
+        signals. Beamsteering and dynamic beamforming use smart
+        antenna technology to create directional beams. 
+
+    15. Which HT PPDU formats support both 20 MHz and 40 MHz channels?
+        (Choose all that apply.)
+
+        A. Non-HT legacy format
+
+        B. PCO mode
+
+        C. HT Mixed format
+
+        D. HT Greenfield format
+
+        *答案解析*
+
+        C and D. The HT Mixed format is considered mandatory, and
+        transmissions can occur in both 20 MHz and 40 MHz
+        channels. Support for the HT Greenfield format is optional,
+        and the HT radios can transmit by using both 20 MHz and 40 MHz
+        channels。 Support for the non-HT legacy format is mandatory
+        for 802.11n radios, and transmissions can occur in only 20 MHz
+        channels. PCO is not a PPDU format. 
+
+    16. A WLAN consultant has recommend that a new 802.11n HT network
+        be deployed by using channels in the 5 GHz U-NII bands. Why
+        would he recommend 5 GHz over 2.4 GHz? 
+
+        A. HT radios do not require DFS and TPC in the 5 GHz bands.
+
+        B. HT radios get better range using TxBF in the 5 GHz bands.
+
+        C. 40 MHz channels do not scale in the 2.4 GHz ISM band.
+
+        D. 5 GHz HT radios are less expensive than 2.4 GHz HT radios.
+
+        *答案解析*
+
+        C. Deploying 40 MHz HT channels at 2.4 GHz does not scale
+        properly in multiple channel architecture. Although 14
+        channels are available at 2.4 GHz, there are only 3
+        nonoverlapping 20 MHz channels available in the 2.4 GHz ISM
+        band. When the smaller channels are bonded together to form 40
+        MHz channels in the 2.4 GHz ISM band, any two 40 MHz channels
+        will overlap. Channel reuse patterns are not possible with 40
+        MHz channels in the 2.4 GHz ISM band. 
+
+    17. What 802.11n mode of operation sends the same data on two
+        adjacent 20 MHz channels? 
+
+        A. Greenfield mode
+
+        B. HT Mixed mode
+
+        C. Non-HT duplicate mode
+
+        D. LDPC mode
+
+        *答案解析*
+
+        C. Non-HT duplicate transmissions will be sent using 802.11a
+        data rates in the 5 GHz band or 802.11g data rates in the 2.4
+        GHz band. Non-HT duplicate transmissions are just sending the
+        same data on two adjacent 20 MHz (52 subcarriers) OFDM
+        channels at the same time. This will cause STAs operating in
+        either the primary or secondary channel to update their NAVs
+        and defer their transmissions. Non-HT duplicate mode improves
+        error rate performance but is not widely implemented by WLAN
+        vendors. 
+
+    18. What frequencies are defined for 802.11n (HT) radio
+        transmissions? (Choose all that apply.)
+
+        A. 902–928 MHz
+
+        B. 2.4–2.4835 GHz
+
+        C. 5.15–5.25 GHz
+
+        D. 5.25–5.35 MHz
+
+        *答案解析*
+
+        B and C. Other 802.11 technologies are frequency dependent on
+        a single RF band. For example, 802.11b/g radios can transmit
+        in only the 2.4 GHz ISM band. 802.11a are restricted to the 5
+        GHz U-NII bands. 802.11n radios are not locked to a single
+        frequency band and can transmit on both the 2.4 GHz ISM band
+        and the 5 GHz U-NII bands. 
+
+    19. What PHY layer mechanism might be used to increase throughput
+        for an HT radio in a clean RF environment with minimal
+        reflections and low multipath? 
+
+        A. Maximum ratio combining
+
+        B. 400-nanosecond guard interval
+
+        C. Switched diversity
+
+        D. Spatial multiplexing
+
+        E. Spatial diversity
+
+        *答案解析*
+
+        B. 802.11n also uses an 800-nanosecond guard interval;
+        however, a shorter  400-nanosecond guard interval is
+        optional. A shorter guard interval results in a shorter symbol
+        time, which has the effect of increasing data rates by about
+        10 percent. If the optional shorter 400-nanosecond guard
+        interval is used with an 802.11n radio, throughput should
+        increase. However, if intersymbol interference occurs because
+        of multipath, the result is data corruption. If data
+        corruption occurs, layer 2 retransmissions will increase and
+        the throughput will be adversely affected. Therefore, a
+        400-nanosecond guard interval should be used in only good RF
+        environments. If throughput goes down because of a shorter GI
+        setting, the default guard interval setting of 800 nanoseconds
+        should be used instead. 
+
+    20. What PHY layer mechanisms might be used to increase the range
+        for an 802.11n radio using a MIMO system? (Choose all that
+        apply.) 
+
+        A. Maximum ratio combining
+
+        B. Guard interval
+
+        C. Transmit beamforming
+
+        D. Spatial multiplexing
+
+        *答案解析*
+
+        A and C. As the distance between a transmitter and receiver
+        increases, the received signal amplitude decreases to levels
+        closer to the noise floor. Maximum ratio combining (MRC)
+        algorithms are used to combine multiple received signals by
+        looking at each unique signal and optimally combining the
+        signals in a method that is additive as opposed to
+        destructive. MIMO systems using both switched diversity and
+        MRC together will effectively raise the SNR level of the
+        received signal. Because transmit beamforming results in
+        constructive multipath communication, the result is a higher
+        signal-to-noise ratio and greater received
+        amplitude. Therefore, transmit beamforming will result in
+        greater range for individual clients communicating with an
+        access point. 
 
 * 第十九章 VHT & 802.11ac
   
@@ -3532,7 +7360,7 @@ Keith Parsons
 ** 20,40,80,160 MHz信道
 
    11ac在11n的基础上，引入了80MHz，160MHz的带宽。其中，40MHz带宽信道是
-   由两个相相邻的20MHz信道组合而成，80MHz带宽信道是由两个相邻的40MHz信
+   由两个相邻的20MHz信道组合而成，80MHz带宽信道是由两个相邻的40MHz信
    道组合而成，160MHz是由两个相邻或独立的两个80MHz信道构成。
 
    [[./images/2016/2016042602.png]]
@@ -3634,4 +7462,422 @@ Keith Parsons
 
 ** WFA certification
 
+     #+CAPTION: Wi-Fi CERTIFIED ac baseline requirements (phase 1)
+    | Feature                        | Mandatory                    | Optional                                                  |
+    |--------------------------------+------------------------------+-----------------------------------------------------------|
+    | Channel width                  | 20, 40, 80 MHz               | 80+80, 160 MHz                                            |
+    | Modulation and coding          | MCS 0–7                      | MCS 8,9                                                   |
+    | Spatial streams                | One for clients, two for APs | Two to eight                                              |
+    | Guard Interval                 | Long (800 nanoseconds)       | Short (400 nanoseconds)                                   |
+    | Beamforming feedback           |                              | Respond to beamforming sounding                           |
+    | Space-time block coding(STBC)  |                              | Transmit and receive STBC                                 |
+    | Low-density parity check(LDPC) |                              | Transmit and receive LDPC                                 |
+    | Multiuser MIMO                 |                              | Up to four spatial streams per client, using the same MCS |
+    |--------------------------------+------------------------------+-----------------------------------------------------------|
+
+** Review Questions
+
+    1. Which of the following technologies was optional in 802.11n and
+       now mandatory in 802.11ac? 
+
+       A. MIMO
+
+       B. RIFS
+
+       C. A-MPDU
+
+       D. A-MSDU
+
+       E. SU-MIMO
+
+       *答案解析*
+
+       C. 802.11ac requires that all frames are transmitted as
+       A-MPDU. MIMO and SUMIMO are synonymous with each other and
+       supported in both 802.11n and 802.11ac. A-MSDU is optional with
+       both technologies. RIFS is no longer supported and is obsolete.
+
+    2. With the first phase of 802.11ac supporting three spatial
+       streams, what is the maximum transmission speed?
+
+       A. 600 Mbps
+
+       B. 1.3 Gbps
+
+       C. 3.5 Gbps
+       
+       D. 6.933 Gbps
+
+       E. 7.0 Gbps
+
+       *答案解析*
+
+       B. The first phase of 802.11ac supporting three spatials
+       streams introduced transmission speeds up to 1.3 Gbps. 600 Mbps
+       is the maximum transmission speed for the 802.11n
+       amendment. 3.5 Gbps is the expected maximum transmission speed
+       of the second phase of 802.11ac, which is expected to support
+       four spatial streams. 6.933 Gbps is the maximum transmission
+       speed for the 802.11ac amendment. 
+
+    3. Which of the following modulation methods are supported with
+       802.11ac? (Choose all that apply.)
+
+       A. BPSK
+
+       B. BASK
+
+       C. 32-QAM
+
+       D. 64-QAM
+
+       E. 256-QAM
+
+       *答案解析*
+
+       A, D and E. The 802.11ac amendment supports BPSK, QPSK, 16-QAM,
+       64-QAM, and 256-QAM. BASK and 32-QAM do not exist.
+
+    4. Which of the following channel widths are supported in
+       802.11ac? (Choose all that apply.) 
+
+       A. 20 MHz
+
+       B. 40 MHz
+
+       C. 80 MHz
+
+       D. 80+80 MHz
+
+       E. 160 MHz
+
+       *答案解析*
+
+       A, B, C, D and E. All of these are supported channel
+       widths. The 160 MHz channel is actually made up of two 80 MHz
+       channels that can be side by side or separated. 
+
+    5. When a 160 MHz wide channel is used, how many primary channels
+        are defined?
+        
+        A. 1
+        
+        B. 2
+
+        C. 3
+
+        D. 4
+
+        E. None
+
+       *答案解析*
+
+       C. When a 160 MHz wide channel is used, an 80 MHz, 40 MHz, and
+       20 MHz primary channel are defined.
+
+    6. Using 256-QAM, how many bits are represented by each
+       subcarrier?
+
+       A. 1
+
+       B. 2
+
+       C. 4
+
+       D. 6
+
+       E. 8
+
+       *答案解析*
+
+       E. With 256-QAM, 256 distinct values can be represented, with
+       each subcarrier is capable of representing 8 bits.
+
+    7. How many modulation and coding schemes are defined in 802.11ac?
+
+       A. 8
+
+       B. 10
+
+       C. 64
+
+       D. 77
+
+       E. 256
+
+       *答案解析*
+
+       B. 802.11ac defines only 10 MCSs, unlike 802.11n, which
+       defined 77. 802.11n defined MCSs based on modulation, coding
+       method, the number of spatial streams, channel size, and guard
+       interval. 802.11ac defines 10 MCSs based upon modulation and
+       code rate. 
+
+    8. Which 802.11ac MCS range defines all of the MCSs that are
+       mandatory?
+
+       A. MCS 0–2
+
+       B. MCS 0–4
+
+       C. MCS 0–6
+
+       D. MCS 0–7
+
+       E. MCS 0–8
+
+       F. MCS 0–9
+
+       *答案解析*
+
+       D. MCS 0–7 are mandatory. MCS 8 and MCS 9 use 256-QAM, which is
+       optional but will most likely be supported by most vendors.
+
+    9. The 802.11ac amendment defines a maximum of how many spatial
+       streams for an AP, and how many maximum devices can an AP
+       communicate with at once?
+
+       A. One spatial stream, four devices
+
+       B. One spatial stream, eight devices
+
+       C. Four spatial streams, four devices
+
+       D. Eight spatial streams, four devices
+
+       E. Eight spatial streams, eight devices
+
+       *答案解析*
+
+       D. The amendment defines a maximum of eight spatial streams and
+       only allows MU-MIMO communications with a maximum of four
+       devices. 
+
+    10. Requiring all frames to be transmitted as A-MPDU frames
+        increases performance due to which of the following? (Choose
+        all that apply.) 
+
+        A. Frame overhead is reduced.
+        
+        B. Block ACK is required.
+        
+        C. Frame information is shifted from the MPDU header to the PLCP header.
+        
+        D. Reduced Interframe Space (RIFS) decreases the amount of time between frames.
+        
+        E. A-MSDU is required; A-MPDU is optional.
+
+        *答案解析*
+
+        A and B. A-MPDU is mandatory for all frames in 802.11ac. It
+        reduces the per-frame overhead and requires only a single
+        block ACK. Frame information is shifted from the slow PLCP
+        header to the faster MPDU header. RIFS is no longer
+        supported. 
+
+    11. Which of the following technologies is part of explicit
+        beamforming? (Choose all that apply.)
+
+        A. Channel sounding
+        
+        B. Feedback matrix
+        
+        C. Sounding matrix
+        
+        D. Steering matrix
+        
+        E. Null data packet
+        
+        F. Channel matrix
+
+        *答案解析*
+
+        B, D and E. The beamformer transmits an NDP announcement frame
+        followed by an NDP frame. The beamformee processes this
+        information and creates and transmits a feedback matrix. The
+        AP uses the feedback matrices to calculate a steering matrix
+        that is used to direct the transmission. 
+
+    12. What is the main reason that many smartphones do not support
+        multiple spatial streams?
+
+        A. It is difficult to install multiple antennas in the smart phone.
+        
+        B. The size of the necessary technology would make the smartphone larger than desired.
+        
+        C. Battery consumption would be too great.
+        
+        D. Most smartphones actually do support four spatial streams.
+
+        *答案解析*
+
+        C. Due to technology costs and battery consumption, many
+        smartphones only support a single stream of data.
+
+    13. Which of the following are QoS categories? (Choose all that
+        apply.)
+
+        A. =AC_VO= (access category voice)
+        
+        B. =AC_DA= (access category data)
+        
+        C. =AC_VI= (access category video)
+        
+        D. =AC_BE= (access category best effort)
+        
+        E. =AC_BK= (access category background)
+
+        *答案解析*
+
+        A, C, D and E. =AC_DA= is not a QoS category.
+
+    14. When transmitting a QoS frame using MU-MIMO, which of the
+        following statements is true? (Choose all that apply.)
+
+        A. Voice frames are always transmitted before lower-priority frames.
+        
+        B. The category that is used to take control of the transmission is known as the primary access category.
+        
+        C. If a lower category frame is transmitted, only higher category frames can be transmitted  using the other spatial streams.
+        
+        D. Lower category frames can be transmitted as long as they do not increase the transmission duration of the primary access category.
+        
+        E. Multiple lower category frames can be transmitted along
+        with the primary access category frame.
+
+        *答案解析*
+
+        B, D and E. The AP will initiate a transmission from whichever
+        access category is next in line. This is known as the primary
+        access category, and all others are known as secondary access
+        categories. The AP can transmit additional frames (one or
+        more) from primary or secondary access categories, providing
+        that the frames are shorter than the primary frame. 
+
+    15. Name some of the factors that a modulation and coding scheme
+        (MCS) uses to define data rates for a VHT radio? (Choose all
+        that apply.)
+
+        A. Modulation method
+
+        B. Equal/unequal modulation
+
+        C. Number of spatial streams
+
+        D. GI
+
+        E. Channel size
+
+        F. Code rate
+
+        *答案解析*
+
+        A and F. VHT radios use modulation and coding schemes to
+        define data rates based on modulation and code rate. This is
+        different from HT radios that used modulation type, the number
+        of spatial streams, channel size, guard interval,
+        equal/unequal modulation, and other factors. 
+
+    16. Which of these capabilities are considered mandatory for a
+        phase one 802.11ac access point as defined by the Wi-Fi
+        Alliance’s vendor certification program called Wi-Fi
+        CERTIFIED ac? (Choose all that apply.)
+
+        A. 20, 40, 80, 160 MHz channel
+
+        B. MCS 0–7
+
+        C. MCS 0–8
+
+        D. Two spatial streams
+
+        E. Long guard interval
+
+        *答案解析*
+
+        B, D and E. Wi-Fi CERTIFIED ac access points require 20, 40,
+        and 80 MHz channel widths, MCS 0-7, two spatial streams, and
+        800 nanosecond long guard interval. 
+
+    17. VHT radios are backward compatible with which of the following
+        type of 802.11 technology? (Choose all that apply.)
+
+        A. Clause 17 radios (HR-DSSS)
+
+        B. Clause 18 radios (OFDM)
+
+        C. Clause 14 radios (FHSS)
+
+        D. Clause 19 radios (ERP)
+
+        E. Clause 20 radios (HT)
+
+        *答案解析*
+
+        and E. VHT radios are backward compatible with all previous 5
+        GHz compliant radios. This include 802.11a (OFDM) radios and 5
+        GHz 802.11n (HT) radios. 
+
+    18. Which of the following statements is not true regarding the
+        number of subcarriers in the following channels? (Choose all
+        that apply.)
+
+        A. 40 MHz subcarriers = 2 times 20 MHz subcarriers
+
+        B. 40 MHz subcarriers > 2 times 20 MHz subcarriers
+
+        C. 80 MHz subcarriers = 2 times 40 MHz subcarriers
+
+        D. 80 MHz subcarriers > 2 times 40 MHz subcarriers
+
+        E. 160 MHz subcarriers = 2 times 80 MHz subcarriers
+
+        F. 160 MHz subcarriers > 2 times 80 MHz subcarriers
+
+        *答案解析*
+
+        B, D and F. A 20 MHz channel uses 64 subcarriers. A 40 MHz
+        channel uses 128 subcarriers. An 80 MHz channel uses 256
+        subcarriers. A 160 MHz channel is made of two 80 MHz channels
+        that can be either side by side or separated from each
+        other. The number of subcarriers in a 160 MHz channel is
+        exactly two times the number of 80 MHz subcarriers, 512 subcarriers.
+
+    19. The 802.11ac amendment defines a maximum of how many spatial
+        streams for client? 
+
+        A. One spatial stream
+
+        B. Two spatial streams
+
+        C. Four spatial streams
+
+        D. Eight spatial streams
+
+        *答案解析*
+
+        C. The amendment defines a maximum of four spatial streams for
+        a client and eight for an AP.
+
+    20. Which 802.11ac technology is the most revolutionary?
+
+        A. 80 MHz and 160 MHz channel widths
+
+        B. A-MPDU for all frames
+
+        C. 256-QAM modulation
+
+        D. 5 GHz only frequencies
+
+        E. MU-MIMO
+
+        F. Explicit beamforming
+
+        *答案解析*
+
+        E. MU-MIMO is the most revolutionary technology. 802.11 APs
+        will now be able to transmit to multiple client stations at
+        the same time. 80 MHz and 160 MHz channels are an expansion of
+        the 40 MHz bonded channel introduced in 802.11n. 
+    
 * Bring Your Own Device (BYOD)                                      :noexport:

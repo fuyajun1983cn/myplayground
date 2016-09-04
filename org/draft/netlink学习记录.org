@@ -129,7 +129,8 @@
        - =protocol= : protocol类型定义在include/linux/socket.h
        - netlink消息类型： =RTM_NEWLINK= or =RTM_NEWNEIGH=
        - =doit= : addition/deletion/modification回调函数。
-       - =dumpit= : 检索信息
+       - =dumpit= : 检索信息, clear data after completion of command
+         or on error.
        - =calcit= : 计算buffer的大小。 
 
        =rtnetlink= 模块有一个表名为: =rtnl_msg_handlers= . 该表通过协
@@ -541,6 +542,117 @@
           an ACK or error code to the client. 
 
       参考资料： [[http://www.linuxfoundation.org/collaborate/workgroups/networking/generic_netlink_howto][=generic_netlink_howto=]]
+
+** ROUTE netlink
+    =NETLINK_ROUTE= 协议用于更新路由表，配置网络接口时的链路参数，为网
+    络接口配置IP地址时的地址信息，入队规则，数据流量分类，为不同类型数
+    据流量配置过滤器， 设置路由规则等等，它控制了网络路由系统。
+
+*** LINK Parameter Messages
+         set and retrieve information about the network interfaces on
+         the system. It consists of the following message types:
+         1. =RTM_NEWLINK=
+         2. =RTM_DELLINK=
+         3. =RTM_GETLINK=
+
+**** Monitor for new links using Python and Netlink
+          #+BEGIN_SRC python
+            import os
+            import socket
+            import struct
+
+            # These constants map to constants in the Linux kernel. This is a crappy
+            # way to get at them, but it'll do for now.
+            RTMGRP_LINK = 1
+
+            NLMSG_NOOP = 1
+            NLMSG_ERROR = 2
+
+            RTM_NEWLINK = 16
+            RTM_DELLINK = 17
+
+            IFLA_IFNAME = 3
+
+            # Create the netlink socket and bind to RTMGRP_LINK,
+            s = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, socket.NETLINK_ROUTE)
+            s.bind((os.getpid(), RTMGRP_LINK))
+
+            while True:
+                data = s.recv(65535)
+                msg_len, msg_type, flags, seq, pid = struct.unpack("=LHHLL", data[:16])
+
+                if msg_type == NLMSG_NOOP:
+                    print "no-op"
+                    continue
+                elif msg_type == NLMSG_ERROR:
+                    print "error"
+                    break
+
+                # We fundamentally only care about NEWLINK messages in this version.
+                if msg_type != RTM_NEWLINK:
+                    continue
+
+                data = data[16:]
+
+                family, _, if_type, index, flags, change = struct.unpack("=BBHiII", data[:16])
+
+                remaining = msg_len - 32
+                data = data[16:]
+
+                while remaining:
+                    rta_len, rta_type = struct.unpack("=HH", data[:4])
+
+                    # This check comes from RTA_OK, and terminates a string of routing
+                    # attributes.
+                    if rta_len < 4:
+                        break
+
+                    rta_data = data[4:rta_len]
+
+                    increment = (rta_len + 4 - 1) & ~(4 - 1)
+                    data = data[increment:]
+                    remaining -= increment
+
+                    # Hoorah, a link is up!
+                    if rta_type == IFLA_IFNAME:
+                        print "New link %s" % rta_data          
+          #+END_SRC
+*** The ADDR Messages
+         set/unset the IP address on the network interface on the
+         system. It consists of the following message types:
+         1. =RTM_NEWADDR=
+         2. =RTM_DELADDR=
+         3. =RTM_GETADDR=
+
+*** The ROUTE Messages
+          update the routing table. It consists of the following
+          message types:
+          1. =RTM_NEWROUTE=
+          2. =RTM_DELROUTE=
+          3. =RTM_GETROUTE=
+
+*** The QDISC Messages
+          add/delete the qdisc to the queuing discipline of the
+          system. It consists of the following message types:
+          1. =RTM_NEWQDISC=
+          2. =RTM_DELQDISC=
+          3. =RTM_GETQDISC=
+
+*** The CLASS Messages
+          add/delete a class to the qdisc of the queuing discipline of
+          the system. It consists of the following message types:
+          1. RTM_NEWCLASS
+          2. RTM_DELCLASS
+          3. RTM_GETCLASS
+
+*** The FILTER Messages
+         add/delete a fi lter to the class of qdisc of the queuing
+         discipline of the system. It consists of following message
+         types: 
+         1. =RTM_NEWFILTER=
+         2. =RTM_DELFILTER=
+         3. =RTM_GETFILTER=
+         
 ** Socket Monitoring Interface
      =sock_diag= netlink提供了一个基于netlink的子系统用于获取socket的
      相关信息。
@@ -576,8 +688,32 @@
            }         
          #+END_SRC
 
+** 总结
+     What happens in user space?
+
+     1. It creates a netlink socket and binds it to the address structure.
+     2. It allocates the request message.
+     3. It allocates a message structure msg.
+     4. It calls system call sendmsg.
+
+     What happens in kernel space?
+     
+     1. The received msg structure and the necessary data structure
+        gets copied to kernel space by =copy_from_user= and verify iovec.
+     2. It creates =sk_buff= and uses =memcpy_from_iovec= to copy the msg's
+         iovec to the data area of =sk_buff= .
+     3. It searches the =nl_table= with the sock that has the same pid
+        as the current process.
+     4. It enqueues the =sk_buff= in the socket ’ s receive queue and
+        then dequeues each =sk_buff= in the receive queue.
+     5. It extracts the family and type from the =sk_buff= ; and based
+        on the family and type values, it checks the =rtnetlink_link=
+        table for calling the appropriate doit function, which takes
+        the appropriate actions. 
+
 ** libnl编程实例
 
+*** 用户空间netlink的创建
+         : fd = socket(AF_NETLINK, SOCK_RAW, protocol);
 *** 查询附近的AP列表
-
      

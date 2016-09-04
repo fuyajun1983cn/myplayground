@@ -7,7 +7,6 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * WiFi Display连接步骤
-  
 ** WFD Device Discovery
 
 ** WFD Service Discovery(Optional)
@@ -69,6 +68,15 @@
 
 ** WFD Session Teardown
 
+* Information Elements
+  
+** WFD Device Info
+
+** Coupled Sink Info
+
+** WFD Extended Capability
+
+** WFD Session Info
 * RTSP message
 
   WFD Source开始向WFD Sink发送一个M1请求，开始了WFD Capability协商，终
@@ -137,7 +145,7 @@
     [[./images/2016/2016050613.png]]
 
 ** M7
-    PLAY
+    : PLAY
 *** Request(Sink => Source)
     [[./images/2016/2016050614.png]]
 
@@ -145,30 +153,30 @@
     [[./images/2016/2016050615.png]]
 
 ** M8
-    TEARDOWN
+    : TEARDOWN
 
 ** M9
-    PAUSE
+    : PAUSE
 
 ** M10
-    RTSP SET_PARAMETER wfd-route
+    : RTSP SET_PARAMETER wfd-route
 
 ** M11
-    RTSP SET_PARAMETER wfd-connector-type
+    : RTSP SET_PARAMETER wfd-connector-type
 
 ** M12
-    RTSP SET_PARAMETER wfd-standby
+    : RTSP SET_PARAMETER wfd-standby
 
 ** M13
-    RTSP SET_PARAMETER wfd-idr-request
+    : RTSP SET_PARAMETER wfd-idr-request
 
 ** M14
-    RTSP SET_PARAMETER wfd-uibc-capability
+    : RTSP SET_PARAMETER wfd-uibc-capability
 
 ** M15
     enable or disable UIBC
-    RTSP SET_PARAMETER wfd-uibc-setting
+    : RTSP SET_PARAMETER wfd-uibc-setting
 
 ** M16
-    是一个RTSP GET_PARAMETER请求，没有body信息，主要用于确认当前的RTSP
+    是一个 =RTSP GET_PARAMETER= 请求，没有body信息，主要用于确认当前的RTSP
     会话是否处于活跃状态。

@@ -193,64 +193,78 @@
     总体的类结果如下：
     #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081330.png :cmdline -charset UTF-8
       @startuml
+      title <b>抽象工厂模式</b>
+      package "Shape产品类" {
       interface Shape {
-       void draw()
-      }
-      interface Printer {
-       void print()
+      +void draw()
       }
 
       class Rectangle {
-      void draw()
+      +void draw()
       }
       class Square {
-      void draw()
+      +void draw()
       }
       class Circle {
-      void draw()
+      +void draw()
+      }
+      Shape <|.. Rectangle
+      Shape <|.. Square
+      Shape <|.. Circle
       }
 
-      Shape <|-- Rectangle
-      Shape <|-- Square
-      Shape <|-- circle
+      package "Printer产品类" {
+      interface Printer {
+      +void print()
+      }
 
       class PaperPrinter {
-      void print()
+      +void print()
       }
 
       class WebPrinter {
-      void print()
+      +void print()
       }
 
       class ScreenPrinter {
-      void print()
+      +void print()
+      }
+      Printer <|.. PaperPrinter
+      Printer <|.. WebPrinter
+      Printer <|.. ScreenPrinter
       }
 
-      Printer <|-- PaperPrinter
-      Printer <|-- WebPrinter
-      Printer <|-- ScreenPrinter
 
+
+      package "工厂类"  {
       abstract class AbstractFactory {
-         abstract Printer getPrinter(String type);
-         abstract Shape getShape(String shape) ;
+      +abstract Printer getPrinter(String type);
+      +abstract Shape getShape(String shape) ;
       }
-
-      class ShapeFactory
-      class PrinterFactory
+      class ShapeFactory {
+      +Shape getShape(String shape)
+      }
+      class PrinterFactory {
+      +Printer getPrinter(String type)
+      }
 
       AbstractFactory <|-- ShapeFactory
       AbstractFactory <|-- PrinterFactory
 
+      AbstractFactory .. Shape
+      AbstractFactory .. Printer
+
+      }
+
       class FactoryProducer {
-      static AbstractFactory getFactory(String choice)
+      +static AbstractFactory getFactory(String choice)
       }
 
       class Main
 
-      FactoryProducer -- ShapeFactory
-      FactoryProducer -- PrinterFactory
+      FactoryProducer .. AbstractFactory
 
-      Main -- FactoryProducer
+      Main  -->  FactoryProducer: <<use>>
 
       @enduml
     #+END_SRC
@@ -259,7 +273,92 @@
     [[file:./images/2016/2016081330.png]]
 
 ** 构造器(Builder)
+      构造器模式是使用一些简单的对象去创建一个更复杂的对象。它一步步地
+      从小而简单的对象中创建更大的对象。
 
+*** 情景分析
+        例如，当我们创建一个应用程序的主窗体时，我们需要创建一个菜单，
+        一个工具栏，然后将它们加入到主窗体中。
+
+        对于每个窗体，我们需要创建一个空的窗体，创建一个菜单，工具栏，
+        并将菜单、工具栏安装到窗体中。
+
+        #+BEGIN_SRC java
+          class Menu {
+          }
+          class ToolBar {
+          }
+          class MainWindow {
+              Menu menu;
+              ToolBar toolBar;
+              public Menu getMenu() {
+                  return menu;
+              }
+              public void setMenu(Menu menu) {
+                  this.menu = menu;
+              }
+              public ToolBar getToolBar() {
+                  return toolBar;
+              }
+              public void setToolBar(ToolBar toolBar) {
+                  this.toolBar = toolBar;
+              }
+          }
+          class WindowBuilder{
+              public static MainWindow createWindow(){
+                  MainWindow window = new MainWindow();
+                  Menu menu = new Menu();
+                  ToolBar toolBar = new ToolBar();
+                  window.setMenu(menu);
+                  window.setToolBar(toolBar);
+                  return window;
+              }
+          }
+          public class Main {
+              public static void main(String[] args) {
+                  MainWindow object = WindowBuilder.createWindow();
+
+              }
+          }        
+        #+END_SRC
+    
+        类关系图如下：
+        #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082901.png :cmdline -charset UTF-8
+          @startuml
+          package "Component Objects" {
+                  class Menu
+                  class ToolBar
+          }
+
+          class MainWindow {
+                Menu menu
+               ToolBar toolBar
+
+               +Menu getMenu()
+               +void setMenu(Menu menu)
+               +ToolBar getToolBar()
+               +void setToolBar(ToolBar toolBar)
+          }
+
+          MainWindow o-- Menu
+          MainWindow o-- ToolBar
+
+          class WindowBuilder {
+                static MainWindow createWindow()
+          }
+
+          WindowBuilder -- MainWindow
+
+          class Main
+
+          Main --> WindowBuilder: <<use>>
+
+          @enduml
+        #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016082901.png]]
+       
 ** 工厂方法(Factory Method)
    defines an abstract class that creates objects but lets each
    subclass decide which object to create. 
@@ -267,20 +366,333 @@
    定义一个用于创建对象的接口，让子类决定实例化哪一个类，工厂方法使一
    个类的实例化延迟到其子类。
 
-   #+BEGIN_SRC plantuml :file ./images/2016/2016051801.png :cmdline -charset UTF-8
-     @startuml
-     AbstractFactory <|.. ConcreteFactory
-     AbstractProduct <|.. ConcreteProduct
-     ConcreteFactory ..> ConcreteProduct
-     @enduml
-   #+END_SRC
+   工厂方法将使用者隐藏了对象创建的逻辑。
 
-   #+RESULTS:
-   [[file:./images/2016/2016051801.png]]
+   
+*** 情景分析
+
+       定义Shape接口：
+       #+BEGIN_SRC java
+         public interface Shape {
+            void draw();
+         }       
+       #+END_SRC
+
+       定义Rectangle类：
+       #+BEGIN_SRC java
+         public class Rectangle implements Shape {
+            @Override
+            public void draw() {
+               System.out.println("Inside Rectangle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义Square类：
+       #+BEGIN_SRC java
+         public class Square implements Shape {
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Square::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义Circle类：
+       #+BEGIN_SRC java
+         public class Circle implements Shape {
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Circle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义ShapeFactory类：
+       #+BEGIN_SRC java
+         public class ShapeFactory {
+           
+            //use getShape method to get object of type shape 
+            public Shape getShape(String shapeType){
+               if(shapeType == null){
+                  return null;
+               }    
+               if(shapeType.equalsIgnoreCase("CIRCLE")){
+                  return new Circle();
+               } else if(shapeType.equalsIgnoreCase("RECTANGLE")){
+                  return new Rectangle();
+               } else if(shapeType.equalsIgnoreCase("SQUARE")){
+                  return new Square();
+               }
+               return null;
+            }
+         }       
+       #+END_SRC
+
+       下面是使用工厂类的示例：
+       #+BEGIN_SRC java
+         public class Main {
+
+            public static void main(String[] args) {
+               ShapeFactory shapeFactory = new ShapeFactory();
+
+               //get an object of Circle and call its draw method.
+               Shape shape1 = shapeFactory.getShape("CIRCLE");
+
+               //call draw method of Circle
+               shape1.draw();
+
+               //get an object of Rectangle and call its draw method.
+               Shape shape2 = shapeFactory.getShape("RECTANGLE");
+
+               //call draw method of Rectangle
+               shape2.draw();
+
+               //get an object of Square and call its draw method.
+               Shape shape3 = shapeFactory.getShape("SQUARE");
+
+               //call draw method of circle
+               shape3.draw();
+            }
+         }       
+       #+END_SRC
+
+       类图
+
+       #+BEGIN_SRC plantuml :file ./images/2016/2016051801.png :cmdline -charset UTF-8
+         @startuml
+
+         class Shape
+         class Main
+
+         package "对象类" {
+                 class Rectangle
+                 class Square
+                 class Circle
+
+                 Shape <|-- Rectangle
+                 Shape <|-- Square
+                 Shape <|-- Circle
+         }
+
+         class ShapeFactory  {
+               +Shape getShape(String shapeType)
+         }
+         ShapeFactory -->Shape
+         Main --> ShapeFactory : <<use>>
+         @enduml
+       #+END_SRC
+       
+       #+RESULTS:
+       [[file:./images/2016/2016051801.png]]
 
 ** 原型(Prototype)
+     原型模式拥有较好的性能去复制对象。
+     
+     在原型模式中，一般返回对象的拷贝而不是重新创建一个新的对象。
+
+     如果创建一个新的对象代价很多，特别是涉及到递归时，会考虑使用原型
+     模式。
+
+     
+*** 情景分析
+
+       创建抽象类：
+       #+BEGIN_SRC java
+         abstract class Shape implements Cloneable {
+            
+            private String id;
+            protected String type;
+            
+            abstract void draw();
+            
+            public String getType(){
+               return type;
+            }
+            
+            public String getId() {
+               return id;
+            }
+            
+            public void setId(String id) {
+               this.id = id;
+            }
+            
+            public Object clone() {
+               Object clone = null;
+               try {
+                  clone = super.clone();
+               } catch (CloneNotSupportedException e) {
+                  e.printStackTrace();
+               }
+               return clone;
+            }
+         }       
+       #+END_SRC
+
+       创建三个具体子类：
+       #+BEGIN_SRC java
+         class Rectangle extends Shape {
+
+            public Rectangle(){
+              type = "Rectangle";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Rectangle::draw() method.");
+            }
+         }
+         class Square extends Shape {
+
+            public Square(){
+              type = "Square";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Square::draw() method.");
+            }
+         }
+         class Circle extends Shape {
+
+            public Circle(){
+              type = "Circle";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Circle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       创建ShapeProtoType ，它返回不同shape子类的原型：
+       #+BEGIN_SRC java
+         class ShapeProtoType{
+           /*w w w .  j a va  2  s. co  m*/
+            private static Hashtable<String, Shape> shapeMap 
+               = new Hashtable<String, Shape>();
+
+            public static Shape getShape(String shapeId) {
+               Shape cachedShape = shapeMap.get(shapeId);
+               return (Shape) cachedShape.clone();
+            }
+            public static void loadCache() {
+               Circle circle = new Circle();
+               circle.setId("1");
+               shapeMap.put(circle.getId(),circle);
+
+               Square square = new Square();
+               square.setId("2");
+               shapeMap.put(square.getId(),square);
+
+               Rectangle rectangle = new Rectangle();
+               rectangle.setId("3");
+               shapeMap.put(rectangle.getId(),rectangle);
+            }
+         }
+         public class Main{
+            public static void main(String[] args) {
+               ShapeProtoType.loadCache();
+
+               Shape clonedShape = (Shape) ShapeProtoType.getShape("1");
+               System.out.println("Shape : " + clonedShape.getType());    
+
+               Shape clonedShape2 = (Shape) ShapeProtoType.getShape("2");
+               System.out.println("Shape : " + clonedShape2.getType());    
+
+               Shape clonedShape3 = (Shape) ShapeProtoType.getShape("3");
+               System.out.println("Shape : " + clonedShape3.getType());    
+            }
+         }       
+       #+END_SRC
+      
+       类关系图：
+       #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082902.png :cmdline -charset UTF-8
+         @startuml
+         interface Cloneable
+
+         class Shape {
+               +Object clone()
+         }
+
+         Cloneable <|.. Shape
+         class Rectangle
+         class Circle
+         class Square
+
+         Shape <|-- Rectangle
+         Shape <|-- Circle
+         Shape <|-- Square
+
+         class ShapeProtoType
+
+         ShapeProtoType -- Shape
+         class Main
+         Main --> ShapeProtoType: <<use>>
+
+         @enduml
+       #+END_SRC
+
+       #+RESULTS:
+       [[file:./images/2016/2016082902.png]]
 
 ** 单例(Singleton)
+     
+      单例 模式涉及一个类，主要是为了保持这个类的对象任何时候只能有一
+      个实例存在。
+
+      
+*** 情景分析 
+
+        #+BEGIN_SRC java
+          class MainWindow {
+             //create an object of MainWindow
+             private static MainWindow instance = new MainWindow();
+
+             //make the constructor private so that this class cannot be
+             //instantiated by other class
+             private MainWindow(){}
+
+             //Get the only object available
+             public static MainWindow getInstance(){
+                return instance;
+             }
+
+             public void showMessage(){
+                System.out.println("Hello World!");
+             }
+          }
+
+          public class Main {
+             public static void main(String[] args) {
+                //Get the only object available
+                MainWindow object = MainWindow.getInstance();
+
+                //show the message
+                object.showMessage();
+             }
+          }        
+        #+END_SRC
+
+      示例图：
+      #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082903.png :cmdline -charset UTF-8
+        @startuml
+        class MainWindow {
+            +static MainWindow getInstance()
+        }
+
+        class Main
+
+        Main  --> MainWindow : getInstance
+        @enduml
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:./images/2016/2016082903.png]]
 
 * 结构模式
   主要描述组织对象和类以完成更大的目标。主要有如下一些具体模式：

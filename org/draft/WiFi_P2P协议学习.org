@@ -5,6 +5,7 @@
 
 * WiFi P2P概述
 ** WiFi P2P技术基本要求
+
      WiFi P2P技术要求支持P2P的设备具备如下能力：
      1. 至少支持802.11g, 包含支持WPA2安全协议(RSN/WPA2 with AES-CCMP encryption)。
      2. 支持WPS。
@@ -25,6 +26,7 @@
         - Leave a P2P Group
 
 ** 可选的能力要求
+
      1. 5GHz support
      2. P2P Group Owner Functionality
         - Support multiple Client connections
@@ -43,6 +45,7 @@
         roles
 
 ** 参考资料
+
     1. WiFi P2P V1.2
     2. WPS V1.0
     3. WMM V1.2
@@ -53,6 +56,7 @@
    A Wi-Fi P2P network is a non-infrastructure connection of Wi-Fi CERTIFIED devices. 
 
 *** Key features of Wi-Fi P2P networks
+
       - 与Infrastructure网络相同的一些特征：
         - Full, robust WPA2™ security using AES
         - Typical WiFi data rates (up to 802.11n)
@@ -799,6 +803,7 @@
 
 
 
+* P2P 帧格式
 
 * 附录
 

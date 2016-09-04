@@ -10,6 +10,7 @@
   [[./images/2016/2016011401.png]]
 
 ** 概述   
+
    Wi-Fi Simple Configuration 定义了一些新的802.11 IE。 这些IE包含在
    Beacon，Probe Request和Probe Response帧中 。
    这些IE的目的主要是告知其他设备执行WSC操作的能力。
@@ -73,9 +74,11 @@
 
 
 ** 消息
+
    Registration Protocol消息通常封装在其他的消息类型中，如EAP或UPnP。
 
 *** TLV
+
     大部分WSC属性是简单的数据结构，但是有些是嵌套的数据结构，本身包含
     其他的TLV属性。 
 
@@ -84,6 +87,7 @@
 *** 管理帧
     
 **** 管理帧格式
+
      WSC Device Discovery是通过使用包含在Beacon，Probe Request和Probe
      Response中的IE信息来完成的。WSC的IE信息格式遵循IEEE 802.11的格式，
      如下图所示 ：
@@ -91,6 +95,7 @@
 
      
 **** 要点提要
+
      1. AP必须在Beacon和Probe Response帧中提供WSC IE信息，STA则必须在
         Probe Request帧中提供WSC IE信息，以表明其支持WSC。
 
@@ -106,7 +111,7 @@
      5. 成功关联后，STA会发送一个EAPOL-Start数据包给AP，并等待AP回复
         EAP-Request/Identity。 如果(re)association request中包含一个
         WSC IE信息，并且WSC IE的版本在2.0以后，则AP也可以在收到
-        EAPOL-Start之前直接向AP发送EAP-Request/Identiry。 当STA收到此
+        EAPOL-Start之前直接向STA发送EAP-Request/Identiry。 当STA收到此
         包后，它会响应一个EAP-Response-Identity来表明它将成功Enrollee
         或Registar。
 

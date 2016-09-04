@@ -12,6 +12,214 @@
    
 ** Fragment
    
+** 进程与线程
+    Android世界的Process按优先级分为如下几类：
+    1. Top
+       - Active
+    2. High
+       - Visbile
+       - Service
+    3. Low
+       - Background
+       - Empty
+
+     进程的优先级从高到低依次分为五类，越往下，在内存紧张的时候越有可
+       能被系统杀掉。简而言之，越是容易被用户感知到的进程，其优先级必
+       定更高。
+
+*** 线程调度（Thread Scheduling）
+         Linux系统的调度器在分配time slice的时候，采用的
+         CFS（completely fair scheduler）策略。这种策略不但会参考单个
+         线程的优先级，还会追踪每个线程已经获取到的time slice数量，如
+         果高优先级的线程已经执行了很长时间，但低优先级的线程一直在等
+         待，后续系统会保证低优先级的线程也能获取更多的CPU时间。显然使
+         用这种调度策略的话，优先级高的线程并不一定能在争取time slice
+         上有绝对的优势，所以Android系统在线程调度上使用了cgroups的概
+         念，cgroups能更好的凸显某些线程的重要性，使得优先级更高的线程
+         明确的获取到更多的time slice。
+
+         Android将线程分为多个group，其中两类group尤其重要。一类是
+         default group，UI线程属于这一类。另一类是background group，工
+         作线程应该归属到这一类。background group当中所有的线程加起来
+         总共也只能分配到5～10%的time slice，剩下的全部分配给default
+         group，这样设计显然能保证UI线程绘制UI的流畅性。
+
+         Android开发者需要显式的将工作线程归于background group以降低工
+         作线程的优先级：
+         #+BEGIN_SRC java
+           new 
+               Thread(
+                      new 
+                      Runnable() {
+                          @Override
+                          public 
+                              void 
+                              run() {
+                              Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                          }
+                      }).start();         
+         #+END_SRC
+
+         所以在我们决定新启一个线程执行任务的时候，首先要问自己这个任
+         务在完成时间上是否重要到要和UI线程争夺CPU资源。如果不是，降低
+         线程优先级将其归于background group，如果是，则需要进一步的
+         profile看这个线程是否造成UI线程的卡顿。
+         
+*** 启动线程
+         
+**** new Thread()
+           这是Android系统里开线程最简单的方式，也只能应用于最简单的场
+           景，简单的好处却伴随不少的隐患。 
+           #+BEGIN_SRC java
+             new 
+                 Thread(
+                        new 
+                        Runnable() {
+                            @Override
+                            public 
+                                void 
+                                run() {
+                            }
+                        }).start();           
+           #+END_SRC
+
+           这种方式仅仅是起动了一个新的线程，没有任务的概念，不能做状
+           态的管理。start之后，run当中的代码就一定会执行到底，无法中
+           途取消。 
+
+           Runnable作为匿名内部类还持有了外部类的引用，在线程退出之前，
+           该引用会一直存在，阻碍外部类对象被GC回收，在一段时间内造成
+           内存泄漏。 
+
+           没有线程切换的接口，要传递处理结果到UI线程的话，需要写额外
+           的线程切换代码。
+
+           如果从UI线程启动，则该线程优先级默认为Default，归于default
+           cgroup，会平等的和UI线程争夺CPU资源。这一点尤其需要注意，在
+           对UI性能要求高的场景下要记得
+           :  Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
+           虽说处于background group的线程总共只能争取到5～10%的CPU资源，
+           但这对绝大部分的后台任务处理都绰绰有余了，1ms和10ms对用户来
+           说，都是快到无法感知，所以我们一般都偏向于在background
+           group当中执行工作线程任务。
+
+**** AsyncTask
+
+           #+BEGIN_SRC java
+             public  class MyAsyncTask extends  AsyncTask {
+                 @Override
+                 protected 
+                     Object doInBackground(Object[] params) {
+                     return 
+                         null
+                         ;
+                 }
+                 @Override
+                 protected 
+                     void 
+                     onPreExecute() {
+                     super
+                         .onPreExecute();
+                 }
+                 @Override
+                 protected 
+                     void 
+                     onPostExecute(Object o) {
+                     super
+                         .onPostExecute(o);
+                 }
+             }           
+           #+END_SRC
+
+          和使用Thread()不同的是，多了几处API回调来严格规范工作线程与
+          UI线程之间的交互。我们大部分的业务场景几乎都符合这种规范，比
+          如去磁盘读取图片，缩放处理需要在工作线程执行，最后绘制到
+          ImageView控件需要切换到UI线程。
+
+          AsyncTask的几处回调都给了我们机会去中断任务，在任务状态的管
+          理上较之Thread()方式更为灵活。值得注意的是AsyncTask的
+          cancel()方法并不会终止任务的执行，开发者需要自己去检查cancel
+          的状态值来决定是否中止任务。
+
+          AsyncTask也有隐式的持有外部类对象引用的问题，需要特别注意防
+          止出现意外的内存泄漏。
+
+          AsyncTask由于在不同的系统版本上串行与并行的执行行为不一致，
+          被不少开发者所诟病，这确实是硬伤，绝大部分的多线程场景都需要
+          明确任务是串行还是并行。
+
+          线程优先级为background，对UI线程的执行影响极小。
+
+**** HandlerThread
+
+           在需要对多任务做更精细控制，线程切换更频繁的场景之下，
+           Thread()和AsyncTask都会显得力不从心。HandlerThread却能胜任
+           这些需求甚至更多。 
+
+           HandlerThread将Handler，Thread，Looper，MessageQueue几个概
+           念相结合。Handler是线程对外的接口，所有新的message或者
+           runnable都通过handler post到工作线程。Looper在MessageQueue
+           取到新的任务就切换到工作线程去执行。不同的post方法可以让我
+           们对任务做精细的控制，什么时候执行，执行的顺序都可以控制。
+           HandlerThread最大的优势在于引入MessageQueue概念，可以进行多
+           任务队列管理。 
+
+           HandlerThread背后只有一个线程，所以任务是串行执行的。串行相
+           对于并行来说更安全，各任务之间不会存在多线程安全问题。
+
+           HandlerThread所产生的线程会一直存活，Looper会在该线程中持续
+           的检查MessageQueue。这一点和Thread()，AsyncTask都不同，
+           thread实例的重用可以避免线程相关的对象的频繁重建和销毁。
+
+           HandlerThread较之Thread()，AsyncTask需要写更多的代码，但在
+           实用性，灵活度，安全性上都有更好的表现。
+
+**** ThreadPoolExecutor
+
+           Thread(),AsyncTask适合处理单个任务的场景，HandlerThread适合
+           串行处理多任务的场景。当需要并行的处理多任务之时，
+           ThreadPoolExecutor是更好的选择。
+
+           #+BEGIN_SRC java
+             public static Executor THREAD_POOL_EXECUTOR
+                 = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                                    TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
+           #+END_SRC
+           
+           
+**** IntentService
+
+           IntentService又是另一种开工作线程的方式，从名字就可以看出这
+           个工作线程会带有service的属性。和AsyncTask不同，没有和UI线
+           程的交互，也不像HandlerThread的工作线程会一直存活。
+           IntentService背后其实也有一个HandlerThread来串行的处理
+           Message Queue，从IntentService的onCreate方法可以看出： 
+
+           #+BEGIN_SRC java
+             @Override
+             public void onCreate() {
+                 // TODO: It would be nice to have an option to hold a partial wakelock
+                 // during processing, and to have a static startService(Context, Intent)
+                 // method that would launch the service & hand off a wakelock.
+                 super.onCreate();
+                 HandlerThread thread = 
+                     new HandlerThread(
+                                   "IntentService[" 
+                                   + mName + 
+                                   "]"
+                                   );
+                 thread.start();
+                 mServiceLooper = thread.getLooper();
+                 mServiceHandler = new ServiceHandler(mServiceLooper);
+             }
+           #+END_SRC
+
+           只不过在所有的Message处理完毕之后，工作线程会自动结束。所以
+           可以把IntentService看做是Service和HandlerThread的结合体，适
+           合需要在工作线程处理UI无关任务的场景。 
+
+          
 ** 安全策略
    在Android中,安全涵盖了应用程序的部署和执行.对于部署来
    说,Android应用程序必须被赋予一个数字证书才允许被安装到某个设备中.对
@@ -563,6 +771,182 @@
 *** P2P/Miracast
 
 **** WifiP2pServiceImpl
+
+          连接一个 p2p设备的大致调用序列是(WifiP2pManager)：
+          1. discoverPeers()
+             主要是下p2p find命令，打到对端设备的一些 信息
+          2. connect()
+             这个函数调用涉及到GO协商， WPS交互， 关联以及4步握手过程
+             直到p2p GO/GC设备连接成功。
+
+          示例代码：
+          #+BEGIN_SRC java
+            /**
+             ,* A base class for connection request test.
+             ,*/
+            public abstract class ConnectReqTestCase extends ReqTestCase {
+
+               protected P2pBroadcastReceiverTest mReceiverTest;
+
+               public ConnectReqTestCase(Context context) {
+                   super(context);
+               }
+
+               /**
+                ,* Set up the test case.
+                ,*/
+               protected void setUp() {
+                   super.setUp();
+                   mReceiverTest = new P2pBroadcastReceiverTest(mContext);
+                   mReceiverTest.init(mChannel);
+
+                   try {
+                       Method[] methods = WifiP2pManager.class.getMethods();
+                       for (int i = 0; i < methods.length; i++) {
+                           if (methods[i].getName().equals("deletePersistentGroup")) {
+                               // Delete any persistent group
+                               for (int netid = 0; netid < 32; netid++) {
+                                   methods[i].invoke(mP2pMgr, mChannel, netid, null);
+                               }
+                           }
+                       }
+                   } catch(Exception e) {
+                       e.printStackTrace();
+                   }
+                   // Disconnect from wifi to avoid channel conflict
+                   mWifiMgr.disconnect();
+               }
+
+               /**
+                ,* Tear down the test case.
+                ,*/
+               protected void tearDown() {
+                   super.tearDown();
+                   if (mReceiverTest != null) {
+                       mReceiverTest.close();
+                   }
+                   if (mP2pMgr != null) {
+                       mP2pMgr.cancelConnect(mChannel, null);
+                       mP2pMgr.removeGroup(mChannel, null);
+                   }
+               }
+
+               /**
+                ,* Tries to connect the target devices.
+                ,* @param isJoin if true, try to join the group. otherwise, try go negotiation.
+                ,* @param wpsConfig wps configuration method.
+                ,* @return true if succeeded.
+                ,* @throws InterruptedException
+                ,*/
+               protected boolean connectTest(boolean isJoin, int wpsConfig) throws InterruptedException {
+                   notifyTestMsg(R.string.p2p_searching_target);
+
+                   /*
+                    ,* Search target device and check its capability.
+                    ,*/
+                   ActionListenerTest actionListener = new ActionListenerTest();
+                   mP2pMgr.discoverPeers(mChannel, actionListener);
+                   if (!actionListener.check(ActionListenerTest.SUCCESS, TIMEOUT)) {
+                       mReason = mContext.getString(R.string.p2p_discover_peers_error);
+                       return false;
+                   }
+
+                    WifiP2pDevice dev = mReceiverTest.waitDeviceFound(mTargetAddress, TIMEOUT);
+                    if (dev == null) {
+                        mReason = mContext.getString(R.string.p2p_target_not_found_error);
+                        return false;
+                    }
+
+                    if (!isJoin && dev.isGroupOwner()) {
+                        // target device should be p2p device.
+                        mReason = mContext.getString(R.string.p2p_target_invalid_role_error);
+                        return false;
+                    } else if (isJoin && !dev.isGroupOwner()) {
+                        //target device should be group owner.
+                        mReason = mContext.getString(R.string.p2p_target_invalid_role_error2);
+                        return false;
+                    }
+
+                    if (wpsConfig == WpsInfo.PBC) {
+                        notifyTestMsg(R.string.p2p_connecting_with_pbc);
+                    } else {
+                        notifyTestMsg(R.string.p2p_connecting_with_pin);
+                    }
+
+                    /*
+                     ,* Try to connect the target device.
+                     ,*/
+                    WifiP2pConfig config = new WifiP2pConfig();
+                    config.deviceAddress = dev.deviceAddress;
+                    config.wps.setup = wpsConfig;
+                    mP2pMgr.connect(mChannel, config, actionListener);
+                    if (!actionListener.check(ActionListenerTest.SUCCESS, TIMEOUT)) {
+                        mReason = mContext.getString(R.string.p2p_connect_error);
+                        return false;
+                    }
+
+                    /*
+                     ,* Check if the connection broadcast is received.
+                     ,*/
+                    WifiP2pInfo p2pInfo = mReceiverTest.waitConnectionNotice(TIMEOUT_FOR_USER_ACTION);
+                    if (p2pInfo == null) {
+                        mReason = mContext.getString(R.string.p2p_connection_error);
+                        return false;
+                    }
+
+                    /*
+                     ,* Wait until peer gets marked conencted.
+                     ,*/
+                    notifyTestMsg(R.string.p2p_waiting_for_peer_to_connect);
+                    if (mReceiverTest.waitPeerConnected(mTargetAddress, TIMEOUT) != true) {
+                        mReason = mContext.getString(R.string.p2p_connection_error);
+                        return false;
+                    }
+
+                    /*
+                     ,* Remove the p2p group manualy.
+                     ,*/
+                    mP2pMgr.removeGroup(mChannel, actionListener);
+                    if (!actionListener.check(ActionListenerTest.SUCCESS, TIMEOUT)) {
+                        mReason = mContext.getString(R.string.p2p_remove_group_error);
+                        return false;
+                    }
+
+                    notifyTestMsg(R.string.p2p_waiting_for_peer_to_disconnect);
+
+                    /*
+                     ,* Check if p2p disconnection broadcast is received
+                     ,*/
+                    p2pInfo = mReceiverTest.waitDisconnectionNotice(TIMEOUT);
+                    if (p2pInfo == null) {
+                        mReason = mContext.getString(R.string.p2p_connection_error);
+                        return false;
+                    }
+
+                    /* Wait until peer gets marked disconnected */
+
+                    if (mReceiverTest.waitPeerDisconnected(mTargetAddress, TIMEOUT) != true) {
+                        mReason = mContext.getString(R.string.p2p_detect_disconnection_error);
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+                      
+          #+END_SRC
+
+          这个时候，对端设备会弹出Invitation to connect 的提示框，点击
+          接受后，会向wifi p2p状态机发送 =PEER_CONNECTION_USER_ACCEPT=
+          消失。 （notifyInvitationReceived）
+
+          事实上，Wifi p2p 状态机在收到如下几个事件时，都会弹出确认对
+          话框：
+          - =P2P_PROV_DISC_PBC_REQ_EVENT=
+          - =P2P_PROV_DISC_ENTER_PIN_EVENT=
+          - =P2P_PROV_DISC_SHOW_PIN_EVENT=
+          - =P2P_GO_NEGOTIATION_REQUEST_EVENT=
+          - =P2P_INVITATION_RECEIVED_EVENT=
      
 **** 开启WifiSink的调用序列
      DisplayManager.requestEnableSink
@@ -1705,7 +2089,7 @@
       #+END_EXAMPLE
 
 ** Android Region代码分析
-   一、Region的定义和合法性检查
+   *一、Region的定义和合法性检查*
    
    　　在Android系统中，定义了Region的概念，它代表屏幕上的一个区域，它
    是由一个或多个Rect组成的，代码位于
@@ -1811,7 +2195,7 @@
       [[./images/2016/2016081201.png]]
 
 
-   二、Region的Boolean操作
+   *二、Region的Boolean操作*
 
    Region的Boolean操作总体主要分主要有如下几种：
    #+BEGIN_SRC c++
@@ -2001,7 +2385,7 @@
          
          [[./images/2016/2016081203.png]]
    
-    三、T-Junction消除
+    *三、T-Junction消除*
 
       T-Junction问题是图像渲染中的经常碰到的一个问题，特别是3D
       Graphics Rendering技术中，T-Junction消除是其中的一个研究课题。那
@@ -2076,11 +2460,11 @@
       因为每次扫描只能消除上述的5种情况。下图是T-Junction点消除后的情
       况：
 
-      [[./images/2016/2016081220.png]]
+      [[./images/2016/2016081207.png]]
 
       红色虚线是分解边。可以看到，这个过程会产生许多新的Rect。
       
-  四、测试与验证
+  *四、测试与验证*
 
   　　前面三部分是理论部分，主要是通过阅读源码得到的一些步骤和过程，下
   面将通过测试程序来验证我们的理论，看我们的理解是否正正确：
@@ -2318,3 +2702,608 @@
      #+END_SRC
 
      消除T-Junction前有4个Rect, 消除T-Junction后有16个Rect。
+
+** Binder通信过程中的用户空间线程池的管理
+    在Binder通信机制里，客户端与服务端之间的通信是在专门的IPC通信线程
+    中进行的。这些线程构成一个线程池。线程的创建和销毁是在用户空间进行
+    的，而对线程的控制是在驱动层进行的，即驱动控制线程池中线程的生命，
+    而线程本身则是运行在用户空间的。驱动层是通过 =BR_SPAWN_LOOPER= 向用户
+    空间发送创建新线程的命令。
+
+    线程池的大小可以设置。默认情况下，线程池只有一个主线程，它在进程生
+    命周期期间是不会退出。与线程池相关的几个变量设置在struct
+    =binder_proc= 结构体中：
+    #+BEGIN_SRC c
+      struct binder_proc {
+              ...
+              int max_threads;//max thread
+              int requested_threads;//
+              int requested_threads_started;//requested thread seq No
+              int ready_threads;//available for use
+              ...
+      };
+          
+    #+END_SRC
+
+    其中，=max_threads= 表示当前进程线程池的大小。ioctl命令
+    =BINDER_SET_MAX_THREADS= 用来设置这个值，默认情况下是0，即不开启线程
+    池。 =ready_threads= 表示当前线程池中有没有可用的空闲线程。
+    =requested_threads= 请求开启线程的数量。 =requested_threads_started= 表示
+    当前已经接受请求开启的线程数量。
+
+    对于IPC通信的服务端进程，一般会执行如下的调用启动线程池：
+
+    #+BEGIN_SRC c++
+      ProcessState::self()->setThreadPoolMaxThreadCount(4);
+      ProcessState::self()->startThreadPool();
+      IPCThread::self()->joinThreadPool();    
+    #+END_SRC
+
+    上述代码会在一个进程中执行，并产生两个线程，其中一个是进程的主线程，
+    但这两个线程都是Binder主线程，即他不会纳入线程池的管理。网上有不少
+    说法是最后一个调用看起来是多余的，原因是去掉后，也可以正常执行，但
+    是其实不然。在我看来，在主线程中调用
+    =IPCThread::self()->joinThreadPool()= 的一层目的是确保前一句调用产生
+    的线程不会因为执行到了main函数结尾而被迫退出，因为
+    =ProcessState::self()->startThreadPool()= 不会导致主线程阻塞，而
+    =IPCThread::self()->joinThreadPool()= 调用才会导致主线程阻塞。并且，
+    它们提供相同的功能：它能处理Binder驱动发送上来的一些请求或返回值，
+    进一步提高了Binder命令处理的吞吐量。当然，如果在他们之间加入了让主
+    线程阻塞的代码，则最后的函数调用是可以省略的，否则是不能省略的。
+
+    执行完上述语句后, 已经有两个服务线程了，此时线程池线程的数量为0，
+    后续可以创建4个线程。默认情况下，线程池中没有线程，由于本身已经有
+    了2个线程可用，一般情况下，能满足要求。但是，当有多个并发的IPC请求
+    时，可能会触发内核增加更多的IPC通信线程来服务这些请求。当接受
+    Binder驱动从内核中发出的 =BR_SPAWN_LOOPER= 命令时，会启动一个非Binder主
+    线程。我们来看下在什么情况下会触发这种情况：
+    #+BEGIN_SRC c++
+      if (proc->requested_threads + proc->ready_threads == 0 &&
+                  proc->requested_threads_started < proc->max_threads &&
+                  (thread->looper & (BINDER_LOOPER_STATE_REGISTERED |
+                   BINDER_LOOPER_STATE_ENTERED)) /* the user-space code fails to */
+                   /*spawn a new thread if we leave this out */) {
+                      proc->requested_threads++;
+                      binder_debug(BINDER_DEBUG_THREADS,
+                                   "%d:%d BR_SPAWN_LOOPER\n",
+                                   proc->pid, thread->pid);
+                      if (put_user(BR_SPAWN_LOOPER, (uint32_t __user *)buffer))
+                              return -EFAULT;
+                      binder_stat_br(proc, thread, BR_SPAWN_LOOPER);
+              }
+          
+    #+END_SRC
+
+    在请求的线程数和空闲的线程数为零且已经请求并开启的线程数小于线程池
+    的最大允许线程数量时，就向用户空间发送命令，以开启新的接收线程来处
+    理请求。因为此时，接收进程中所有的线程都在忙碌中。
+
+    在用户空间通过如下调用启动线程：
+    : mProcess->spawnPooledThread(false);
+
+    最终会调用如下函数：
+    #+BEGIN_SRC c++
+      void IPCThreadState::joinThreadPool(bool isMain)
+      {
+          LOG_THREADPOOL("**** THREAD %p (PID %d) IS JOINING THE THREAD POOL\n", (void*)pthread_self(), getpid());
+
+          mOut.writeInt32(isMain ? BC_ENTER_LOOPER : BC_REGISTER_LOOPER);
+          …
+      }
+          
+    #+END_SRC
+    
+    这种情况下，会通过向Binder驱动发 =BC_REGISTER_LOOPER= 通知驱动用户空间线
+    程已经创建，这样驱动也会做些数据统计：
+    #+BEGIN_SRC c
+       case BC_REGISTER_LOOPER:
+      …
+      } else {
+          proc->requested_threads--;
+          proc->requested_threads_started++;
+        }
+      thread->looper |= BINDER_LOOPER_STATE_REGISTERED;
+      break;
+          
+    #+END_SRC
+
+    驱动会更新 =proc->requested_threads_started= 来统计当前已经请求开启并成
+    功开启的线程数量，这个值将作为判断线程池是否已经满的依据。
+
+    而在Binder驱动层，会跟用户空间的线程关联一个 =struct binder_thread=
+    实例，这个结构记录了内核空间的在该线程上执行的一些IPC状态信息。其数
+    据结构定义如下：
+    #+BEGIN_SRC c
+      struct binder_thread {
+              struct binder_proc *proc;  //线程所属的进程
+              struct rb_node rb_node;  //红黑树的结点，进程通过该结点将线程加入到红黑树中
+              int pid; //线程的pid
+              int looper;  //线程所处的状态
+              struct binder_transaction *transaction_stack;//transaction session list on this thread
+              struct list_head todo; //在该线程上的Task列表
+              uint32_t return_error; /* Write failed, return error code in read buf */
+              uint32_t return_error2; /* Write failed, return error code in read */
+                      /* buffer. Used when sending a reply to a dead process that */
+                      /* we are also waiting on */
+              wait_queue_head_t wait; //该线程的等待队列
+              struct binder_stats stats; //统计该线程上的命令数量
+      };
+          
+    #+END_SRC
+
+** Binder通信相关的类简要分析
+    *一、BpBinder*
+
+    这个类通常作为IPC通信的Client端，或者说Remote端，提供实际的IPC基础
+    通信服务。在代码中通常不直接使用到该类，一般以成员变量的形式，包含
+    于BpRefBase类中，通过remote()方法引用该成员变量。继承关系如下：
+
+    BpXXX --> BpInterface<IXXX> --> BpRefBase
+
+    在BpXXX方法中，就可以直接通过remote()方法引用到BpBinder实例，继而
+    利用其提供的IPC通信功能，通过Binder协议与另一端进行通信。
+
+    BpBinder类的定义说明
+
+    成员变量分析：
+
+    #+BEGIN_SRC c++
+          
+      const   int32_t             mHandle;//handle for remote obj
+
+                  void                reportOneDeath(const Obituary& obit);
+                  bool                isDescriptorCached() const;
+
+          mutable Mutex               mLock;
+                  volatile int32_t    mAlive;
+                  volatile int32_t    mObitsSent; //we have already send Obit? can notify is object is already dead
+                  Vector<Obituary>*   mObituaries;//dead notification listerners
+                  ObjectManager       mObjects;
+                  Parcel*             mConstantData;
+          mutable String16            mDescriptorCache;
+
+          
+    #+END_SRC
+    
+    mHandle: 这是一个重要的成员变量，代表Binder驱动为一个远程对象分配
+    的一个句柄，在Binder驱动中，通过该句柄号，找到对应的Binder引用结点，
+    通过Binder引用结点，找到其引用的位于不同进程中的一个Binder结点，从
+    而将利用该Binder结点将通信数据路由到通信的另一端所在的进程。
+
+    mLock：保护BpBinder对象的一些方法的访问，从而保证任何时刻不会同时
+    执行两个或以上方法。
+
+    mAlive：Binder IPC通信是否处于活跃状态。
+
+    mObjects： 对象管理，主要是对Java Binder对象的管理。
+
+    mConstantData： 未使用
+
+    mDescriptorCache：保存接口描述信息。
+
+    主要方法分析：
+
+    #+BEGIN_SRC c++
+      virtual status_t    transact(   uint32_t code,
+                                      const Parcel& data,
+                                      Parcel* reply,
+                                      uint32_t flags = 0);
+          
+    #+END_SRC
+    
+    该方法是Binder IPC通信的入口，其实质上是调用IPCThreadState类的
+    transact方法。
+
+    如下两个接口则是提供监听远程对象死亡通知的接口。
+
+    #+BEGIN_SRC c++
+      virtual status_t    linkToDeath(const sp<DeathRecipient>& recipient,
+                                      void* cookie = NULL,
+                                      uint32_t flags = 0);
+      virtual status_t    unlinkToDeath(  const wp<DeathRecipient>& recipient,
+                                          void* cookie = NULL,
+                                          uint32_t flags = 0,
+                                          wp<DeathRecipient>* outRecipient = NULL);
+          
+    #+END_SRC
+    
+
+    BpBinder对象作为远程对象的代理，它会跟踪远程对象的状态（实质上是在
+    驱动中，跟踪Binder通信结点，结点死亡的信息也是通过驱动层向用户空间
+    发送的），一旦接收到死亡通知，则会调用如下接口通知所有监听者：
+
+    : void  sendObituary();
+
+    其会调用如下方法调用所有监听者提供的回调函数：
+    : void  reportOneDeath(const Obituary& obit);
+
+    *二、BBinder*
+
+    BBinder类作为Binder IPC通信的Server端或Local端，处理来自Client端或
+    Remote端的服务请求。它的主要方法就是处理请求：
+
+    #+BEGIN_SRC c++
+      status_t BBinder::transact(
+          uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags)
+          
+    #+END_SRC
+    
+    在IPCThreadState中，是通过如下方式调用到上述的接口的：
+
+    #+BEGIN_SRC c++
+      IPCThreadState(979)：         
+      case BR_TRANSACTION:
+                 …   
+      if (tr.target.ptr) {//local 
+                      sp<BBinder> b((BBinder*)tr.cookie);
+                      const status_t error = b->transact(tr.code, buffer, &reply, tr.flags);
+                      if (error < NO_ERROR) reply.setError(error);
+
+                  } else {//remote
+                      const status_t error = the_context_object->transact(tr.code, buffer, &reply, tr.flags);
+                      if (error < NO_ERROR) reply.setError(error);
+                  }
+          
+    #+END_SRC
+
+    *三、Java层类*
+
+    Java层的类主要有Binder和BinderProxy，其中Binder跟BBinder一样，属于
+    Server或Local端，而BinderProxy则与BpBinder一样，属于Client端或
+    Remote端。
+
+    对于BinderProxy类对象，跟BpBinder一样，同样是作为XXXProxy的成员变
+    量的形式包含于其中。
+
+    XXXProxy --> IXXX --> IInterface.
+
+    在JNI层，定义了两个转换函数：
+    #+BEGIN_SRC c++
+      jobject javaObjectForIBinder(JNIEnv* env, const sp<IBinder>& val);
+      sp<IBinder> ibinderForJavaObject(JNIEnv* env, jobject obj);
+
+    #+END_SRC
+
+    上述两种函数提供了Java对象（主要是Binder和BinderProxy对象）与
+    Native层IBinder对象之间的相互转换接口。
+
+    当我们调用transact方法时，会经历如下一些过程：
+
+    #+BEGIN_SRC java
+      //in BinderProxy.java
+      public native boolean transact(int code, Parcel data, Parcel reply,
+                  int flags) throws RemoteException;
+          
+    #+END_SRC
+
+    -->
+
+    #+BEGIN_SRC c++
+      //in android_util_Binder.cpp
+      static jboolean android_os_BinderProxy_transact(JNIEnv* env, jobject obj,
+              jint code, jobject dataObj, jobject replyObj, jint flags) // throws RemoteException
+      {
+           …
+          IBinder* target = (IBinder*)
+              env->GetIntField(obj, gBinderProxyOffsets.mObject);
+          …
+          //printf("Transact from Java code to %p sending: ", target); data->print();
+          status_t err = target->transact(code, *data, reply, flags);
+          …
+          return JNI_FALSE;
+      }
+          
+    #+END_SRC
+
+    其中gBinderProxyOffsets.mObject是通过javaObjectForIBinder设置的，
+    它的原型如下：
+    : jobject javaObjectForIBinder(JNIEnv* env, const sp<IBinder>& val);
+
+    对于上述函数，除非参数val是JavaBBinder（继承自BBinder）对象，否则，
+    就创建一个BinderProxy对象，它与一个BpBinder对象关联。
+
+    --> 
+
+    接下来就会调用某个IBinder(C++类)对象的transact方法。这个IBinder对
+    象是BpBinder类型的，即：
+    : BpBinder::transact(…) 
+
+    -->
+    : IPCThreadState::transact(…)
+
+    它会向Binder驱动发送一个 =BC_TRANSACTION= 命令，Binder驱动进行处理，将
+    请求路由给通信的另一端，并通过命令 =BR_TRANSACTION= 告知用户空间，有新
+    的通信请求。在介绍BBinder的时候，我们提到过，接收端会调用
+    BBinder::transact(…)来处理请求，对于Java层的通信来说，则会实际调
+    用JavaBBinder::transact(…)来处理请求，而实际上会调用
+    onTransact(…)（重载了BBinder的方法），如下所示：
+
+    #+BEGIN_SRC c++
+      class JavaBBinder : public BBinder
+      {
+        …
+        protected:
+        …
+
+        virtual status_t onTransact(
+                                    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags = 0)
+        {
+          …
+
+            //printf("Transact from %p to Java code sending: ", this);
+            //data.print();
+            //printf("\n");
+            jboolean res = env->CallBooleanMethod(mObject, gBinderOffsets.mExecTransact,
+                                                  code, (int32_t)&data, (int32_t)reply, flags);
+            
+          …
+
+            // Need to always call through the native implementation of
+            // SYSPROPS_TRANSACTION.
+            if (code == SYSPROPS_TRANSACTION) {
+              BBinder::onTransact(code, data, reply, flags);
+            }
+
+          …
+            }
+
+        …
+      };
+          
+    #+END_SRC
+
+    -->
+
+    #+BEGIN_SRC java
+      //in Binder.java
+      // Entry point from android_util_Binder.cpp's onTransact
+          private boolean execTransact(int code, int dataObj, int replyObj,
+                  int flags) {
+              …
+              boolean res;
+              try {
+                  res = onTransact(code, data, reply, flags);
+              } …
+
+              return res;
+          }
+          
+    #+END_SRC
+
+    最终调用到了Binder类的onTransact方法。从Binder类派生的类都会重载该方法。
+
+** Binder结点管理
+    在Binder驱动中，Binder结点随着进程IPC通信开始而生，随着进程IPC通信
+    结束而亡，换句话说，Binder结点是维系IPC通信的基础，而且一个Binder
+    结点也只能在完全无IPC通信的情况下被删除。本文将重点研究Binder结点
+    从生到死的过程。
+
+    Binder结点作为IPC通信过程中的实体，是IPC通信的媒介。在描述一个
+    Binder进程信息的数据结构中，与结点相关的成员变量有：
+
+    #+BEGIN_SRC c
+      struct binder_proc {
+              struct hlist_node proc_node;// list node for global binder_procs hlist
+              ...
+              struct rb_root nodes;
+              struct rb_root refs_by_desc;
+              struct rb_root refs_by_node;
+              ...
+      };
+          
+    #+END_SRC
+
+    其中，nodes记录了当前进程创建的Binder结点。而 =refs_by_desc= 和
+    =refs_by_node= 都记录的是Binder结点引用，换句话说，它代表一个对其他进程
+    中创建的Binder结点的引用。Nodes链表的大小反映了有多少进程在向当前
+    进程请求服务，而结点引用则反映了当前进程在向哪些进程请求服务。
+
+    创建Binder结点的函数是 =binder_new_node= 。在分析此函数之前，我们先分析
+    一下Binder驱动中结点的数据结构定义：
+
+    #+BEGIN_SRC c
+      struct binder_node {
+              int debug_id; 
+              struct binder_work work;
+              union {
+                      struct rb_node rb_node;
+                      struct hlist_node dead_node;
+              };
+              struct binder_proc *proc;
+              struct hlist_head refs;
+              int internal_strong_refs;
+              int local_weak_refs;
+              int local_strong_refs;
+              void __user *ptr;
+              void __user *cookie;
+              unsigned has_strong_ref:1;
+              unsigned pending_strong_ref:1;
+              unsigned has_weak_ref:1;
+              unsigned pending_weak_ref:1;
+              unsigned has_async_transaction:1;
+              unsigned accept_fds:1;
+              unsigned min_priority:8;
+              struct list_head async_todo;
+      };
+          
+    #+END_SRC
+
+    下面分别解释上述各个成员变量的意义：
+    1. =debug_id= ： 结点的一个数字序号标记，根据全局变量
+       =binder_last_id= 来维护并分配， =binder_last_id= 是Binder驱动
+       全局变量，且单调递增的。
+    2. work：类型为 =BINDER_WORK_NODE= 的 =binder_work= 结点，添加
+       到线程上的todo链表中去处理，主要处理结点的引用计数。
+    3. 联合体： =rb_node= 代表此结点在进程全局红黑树 =binder_procs= 上
+       的一个结点。而 =dead_node= 代表红黑树 =binder_dead_nodes= 中的
+       一个结点。根据当前结点的状态，将决定将结点加入到哪个全局链表中。
+    4. proc: 与结点相关联的 =binder_proc= 。
+    5. refs:  =binder_ref= 链表，记录当前其他进程对该Binder结点的引用。
+    6. =internal_strong_refs= ：内部强引用计数
+    7. =local_weak_refs= ：本地弱引用计数。
+    8. =local_strong_refs= ：本地强引用计数。
+    9. =ptr= ：通常指本地Binder对象的内存地址，当其是0号结点时，该指针为空。
+    10. cookies: 通常指本地Binder对象的私有数据。
+    11.  =has_strong_ref= ：是否拥有强引用。
+    12. =pending_strong_ref= ：对结点的强引用是否处理完成
+        （ =BC_ACQUIRE_DONE= ）
+    13. =has_weak_ref= ：是否拥有弱引用。
+    14. =pending_weak_ref= ：对结点的弱引用是否处理完成
+        （ =BC_INCREFS_DONE= ）
+    15. =has_async_transaction= ：拥有异步事务？
+    16. =accept_fds= ：是否允许传递文件描述符？
+    17. =min_priority= ：最低优先级
+    18. =async_todo= ：该结点上的异步工作队列。
+
+    *新结点的创建*
+
+    在函数 =binder_new_node()= ，创建的新结点将会加入到当前进程的结点树中，
+    这些结点通过红黑树的结构来维护，以本地Binder对象的内存地址的大小作
+    为排序依据。此函数主要是在 =BR_TRANSACTION= 中，为发送方创建相应的本地
+    结点，以便接收方能够通过该结点获取关于发送方的一些信息。当然，在调
+    用 =BINDER_SET_CONTEXT_MGR= 命令时，也会调用该函数创建一个特殊的结
+    点。
+
+    *结点引用计数管理*
+
+    结点引用计数的管理主要通过如下两个函数：
+    #+BEGIN_SRC c
+      static int binder_inc_node(struct binder_node *node, int strong, int internal,
+                                 struct list_head *target_list)
+      static int binder_dec_node(struct binder_node *node, int strong, int internal)
+          
+    #+END_SRC
+    
+    *结点引用*
+
+    结点引用与结点密不可分。事实上，可以认为结点引用是结点在另一个进程
+    中的代理。它们之间的关系是多对一的关系，即一个结点可以对应多个结点
+    引用，但是结点本身只能存在于一个进程中，且结点引用与结点一般是属于
+    不同进程的。它的数据结构定义如下：
+
+    #+BEGIN_SRC c
+      struct binder_ref {
+              /* Lookups needed: */
+              /*   node + proc => ref (transaction) */
+              /*   desc + proc => ref (transaction, inc/dec ref) */
+              /*   node => refs + procs (proc exit) */
+              int debug_id;
+              struct rb_node rb_node_desc;
+              struct rb_node rb_node_node;
+              struct hlist_node node_entry;
+              struct binder_proc *proc;
+              struct binder_node *node;
+              uint32_t desc;
+              int strong;
+              int weak;
+              struct binder_ref_death *death;
+      };
+          
+    #+END_SRC
+
+    下面分别解释上述各个成员变量的意义：
+    1. =debug_id= ：同结点的 =debug_id= 意义一样，一个数据序号标记。
+    2. =rb_node_desc= ：代表 =binder_proc= 中红黑树 =refs_by_desc= 中的一个结点，以desc为索引，即结点引用的句柄号作为排序依据。
+    3. =rb_node_node= ：代表 =binder_proc= 中红黑树 =refs_by_node= 中的一个结点，以node为索引，即结点的内存地址作为排序依据。
+    4. =node_entry= ：作为node所拥有的结点引用链表中的一个结点
+    5. proc：该结点引用相关联的 =binder_proc=
+    6. node: 该结点引用所关联的结点
+    7. desc：该结点引用的句柄号
+    8. strong: 该结点引用的强引用计数
+    9. weak: 该结点引用的弱引用计数
+    10. death：该结点引用的死亡通知链表，主要通知它所引用的结点的死亡
+        消息。
+
+    系统中所有的Binder实体以及每个实体在各个进程中的引用都登记在驱动中；
+    驱动需要记录Binder引用 ->实体之间多对一的关系；为引用找到对应的实
+    体；在某个进程中为实体创建或查找到对应的引用；记录Binder的归属地
+    （位于哪个进程中）；
+
+    函数
+    : static struct binder_ref binder_get_ref(struct binder_proc *proc, uint32_t desc)
+    用于查询某个句柄号为desc的 =struct binder_ref= 对象，而函数 
+    : static struct binder_ref *binder_get_ref_for_node(struct binder_proc *proc,  struct binder_node *node)
+
+    则是为某个结点对象创建一个结点引用对象。
+
+    *结点引用计数管理*
+
+    结点引用计数管理主要通过如下两个函数：
+    #+BEGIN_SRC c
+      static int binder_inc_ref(struct binder_ref *ref, int strong,
+                                struct list_head *target_list)
+      static int binder_dec_ref(struct binder_ref *ref, int strong)
+          
+    #+END_SRC
+
+    从 =binder_inc_ref= 里面调用 =binder_inc_node，internal= 为1，直接
+    调用 =binder_inc_node= 时，internal为0。
+
+    所以， =node->internal_strong_refs= 统计的是 =binder_ref= 对远程结点的强引用。
+    对结点本身来说， =node->internal_strong_refs= 的值也反映了当前有多少个远
+    程结点（ =binder_ref= ）强引用指向自己。
+
+    =node->local_strong_refs= 则统计的是对本地结点的强引用，这个值反映了当
+    前进程中有多少个强引用指向自己。
+
+    *Binder驱动对结点引用计数的管理*
+
+    用户空间可以通过如下一个命令来增加或减少结点的引用计数：
+
+    1.  =BC_INCREFS=  
+    2.  =BC_ACQUIRE=  
+    3.  =BC_RELEASE=
+    4.  =BC_DECREFS=
+
+    IPCThreadState类中定义了如下几个相关接口：
+    #+BEGIN_SRC c
+      incStrongHandle(int32_t handle)
+      incWeakHandle(int32_t handle)
+      decStrongHandle(int32_t handle)
+      decWeakHandle(int32_t handle)
+
+    #+END_SRC
+
+    分别会向驱动发送上述几个命令。
+    这个命令带的参数是结点的句柄号。 这种方法是直接改变结点的引用计数。
+    在驱动中也可能直接改变结点的引用计数，
+    : binder_inc_node(target_node, 1, 0, NULL)，
+    有一个共同点是target_list参数都为NULL。
+
+    第二种情况是，在处理TRANSACTION期间，Binder驱动改变了传输中的结点
+    引用计数，然后通过如下几个命令返回给用户空间做处理：
+    1.  =BR_ACQUIRE=
+    2.  =BR_INCREFS=
+    3.  =BR_RELEASE=
+    4.  =BR_DECREFS=
+
+    其中，当将创建本进程中的某个结点的结点引用对象时，需要传入一个
+    =target_list= 参数，提交一个 =BINDER_WORK_NODE= 类型的
+    =binder_work= ，以处理驱动
+    中的结点引用计数管理，同时，以通过上述几个命令通知用户空间维护相对
+    应的对象强弱引用计数。
+
+    #+BEGIN_SRC c
+      binder_inc_ref(ref, fp->type == BINDER_TYPE_HANDLE,
+                                             &thread->todo);
+          
+    #+END_SRC
+
+    标识Node有强引用或弱引用，并增加引用计数。
+
+    #+BEGIN_SRC c
+      struct binder_work {
+              struct list_head entry;
+              enum {
+                      BINDER_WORK_TRANSACTION = 1,  //代表一次进程间业务通信
+                      BINDER_WORK_TRANSACTION_COMPLETE,
+                      BINDER_WORK_NODE, //结点引用计数管理
+                      BINDER_WORK_DEAD_BINDER,
+                      BINDER_WORK_DEAD_BINDER_AND_CLEAR,
+                      BINDER_WORK_CLEAR_DEATH_NOTIFICATION,
+              } type;
+      };
+    #+END_SRC
+    
+    
+    

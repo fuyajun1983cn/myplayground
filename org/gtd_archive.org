@@ -5,7 +5,6 @@
 #+STARTUP: hidestars
 #+OPTIONS: toc:t
 
-
 * 2016
 ** 1月[24/24]
 *** DONE 802.11协议第二阶段学习 [10/10]
@@ -872,7 +871,7 @@ Added: [2015-12-14 周一 16:30]
     CLOSED: [2016-07-31 日 21:55]
      - Next Action:
        Stack Management   page 27
-** 8月[22/22]
+** 8月[34/34]
 *** ✔ DONE hwsim源码分析
     CLOSED: [2016-08-02 二 21:30]
 *** ✔ DONE CTS/RTS设置                                 :Wifi Driver持续学习:Study:
@@ -1031,7 +1030,183 @@ Added: [2016-08-10 周三 13:50]
      测试禁用persistent group的情况。update_config=0
      Set_WirelessMode_Proc失败的原因
      Added: [2016-08-10 周三 14:00]
-** 9月[/]
+*** ✔ DONE 修正 802.11n，p2p, 802.1x, wps等文档的输入及编排问题        :Study:
+    CLOSED: [2016-08-22 周一 11:50] SCHEDULED: <2016-08-22 周一>
+    CLOCK: [2016-08-22 周一 11:25]--[2016-08-22 周一 11:49] =>  0:24
+
+Added: [2016-08-22 周一 10:05]
+*** ✔ DONE [#C] 整理Wifi吞吐量测试到知识库中                           :Study:
+    CLOSED: [2016-08-23 周二 14:30] SCHEDULED: <2016-08-23 周二>
+
+Added: [2016-08-23 周二 11:00]
+*** ✔ DONE 学习通信原理第一章[2/5]                                     :Study:
+    CLOSED: [2016-08-24 周三 14:55] SCHEDULED: <2016-08-22 周一>
+    CLOCK: [2016-08-24 周三 14:11]--[2016-08-24 周三 14:54] =>  0:43
+    CLOCK: [2016-08-22 周一 13:37]--[2016-08-22 周一 14:24] =>  0:47
+    - [X] 第1讲 电子通信的起源
+    - [X] 第2讲  传输什么——消息
+    - [ ] 第3讲  消息的通路——信道
+    - [ ] 第4讲  无影无形的电波
+    - [ ] 第5讲  两大武林门派
+Added: [2016-08-22 周一 10:05]
+*** ✔ DONE 了解下org-agenda                                            :Check:
+    CLOSED: [2016-08-25 周四 13:50]
+看下循环安排如何定义
+Added: [2016-08-25 周四 09:20]
+*** ✔ DONE [#B] 复习CWNA内容                                           :Study:
+     CLOSED: [2016-08-27 周六 16:35] DEADLINE: <2016-08-31 周三> SCHEDULED: <2016-08-25 周四>
+     CLOCK: [2016-08-27 周六 15:44]--[2016-08-27 周六 16:35] =>  0:51
+     CLOCK: [2016-08-27 周六 10:23]--[2016-08-27 周六 11:48] =>  1:25
+     CLOCK: [2016-08-25 周四 09:29]--[2016-08-25 周四 10:27] =>  0:58
+     CLOCK: [2016-08-24 周三 13:31]--[2016-08-24 周三 14:10] =>  0:39
+     CLOCK: [2016-08-24 周三 09:41]--[2016-08-24 周三 10:14] =>  0:33
+     CLOCK: [2016-08-23 周二 13:22]--[2016-08-23 周二 14:11] =>  0:49
+     CLOCK: [2016-08-23 周二 11:00]--[2016-08-23 周二 11:59] =>  0:59
+     CLOCK: [2016-08-22 周一 10:54]--[2016-08-22 周一 11:24] =>  0:30
+     CLOCK: [2016-08-19 周五 14:11]--[2016-08-19 周五 14:34] =>  0:23
+     CLOCK: [2016-08-19 周五 11:19]--[2016-08-19 周五 12:00] =>  0:41
+     CLOCK: [2016-08-18 周四 16:11]--[2016-08-18 周四 17:05] =>  0:54
+     CLOCK: [2016-08-17 周三 15:59]--[2016-08-17 周三 16:57] =>  0:58
+     CLOCK: [2016-08-16 周二 09:35]--[2016-08-16 周二 10:16] =>  0:41
+     CLOCK: [2016-08-15 周一 10:10]--[2016-08-15 周一 11:15] =>  1:05
+     CLOCK: [2016-08-11 周四 09:53]--[2016-08-11 周四 11:29] =>  1:36
+     CLOCK: [2016-08-09 周二 10:14]--[2016-08-09 周二 11:10] =>  0:56
+    :PROPERTIES:
+    :Effort:   8:00
+    :END:
+     - [X] 第一章
+     - [X] 第二章
+     - [X] 第三章
+     - [X] 第五章
+     - [X] 第六章
+     - [X] 第七章
+     - [X] 第八章
+     - [X] 第九章
+     - [X] 第十章
+     - [X] 第十二章
+     - [X] 第十三章
+     - [X] 第十六章
+     - [X] 第十八章
+*** ✘ CANCELED Chapter 18 TTY Drivers
+    CLOSED: [2016-08-30 周二 13:20]
+*** ✘ CANCELED Chapter 16 Block Drivers
+    CLOSED: [2016-08-30 周二 13:20]
+*** ✔ DONE [#A] Driver Genernal Intro
+     CLOSED: [2016-08-30 周二 16:40] SCHEDULED: <2016-08-23 周二> DEADLINE: <2016-08-31 周三>
+     CLOCK: [2016-08-30 周二 14:57]--[2016-08-30 周二 16:42] =>  1:45
+     CLOCK: [2016-08-23 周二 14:33]--[2016-08-23 周二 17:08] =>  2:35
+     - [X] Davinci Driver introduction
+     - [X] Driver Init
+     - [X] Glue Layer
+     - [X] Davinci BssInfo_StaRec
+     - [X] 7668 SW Proposal
+     - [X] 7668 HW change
+     
+*** ✔ DONE [#A] hostpad学习                                            :Study:
+     CLOSED: [2016-08-30 周二 17:45] DEADLINE: <2016-08-27 周六> SCHEDULED: <2016-08-24 周三>
+     CLOCK: [2016-08-30 周二 16:59]--[2016-08-30 周二 17:41] =>  0:42
+     CLOCK: [2016-08-22 周一 14:25]--[2016-08-22 周一 16:10] =>  1:45
+     CLOCK: [2016-08-19 周五 14:36]--[2016-08-19 周五 16:33] =>  1:57
+     CLOCK: [2016-08-17 周三 18:29]--[2016-08-17 周三 19:25] =>  0:56
+     CLOCK: [2016-08-17 周三 17:11]--[2016-08-17 周三 18:12] =>  1:01
+     CLOCK: [2016-08-16 周二 17:16]--[2016-08-16 周二 18:09] =>  0:53
+     CLOCK: [2016-08-15 周一 13:20]--[2016-08-15 周一 14:34] =>  1:14
+     CLOCK: [2016-08-15 周一 11:15]--[2016-08-15 周一 11:59] =>  0:44
+     CLOCK: [2016-08-09 周二 13:56]--[2016-08-09 周二 15:51] =>  1:55
+     CLOCK: [2016-08-09 周二 13:24]--[2016-08-09 周二 13:56] =>  0:32
+    :PROPERTIES:
+    :Effort:   8:00
+    :END:
+*** ✔ DONE 研究struct inode域的作用(内核中读取文件)
+     CLOSED: [2016-08-31 周三 20:20] SCHEDULED: <2016-08-25 周四>
+          #+BEGIN_SRC c
+            /*******************************************************************************
+
+                    File open/close related functions.
+
+             ,*******************************************************************************/
+            RTMP_OS_FD RtmpOSFileOpen(char *pPath, int flag, int mode)
+            {
+                    struct file *filePtr;
+
+                    if (flag == RTMP_FILE_RDONLY)
+                            flag = O_RDONLY;
+                    else if (flag == RTMP_FILE_WRONLY)
+                            flag = O_WRONLY;
+                    else if (flag == RTMP_FILE_CREAT)
+                            flag = O_CREAT;
+                    else if (flag == RTMP_FILE_TRUNC)
+                            flag = O_TRUNC;
+
+                    filePtr = filp_open(pPath, flag, 0);
+                    if (IS_ERR(filePtr)) {
+                            DBGPRINT(RT_DEBUG_ERROR,
+                                     ("%s(): Error %ld opening %s\n", __func__,
+                                     -PTR_ERR(filePtr), pPath));
+                    }
+
+                    return (RTMP_OS_FD) filePtr;
+            }
+
+            int RtmpOSFileClose(RTMP_OS_FD osfd)
+            {
+                    filp_close(osfd, NULL);
+                    return 0;
+            }
+
+            void RtmpOSFileSeek(RTMP_OS_FD osfd, int offset)
+            {
+                    osfd->f_pos = offset;
+            }
+
+            int RtmpOSFileRead(RTMP_OS_FD osfd, char *pDataPtr, int readLen)
+            {
+                    /* The object must have a read method */
+                    if (osfd->f_op && osfd->f_op->read)
+                            return osfd->f_op->read(osfd, pDataPtr, readLen, &osfd->f_pos);
+
+                    DBGPRINT(RT_DEBUG_ERROR, ("no file read method\n"));
+                    return -1;
+            }
+
+            int RtmpOSFileWrite(RTMP_OS_FD osfd, char *pDataPtr, int writeLen)
+            {
+                    return osfd->f_op->write(osfd, pDataPtr, (size_t) writeLen, &osfd->f_pos);
+            }
+
+
+            void test()
+            {
+              struct file *srcBuf = RtmpOSFileOpen(src, O_RDONLY, 0);
+              ...
+
+             fsize = (ULONG) srcf->f_dentry->d_inode->i_size;
+
+             
+            }
+
+
+          #+END_SRC
+*** ✔ DONE 了解AP SME背后的意义                                        :Study:
+    CLOSED: [2016-08-31 周三 21:05]
+
+Added: [2016-08-18 周四 16:10]
+** 9月[1/1]
+*** ✔ DONE [#A] 海信CTS Verifier的问题                               :Project:
+    CLOSED: [2016-09-02 周五 14:05] SCHEDULED: <2016-08-26 周五>
+      1. GO Negotiation Requrester Test
+         从LOG看TV发出的NEGO请求，被拒绝（电视侧LOG：
+         TV_negotiation_request.txt，NEXSUS平板LOG：
+         nexsus_negotiation_responder.txt）
+         
+         driver在处理p2p管理帧的时候，probe request管理帧被忽略掉了。
+
+      2. Group Owner Test
+         平板发出请求，电视侧没有反应（正常情况应该弹出窗口请用户确认）
+
+      目前看来当go neg failed时，status=1是因为另一方没有点击连接确认按钮所致。
+
+Added: [2016-08-26 周五 09:20]
 ** 10月[/]
 ** 11月[/]
 ** 12月[/]

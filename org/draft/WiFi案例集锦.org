@@ -454,3 +454,81 @@
 ** 问题解决
     失败的原因与Kernel中的一个选项有关： =CONFIG_CRYPTO_ANSI_CPRNG= ，
     打开该选项后，就不会有这个问题。
+    另外， 配置文件中，wpa应该设置为0或者不显示设置, 当wpa的值设置不正
+    确时，会出现下述错误。
+    #+BEGIN_SRC sh
+      interface=wlan0 
+      driver=nl80211 
+      ssid=woody_hostap
+      hw_mode=g 
+      channel=6 
+      ieee80211n=1
+      #wpa=0
+      wpa_passphrase=12345678
+      wpa_key_mgmt=WPA-PSK 
+      wpa_pairwise=TKIP CCMP
+      wpa_ptk_rekey=600    
+    #+END_SRC
+
+* 案例13 TV连接不上Hidden SSID AP 
+
+** 问题描述
+
+    TP-LINK路由器将2.4G设置为Hidden, MT7662T连接2.4不成功；将5G设置为Hidden却可以连接成功
+    
+** 问题分析
+
+    使用手机连接2.4G Hidden AP, 每次都能成功，可以比对TV与手机两者间的
+    Probe request frame有何差异.
+
+    环境：
+    - TP-LINK双频路由一台，MS938+MT7662T开发板一块，红米3S手机一台
+    - MAC地址
+
+      TPLINK路由器: 	8C:21:0A:F3:D5:72
+
+      MT7662 MAC:   	00:6C:FD:AB:68:E2
+
+      红米3S手机：	74:23:44:82:5A:63
+
+
+    Sniffer Log分析情况：
+
+    1. AP一直没回复probe response给TV。
+    2. 但是与手机连接时，却正常回复了probe response。
+    3. 对比TV和SP连接的probe request frame
+       发现TV多了HT CAP/WPS/P2P IE,  查看AP是能支持 11n的，
+       猜测比较可能出现不兼容 的是WPS IE
+
+       #+CAPTION: TV连接失败的log
+       [[./images/2016/2016090201.png]]
+
+       #+CAPTION: SP连接成功的log
+       [[./images/2016/2016090202.png]]
+    4. 去掉WPS IE后进行测试
+       测试结果表明AP不接收TV发的WPS IE，属兼容性问题
+    5. AP为何不能接收TV的WPS IE
+       现场有找到 一台使用MT7601的TV，发现是可以正常连接的, 对比了
+       MT7662T的WPS IE, 发现RF Bands的值有所不一样
+
+       #+CAPTION: MT7601
+       [[./images/2016/2016090203.png]]
+
+       #+CAPTION: MT7662T
+       [[./images/2016/2016090204.png]]
+    6. 修改RF Bands测试
+       修改MT7662T Probe request WPS IE的RF Bands 值为1进行测试，发现
+       每次都能连接成功
+
+       MT7662T是支持2.4/5G的，因此不建议将RF Bands设置为1.
+       
+** 问题解决
+
+    参考SP，station 在AP scan时Probe request不把WPS IE包进去
+
+    Probe request是否要带WPS IE, 需要看下面API的返回值
+    [[./images/2016/2016090205.png]]
+
+    默认情况下，发送Probe Request的时候不把WPS IE包含进来，但是当进行
+    Miracast/P2P连接时，动态打开限制，把WPS IE包含进来。这个逻辑通过上
+    层传递一个参数进来即可。

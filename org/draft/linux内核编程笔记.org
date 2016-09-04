@@ -4803,3 +4803,5 @@ Vmalloc映射分三步：
      MODULE_AUTHOR("Knare Technologies (www.knare.org)");
      MODULE_DESCRIPTION("Module to read a file from kernel space");      
   #+END_SRC
+
+https://kernelnewbies.org/KernelMemoryAllocation

@@ -81,7 +81,13 @@
 - =cfg80211_disconnected=
   通知上层底层连接已经断开
 - =cfg80211_get_chandef_type=
+  主要的类型有：
+  - =NL80211_CHAN_NO_HT=
+  - =NL80211_CHAN_HT20=
+  - =NL80211_CHAN_HT40MINUS=
+  - =NL80211_CHAN_HT40PLUS=
 - =cfg80211_chandef_create=
+  创建Channel的信息
 - =cfg80211_get_bss=
 - =cfg80211_put_bss=
 - =cfg80211_inform_bss=
@@ -94,7 +100,8 @@
 - =cfg80211_scan_done=
   通知上层，扫描动作停止。
 - =cfg80211_rx_mgmt=
-  通知上层，接收到未处理的管理帧
+  通知上层，接收到未处理的管理帧, 几Kernel上层报告管理帧，都是通过些接
+  口。
 - =cfg80211_rx_action=
   通知上层，接收到未处理的Action帧
 - =cfg80211_action_tx_status=
@@ -526,6 +533,10 @@
     }  
   #+END_SRC
 
+  还有tx rate的相关信息
+- =struct survey_info=
+  site survey information
+  
   
 ** 主要流程
 
@@ -740,7 +751,7 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 *** =ieee80211_rate_control_register=
     注册速率控制算法
 ** MLME
-   
+    
 *** 扫描
     =ieee80211_send_probe_req()=
     ==>
@@ -893,13 +904,31 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
        调用了 =wiphy_register=
     会添加一个默认的接口。 
 
-** nl80211
-    https://patchwork.kernel.org/patch/8663901/
+* nl80211
+   https://patchwork.kernel.org/patch/8663901/
 
 *** =NL80211_CMD_NEW_INTERFACE=
          添加一个新的网络接口， 由 =nl80211_create_iface= (
          =wpa_supplicant= )触发。
-     
+
+*** =NL80211_CMD_REGISTER_BEACONS=
+         向内核注册beacon帧, 以便能在用户空间接收到beacon帧。
+
+*** =NL80211_CMD_REGISTER_ACTION=
+         注册Action帧，这样driver就会将一些Action帧上报到用户空间。
+
+*** =NL80211_CMD_START_SCHED_SCAN=
+        Request the driver to initiate scheduled scan. This operation
+        should be used for scheduled scan offload to the
+        hardware. Every time scan results are available, the driver
+        report the scan results event to upper layer. 
+
+        这是一个可选的功能，有些驱动可能并不支持。
+
+*** =NL80211_CMD_GET_REG=
+       获取驱动的 regulatory information
+       
+
 * Footnotes
 [fn:1] http://linuxwireless.org/en/users/Documentation/
 [fn:2] https://wireless.wiki.kernel.org/en/developers/Regulatory

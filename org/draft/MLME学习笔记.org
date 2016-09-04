@@ -27,6 +27,53 @@
 
 ** 将数据包发往上层处理
    在 =cmm_mat.c= 中有定义 =MATProtoTb= ，用于相关协议数据包
+
+** 重要数据结构
+    
+*** pAd->CommonCfg.RegTransmitSetting
+        802.11n相关寄存器的设置
+
+*** pAd->MlmeAux
+        hold temporary settings during a connection attemp
+
+*** pAd->StaActive
+       when conection attemp succeed, pAd->MlmeAux will be copied to
+       pAd->StaActive, when failed, driver can auto-recover back to
+       the active settings.
+
+*** pAd->CommonCfg
+       连接时的配置，一般由Upper Layer传递过来的。
+
+*** 重要的计时器
+       - BeaconTimer
+       - ScanTimer
+         设置在每个信道上执行扫描的时间，对应的超时处理函数为 ScanTimeoutAction.
+       - APScanTimer
+       - AuthTimer
+       - AssocTimer
+       - ReassocTimer
+       - DisassocTimer
+** 接口初始化
+
+    只有在物理接口打开的时候，才会初始化其他的虚拟接口。
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081901.png :cmdline -charset UTF-8
+      @startuml
+      start
+      :MainVirtualIF_open;
+      note right: 物理接口的打开函数
+      :VIRTUAL_IF_UP;
+      :rt28xx_open;
+      :rt28xx_init;
+      note right
+      初始化驱动支持的一些接口，如
+      p2p0, uap0
+
+      @enduml
+    #+END_SRC
+
+    rt28xx_init
+
 * MLME主循环处理
   MLME的主循环处理函数是:  =MlmeHandler= 
      
@@ -43,7 +90,9 @@
     周期性执行的一个函数。
 
 * MLME状态机
-
+  
+  状态机的处理函数 MlmeHandler
+  
 ** APCLI状态机
    p2p时使用的状态机
    
@@ -249,6 +298,8 @@ IE_EXT_CAPABILITY
    APRxDataFrameAnnounce (mt76x2 ap)
    STAHandleRxDataFrame (mt76x2 sta)  --> STARxDataFrameAnnounce --> CmmRxnonRalinkFrameIndicate
    rx_data_frm_announce (mt7603)
+   
+   STAHandleRxMgmtFrame
 
 * 数据发送
   
@@ -281,6 +332,41 @@ IE_EXT_CAPABILITY
     -> STASendPacket()
     -> RTMPCheckEtherType()
 
+    
+*** Main  Interface
+        在主接口（实际物理接口）初始化时，初始化RTMP_OS_NETDEV_OP_HOOK
+        的xmit回调函数为rt28xx_send_packets， 这个函数接着会调用
+        rt28xx_packet_xmit。
+
+*** Virtual Interface
+    
+        CFG80211_VirtualIF_PacketSend（注册为RTMP_OS_NETDEV_OP_HOOK结
+        构体的xmit回调函数, 该函数实际上在RtmpOSNetDevAttach后，成为了
+        struct net_device_ops的ndo_start_xmit的回调函数。
+        -> CFG80211_PacketSend
+        -> rt28xx_packet_xmit
+
+* SoftAp
+
+** 初始化Channel选择
+    APAutoSelectChannel
+    
+    启动SoftAp的入口函数是：CFG80211_OpsStartAp, 由上层hostapd触发，
+    标记当前SoftAp动作的状态是：
+    : pAdapter->cfg80211_ctrl.cfg_ap_is_working = TRUE
+
+    hostapd对于softap的一些设置是通过 =cfg80211_ap_settings= 传递下来
+    的。
+
+    hostapd上层设置的一些beacon信息，在driver中通过如下函数：
+    : CFG80211DRV_UpdateApSettingFromBeacon
+    同步到driver的设置中。
+
+    
+
+* 与FW(MCU)交互的接口(mcu_and.c)
+  andes_send_cmd_msg
+* Rate Control
 * Roaming
   MT76x2STA.dat相关配置：
   AutoRoaming=0 (with same SSID)
@@ -326,6 +412,9 @@ IE_EXT_CAPABILITY
         =MT2_MLME_ROAMING_REQ= 消息。对应的处理函数是：　
         CntlMlmeRoamingProc
 
+* OBSS
+  Overlapping BSS
+  在同一个Channel上，可能存在多个BSS，需要进行数据传输保护
 * PMF
   
 ** 概述
@@ -335,6 +424,17 @@ IE_EXT_CAPABILITY
     required feature in TGac since 2014.07. 
 
     一般在认证项目中会遇到这方面的问题。
+
+    
+*** DUT Requirment
+
+        | Combination    | 11ac 5GHz     | 11n 5GHz          | 11n 2.4GHz        |
+        |----------------+---------------+-------------------+-------------------|
+        | Correct        | PMF supported | PMF supported     | PMF supported     |
+        | Not acceptable | PMF supported | PMF supported     | PMF Not Available |
+        | Correct        | PMF supported | PMF Not Available | PMF Not Available |
+        | Not acceptable | PMF supported | PMF Not Available | PMF supported     |
+        |----------------+---------------+-------------------+-------------------|
 
 * 问题调试
 
@@ -696,3 +796,143 @@ IE_EXT_CAPABILITY
     : RTSThreshold=2347
     或者修改代码： rtmp_comm.h
     : #define MAX_RTS_THRESHOLD               2347	/* byte count */
+
+** 检查wiphy一些Flag的设置
+    在此函数中CFG80211_WdevAlloc
+    #+BEGIN_SRC c
+      static struct wireless_dev *CFG80211_WdevAlloc(
+              IN CFG80211_CB                                  *pCfg80211_CB,
+              IN CFG80211_BAND                                *pBandInfo,
+              IN VOID                                                 *pAd,
+              IN struct device                                *pDev)
+      {
+              struct wireless_dev *pWdev;
+              ULONG *pPriv;
+
+
+              /*
+               ,* We're trying to have the following memory layout:
+               ,*
+               ,* +------------------------+
+               ,* | struct wiphy                       |
+               ,* +------------------------+
+               ,* | pAd pointer                        |
+               ,* +------------------------+
+               ,*/
+
+              pWdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+              if (pWdev == NULL)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Wireless device allocation fail!\n"));
+                      return NULL;
+              } /* End of if */
+
+              pWdev->wiphy = wiphy_new(&CFG80211_Ops, sizeof(ULONG *));
+              if (pWdev->wiphy == NULL)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Wiphy device allocation fail!\n"));
+                      goto LabelErrWiphyNew;
+              } /* End of if */
+
+              /* keep pAd pointer */
+              pPriv = (ULONG *)(wiphy_priv(pWdev->wiphy));
+              ,*pPriv = (ULONG)pAd;
+
+              set_wiphy_dev(pWdev->wiphy, pDev);
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30))
+              pWdev->wiphy->max_scan_ssids = pBandInfo->MaxBssTable;
+      #endif /* KERNEL_VERSION */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
+              /* @NL80211_FEATURE_INACTIVITY_TIMER:
+                 This driver takes care of freeingup
+                 the connected inactive stations in AP mode.*/
+
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* http://www.permalink.gmane.org/gmane.linux.kernel.wireless.general/86454 */
+              pWdev->wiphy->features |= NL80211_FEATURE_INACTIVITY_TIMER;
+      #endif
+
+      #ifdef CONFIG_AP_SUPPORT
+              pWdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_AP) | BIT(NL80211_IFTYPE_STATION);
+      #endif /* CONFIG_AP_SUPPORT */
+
+      #ifdef CONFIG_STA_SUPPORT
+              pWdev->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
+
+      #if 0//(LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37))
+              pWdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
+                                          BIT(NL80211_IFTYPE_ADHOC) |
+                                          BIT(NL80211_IFTYPE_AP);
+      #endif /* LINUX_VERSION_CODE */
+      #ifdef P2P_SUPPORT
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
+              pWdev->wiphy->software_iftypes |= BIT(NL80211_IFTYPE_P2P_DEVICE);
+      #endif /* LINUX_VERSION_CODE 3.7.0 */
+      #endif                                                             
+      #endif /* CONFIG_STA_SUPPORT */
+
+              pWdev->wiphy->reg_notifier = CFG80211_RegNotifier;
+
+              /* init channel information */
+              CFG80211_SupBandInit(pCfg80211_CB, pBandInfo, pWdev->wiphy, NULL, NULL);
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30))
+              /* CFG80211_SIGNAL_TYPE_MBM: signal strength in mBm (100*dBm) */
+              pWdev->wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
+              pWdev->wiphy->max_scan_ie_len = IEEE80211_MAX_DATA_LEN; 
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,33))
+              pWdev->wiphy->max_num_pmkids = 4; 
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38))
+              pWdev->wiphy->max_remain_on_channel_duration = 5000;
+      #endif /* KERNEL_VERSION */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37))
+              pWdev->wiphy->mgmt_stypes = ralink_mgmt_stypes;
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32))
+              pWdev->wiphy->cipher_suites = CipherSuites;
+              pWdev->wiphy->n_cipher_suites = ARRAY_SIZE(CipherSuites);
+      #endif /* LINUX_VERSION_CODE */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,0))
+              pWdev->wiphy->flags |= WIPHY_FLAG_AP_UAPSD;
+      #endif
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* 018-cfg80211-internal-ap-mlme.patch */
+              pWdev->wiphy->flags |= WIPHY_FLAG_HAVE_AP_SME;
+
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* 008-cfg80211-offchan-flags.patch */
+              pWdev->wiphy->flags |= WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL;
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0))       
+              pWdev->wiphy->iface_combinations = (struct ieee80211_iface_combination *)(&ra_iface_combinations_p2p);
+              pWdev->wiphy->n_iface_combinations = ARRAY_SIZE(ra_iface_combinations_p2p); 
+      #endif
+
+              if (wiphy_register(pWdev->wiphy) < 0)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Register wiphy device fail!\n"));
+                      goto LabelErrReg;
+              } /* End of if */
+                      
+              return pWdev;
+
+       LabelErrReg:
+              wiphy_free(pWdev->wiphy);
+
+       LabelErrWiphyNew:
+              os_free_mem(NULL, pWdev);
+
+              return NULL;
+      } /* End of CFG80211_WdevAlloc */    
+    #+END_SRC
