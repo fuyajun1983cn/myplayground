@@ -5,6 +5,7 @@
 #+STARTUP: hidestars
 #+OPTIONS: toc:t
 
+* 存档
 * 2016
 ** 1月[24/24]
 *** DONE 802.11协议第二阶段学习 [10/10]
@@ -1191,7 +1192,7 @@ Added: [2016-08-25 周四 09:20]
     CLOSED: [2016-08-31 周三 21:05]
 
 Added: [2016-08-18 周四 16:10]
-** 9月[8/8]
+** 9月[12/12]
 *** ✔ DONE [#A] 海信CTS Verifier的问题                               :Project:
     CLOSED: [2016-09-02 周五 14:05] SCHEDULED: <2016-08-26 周五>
       1. GO Negotiation Requrester Test
@@ -1255,6 +1256,17 @@ Added: [2016-08-30 周二 17:40]
     CLOSED: [2016-09-09 周五 11:30] SCHEDULED: <2016-09-09 周五>
      增加mac80211_hwsim的使用说明
 Added: [2016-09-09 周五 09:30]
+*** ✘ CANCELED [#C] 整理问题集                                         :Study:
+   CLOSED: [2016-09-10 六 13:40] SCHEDULED: <2016-09-01 周四>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+将问题集写到个人知识库里面
+Added: [2016-08-11 周四 17:15]
+*** ✔ DONE 查询生育保险报销事宜                                        :Check:
+   CLOSED: [2016-09-10 六 14:30] SCHEDULED: <2016-09-07 周三>
+
+Added: [2016-09-07 周三 13:55]
 ** 10月[/]
 ** 11月[/]
 ** 12月[/]
