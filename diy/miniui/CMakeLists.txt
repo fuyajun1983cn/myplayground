@@ -13,11 +13,6 @@ find_package(Qt5Widgets)
 set(src_FILES
     main.cpp
     device.cpp
-    message.cpp
-    looper.cpp
-    messagequeue.cpp
-    handler.cpp
-    handlerthread.cpp
 )
 
 add_executable(miniui ${src_FILES})

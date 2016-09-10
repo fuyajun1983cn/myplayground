@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-#if 0
+#if 1
     Device *virtual_phone = Device::getInstance();
     app.installEventFilter(virtual_phone);
 #endif
