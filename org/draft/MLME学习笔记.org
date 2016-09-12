@@ -29,7 +29,6 @@
    在 =cmm_mat.c= 中有定义 =MATProtoTb= ，用于相关协议数据包
 
 ** 重要数据结构
-    
 *** pAd->CommonCfg.RegTransmitSetting
         802.11n相关寄存器的设置
 
@@ -73,7 +72,16 @@
     #+END_SRC
 
     rt28xx_init
-
+** 地区信道描述
+    #+BEGIN_SRC c++
+      extern COUNTRY_REGION_CH_DESC Country_Region_ChDesc_2GHZ[];
+      extern UINT16 const Country_Region_GroupNum_2GHZ;
+      extern COUNTRY_REGION_CH_DESC Country_Region_ChDesc_5GHZ[];
+      extern UINT16 const Country_Region_GroupNum_5GHZ;    
+    #+END_SRC
+** Beacon帧
+    - updateAllBeacon
+    - APMakeBssBeacon
 * MLME主循环处理
   MLME的主循环处理函数是:  =MlmeHandler= 
      
@@ -363,9 +371,12 @@ IE_EXT_CAPABILITY
     同步到driver的设置中。
 
     
-
+* 省电管理
+  代码操作： =PWR_SAVING_OP=
 * 与FW(MCU)交互的接口(mcu_and.c)
+  函数 =andes_ctrl_usb_init= 初始化一些MCU控制相关的一些参数。
   andes_send_cmd_msg
+  
 * Rate Control
 * Roaming
   MT76x2STA.dat相关配置：

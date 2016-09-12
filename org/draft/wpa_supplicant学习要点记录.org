@@ -1390,10 +1390,21 @@
      2. 创建一个p2p接口。 
         =P2P: Create a new interface p2p-p2p0-0 for the group=
         =nl80211: Create interface iftype 9 (P2P_GO)=
-     3. 发送 =Invitation Response= Action帧给对端。并回调
+     3. 准备发新Invitation Response
+        - 标记当前状态：
+         : p2p->pending_action_state = P2P_PENDING_INVITATION_RESPONSE
+        - 调用 =p2p_send_action= 发送p2p invitation response
+          调用 =wpas_send_action= , 也即 =offchannel_send_action(…)=
+          , 在该函数中，将会用 =wpa_s->pending_action_tx= 标记本次TX
+          Action。
+          如果TX成功， 驱动会上报 =TX_STATUS= ， 此时就会调用
+          =offchannel_send_action_tx_staus= ， 在该函数中会检查
+          =wpa_s->pending_action_tx= 是否为空，如果为空，则会忽略本次事件。
+          否则，才会调用回调函数 =wpas_p2p_send_action_tx_status= 则会进入后面的流程。
+     4. 如果一切顺利，会回调
         =p2p_inviation_resp_cb= , 它会调用 =wpas_invitation_received=
         。
-     4. 调用 =p2p_stop_find= 。
+     5. 调用 =p2p_stop_find= 。
 
         示例日志：
         #+BEGIN_SRC sh
@@ -3338,37 +3349,47 @@
 
     [[./images/2016/2016080901.jpg]]
 
-    1. =struct hapd_interfaces=
-       #+BEGIN_SRC c
-         struct hapd_interfaces {
-                 int (*reload_config)(struct hostapd_iface *iface);
-                 struct hostapd_config * (*config_read_cb)(const char *config_fname);
-                 int (*ctrl_iface_init)(struct hostapd_data *hapd);
-                 void (*ctrl_iface_deinit)(struct hostapd_data *hapd);
-                 int (*for_each_interface)(struct hapd_interfaces *interfaces,
-                                           int (*cb)(struct hostapd_iface *iface,
-                                                     void *ctx), void *ctx);
-                 int (*driver_init)(struct hostapd_iface *iface);
+    - A =hostapd_interfaces= has at least one =hostapd_iface=.
 
-                 size_t count;
-                 int global_ctrl_sock;
-                 struct wpa_ctrl_dst *global_ctrl_dst;
-                 char *global_iface_path;
-                 char *global_iface_name;
-         #ifndef CONFIG_NATIVE_WINDOWS
-                 gid_t ctrl_iface_group;
-         #endif /* CONFIG_NATIVE_WINDOWS */
-                 struct hostapd_iface **iface;
+    - A =hostapd_iface= has at least one bss(=hostapd_data=)
 
-                 size_t terminate_on_error;
-         #ifndef CONFIG_NO_VLAN
-                 struct dynamic_iface *vlan_priv;
-         #endif /* CONFIG_NO_VLAN */
-         };
+    - =struct hapd_interfaces=
+      全局数据结构，定义了一系列公共回调函数，并统计了当前实际虚拟接
+      口的数量与引用。
+      #+BEGIN_SRC c
+        struct hapd_interfaces {
+                int (*reload_config)(struct hostapd_iface *iface);
+                struct hostapd_config * (*config_read_cb)(const char *config_fname);
+                int (*ctrl_iface_init)(struct hostapd_data *hapd);
+                void (*ctrl_iface_deinit)(struct hostapd_data *hapd);
+                int (*for_each_interface)(struct hapd_interfaces *interfaces,
+                                          int (*cb)(struct hostapd_iface *iface,
+                                                    void *ctx), void *ctx);
+                int (*driver_init)(struct hostapd_iface *iface);
+
+                size_t count;
+                int global_ctrl_sock;
+                struct wpa_ctrl_dst *global_ctrl_dst;
+                char *global_iface_path;
+                char *global_iface_name;
+        #ifndef CONFIG_NATIVE_WINDOWS
+                gid_t ctrl_iface_group;
+        #endif /* CONFIG_NATIVE_WINDOWS */
+                struct hostapd_iface **iface;
+
+                size_t terminate_on_error;
+        #ifndef CONFIG_NO_VLAN
+                struct dynamic_iface *vlan_priv;
+        #endif /* CONFIG_NO_VLAN */
+        };
                 
-       #+END_SRC
+      #+END_SRC
 
-    2. =struct hostapd_config=
+    - =struct hostapd_iface=
+      per-interface data structure.
+       
+
+    3. =struct hostapd_config=
        #+BEGIN_SRC c
          /**
           ,* struct hostapd_config - Per-radio interface configuration
@@ -3476,7 +3497,7 @@
          };       
        #+END_SRC
 
-    3. =struct hostapd_bss_config=
+    4. =struct hostapd_bss_config=
        #+BEGIN_SRC c
          /**
           ,* struct hostapd_bss_config - Per-BSS configuration
@@ -3838,7 +3859,7 @@
          };       
        #+END_SRC
 
-    4. =struct hostapd_data=
+    5. =struct hostapd_data=
 
        #+BEGIN_SRC c
          /**
@@ -4146,6 +4167,8 @@
             #+RESULTS:
             [[file:./images/2016/2016080901.png]]
 
+           
+
 ***** =hostapd_interface_init=
      
             =hostapd_init=:  读取配置文件的参数设置， 初始化BSS数据，返回
@@ -4193,6 +4216,11 @@
 
             #+RESULTS:
             [[file:./images/2016/2016081601.png]]
+
+            1. 注册bss事件处理函数 。
+            2. 设置接口模式为AP模式，并将接口启动。
+            3. 注册EAPOL包的监听处理函数（发送状态以及处理接收到的
+               EAPOL数据包）
           
 ***** =hostapd_setup_interface=
               函数调用流程
@@ -4229,7 +4257,6 @@
               5. =hostapd_setup_wpa=
               6. =ieee802_11_set_beacon=
               7. =wpa_init_keys=
-
 
 ***** =hostapd_global_ctrl_iface_init=
 
@@ -4314,6 +4341,53 @@
      
           响应的Action帧通过 =NL80211_CMD_FRAME= 命令传递给driver去处理。
           
+***** TX
+           #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016090701.png :cmdline -charset UTF-8
+             @startuml
+             participant "driver" as A
+             participant "cfg80211/nl80211" as B
+             participant "hostapd" as C
+             activate C
+             C -> C: hostapd_drv_send_mlme
+             activate B
+             C -> B: NL80211_CMD_FRAME
+             activate A
+             B -> A: mgmt_tx
+             A -> A: mt76xx_cfg80211_mgmt_tx
+             A -> A: CFG80211_SendMgmtFrame
+             deactivate A
+             deactivate B
+             deactivate C
+             @enduml
+           #+END_SRC
+
+           #+RESULTS:
+           [[file:./images/2016/2016090701.png]]
+
+***** RX
+           #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016090702.png :cmdline -charset UTF-8
+             @startuml
+             @startuml
+             participant "driver" as A
+             participant "cfg80211/nl80211" as B
+             participant "hostapd" as C
+             activate A
+             A -> A: CFG80211OS_RxMgmt
+             activate B
+             A -> B: cfg80211_rx_mgmt
+             activate C
+             B -> C: nl80211_send_mgmt(NL80211_CMD_FRAME)
+             deactivate A
+             deactivate B
+             deactivate C
+             @enduml
+             @enduml
+           #+END_SRC
+
+           #+RESULTS:
+           [[file:./images/2016/2016090702.png]]
+
+         
 ***** 处理Auth Req
          
            #+CAPTION: 处理Auth Req时的日志
@@ -4345,7 +4419,6 @@
              wlan1: STA 02:00:00:00:01:00 IEEE 802.11: authenticated           
            #+END_SRC
 
-***** 
 **** DFS
           DFS处理的入口函数为：
           : hostapd_handle_dfs
@@ -4363,13 +4436,13 @@
           We are planning to add AP support in open source mwifiex
           driver and use hostapd application.
           
-          We want the compilation flag "NEED_AP_MLME" in hostapd to be
+          We want the compilation flag "=NEED_AP_MLME=" in hostapd to be
           disabled because our FW takes care of MLME.
 
-          I observed that "NEED_AP_MLME" flag is by default getting
+          I observed that "=NEED_AP_MLME=" flag is by default getting
           enabled when we say =CONFIG_DRIVER_NL80211=y=  in
           configuration file. Can we use NL80211 support in hostapd
-          with "NEED_AP_MLME" flag disabled?
+          with "=NEED_AP_MLME=" flag disabled?
 
           问题回答（Jouni Malinen at the year of 2011）
 
@@ -5127,7 +5200,7 @@
               }    
     #+END_SRC
 
-** 遍历wpa_supplicant上的bss list
+** 遍历 =wpa_supplicant= 上的bss list
     #+BEGIN_SRC c
       struct wpa_bss *bss;
       dl_list_for_each_reverse(bss, &wpa_s->bss, struct wpa_bss, list) {

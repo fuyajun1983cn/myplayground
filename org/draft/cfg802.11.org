@@ -92,6 +92,7 @@
 - =cfg80211_put_bss=
 - =cfg80211_inform_bss=
   2.6.31后，优先使用此接口
+  通知80211，获得了一个scan。
 - =cfg80211_inform_bss_frame=
 - =cfg80211_find_ie=
   寻找指定的IE。 如SSID
@@ -100,7 +101,7 @@
 - =cfg80211_scan_done=
   通知上层，扫描动作停止。
 - =cfg80211_rx_mgmt=
-  通知上层，接收到未处理的管理帧, 几Kernel上层报告管理帧，都是通过些接
+  通知上层，接收到未处理的管理帧, 从Kernel上报告管理帧，都是通过些接
   口。
 - =cfg80211_rx_action=
   通知上层，接收到未处理的Action帧

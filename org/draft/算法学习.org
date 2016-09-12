@@ -35,10 +35,12 @@
 
 *** 二叉排序树(BST)
 
-
 * 常见算法
 
 ** 查找
+
+    算法备忘录——查找
+    http://www.yidianzixun.com/n/0EENsECQ?s=12&appid=yidian&ver=3.6.8&utk=3em6ldsx
 
 *** 顺序查找
 

@@ -104,7 +104,26 @@
             - nicDeactivateNetwork
             - nicQmUpdateWmmParms
 
-       
+*** =_GLUE_INFO_T=  && =_ADAPTER_T=
+        =_ADAPTER_T= : Major data structure for driver operation, main data structure of internal protocol stack
+        
+        =_GLUE_INFO_T=: Major data structure for driver
+
+        这两个数据结构相互引用，即通过任何一方可以访问到另一方。
+
+        与网络驱动相关的数据结构之间的引用关系：
+        #+BEGIN_SRC c
+          // _GLUE_INFO_T 与 struct net_device
+          prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(prWdev->wiphy);
+          gPrDev = prGlueInfo->prDevHandler;
+          P_ADAPTER_T prAdapter = prGlueInfo->prAdapter ;
+          P_GLUE_INFO_T prGlueInfo = prAdpater->prGlueInfo;
+          P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T *) netdev_priv(prWdev->netdev);
+        #+END_SRC
+
+*** =_GL_P2P_INFO_T=
+         p2p structure
+      
 ** Software Modules
 
     #+CAPTION: Software Modules
@@ -197,3 +216,7 @@
 *** Reference Charts
      
         [[./images/2016/2016083003.png]]
+
+** 编译
+    因為當初SDIO開發時候只有x86 PC跟HE兩種平台 
+    这个宏 =MTK_WCN_HIF_SDIO= 要定义为0。

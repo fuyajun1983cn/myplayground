@@ -981,6 +981,22 @@
          -> startSoftApWithConfig最终调用NetworkManagerService的
          startAccessPoint
 
+         #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016090501.png :cmdline -charset UTF-8
+           @startuml
+           WifiManager -> WifiService: setWifiApEnabled
+           WifiService -> WifiController: CMD_SET_AP
+           WifiController -> WifiStateMachine: setHostApRunning
+           WifiStateMachine -> WifiStateMachine: CMD_START_AP
+           WifiStateMachine -> NetworkManagerService: startAccessPoint
+           NetworkManagerService --> Netd: softap set ... && softap startup
+           Netd --> Hostapd: /system/bin/hostapd ...
+           @enduml
+         #+END_SRC
+
+         #+RESULTS:
+         [[file:./images/2016/2016090501.png]]
+
+
          WifiStateMachine与SoftAp相关的状态为：
             addState(mSoftApStartingState, mDefaultState);
             addState(mSoftApStartedState, mDefaultState);

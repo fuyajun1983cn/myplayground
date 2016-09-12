@@ -1504,8 +1504,12 @@
      示队列为空.
   2. 等待某个条件发生：
      =wait_event(...)= 或 =wait_event_timeout(...)=
+     =wait_event_interruptible= 或 =wait_event_interruptible_timeout=
   3. 唤醒队列
      =wake_up_all(...)=
+     =wake_up_interruptible_all=
+     =wake_up=
+     =wake_up_interruptible=
 
 * 知识点17 内核数据结构之队列
   　　在操作系统内核中，一个常见的编程模式就是生产者和消费者。实现这种
@@ -4680,7 +4684,7 @@ Vmalloc映射分三步：
 
   *背后原理解释*
 
-  系 统调用本来是提供给用户空间的程序访问的，所以，对传递给它的参数
+  系统调用本来是提供给用户空间的程序访问的，所以，对传递给它的参数
   （比如上面的buf），它默认会认为来自用户空间，在write()函数中， 为
   了保护内核空间，一般会用 =get_fs()= 得到的值来和USER_DS进行比较，从而防
   止用户空间程序“蓄意”破坏内核空间；
@@ -4804,4 +4808,121 @@ Vmalloc映射分三步：
      MODULE_DESCRIPTION("Module to read a file from kernel space");      
   #+END_SRC
 
+
+
+* 知识点44 poll 和select
+  非阻塞I/O的应用程序通过会调用poll,select和epoll等系统调用，这些系统
+  调用实际上实现的是同一个功能：允许每个进程判断在不阻塞进程的情况下，
+  当前的文件是否可读写。
+
+  上述支持依赖于设备驱动对其提供支持，需要在设备驱动中实现如下函数：
+  : unsigned int (*poll) (struct file *filp, poll_table *wait);
+
+  只要应用程序调用上述系统调用中的任何一个，都会调用到设备驱动 的poll
+  函数，它主要负责如下功能：
+  1. 对一个或多个等待队列中调用 =poll_wait= , 该函数可以查询poll的状态。 If no
+     file descriptors are currently available for I/O, the kernel
+     causes the process to wait on the wait queues for all file
+     descriptors passed to the system call.
+  2. Return a bit mask describing the operations (if any) that could
+     be immediately performed without blocking.
+
+  =poll_table= 是内核用于实现上述系统调用的数据结构，驱动不需要关注它
+  的实现内容，把它当作一个透明的数据即可。
+
+  驱动通过如下函数：
+  : void poll_wait (struct file *, wait_queue_head_t *, poll_table *);
+  将一个等待队列添加到 =poll_wait= 中。
+
+  poll方法返回一个位掩码来表明当前I/O的状态，主要有如下一些I/O状态：
+  - POLLIN
+    This bit must be set if the device can be read without blocking.
+  - POLLRDNORM
+    This bit must be set if “normal” data is available for
+    reading. A readable device returns (POLLIN | POLLRDNORM).
+  - POLLHUP
+    When a process reading this device sees end-of-file, the driver
+    must set POLLHUP (hang-up). A process calling select is told that
+    the device is readable, as dictated by the select functionality.
+  - POLLERR
+    An error condition has occurred on the device. When poll is
+    invoked, the device is reported as both readable and writable,
+    since both read and write return an error code without blocking.
+  - POLLOUT
+    This bit is set in the return value if the device can be written to without blocking.
+  - POLLWRNORM
+    This bit has the same meaning as POLLOUT, and sometimes it
+    actually is the same number. A writable device returns (POLLOUT |
+    POLLWRNORM).
+  - POLLWRBAND
+    Like POLLRDBAND, this bit means that data with nonzero priority
+    can be written to the device. Only the datagram implementation of
+    poll uses this bit, since a datagram can transmit out-of-band
+    data.
+
+    示例：
+    #+BEGIN_SRC c
+      static unsigned int scull_p_poll(struct file *filp, poll_table *wait)
+      {
+        struct scull_pipe *dev = filp->private_data;
+        unsigned int mask = 0;
+        /*
+         ,* The buffer is circular; it is considered full
+         ,* if "wp" is right behind "rp" and empty if the
+         ,* two are equal.
+         ,*/
+        down(&dev->sem);
+        poll_wait(filp, &dev->inq, wait);
+        poll_wait(filp, &dev->outq, wait);
+        if (dev->rp != dev->wp)
+          mask |= POLLIN | POLLRDNORM; /* readable */
+        if (spacefree(dev))
+          mask |= POLLOUT | POLLWRNORM; /* writable */
+        up(&dev->sem);
+        return mask;
+      }    
+    #+END_SRC
+    
+
+
+
+
+
 https://kernelnewbies.org/KernelMemoryAllocation
+
+* 知识点45 iotcl函数
+  Linux系统建议以如下方式定义ioctl()的命令码。
+  | 设备类型(type) | 序列号(nr) | 方向 | 数据尺寸(size) |
+  |----------------+------------+------+----------------|
+  | 8bit           | 8bit       | 2bit | 13/14bit       |
+  |----------------+------------+------+----------------|
+
+  命令码的设备类型字段为一个“幻数”，可以是0~0xff之间的值，命令码的序
+  列号也是8位宽，命令码的方向字段为2位，该字段表示数据传送的方向，可能
+  的值是 =_IOC_NONE= (无数据传输)、=_IOC_READ= (读)、 =_IOC_WRITE= (写)和
+  =_IOC_READ | _IOC_WRITE= (双向)。数据传输的方向是从应用程序的角度来看的。
+
+  命令码的数据长度字段表示涉及的用户数据的大小，这个成员的宽度依赖于体
+  系结构，通常是13位或者14位。
+
+  内核还定义了 =_IO()= 、 =_IOR()= 、 =_IOW()= 和 =_IOWR()= 这4个宏来辅助生成命令，这4
+  个宏的通用定义代码如下：
+  #+BEGIN_SRC c
+    #define _IO(type, nr)     _IOC(_IOC_NONE, (type), (nr), 0)  
+      
+    #define _IOR(type, nr, size) _IOC(_IOC_READ, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOW(type, nr, size) _IOC(_IOC_WRITE, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOWR(type, nr, size) _IOC(_IOC_WRITE, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOC(dir, type, nr, size) \  
+      
+           (((dir) << _IOC_DIRSHIFT) |\  
+      
+    ((type) << _IOC_TYPESHIFT) | \  
+      
+    ((nr) << _IOC_NRSHIFT)  | \  
+      
+    ((size) << _IOC_SIZESHIFT))    
+  #+END_SRC
