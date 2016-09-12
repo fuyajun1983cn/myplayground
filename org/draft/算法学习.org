@@ -11,7 +11,7 @@
 ** 链表
 
 *** 单链表
-
+    
 *** 静态链表
 
 *** 双向链表
@@ -99,6 +99,8 @@
 * 面试题集锦
 [[http://www.hawstein.com/posts/ctci-solutions-contents.html][Cracking the coding interview--问题与解答]]
 
+structure your answer with S(Situation), A(Action), R(Response)
+
 ** 数组与字符串
 
 *** 字符是否唯一
@@ -109,6 +111,44 @@
 
      实现一个算法来判断一个字符串中的字符是否唯一(即没有重复).不能使用
      额外的数据结构。 (即只使用基本的数据结构) 
+
+**** 解答
+
+     #+BEGIN_SRC java
+       public class Solution {
+           public static void main(String args[]) {
+               //测试 代码
+           }
+
+           //判断一个字符串所有的字符是否唯一
+           boolean isUniqueChars(String s) {
+               boolean char_set = new boolean[256];
+               for (int i = 0; i < s.length(); i++) {
+                   int val = s.charAt(i);
+                   if (char_set[val])
+                       return false;
+                   char_set[val] = true;
+               }
+               return true;
+           }
+
+           //假设字符串只包含a~z范围内的字符串
+           //则可以写更简洁一点
+           boolean isUniqueChars2(String s) {
+               int checker = 0;
+
+               for (int i = 0; i < s.length(); i++) {
+                   int val = s.charAt(i);
+                   if (checker & (1 << val))
+                       return false;
+                   checker |= val;
+               }
+               
+               return true;
+           }
+          
+       }     
+     #+END_SRC
 
 *** 翻转字符串
 

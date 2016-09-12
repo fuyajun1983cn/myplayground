@@ -679,7 +679,7 @@
         #+END_SRC
 
       示例图：
-      #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082903.png :cmdline -charset UTF-8
+      #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016082903.png :cmdline -charset UTF-8
         @startuml
         class MainWindow {
             +static MainWindow getInstance()
@@ -698,19 +698,644 @@
   主要描述组织对象和类以完成更大的目标。主要有如下一些具体模式：
 
 ** 适配器(Adapter)
+   适配器是两个不兼容的实体之间的转换器，适配器模式是一种结构型模式，
+   它做为两个不兼容的接口之间的桥梁。通过适配器，我们可以将两个不兼容
+   的接口统一起来。
+
+   
+*** 情景分析
+
+    创建一个播放任何媒体文件的Player接口， MyPlayer是适配器，它统一了
+    播放媒体文件的各种接口。
+    
+    #+BEGIN_SRC java
+      interface Player {
+          public void play(String type, String fileName);
+      }/*from  w  w  w .j a v  a2s .  c o m*/
+      interface AudioPlayer {  
+          public void playAudio(String fileName);
+      }
+      interface VideoPlayer {  
+          public void playVideo(String fileName);
+      }
+      class MyAudioPlayer implements AudioPlayer {
+          @Override
+          public void playAudio(String fileName) {
+              System.out.println("Playing. Name: "+ fileName);    
+          }
+      }
+      class MyVideoPlayer implements VideoPlayer {
+          @Override
+          public void playVideo(String fileName) {
+              System.out.println("Playing. Name: "+ fileName);    
+          }
+      }
+
+      class MyPlayer implements Player {
+
+          AudioPlayer audioPlayer = new MyAudioPlayer();
+          VideoPlayer videoPlayer = new MyVideoPlayer();
+         
+          public MyPlayer(){      
+          }
+          @Override
+          public void play(String audioType, String fileName) {
+              if(audioType.equalsIgnoreCase("avi")){
+                  videoPlayer.playVideo(fileName);
+              }else if(audioType.equalsIgnoreCase("mp3")){
+                  audioPlayer.playAudio(fileName);
+              }
+          }
+      }
+      public class Main{
+          public static void main(String[] args) {
+              MyPlayer myPlayer = new MyPlayer();
+
+              myPlayer.play("mp3", "h.mp3");
+              myPlayer.play("avi", "me.avi");
+          }
+      }    
+    #+END_SRC
+
+    示例图：
+
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091001.png :cmdline -charset UTF-8
+      @startuml
+      interface Player {
+          +void play(String type, String filename)
+      }
+
+      interface AudioPlayer {  
+         +void playAudio(String fileName)
+      }
+
+      interface VideoPlayer {  
+         +void playVideo(String fileName)
+      }
+
+      class MyAudioPlayer {
+         +void playAudio(String fileName)
+      }
+
+      AudioPlayer <|.. MyAudioPlayer
+
+      class MyVideoPlayer {
+         +void playVideo(String fileName)
+      }
+
+      VideoPlayer <|.. MyVideoPlayer
+
+      class MyPlayer {
+       AudioPlayer audioPlayer
+       VideoPlayer videoPlayer
+
+      +void play(String audioType, String fileName)
+      }
+
+      Player <|.. MyPlayer
+
+      MyPlayer *-- MyAudioPlayer
+      MyPlayer *-- MyVideoPlayer
+
+      class Main
+
+      Main --> MyPlayer
+
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091001.png]]
 
 ** 桥接(Bridge)
+   桥接模式将定义与其实现分开，在该模式中，有一个接口充当桥接的角色，
+   桥接使得具体类与接口实现类之间相互独立。
+   
+*** 情景分析
+    #+BEGIN_SRC java
+      interface Printer {
+         public void print(int radius, int x, int y);
+      }/*www  .ja v  a  2s  . com*/
+      class ColorPrinter implements Printer {
+         @Override
+         public void print(int radius, int x, int y) {
+            System.out.println("Color: " + radius +", x: " +x+", "+ y +"]");
+         }
+      }
+      class BlackPrinter implements Printer {
+         @Override
+         public void print(int radius, int x, int y) {
+            System.out.println("Black: " + radius +", x: " +x+", "+ y +"]");
+         }
+      }
+      abstract class Shape {
+         protected Printer print;
+         protected Shape(Printer p){
+            this.print = p;
+         }
+         public abstract void draw();  
+      }
+      class Circle extends Shape {
+         private int x, y, radius;
+
+         public Circle(int x, int y, int radius, Printer draw) {
+            super(draw);
+            this.x = x;  
+            this.y = y;  
+            this.radius = radius;
+         }
+
+         public void draw() {
+            print.print(radius,x,y);
+         }
+      }
+      public class Main {
+         public static void main(String[] args) {
+            Shape redCircle = new Circle(100,100, 10, new ColorPrinter());
+            Shape blackCircle = new Circle(100,100, 10, new BlackPrinter());
+
+            redCircle.draw();
+            blackCircle.draw();
+         }
+      }    
+    #+END_SRC
+
+    示例图：
+
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091002.png :cmdline -charset UTF-8
+      @startuml
+      interface Printer {
+        +void print(int radius, int x, int y)
+      }
+
+      class ColorPrinter{
+        +void print(int radius, int x, int y)
+      }
+
+      class BlackPrinter{
+        +void print(int radius, int x, int y)
+      }
+
+      ColorPrinter ..|> Printer
+      BlackPrinter ..|> Printer
+
+      class Shape {
+       #Printer print
+       +void draw()
+      }
+
+      class Circle {
+       +void draw()
+      }
+
+      Circle -|> Shape
+      Shape *-- Printer
+
+      class Main
+
+      Main --> Shape
+        
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091002.png]]
 
 ** 组合(Composite)
+   组合模式会创建一种树型结构来代表一组对象，并对一组对象视为单个对象，
+   使用一个类来代表一个树型结构。
 
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      import java.util.ArrayList;
+      import java.util.List;
+      //from w w w .j  av  a  2 s  .  com
+      class Employee {
+         private String name;
+         private String title;
+         private List<Employee> subordinates;
+
+         public Employee(String name,String title) {
+            this.name = name;
+            this.title = title;
+            subordinates = new ArrayList<Employee>();
+         }
+
+         public void add(Employee e) {
+            subordinates.add(e);
+         }
+
+         public void remove(Employee e) {
+            subordinates.remove(e);
+         }
+
+         public List<Employee> getSubordinates(){
+           return subordinates;
+         }
+
+         public String toString(){
+            return "Employee :[ Name : "+ name 
+            +", dept : "+ title +subordinates +" ]";
+         }   
+      }
+
+      public class Main {
+         public static void main(String[] args) {
+            Employee CEO = new Employee("John","CEO");
+
+            Employee headSales = new Employee("Rob","Sales");
+
+            Employee headMarketing = new Employee("Mike","Marketing");
+
+            Employee programmer1 = new Employee("Lili","Programmer");
+            Employee programmer2 = new Employee("Bob","Programmer");
+
+            Employee tester1 = new Employee("Jack","Tester");
+            Employee tester2 = new Employee("Tom","Tester");
+
+            CEO.add(headSales);
+            CEO.add(headMarketing);
+
+            headSales.add(tester1);
+            headSales.add(tester2);
+
+            headMarketing.add(programmer1);
+            headMarketing.add(programmer2);
+
+            //print all employees of the organization
+            System.out.println(CEO); 
+            for (Employee headEmployee : CEO.getSubordinates()) {
+               System.out.println(headEmployee);
+               for (Employee employee : headEmployee.getSubordinates()) {
+                  System.out.println(employee);
+               }
+            }    
+         }
+      }    
+    #+END_SRC
+    
 ** 修饰器(Decorator)
+   修饰器模式在不改变原有类型的基础上增加新的功能，它充当一种包装器，
+   对现有的类进行功能扩展。
+
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      interface Printer {
+         void print();//from w  w  w  .j  a  v a2 s .  co  m
+      }
+      class PaperPrinter implements Printer {
+         @Override
+         public void print() {
+            System.out.println("Paper Printer");
+         }
+      }
+      class PlasticPrinter implements Printer {
+         @Override
+         public void print() {
+            System.out.println("Plastic Printer");
+         }
+      }
+      abstract class PrinterDecorator implements Printer {
+         protected Printer decoratedPrinter;
+         public PrinterDecorator(Printer d){
+            this.decoratedPrinter = d;
+         }
+         public void print(){
+            decoratedPrinter.print();
+         }  
+      }
+      class Printer3D extends PrinterDecorator {
+         public Printer3D(Printer decoratedShape) {
+            super(decoratedShape);    
+         }
+         @Override
+         public void print() {
+           System.out.println("3D.");
+           decoratedPrinter.print();         
+         }
+      }
+      public class Main {
+         public static void main(String[] args) {
+            Printer plasticPrinter = new PlasticPrinter();
+            Printer plastic3DPrinter = new Printer3D(new PlasticPrinter());
+            Printer paper3DPrinter = new Printer3D(new PaperPrinter());
+            plasticPrinter.print();
+            plastic3DPrinter.print();
+            paper3DPrinter.print();
+         }
+      }    
+    #+END_SRC
+
+    示例图：
+    
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091003.png :cmdline -charset UTF-8
+      @startuml
+      interface Printer {
+        +void print()
+      }
+
+      class PaperPrinter {
+        +void print()
+      }
+
+      class PlasticPrinter {
+        +void print()
+      }
+
+      PaperPrinter ..|> Printer
+      PlasticPrinter ..|> Printer
+
+      class PrinterDecorator {
+        #Printer decoratedPrinter
+        +void print()
+      }
+
+      PrinterDecorator ..|> Printer
+      PrinterDecorator *-- Printer
+
+      class Printer3D {
+        +void print()
+      }
+
+      Printer3D --|> PrinterDecorator
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091003.png]]
 
 ** 门面(Facade)
+   门面模式隐藏了一个系统的复杂性，为使用者提供了一个简单的接口来与系
+   统交互。
 
+*** 情景分析
+
+    #+BEGIN_SRC java
+      class ShapeFacade {
+        interface Shape {
+          void draw();//from   ww  w .  ja  v a  2s .co  m
+        }
+        class Rectangle implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Rectangle::draw()");
+          }
+        }
+        class Square implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Square::draw()");
+          }
+        }
+        class Circle implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Circle::draw()");
+          }
+        }
+        private Shape circle = new Circle();
+        private Shape rectangle = new Rectangle();
+        private Shape square = new Square();
+
+        public ShapeFacade() {
+        }
+        public void drawCircle() {
+          circle.draw();
+        }
+        public void drawRectangle() {
+          rectangle.draw();
+        }
+        public void drawSquare() {
+          square.draw();
+        }
+      }
+      public class Main {
+        public static void main(String[] args) {
+          ShapeFacade shapeFacade = new ShapeFacade();
+          shapeFacade.drawCircle();
+          shapeFacade.drawRectangle();
+          shapeFacade.drawSquare();
+        }
+      }    
+    #+END_SRC
 ** 享元(Flyweight)
-
+   使用共享来支持有效地支持大量细粒度的对象。
 ** 代理(Proxy)
+   在代理模式中，一个类代表另一个类的功能。在代理模式中，我们使用原始
+   的接口创建一个对象将功能暴露给外面世界。
+   
+*** 情景分析
 
+    #+BEGIN_SRC java
+      interface Printer {
+         void print();/*ww  w  .  ja  v a 2  s  .  c  o  m*/
+      }
+      class ConsolePrinter implements Printer {
+         private String fileName;
+
+         public ConsolePrinter(String fileName){
+            this.fileName = fileName;
+         }
+         @Override
+         public void print() {
+            System.out.println("Displaying " + fileName);
+         }
+      }
+      class ProxyPrinter implements Printer{
+         private ConsolePrinter consolePrinter;
+         private String fileName;
+
+         public ProxyPrinter(String fileName){
+            this.fileName = fileName;
+         }
+
+         @Override
+         public void print() {
+            if(consolePrinter == null){
+               consolePrinter = new ConsolePrinter(fileName);
+            }
+            consolePrinter.print();
+         }
+      }
+      public class Main {
+        
+         public static void main(String[] args) {
+            Printer image = new ProxyPrinter("test");
+            image.print();   
+         }
+      }    
+    #+END_SRC
+
+** 过滤器(Filter/Criteria Pattern)
+   Filter pattern filters objects using different criteria.
+   The criteria can be chained together through logical operations.
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      import java.util.List;
+      import java.util.ArrayList;
+      /*  w w  w.  j  a v  a2  s  .c  om*/
+      class Employee {
+        private String name;
+        private String gender;
+        private String retireStatus;
+
+        public Employee(String name, String gender, String r) {
+          this.name = name;
+          this.gender = gender;
+          this.retireStatus = r;
+        }
+
+        public String getName() {
+          return name;
+        }
+
+        public String getGender() {
+          return gender;
+        }
+
+        public String getRetireStatus() {
+          return retireStatus;
+        }
+
+        @Override
+        public String toString() {
+          return "Employee [name=" + name + ", gender=" + gender
+              + ", retireStatus=" + retireStatus + "]";
+        }
+      }
+
+      interface Criteria {
+        public List<Employee> meetCriteria(List<Employee> persons);
+      }
+
+      class CriteriaMale implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> malePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getGender().equalsIgnoreCase("MALE")) {
+              malePersons.add(person);
+            }
+          }
+          return malePersons;
+        }
+      }
+
+      class CriteriaFemale implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> femalePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getGender().equalsIgnoreCase("FEMALE")) {
+              femalePersons.add(person);
+            }
+          }
+          return femalePersons;
+        }
+      }
+
+      class CriteriaRetire implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> singlePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getRetireStatus().equalsIgnoreCase("YES")) {
+              singlePersons.add(person);
+            }
+          }
+          return singlePersons;
+        }
+      }
+
+      class AndCriteria implements Criteria {
+
+        private Criteria criteria;
+        private Criteria otherCriteria;
+
+        public AndCriteria(Criteria criteria, Criteria otherCriteria) {
+          this.criteria = criteria;
+          this.otherCriteria = otherCriteria;
+        }
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> firstCriteriaPersons = criteria.meetCriteria(persons);
+          return otherCriteria.meetCriteria(firstCriteriaPersons);
+        }
+      }
+
+      class OrCriteria implements Criteria {
+
+        private Criteria criteria;
+        private Criteria otherCriteria;
+
+        public OrCriteria(Criteria criteria, Criteria otherCriteria) {
+          this.criteria = criteria;
+          this.otherCriteria = otherCriteria;
+        }
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> firstCriteriaItems = criteria.meetCriteria(persons);
+          List<Employee> otherCriteriaItems = otherCriteria.meetCriteria(persons);
+
+          for (Employee person : otherCriteriaItems) {
+            if (!firstCriteriaItems.contains(person)) {
+              firstCriteriaItems.add(person);
+            }
+          }
+          return firstCriteriaItems;
+        }
+      }
+
+      public class Main {
+        public static void main(String[] args) {
+          List<Employee> persons = new ArrayList<Employee>();
+
+          persons.add(new Employee("Tom", "Male", "YES"));
+          persons.add(new Employee("Jack", "Male", "NO"));
+          persons.add(new Employee("Jane", "Female", "NO"));
+          persons.add(new Employee("Diana", "Female", "YES"));
+          persons.add(new Employee("Mike", "Male", "NO"));
+          persons.add(new Employee("Bob", "Male", "YES"));
+
+          Criteria male = new CriteriaMale();
+          Criteria female = new CriteriaFemale();
+          Criteria retire = new CriteriaRetire();
+          Criteria retireMale = new AndCriteria(retire, male);
+          Criteria retireOrFemale = new OrCriteria(retire, female);
+
+          System.out.println("Males: ");
+          printPersons(male.meetCriteria(persons));
+
+          System.out.println("Females: ");
+          printPersons(female.meetCriteria(persons));
+
+          System.out.println("Retire Males: ");
+          printPersons(retireMale.meetCriteria(persons));
+
+          System.out.println("Retire Or Females: ");
+          printPersons(retireOrFemale.meetCriteria(persons));
+        }
+
+        public static void printPersons(List<Employee> persons) {
+          for (Employee person : persons) {
+            System.out.println(person);
+          }
+        }
+      }    
+    #+END_SRC
 * 行为模式
   主要关注对象之间的交互。主要有如下一些具体模式：
 
