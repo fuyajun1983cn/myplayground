@@ -385,6 +385,24 @@
 ** =skb_copy_to_linear_data=
 ** =skb_copy_from_linear_data=
    Use memcpy() to copy skb->data.
+** 队列操作
+    #+BEGIN_SRC c
+      //queue
+      struct sk_buff_head ack_quue;
+      ...
+      //获取队列尾部元素
+      skb_queue_tail(...)
+
+      //队列长度
+      skb_queue_len(...)
+
+      //从队列取元素
+      skb_dequeue(...)
+
+      //
+      skb_get_queue_mapping(...)
+
+    #+END_SRC
 * Pass Package to Upper Layer
   驱动通过 =net_rx= 来通知内核有数据包需要提交给上层处理。
   #+BEGIN_SRC c

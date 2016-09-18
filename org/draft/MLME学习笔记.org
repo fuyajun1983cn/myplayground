@@ -325,7 +325,7 @@ IE_EXT_CAPABILITY
    在函数 RTMPDeQueuePacket 中，会处理加入到发送队列中的需要传输的数据
    包。
    
-   数据结构： _TX_BLK, 触发硬件进行数据发送的函数是： HAL_KickOutTx
+   数据结构： =_TX_BLK=, 触发硬件进行数据发送的函数是： HAL_KickOutTx
 
    驱动注册的Callback函数为：STAHardTransmit (硬件数据包传送)
 
@@ -342,17 +342,21 @@ IE_EXT_CAPABILITY
 
     
 *** Main  Interface
-        在主接口（实际物理接口）初始化时，初始化RTMP_OS_NETDEV_OP_HOOK
-        的xmit回调函数为rt28xx_send_packets， 这个函数接着会调用
-        rt28xx_packet_xmit。
+        在主接口（实际物理接口）初始化时，初始化 =RTMP_OS_NETDEV_OP_HOOK=
+        的xmit回调函数为 =rt28xx_send_packets= ， 这个函数接着会调用
+        =rt28xx_packet_xmit= 。
 
 *** Virtual Interface
     
-        CFG80211_VirtualIF_PacketSend（注册为RTMP_OS_NETDEV_OP_HOOK结
+        =CFG80211_VirtualIF_PacketSend= （注册为
+        =RTMP_OS_NETDEV_OP_HOOK= 结
         构体的xmit回调函数, 该函数实际上在RtmpOSNetDevAttach后，成为了
-        struct net_device_ops的ndo_start_xmit的回调函数。
-        -> CFG80211_PacketSend
-        -> rt28xx_packet_xmit
+        =struct net_device_ops= 的 =ndo_start_xmit= 的回调函数。
+        ->  =CFG80211_PacketSend=
+        ->  =rt28xx_packet_xmit=
+
+*** TX Sw Queue
+       4AC + 1HCCA, pAd->TxSwQueue
 
 * SoftAp
 

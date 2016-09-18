@@ -160,6 +160,52 @@ structure your answer with S(Situation), A(Action), R(Response)
      写代码翻转一个C风格的字符串。(C风格的意思是”abcd”需要用5个字符来
      表示，包含末尾的 结束字符) 
 
+**** 解答
+
+     #+BEGIN_SRC c
+       void reverse(char *str)
+       {
+         char *end = str;
+         if (str) {
+           while(end)
+             end++;
+           end--;
+           while (str < end) {
+             tmp = *str;
+             ,*str++ = *end;
+             ,*end-- = tmp;
+           }
+         }
+         
+       }
+     #+END_SRC
+
+     #+BEGIN_SRC java
+       public class Solution
+       {
+           public static void main(String[] args)
+           {
+               
+           }
+
+           private static char[] reverse(char[] input)
+           {
+               if (input == null)
+                   return null;
+               
+               if (input.length <= 2)//只有一个字符的情形
+                   return input;
+
+               for (int i = 0; i < (input.length -1)/2; i++) {
+                   char temp = input[i];
+                   input[i] = input[input.length - 2 -i];
+                   input[input.length - 2 - i] = temp;
+               }
+               return input;
+           }
+       }
+     #+END_SRC
+
 *** 移除重复字符
 
 **** 题目
@@ -173,6 +219,107 @@ structure your answer with S(Situation), A(Action), R(Response)
      注意： 可以使用额外的一个或两个变量，但不允许额外再开一个数组拷贝。 
      进一步地，
      为你的程序写测试用例。
+
+**** 解答
+
+     #+BEGIN_SRC java
+       public class Solution
+       {
+           public static void main(String[] args)
+           {
+               
+           }
+
+           private static void deleteDuplicateChars(char[] input)
+           {
+               if (input == null)
+                   return;
+               
+               if (input.length < 2)
+                   return;
+               
+               //1. 标记重复字符
+               char maker = input[0];
+               for (int i = 1; i < input.length - 1; i++) {
+                   for (int j = i + 1; j < input.length; j++) {
+                       if (a[i] == a[j])
+                           a[j] = marker;
+                   }
+               }
+
+               //2. 清理重复的字符
+               int shift = 0;
+               for (int i = 1; i < input.length; i++) {
+                   if (input[i] == marker) {
+                       shift = 1;
+                       while ( (i + shift) < input.length && input[i + shift] == marker)
+                           shift++;
+                       a[i] = a[i + shift];
+                       a[i + shift] = marker;
+                   } 
+               }
+
+               for (int i = 1; i < input.length; i++) {
+                   if (input[i] == marker)
+                       input[i] = '\0';
+               }
+           }
+
+           /**
+            ,* 0 ~ tail之间是已经去除了重复字符串的部分
+            ,*/
+           private static void removeDuplicateChars2(char[] str)
+           {
+               if (str == null)
+                   return ;
+
+               if (str.length < 2)
+                   return;
+
+               int tail = 1;
+
+               for (int i = 1; i < str.length; i++) {
+                   int j ;
+                   for (j = 0; j < tail; j++) {
+                       if (str[i] == str[j])
+                           break;
+                   }
+                   if  (j == tail) {
+                       str[tail] = str[i];
+                       tail++;
+                   }
+               }
+               s[tail] = 0;
+           }
+
+           /**
+            ,* 允许使用固定大小的辅助数组
+            ,*/
+           private static void removeDuplicateChars3(char[] str)
+           {
+               if (str == null)
+                   return;
+               int len = str.length;
+               if (len < 2)
+                   return;
+
+               boolean hits[] = new boolean[256];
+               for (int i = 0; i < 256; i++)
+                   hits[i] = false;
+
+               hits[str[0]] = true;
+               int tail = 1;
+               for (int i = 1; i < len; i++) {
+                   if (!hits[str[i]]) {
+                       str[tail] = str[i];
+                       hits[str[i]] = true;
+                       tail++;
+                   } 
+               }
+               str[tail] = 0;
+           }
+       }
+     #+END_SRC
 
 *** 变位词
 
@@ -332,6 +479,50 @@ structure your answer with S(Situation), A(Action), R(Response)
 ** 树与图
 
 ** 排序与搜索
+
+* 杂项
+
+** 二进制转换
+    #+BEGIN_SRC java
+          /**
+           ,* Ex07
+           ,* 结果示例： signedToBinary(1289) 返回“010100001001”
+           ,*                       signedToBinary(-1289) 返回 "101011110111"
+           ,* 负数： 反码 + 符号位
+           ,*/
+          public static String signedToBinary(int n)
+          {
+              if (n == 0)
+                  return "0";
+              if (n > 0)
+                  return "0" + unsignedToBinary(n);
+              //负数转化为二进制可以转化为
+              //对求等同的正数的运算。
+              int mod = 1;
+              while (mod + 2*n < 0)
+                  mod *= 2;
+              return unsignedToBinary(mod + n);
+          }
+
+      /**
+           ,* Ex08
+           ,* 前提条件：n > 0
+           ,*结果示例：unsignedToBinary(1289), 返回"010100001001"
+           ,*/
+          public static String unsignedToBinary(int n)
+          {
+              if (n < 0) {
+                  return " 输入非法!";
+              }
+              String code = "";
+              while (n > 0) {
+                  code = "" + (n%2) + code; //append next bit to the left of the code
+                  n /= 2;
+              }
+              return code;
+          }
+          
+    #+END_SRC
 * Footnotes
 
 [fn:1] https://linux.cn/article-7480-1.html?utm_source=weixin

@@ -724,6 +724,10 @@
      下，会先逐一扫描配置文件中的网络，如果没有合适的网络，会创建一个IBSS或
      AP模式下的网络 。当使用IBSS或AP模式，使用 =ap_scan=2= 可以强制立
      即创建新的网络，而不管扫描结果为何。
+     
+     配置连接隐藏AP时，还需要同时指定 
+     : ap_scan=1 scan_ssid=1
+
    - =passive_scan= 
      是否强制被动扫描。
 
@@ -1390,7 +1394,7 @@
      2. 创建一个p2p接口。 
         =P2P: Create a new interface p2p-p2p0-0 for the group=
         =nl80211: Create interface iftype 9 (P2P_GO)=
-     3. 准备发新Invitation Response
+     3. 准备发送Invitation Response
         - 标记当前状态：
          : p2p->pending_action_state = P2P_PENDING_INVITATION_RESPONSE
         - 调用 =p2p_send_action= 发送p2p invitation response
@@ -2025,6 +2029,11 @@
         2. 在获取peer信息后， 调用如下函数进行优化
            : p2p_reselect_channel
 
+**** 处理Probe Request  
+         在p2p过程中，Probe Request是在上层处理的，处理函数有：
+         : wpas_p2p_probe_req_rx
+         当p2p停止listen的时候，进入p2p find阶段会临时禁用probe
+         request reporting.
 *** p2p管理
 
    当 =wpa_s->drv_flags= & =WPA_DRIVER_FLAGS_P2P_MGMT= 为真时，代表相关的P2P
@@ -2404,6 +2413,9 @@
    Association Request携带的IE信息来提供，如果底层驱动上报的
    Association Request中相关的IE信息为空，则WPS过程将会终止。
    在GO协议完成后，会开始WPS协商的过程。
+
+   配置项 =wps_strict_check= 选项开启后，会严格按照WPS规范检查WPS数据
+   格式。
 
    #+BEGIN_SRC plantuml :file ./images/2016/2016031007.png :cmdline -charset UTF-8
      @startuml

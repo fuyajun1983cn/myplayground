@@ -56,7 +56,7 @@
 *** ☛ TODO [#C] Low power and WOW
 
 *** ☛ TODO [#C] BF/MU/RA/Calibration
-
+    
 *** ☛ TODO [#B] FW
 
 *** ☛ TODO [#B] P2P/TDLS
@@ -64,10 +64,7 @@
 *** ☛ TODO [#C] Roaming
 
 *** ☛ TODO [#B] SCAN
-** 备忘
-*** 研究在指定日期发送信息给自己的脚本
-** ☛ TODO 阅读FreeMind代码，理清大体框架
-
+** 阅读FreeMind代码，理清大体框架
 ** 802.11ac
    http://chimera.labs.oreilly.com/books/1234000001739/index.html
    
@@ -91,8 +88,6 @@
                (org-todo "STARTED")))))     
      #+END_SRC
 **** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
-** ArchLinux学习 [1/1]
-*** 了解systemd工作原理
 ** 技术修炼
     SCHEDULED: <2016-08-29 周一 +1w>
 *** 读书计划
@@ -167,31 +162,25 @@
     - [ ] Chapter 32
     - [ ] Chapter 33 (command tools)
 ** mac80211学习
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一>
 *** ☛ TODO mac80211源码分析
     - Action: 制定研究计划
     - [ ] 研究hwsim源码，编写一个基于mac80211的网络驱动程序
     - [ ] 研究mac80211的源码，整理出学习笔记
 
-** ☛ TODO [#C] IW源码学习
-   - Action: 制定研究计划
 ** 在发送Association Request之前禁用一些HT/VHT的速率
+    SCHEDULED: <2016-09-19 周一>
     http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
 
-** ☛ TODO Android WiFi Framework
-    制定研究计划
-*** 传统WiFi流程
-*** Miracast流程
-*** SoftAp流程
-** ☛ TODO 研究emacs源码
-*** ☛ TODO org-timer源码研究
 ** ☛ TODO CWTS学习                                                    :Study:
 CWTS学习， 内容属性简单级别
 Added: [2016-08-10 周三 13:40]
 ** ☛ TODO  CWSP学习                                               :Study:
+    SCHEDULED: <2016-09-19 周一>
 808.11 Security相关的知识学习
 Added: [2016-08-10 周三 13:40]
 ** ☛ TODO  吞吐量问题分析SOP学习                                  :Study:
-    SCHEDULED: <2016-08-25 周四>
+    SCHEDULED: <2016-10-10 周一>
 TPUT_study
 Added: [2016-08-10 周三 13:45]
 ** ☛ TODO [#C] TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
@@ -231,23 +220,13 @@ Added: [2016-08-10 周三 13:45]
       下次读第五章
     - 第三部分 数据链路层
 Added: [2016-08-31 周三 17:20]
-** ☛ TODO 解决LDD在Linux4.7上的编译错误                                :Study:
-    SCHEDULED: <2016-08-31 周三>
-    - scullc
-    - scullp
-    - snull
-    - sysfs
-    - sbull
-    - sculld
-    - short
-
-Added: [2016-08-31 周三 20:20]
 ** ☛ TODO 编写网络驱动示例程序                                        :Study:
+    DEADLINE: <2016-09-23 周五> SCHEDULED: <2016-09-19 周一>
     - 普通网络驱动
     - 基于mac80211的网络驱动
 Added: [2016-08-31 周三 20:25]
 ** ☛ TODO 深入理解Android：Wi-Fi、NFC和GPS卷阅读计划                   :Study:
-    SCHEDULED: <2016-09-02 周五>
+    SCHEDULED: <2016-10-10 周一>
      1. 第二章  深入理解Netd
      2. 第三章  WiFi基础知识
      3. 第四章 深入理解wpa_supplicant
@@ -256,16 +235,71 @@ Added: [2016-08-31 周三 20:25]
      6. 第7章 深入理解Wi-Fi P2P
 Added: [2016-09-02 周五 14:15]
 ** ☛ TODO 网络课程——通信原理学习                                       :
+    SCHEDULED: <2016-09-19 周一>
     - [X] 第一部分——导论
 Added: [2016-09-04 周日 21:35]
 ** ☛ TODO 网络课程——计算机原理                                        :Study:
+    SCHEDULED: <2016-09-19 周一>
 
 Added: [2016-09-04 周日 21:35]
+** ☛ TODO 健身计划                                                    :Check:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:35]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 00:02]
+   :END:
+    - 每周至少两次健身
+Added: [2016-09-05 周一 19:25]
+** ☛ TODO Linux IPC机制研究                                            :Study:
+    1. [[https://lwn.net/Articles/466304/][Fast interprocess communication revisited]]
+    2. [[https://lwn.net/Articles/697191/][Bus1: a new Linux interprocess communication proposal]]
+Added: [2016-09-07 周三 09:50]
+** ☛ TODO [#B] 查看公版分支上的修改                                   :Study:
+    SCHEDULED: <2016-09-26 周一 +2w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-07 周三 11:50]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:10]
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-18 周日 00:02]
+   :END:
+*** Next Action: 153502 158500
+*** 待深入了解的修改：
+      1. 155501   add p2p VHT 80 Draft Support
+      2. 159623
+         driver didn't try to associate with GO until timeout in
+         invitation to join case. 
+
+** ☛ TODO 深入分析WPA状态机实现源码                                    :Study:
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一>
+    - 目录
+      弄清状态机实现的细节，产生详细文档。
+    - EAP框架源码
+    - EAP Authenticator/Supplicant代码分析
+Added: [2016-09-08 周四 17:25]
+** ☛ TODO 学习DBUS                                                     :Study:
+    了解Python下使用DBUS通信，能够编写基本的程序
+Added: [2016-09-09 周五 11:45]
+** ☛ TODO Linux Trace API研究                                          :Study:
+    
+Added: [2016-09-09 周五 13:45]
+** ☛ TODO 出租房6S整理                                                 :Check:
+   SCHEDULED: <2016-09-17 六 +1w>
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-09 五 20:35]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-09 五 20:37]
+   :END:
+   
+Added: [2016-09-09 五 20:35]
 ** ☛ TODO [#A] 办公桌6S整理                                           :Check:
-    SCHEDULED: <2016-09-12 周一 +1w>
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-12 周一 09:30]
     - State "✔ DONE"     from "☛ TODO"     [2016-09-05 周一 09:55]
    :PROPERTIES:
-   :LAST_REPEAT: [2016-09-05 周一 09:57]
+   :LAST_REPEAT: [2016-09-18 周日 00:05]
    :END:
     - 整理
       内容： 将工作现场的所有物品区分为有用品和无用品，除了有用的留下
@@ -302,47 +336,35 @@ Added: [2016-09-04 周日 21:35]
 
       目的： 建立及维护安全生产的环境，所有的工作应建立在安全的前提下。 
 Added: [2016-09-05 周一 09:50]
-** ☛ TODO 健身计划                                                     :Check:
-   SCHEDULED: <2016-09-12 一 +1w>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:35]
+** ☛ TODO [#B] CWAP学习                                               :Study:
+    DEADLINE: <2016-11-30 周三> SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:05]
+    CLOCK: [2016-09-12 周一 19:09]--[2016-09-12 周一 20:15] =>  1:06
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 09:25]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-06 周二 20:40]
+    CLOCK: [2016-09-01 周四 16:56]--[2016-09-01 周四 18:02] =>  1:06
+    CLOCK: [2016-09-01 周四 16:04]--[2016-09-01 周四 16:25] =>  0:21
    :PROPERTIES:
-   :LAST_REPEAT: [2016-09-10 六 13:37]
+   :LAST_REPEAT: [2016-09-18 周日 00:06]
    :END:
-    - 每周至少两次健身
-Added: [2016-09-05 周一 19:25]
-** ☛ TODO Linux IPC机制研究                                            :Study:
-    1. [[https://lwn.net/Articles/466304/][Fast interprocess communication revisited]]
-    2. [[https://lwn.net/Articles/697191/][Bus1: a new Linux interprocess communication proposal]]
-Added: [2016-09-07 周三 09:50]
-** ☛ TODO [#B] 查看公版分支上的修改                                   :Study:
-    SCHEDULED: <2016-09-12 周一 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-07 周三 11:50]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:10]
-   :PROPERTIES:
-   :Effort:   8:00
-   :LAST_REPEAT: [2016-09-07 周三 11:50]
-   :END:
-*** Next Action: 153502 158500
-*** 待深入了解的修改：
-      1. 155501   add p2p VHT 80 Draft Support
-      2. 159623
-         driver didn't try to associate with GO until timeout in
-         invitation to join case. 
+内容属性较难级别
+     - [X] 第一章
+     - [ ] 第二章
+     - [ ] 第三章
+     - [ ] 第四章
+     - [ ] 第五章
+     - [ ] 第六章
+     - [ ] 第七章
+     - [ ] 第八章
+     - [ ] 第九章
+     - [ ] 第十章
+     - [ ] 第十一章
+     - [ ] 第十二章
 
-** ☛ TODO 深入分析WPA状态机实现源码                                    :Study:
-    SCHEDULED: <2016-09-19 周一>
-    - 目录
-      弄清状态机实现的细节，产生详细文档。
-Added: [2016-09-08 周四 17:25]
-** ☛ TODO 学习DBUS                                                     :Study:
-    了解Python下使用DBUS通信，能够编写基本的程序
-Added: [2016-09-09 周五 11:45]
-** ☛ TODO Linux Trace API研究                                          :Study:
-    
-Added: [2016-09-09 周五 13:45]
+Added: [2016-08-10 周三 13:40]
 ** ☛ TODO [#B] 研究wpa_supplicant上的修改记录                         :Study:
-    SCHEDULED: <2016-09-12 周一 +1w>
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 17:05]
     - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 17:45]
     CLOCK: [2016-09-09 周五 17:08]--[2016-09-09 周五 17:43] =>  0:35
     - State "✔ DONE"     from "☛ TODO"     [2016-08-31 周三 11:50]
@@ -354,47 +376,64 @@ Added: [2016-09-09 周五 13:45]
     CLOCK: [2016-08-15 周一 17:25]--[2016-08-15 周一 18:07] =>  0:42
    :PROPERTIES:
    :Effort:   8:00
-   :LAST_REPEAT: [2016-09-09 周五 17:43]
+   :LAST_REPEAT: [2016-09-14 周三 17:03]
    :END:
      - 2015-October
-     - Next Action: March 2009
-** ☛ TODO 出租房6S整理                                                 :Check:
-   SCHEDULED: <2016-09-17 六 +1w>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-09 五 20:35]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-09-09 五 20:37]
-   :END:
-   
-Added: [2016-09-09 五 20:35]
-** ☛ TODO [#B] 设计模式学习                                            :Study:
-   SCHEDULED: <2016-09-12 一 +1w>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:30]
-    CLOCK: [2016-09-10 六 12:46]--[2016-09-10 六 13:30] =>  0:44
-    CLOCK: [2016-09-10 六 12:10]--[2016-09-10 六 12:39] =>  0:29
-    CLOCK: [2016-09-10 六 10:49]--[2016-09-10 六 11:05] =>  0:16
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-29 周一 20:20]
-    CLOCK: [2016-08-29 周一 19:28]--[2016-08-29 周一 20:21] =>  0:53
-    CLOCK: [2016-08-15 周一 20:40]--[2016-08-15 周一 21:11] =>  0:31
-    CLOCK: [2016-08-13 六 17:01]--[2016-08-13 六 17:24] =>  0:23
-    CLOCK: [2016-08-13 六 16:30]--[2016-08-13 六 16:41] =>  0:11
-    CLOCK: [2016-08-13 六 16:05]--[2016-08-13 六 16:30] =>  0:25
-   :PROPERTIES:
-   :Effort:   8:00
-   :LAST_REPEAT: [2016-09-10 六 13:30]
-   :END:
-    设计模式学习
-    Added: [2016-08-11 周四 19:15]
+     - Next Action: May 2009
+** ☛ TODO USB规范阅读                                                  :Study:
+
+Added: [2016-09-18 周日 00:15]
+** ☛ TODO SDIO规范阅读                                                 :Study:
+
+Added: [2016-09-18 周日 00:15]
 ** ☛ TODO [#C] =org.el= 
-   SCHEDULED: <2016-09-12 一 +1w>
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:20]
    - State "✘ CANCELED" from "☛ TODO"     [2016-09-10 六 13:40]
     - State "✔ DONE"     from "☛ TODO"     [2016-09-01 周四 20:55]
    CLOCK: [2016-09-01 周四 18:46]--[2016-09-01 周四 20:56] =>  2:10
    CLOCK: [2016-08-11 周四 19:32]--[2016-08-11 周四 20:36] =>  1:04
    :PROPERTIES:
    :Effort:   8:00
-   :LAST_REPEAT: [2016-09-10 六 13:38]
+   :LAST_REPEAT: [2016-09-18 周日 00:18]
    :END:
    - 406行
+** ☛ TODO [#B] 数据结构与算法设计学习                                 :Study:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:20]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 16:10]
+    CLOCK: [2016-09-10 六 14:31]--[2016-09-10 六 16:11] =>  1:40
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
+    CLOCK: [2016-08-13 六 15:24]--[2016-08-13 六 16:04] =>  0:40
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-18 周日 00:20]
+   :END:
+    数据结构与常见算法思想学习
+*** 数据 结构与习题与解答——Java语言描述
+**** ☛ TODO 第一章 & 第二章—— 数组
+     DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-09-17 周六>
+     CLOCK: [2016-09-17 周六 10:25]--[2016-09-17 周六 12:02] =>  1:37
+         Next Action: Ex14
+**** 第三章 & 第四章 ——递归
+     DEADLINE: <2016-10-09 周日> SCHEDULED: <2016-09-26 周一>
+**** 第五章 & 第六章 —— 栈
+**** 第七章  —— 队列
+**** 第八章 —— 线性表
+**** 第九章 —— 树
+**** 第十章 —— 二叉树
+**** 第十一章 —— 搜索树
+**** 第十二章 —— 堆和优先队列
+**** 第十三章 —— 排序
+**** 第十四章 —— 表
+**** 第十五章 —— 集合
+**** 第十六章 —— 图
+Added: [2016-08-11 周四 13:25]
+
+** ☛ TODO Miracast测试过程中搜索不到手机设备                        :Project:
+    SCHEDULED: <2016-09-14 周三>
+    在某次连接失败后，出现TV搜索不到手机设备。
+Added: [2016-09-14 周三 13:20]
 * Calendar
   :PROPERTIES:
   :CATEGORY: CALENDAR
@@ -467,59 +506,75 @@ Added: [2016-09-09 五 20:35]
 *** kallsyms_lookup_name() //查找对应symbol然后调用
 * 今天必须做的事情
   :PROPERTIES:
-  :CATEGORY: TASKS
+  :CATEGORY: 重要且紧急（计划内）
   :END:
-** ☛ TODO 准备ZTE编译7668驱动事宜                                    :Project:
-    SCHEDULED: <2016-09-08 周四>
-    CLOCK: [2016-09-09 周五 11:29]--[2016-09-09 周五 11:52] =>  0:23
-    - 已经拿到代码，先在本机上自行编译一版
-Added: [2016-09-08 周四 11:20]
-** ☛ TODO [#B] 数据结构与算法设计学习                                  :Study:
-   SCHEDULED: <2016-09-12 一 +1w>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 16:10]
-    CLOCK: [2016-09-10 六 14:31]--[2016-09-10 六 16:11] =>  1:40
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
-    CLOCK: [2016-08-13 六 15:24]--[2016-08-13 六 16:04] =>  0:40
+** ☛ TODO 编程每日一练                                                :Study:
+    SCHEDULED: <2016-09-19 周一 +1d>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 08:45]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-17 周六 18:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 13:20]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 08:47]
+   :END:      
+*** C语言程序设计
+**** 高级特性 —— 11 ~ 20章
+     DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-09-19 周一>
+**** 标准库 —— 21 ~ 26章
+**** 参考资料
+    
+Added: [2016-09-14 周三 09:10]
+** ☛ TODO [#B] 设计模式学习                                           :Study:
+    DEADLINE: <2016-10-10 周一> SCHEDULED: <2016-09-12 一 +1w>
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:30]
+    CLOCK: [2016-09-10 六 12:46]--[2016-09-10 六 13:30] =>  0:44
+    CLOCK: [2016-09-10 六 12:10]--[2016-09-10 六 12:39] =>  0:29
+    CLOCK: [2016-09-10 六 10:49]--[2016-09-10 六 11:05] =>  0:16
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-29 周一 20:20]
+    CLOCK: [2016-08-29 周一 19:28]--[2016-08-29 周一 20:21] =>  0:53
+    CLOCK: [2016-08-15 周一 20:40]--[2016-08-15 周一 21:11] =>  0:31
+    CLOCK: [2016-08-13 六 17:01]--[2016-08-13 六 17:24] =>  0:23
+    CLOCK: [2016-08-13 六 16:30]--[2016-08-13 六 16:41] =>  0:11
+    CLOCK: [2016-08-13 六 16:05]--[2016-08-13 六 16:30] =>  0:25
    :PROPERTIES:
    :Effort:   8:00
-   :LAST_REPEAT: [2016-09-10 六 16:12]
+   :LAST_REPEAT: [2016-09-10 六 13:30]
    :END:
-    数据结构与常见算法思想学习
-Added: [2016-08-11 周四 13:25]
-
+    设计模式学习
+    Added: [2016-08-11 周四 19:15]
+** ☛ TODO WIFI MAC TXRX
+    SCHEDULED: <2016-08-31 周三> DEADLINE: <2016-09-16 周五>
+    CLOCK: [2016-09-08 周四 15:14]--[2016-09-08 周四 16:43] =>  1:29
+    - Next Action:
+      阅读代码，把TX/RX的调用流程记录下来
 * 今天应该做的事情
-** ☛ TODO [#B] CWAP学习                                                :Study:
-    SCHEDULED: <2016-09-12 周一 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 09:25]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-06 周二 20:40]
-    CLOCK: [2016-09-01 周四 16:56]--[2016-09-01 周四 18:02] =>  1:06
-    CLOCK: [2016-09-01 周四 16:04]--[2016-09-01 周四 16:25] =>  0:21
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-09-09 周五 09:27]
-   :END:
-内容属性较难级别
-     - [ ] 第一章
-     - [ ] 第二章
-     - [ ] 第三章
-     - [ ] 第四章
-     - [ ] 第五章
-     - [ ] 第六章
-     - [ ] 第七章
-     - [ ] 第八章
-     - [ ] 第九章
-     - [ ] 第十章
-     - [ ] 第十一章
-     - [ ] 第十二章
-
-Added: [2016-08-10 周三 13:40]
-* 今天可以做的事情
+  :PROPERTIES:
+  :CATEGORY: 重要不紧急(计划内）)
+  :END:
 ** ☛ TODO [#B] 深入了解TxRx原理
    SCHEDULED: <2016-08-27 周六>
+   CLOCK: [2016-09-13 周二 11:09]--[2016-09-13 周二 14:23] =>  3:14
    - [ ] 帧聚合
    - [ ] 重点研究TX流程，特别是VLAN的支持
    - [ ] TX/RX FIFO Status, TX/RX Queue Operation
      Tx queue parameter
    - [ ] 驱动Scan的一些行为分析
-** ☛ TODO WIFI MAC TXRX
-    SCHEDULED: <2016-08-31 周三> DEADLINE: <2016-09-16 周五>
-    CLOCK: [2016-09-08 周四 15:14]--[2016-09-08 周四 16:43] =>  1:29
+** ☛ TODO [#C] IW源码学习
+    SCHEDULED: <2016-09-19 周一>
+   - Action: 熟悉iw命令的使用
+** ☛ TODO 解决LDD在Linux4.7上的编译错误                               :Study:
+    DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-08-31 周三>
+    - scullc
+      AIO changed to read/write-iter
+      https://lwn.net/Articles/625077/  The iov_iter interface
+    - scullp
+    - snull
+    - sysfs
+    - sbull
+    - sculld
+    - short
+
+Added: [2016-08-31 周三 20:20]
+* 今天可以做的事情
+  :PROPERTIES:
+  :CATEGORY: 紧急不重要(计划外))
+  :END:

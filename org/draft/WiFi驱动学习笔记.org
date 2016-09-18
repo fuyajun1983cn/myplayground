@@ -154,11 +154,16 @@
 ** 命令的基本流程
     
 *** TX
+
+        入口函数： =main_thread= , 主要处理TX请求以及中断事件。
+
+        kalProcessTxReq
+
         上层下命令经过的流程：
         1. 通过nl80211回调注册的cfg80211的接口。
-        2. 通过kalloctl传递命令类型：GLUE_FLAG_OID_BIT, 唤醒tx thread。
+        2. 通过kalloctl传递命令类型： =GLUE_FLAG_OID_BIT= , 唤醒tx thread。
         3. 调用注册的发送命令的回调接口，通过kalloctl传入的。
-        4. 填写命令参数，通过GLUE_INFO_T传递， 再次唤醒tx thread
+        4. 填写命令参数，通过 =GLUE_INFO_T= 传递， 再次唤醒tx thread
         5. tx thread解析命令参数，通过wlanSendCommand发送命令。
 
         #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016083001.png :cmdline -charset UTF-8

@@ -105,6 +105,7 @@
   口。
 - =cfg80211_rx_action=
   通知上层，接收到未处理的Action帧
+- =cfg80211_mgmt_tx_status=
 - =cfg80211_action_tx_status=
   通知上层，Action帧的发送状态
 - =cfg80211_new_sta=
