@@ -1,0 +1,721 @@
+#+STARTUP: overview
+#+TITLE: CWAP学习笔记
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+ 
+* CH01 802.11 Overview
+
+** OSI model
+    OSI模型是数据通信的基石，它包含如下几层：
+    + Layer 7: Application
+    + Layer 6: Presentation
+    + Layer 5: Session
+    + Layer 4: Transport
+    + Layer 3: Network
+    + Layer 2: Data-Link
+      - LLC sublayer
+      - MAC sublayer
+    + Layer 1: Physical
+
+** Packets, frames, and bits
+
+    对于802.11通信来说，最主要的目标是将用户数据从一台计算设备传输到另
+    一台。
+
+    数据从OSI模型上的一层层传下来，最终到达物理层。在物理层是以比特位
+    形式呈现的。二进制数字是数字通信的基础。一个字节的信息包含8个比特
+    位。
+
+** Data-Link layer
+    
+    802.11数据链路层分为两个子层：
+    - 处于上层的是802.11逻辑链路控制层，跟所有其他的802网络一样。
+    - 处于上层的是媒体访问控制子层。802.11标准定义了MAC子层的操作。MAC
+      子层是下层物理层与逻辑链路控制层之间的接口。
+
+*** MSDU
+    
+       当网络层的数据发往数据链路层，数据被传送给逻辑链路子层，称为MAC
+       Service Data Unit (MSDU). MSDU包含IP数据包以及一些LLC层数据。
+
+       802.11 2007规范中指出MSDU最大的大小为2304字节。The maximum
+       frame body size is determined by the maximum MSDU size (2,304
+       octets) plus any overhead from encryption. 
+    
+*** MPDU
+
+       当LLC将数据发往MAC层，会添加一些MAC头部信息到MSDU，封装成为MAC
+       Protocol Data Unit (MPDU). MPDU就是一个802.11帧。 
+
+       #+CAPTION: 802.11 MPDU
+       [[./images/2016/2016091201.png]]
+       
+** Physical layer
+
+    物理层也分为两层： Physical Layer Convergence Procedure (PLCP) 和
+    Physical Medium Dependent (PMD). PLCP层从MAC拿到数据，为数据传输做
+    准备，数据打包为PLCP Protocol Data Unit (PPDU)。PMD层进行调制并将
+    数据按比特位进行传输。
+
+*** PSDU
+
+     都是指802.11帧，只不过是从物理层的视角看待的。
+
+*** PPDU
+
+    PLCP添加了一些前导码和物理层头部信息给PSDU。 前导码用于传输方与接
+    收方之间的同步。当PPDU创建完后，PMD将拿去传输。
+
+    #+CAPTION: Data-Link and Physical layers
+    [[./images/2016/2016091202.png]]
+
+** 802.11 architecture
+
+    - distribution system (DS)
+      A system used to interconnect a set of basic service sets and
+      integrated local area networks (LANs) to create an extended
+      service set (ESS).
+    - distribution system medium (DSM)
+      The logical physical medium used by a distribution system for
+      communications between access points and portals of an extended
+      service set. In most cases, the DSM is an 802.3 Ethernet LAN.
+
+** 802.11 services
+
+*** Station service
+
+    - Authentication
+    - Deauthentication
+    - Data confidentiality ( NN encryption)
+    - MSDU delivery
+    - Dynamic frequency selection (DFS)
+    - Transmit power control (TPC)
+    - Higher-layer timer synchronization (QoS facility only)
+    - QoS traffic scheduling (QoS facility only)
+
+*** Distribution system service
+
+    - Association
+    - Reassociation
+    - Disassociation
+    - Distribution
+    - Integration
+    - QoS traffic scheduling (QoS facility only)
+
+     Integration Service is a frame format transfer method.
+
+** 802.11 frames
+
+*** Management frames
+
+    Management frames are used by wireless stations to join and leave
+    the basic service set.
+    
+    Another name for an 802.11 management frame is a Management MAC
+    Protocol Data Unit (MMPDU).
+
+    There is no MSDU encapsulated in the MMPDU frame body, which
+    carries only layer 2 information fields and information elements.
+
+    The following is a list of all 12 management frame subtypes as
+    defined by the 802.11-2007 standard: 
+    - Association request
+    - Association response
+    - Reassociation request
+    - Reassociation response
+    - Probe request
+    - Probe response
+    - Beacon
+    - Announcement traffic indication message (ATIM)
+    - Disassociation
+    - Authentication
+    - Deauthentication
+    - Action
+
+*** Control frames
+
+    802.11 control frames assist with the delivery of the data frames.
+
+    The following is a list of all eight control frame subtypes as
+    defined by the 802.11 standard: 
+    - Power Save Poll (PS-Poll)
+    - Request to send (RTS)
+    - Clear to send (CTS)
+    - Acknowledgment (ACK)
+    - Contention Free-End (CF-End)
+    - CF-End + CF+ACK
+    - Block ACK Request (BlockAckReq)
+    - Block ACK (BlockAck)
+
+*** Data frames
+
+    Any data frames that do not carry a MSDU payload are not encrypted
+    because a layer 3–7 data payload does not exist. 
+
+    The following is a list of all 15 data frame subtypes as defined
+    by the 802.11 standard: 
+    - Data (simple data frame)
+    - Null function (no MSDU payload)
+    - Data + CF-ACK
+    - Data + CF-Poll
+    - Data + CF-ACK + CF-Poll
+    - CF-ACK (no MSDU payload)
+    - CF-Poll (no MSDU payload)
+    - CF-ACK + CF-Poll (no MSDU payload)
+    - QoS data
+    - QoS Null (no MSDU payload)
+    - QoS data + CF-ACK
+    - QoS data + CF-Poll
+    - QoS data + CF-ACK + CF-Poll
+    - QoS CF-Poll (no MSDU payload)
+    - QoS CF-ACK + CF-Poll (no MSDU payload)
+
+** IEEE 802.11-2007 standard and amendments
+
+*** 802.11b
+    802.11b radio devices support data rates of 1, 2, 5.5, and 11
+    Mbps.
+    使用CCK扩频技术。
+*** 802.11a
+    5G OFDM
+*** 802.11g
+    Extended Phsical Rate, support date rates up to 54 Mbps.
+*** 802.11n-2009
+    The 802.11n amendment defines a new operation known as high
+    throughput (HT), which provides PHY and MAC enhancements to
+    provide for data rates potentially as high as 600 Mbps.
+
+** Wi-Fi Alliance
+    The Wi-Fi Alliance’s main task is to ensure the interoperability
+    of WLAN products by providing certification testing. 
+
+** Review Questions
+    
+    1. The information found inside an IP packet is considered the
+       main payload for which of the following?
+
+       A. MPDU
+
+       B. PPDU
+
+       C. PSDU
+
+       D. MSDU
+
+       E. MMPDU
+
+       *答案解析*
+
+       D. An IP packet comprises layer 3–7 information. The MAC
+       Service Data Unit (MSDU) contains data from the LLC sublayer
+       and/or any number of layers above the Data-Link layer. The MSDU
+       is the payload found inside the body of 802.11 data frames. 
+
+    2. Which sublayer of the OSI model’s Data-Link layer is used for
+       communication between 802.11 radios?
+
+       A. LLC
+
+       B. WPA
+
+       C. MAC
+
+       D. FSK
+
+       *答案解析*
+
+       C. The IEEE 802.11-2007 standard defines communication
+       mechanisms at only the Physical layer and the MAC sublayer of
+       the Data-Link layer of the OSI model. The Logical Link Control
+       (LLC) sublayer of the Data-Link layer is not defined by the
+       802.11-2007 standard. WPA is a security certification. FSK is a
+       modulation method. 
+
+    3. Which of the following contains the same information found with
+       an MPDU?
+
+       A. APDU
+
+       B. PPDU
+
+       C. PSDU
+
+       D. MSDU
+
+       *答案解析*
+
+       C. The Data-Link layer refers to an 802.11 frame as the MPDU,
+       while the Physical layer refers to this same 802.11 frame as
+       the PLCP Service Data Unit (PSDU). 
+
+    4. What are the three main components of an 802.11 MPDU? (Choose
+       the three best answers.)
+
+       A. Frame body
+
+       B. PPDU
+
+       C. MSDU
+
+       D. Trailer
+
+       E. MAC header
+
+       *答案解析*
+
+       A, D, E. The 802.11 frame contains a layer 2 MAC header, a
+       variable-length frame body, and a trailer, which is a 32-bit
+       CRC known as the frame check sequence (FCS). The frame body
+       contains the MSDU. The PPDU consists of a PSDU, preamble, and
+       PHY header. 
+
+    5. Which 802.11 frames are usually encrypted for data privacy
+       reasons?
+
+       A. Management frames
+
+       B. Control frames
+
+       C. QoS data frames with MSDU payload
+
+       D. Data frames without an MSDU payload
+
+       E. MMPDU
+
+       *答案解析*
+
+       C. Most 802.11 data frames and QoS data frames carry the actual
+       MSDU data that is passed down from the higher-layer
+       protocols. The layer 3–7 MSDU payload is normally encrypted for
+       data privacy reasons. However, some 802.11 data frames carry no
+       MSDU payload at all but do have a specific MAC control purpose
+       within a basic service set (BSS). Any data frames that do not
+       carry an MSDU payload are not encrypted because a layer 3–7
+       data payload does not exist. Management frames do not carry any
+       upper-layer information. 802.11 management frames have no MSDU
+       encapsulated in the MMPDU frame body, which carries only layer
+       2 information fields and information elements. 802.11 control
+       frames contain only header information and a trailer. Control
+       frames do not have a frame body. 
+
+    6. Which OSI sublayer is responsible for modulation and
+       transmission of data bits?
+
+       A. PLCP
+
+       B. PPTP
+
+       C. MAC
+
+       D. LLC
+
+       E. PMD
+
+       *答案解析*
+
+       E. The PLCP and PMD are sublayers of layer 1, the Physical
+       layer. The PLCP sublayer adds a preamble and PHY header to the
+       PSDU to create a PPDU. The preamble is used for synchronization
+       between transmitting and receiving 802.11 radios. After the
+       PPDU is created, the PMD sublayer takes the PPDU and modulates
+       the data bits and begins transmitting. The LLC and MAC are
+       sublayers of the layer 2 Data-Link layer. 
+
+    7. In what type of WLAN devices can the distribution system
+       services (DSSs) operate? (Choose all that apply.)
+
+       A. Mesh Access point
+
+       B. WLAN controller
+
+       C. Autonomous access point
+
+       D. Laptop client radio
+
+       E. VoWiFi phone
+
+       *答案解析*
+
+       A, B, C. The IEEE does not define the specifics of DS
+       implementation; the architecture that uses the distribution
+       system services (DSSs) can be used by different types of WLAN
+       architecture including access points and WLAN
+       controllers. Client STAs do not use any of the services of DSS
+       and only use the capabilities of the 802.11 defined station
+       service (SS). 
+
+    8. Which service of the DSS is responsible for the transfer of
+       upper layer 3–7 information from an 802.11 frame format to an
+       802.3 frame format? 
+       
+       A. Association
+
+       B. Integration
+
+       C. Reassociation
+
+       D. Disassociation
+
+       E. QoS traffic scheduling
+
+       *答案解析*
+
+       B. All the options are considered distribution system services
+       (DSSs). The integration service (IS) enables delivery of MSDUs
+       between the distribution system (DS) and a non-IEEE-802.11
+       local area network (LAN), via a portal. A simpler way of
+       defining the integration service is to characterize it as a
+       frame format transfer method. The portal is usually either an
+       access point or a WLAN controller. The payload of a wireless
+       802.11 data frame is the upper layer 3–7 information known as
+       the MSDU. The eventual destination of this payload usually
+       resides on a wired network infrastructure. Because the wired
+       infrastructure is a different physical medium, an 802.11 data
+       frame payload (MSDU) must be effectively transferred into an
+       802.3 Ethernet frame. 
+
+    9. Which of these services can be characterized by the 802.11
+       station service (SS)? (Choose all that apply.)
+
+       A. Association
+
+       B. Authentication
+
+       C. Disassociation
+
+       D. Deauthentication
+
+       E. Transmit power control
+
+       *答案解析*
+
+       B, D, E. Authentication, deauthentication, data confidentiality
+       (encryption), MSDU delivery, dynamic frequency selection (DFS),
+       transmit power control (TPC), higher layer timer
+       synchronization (QoS facility only), and QoS traffic scheduling
+       (QoS facility only) are all considered to be station services
+       that are provided at the MAC sublayer. Association and
+       disassociation are services that also operate at the MAC
+       sublayer; however, they are classified as distribution system
+       services. 
+
+    10. Which of these 802.11 frames carry a MAC sublayer payload
+        inside the frame body? (Choose all that apply.)
+
+        A. Beacon
+
+        B. Data frame
+
+        C. Reassociation request
+
+        D. QoS data frame
+
+        E. Probe response
+
+        F. PS-Poll
+
+        *答案解析*
+
+        A, C, E. Beacon, reassociation request, and probe response
+        frames are all 802.11 management frames. Management frames
+        have a MAC header, a frame body, and a trailer; however,
+        management frames do not carry any upper-layer
+        information. There is no MSDU encapsulated in the MMPDU frame
+        body, which carries only layer 2 information fields and
+        information elements. A PS-Poll frame is an 802.11 control
+        frame. Control frames do not have a frame body. Data and QoS
+        data frames are MPDUs whose frame body contains an MSDU
+        upper-layer 3–7 payload. 
+
+    11. In what type of WLAN devices can the stations service (SS)
+        operate? (Choose all that apply.)
+
+        A. Mesh access point
+
+        B. WLAN controller
+
+        C. Autonomous access point
+
+        D. Laptop client radio
+
+        E. VoWiFi phone
+
+        *答案解析*
+
+        A, B, C, D, E. The station service (SS) is used by all 802.11
+        client stations including APs. Access points also use station
+        services because they also have STA functionality. The
+        majority of WLAN controller vendors implement what is known as
+        a split MAC architecture. With this type of WLAN architecture,
+        some of the MAC services are handled by the WLAN controller,
+        and some are handled by the controller-based access
+        point. Therefore, the 802.11 station MAC services such as data
+        privacy (encryption) are used by client STAs and other WLAN
+        architecture. However, the distribution system MAC services
+        such as the integration service do not operate with client STAs.
+
+    12. The IEEE 802.11-2007 standard defines communication mechanisms
+        at which layers of the OSI model? (Choose all that apply.)
+
+        A. Network
+
+        B. Physical
+
+        C. Transport
+
+        D. Application
+
+        E. Data-Link
+
+        F. Session
+
+        *答案解析*
+
+        B, E. The IEEE 802.11-2007 standard only defines communication
+        mechanisms at the Physical layer and MAC sublayer of the
+        Data-Link layer of the OSI model. 
+
+    13. Which OSI sublayer is responsible for adding a preamble and
+        PHY header to an MPDU?
+
+        A. PLCP
+
+        B. PPTP
+
+        C. MAC
+
+        D. LLC
+
+        E. PMD
+
+        *答案解析*
+
+        A. The MAC layer refers to an 802.11 frame as the MPDU, while
+        the Physical layer refers to this same exact 802.11 frame as
+        the PSDU. The PLCP and PMD are sublayers of layer 1, the
+        Physical layer. The PLCP sublayer adds a preamble and PHY
+        header to the PSDU to create a PPDU. The preamble is used for
+        synchronization between transmitting and receiving 802.11
+        radios. After the PPDU is created, the PMD sublayer takes the
+        PPDU, modulates the data bits, and begins transmitting. The
+        LLC and MAC are sublayers of the layer 2 Data-Link layer.
+
+    14. Which of the following frequency spaces are supported by HT
+        clause 20 radios? (Choose all that apply.)
+
+        A. UNII 5.15–5.25 GHz
+
+        B. UNII 5.25–5.35 GHz
+
+        C. UNII 5.47–5.715 GHz
+
+        D. UNII 5.725–5.825 GHz
+
+        E. ISM 2.4–2.4835 GHz
+
+        *答案解析*
+
+        A, B, C, D, E. The 802.11n devices (HT clause 20) support the
+        4 UNII bands (UNII-1, UNII-2, UNII-3, and UNII-2 Extended).
+
+    15. Which of the following devices are classified as 802.11 STA
+        devices? (Choose all that apply.)
+
+        A. Autonomous AP
+
+        B. VoWiFi Telephone
+
+        C. Cellular Telephone
+
+        D. DSSS Barcode Scanner
+
+        *答案解析*
+
+        A, B, D. The 802.11-2007 standard defines a station (STA) as
+        any device that contains 802.11-compliant MAC and PHY
+        interface to the wireless medium (WM). Although access points
+        are typically specifically referred to as APs, since they
+        contain an 802.11-compliant MAC and PHY interface to the
+        wireless medium, they are technically stations, albeit a
+        special type of station. Cellular telephones do not use 802.11
+        standards. 
+
+    16. Which Wi-Fi Alliance certification validates many of the
+        robust security network (RSN) Which Wi-Fi Alliance
+        certification validates many of the robust security network
+        (RSN) apply.)
+
+        A. WMM
+
+        B. CWG-RF
+
+        C. 802.11k
+
+        D. WMM-PS
+
+        E. WPA2
+
+        *答案解析*
+
+        E. The Wi-Fi Alliance maintains the Wi-Fi Protected Access 2
+        (WPA2) certification. WPA2 is based on the robust security
+        network (RSN) mechanisms that were originally defined in the
+        IEEE 802.11i amendment that is now part of the 802.11-2007
+        standard. Two versions of WPA2 exist: WPA2-Personal defines
+        security for a SOHO environment, and WPA2- Enterprise defines
+        stronger security for enterprise corporate networks. Each
+        certified product is required to support both WPA2-Personal
+        and WPA2-Enterprise. 
+
+    17. HT clause 20 radios are backward compatible with which of the
+        following type of 802.11 radios? (Choose all that apply.)
+
+        A. Clause 18 radios (HR-DSSS)
+
+        B. Clause 17 radios (OFDM)
+
+        C. Clause 14 radios (FHSS)
+
+        D. Clause 19 radios (ERP)
+
+        *答案解析*
+
+        A, B, D. HT clause 20 radios are backward compatible with
+        older clause 18 radios (HRDSSS), clause 17 radios (OFDM), and
+        clause 19 radios (ERP). In other words, 802.11n radios are
+        backward compatible with 802.11b, 802.11a, and 802.11g
+        radios. HT radios are not backward compatible with legacy
+        frequency hopping radios. 
+
+    18. Which of these 802.11 frames are considered to be 802.11
+        control frames? (Choose all that apply.)
+
+        A. ATIM
+
+        B. ACK
+
+        C. CTS
+
+        D. Probe response
+
+        E. PS-Poll
+
+        *答案解析*
+
+        B, C, E. The ACK, CTS and PS-Poll frames are all 802.11
+        control frames. The ATIM and probe response frame are 802.11
+        management frames. 802.11 control frames assist with the
+        delivery of the data frames. Control frames are also used to
+        clear the channel, acquire the channel, and provide unicast
+        frame acknowledgments. 
+
+    19. What is the maximum size of the payload of a data frame as
+        defined by the 802.11-2007 standard?
+
+        A. 1500 bytes
+
+        B. 2304 bytes
+
+        C. 1504 bytes
+
+        D. 1518
+
+        E. 1522
+
+        *答案解析*
+
+        B. One of the differences between 802.3 Ethernet and 802.11
+        frames is the frame size. 802.3 frames have a maximum size of
+        1,518 bytes with a maximum data payload of 1,500 bytes. If the
+        802.3 frames are 802.1Q tagged for VLANs and user priority,
+        the maximum size of the 802.3 frame is 1,522 bytes with data
+        payload of 1,504 bytes. The payload of an 802.11 data frame is
+        the layer 3–7 information found in the MAC Service Data Unit
+        (MSDU). The 802.11-2007 standard states that the maximum size
+        of the MSDU is 2,304 bytes. The maximum 802.11 frame body size
+        is determined by the maximum MSDU size (2,304 octets) plus any
+        overhead from encryption. 
+
+    20. How many MAC address fields are found in the MAC header of an
+        802.11 frame? (Choose all that apply.)
+
+        A. Four
+
+        B. Three
+
+        C. Two
+
+        D. One
+
+        *答案解析*
+        
+        A. A huge difference between 802.3 and 802.11 frames is the
+        MAC addressing fields. 802.3 frames have only a source address
+        (SA) and destination address (DA) in the layer 2
+        header. 802.11 frames have four address fields in the MAC
+        header. 802.11 frames typically use only three of the MAC
+        address fields. However, an 802.11 frame sent within a
+        wireless distribution system (WDS) requires four MAC
+        addresses. The contents of these four fields can include the
+        following MAC addresses: receiver address (RA), transmitter
+        address (TA), basic service set identifier (BSSID),
+        destination address (DA), and source address (SA). Certain
+        frames may not contain some of the address fields. 
+
+* CH02 802.11 Physical (PHY) Layer Frame Format
+
+* CH03 802.11 MAC Sublayer Frame Format
+
+* CH04 802.11 Management Frames
+
+** Management Frame Types
+    
+
+** Beacons
+
+** Probe Request / Response
+
+** Authentication
+
+** Association Request / Response
+
+** Disassociation
+
+** Deauthentication
+
+** Reassociation Request / Response
+
+** Management Frame body components
+
+** Management Frame body main fields
+
+** Management Frame body main Information Elements
+
+** Action Frames
+
+** Spectrum and Transmit Power Management (802.11h)
+
+** Admission Control (802.11e)
+
+** Fast BSS Transition (802.11r)
+
+** Protected Management Frames (802.11w)
+
+* CH05 802.11 Control Frames
+
+* CH06 Data Frames
+
+* CH07 802.11 Medium Contention
+
+* CH08 Power Management
+
+* CH09 802.11 Security
+
+* CH10 802.11n HT Analysis
+
+* CH11 Spectrum Analysis
+
+* CH12 Protocol Analyzer Operation and Troubleshooting

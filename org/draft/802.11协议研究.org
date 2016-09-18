@@ -1,0 +1,33 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: 802.11协议研究
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+
+* 802.11协议概况
+
+** 各种协议标准对比
+
+    [[./images/2016/2016072901.jpg]]
+
+
+http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-being-equal-stronger-signal-strength-is-correlated-with-higher-data-transfer-sp.html
+
+
+** 聚合帧
+    http://support.huawei.com/ecommunity/bbs/10216793.html
+
+* 常见帧格式深入研究
+
+** 管理帧
+*** Beacon帧
+    
+** 控制帧
+
+*** EOSP
+         uapsd,  end of Service Period to tell STA it can go to sleep.
+         trigger frame: QoS data or QoS Null frame associated with an
+         AC the STA has configured to be trigger-enabled.
+** 数据帧

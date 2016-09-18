@@ -1,0 +1,124 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: Javascript学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 基础语法
+
+* HTML5
+
+** HTML5特性检查 -- MODERNIZR
+    #+BEGIN_SRC html
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <meta charset="utf-8">
+      <title>Dive Into HTML5</title>
+      <script src="modernizr.min.js"></script>
+      </head>
+      <body>
+        ...
+      </body>
+      </html>
+    #+END_SRC
+
+    使用实例
+    #+BEGIN_SRC javascript
+      if (Modernizr.canvas) {
+      // let's draw some shapes!
+      } else {
+      // no native canvas support available :(
+      }
+
+      //html5 video format
+      if (Modernizr.video) {
+        // let's play some video! but what kind?
+        if (Modernizr.video.webm) {
+          // try WebM
+        } else if (Modernizr.video.ogg) {
+          // try Ogg Theora + Vorbis in an Ogg container
+        } else if (Modernizr.video.h264){
+          // try H.264 video + AAC audio in an MP4 container
+        }
+      }
+
+      //local storage
+      if (Modernizr.localstorage) {
+      // window.localStorage is available!
+      } else {
+      // no native support for local storage :(
+      // maybe try Gears or another third-party solution
+      }
+
+
+
+      //Web worker
+      if (Modernizr.webworkers) {
+      // window.Worker is available!
+      } else {
+      // no native support for web workers :(
+      // maybe try Gears or another third-party solution
+      }
+
+
+      //offline support
+      if (Modernizr.applicationcache) {
+      // window.applicationCache is available!
+      } else {
+      // no native support for offline :(
+      // maybe try Gears or another third-party solution
+      }
+
+
+      //geolocation support
+      if (Modernizr.geolocation) {
+      // let's find out where you are!
+      } else {
+      // no native geolocation support available :(
+      // maybe try Gears or another third-party solution
+      }
+
+      //input type
+      if (!Modernizr.inputtypes.date) {
+      // no native support for <input type="date"> :(
+      // maybe build one yourself with Dojo or jQueryUI
+      }
+
+      //placeholder text
+      if (Modernizr.input.placeholder) {
+      // your placeholder text should already be visible!
+      } else {
+      // no placeholder support :(
+      // fall back to a scripted solution
+      }
+
+      //auto focus
+      if (Modernizr.input.autofocus) {
+      // autofocus works!
+      } else {
+      // no autofocus support :(
+      // fall back to a scripted solution
+      }
+
+
+    #+END_SRC
+
+** Canvas
+    
+*** 检查浏览器是否支持Canvas标签
+    #+BEGIN_SRC javascript
+      function supports_canvas() {
+        return !!document.createElement('canvas').getContext;
+      }    
+    #+END_SRC
+
+*** 使用Modernizr库检测
+    #+BEGIN_SRC javascript
+      if (Modernizr.canvas) {
+      // let's draw some shapes!
+      } else {
+      // no native canvas support available :(
+      }    
+    #+END_SRC

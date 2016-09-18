@@ -1,0 +1,190 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 概述
+
+   802.11标准中要求每个单播的帧都必须得到正面确认(Positive
+   Acknowledgement)。 在802.11e中引入了 =Block Acknowlegement= 的概念：
+   单个确认帧可以对多个数据帧进行确认。 =Block Acknowlegement= 和
+   =A-MPDU= 一起用在802.11n中，极大改善了应用吞吐量。 
+
+* BA Inside
+
+** BA Procedure
+
+   #+CAPTION: BA Session Procedure
+   [[./images/2016/2016050401.png]]
+
+** BA setup & tear down
+
+     #+CAPTION: Block Ack setup
+     [[./images/2015/2015121504.png]]
+
+     #+CAPTION: Block Ack deletion
+     [[./images/2015/2015121505.png]]
+
+** BA的类型
+
+     BA分为 =Immediate BA= 和 =Delayed BA= , 区别如下图所示：
+
+     [[./images/2015/2015121501.png]]
+
+     ADDBA会指定使用何种类型的BA。 
+
+** 隐式BA请求
+
+     有时，在抓取的802.11n的sniffer log中，只看到BA事件，没有看到BAR，
+     这是因为BAR是隐式的，即"Immediate BA with implicit BA request"。 
+
+     [[./images/2015/2015121502.png]]
+
+** BA Bitmap
+
+     BA Bitmap 和起始序列号显示了正在被确认的数据包。每个比特位确认一
+     个包，且该包的序列号等于起始序列号加上比特号，如下图显示的BA是确
+     认package 3, 4。 
+
+     [[./images/2015/2015121503.png]]
+
+** Compressed BA
+
+      BA最初是定义在802.11e中，以允许确认每个的MSDU，bitmap有128字节长。
+      802.11n只允许确认每个MPDU，且bitmap是8个字节长。8字节长的Bitmap称为
+      =Compressed BA= 。 
+
+** BAR(BA Request)
+
+     一个BAR也用来改变起始序列号。有一种应用场景是： 当一个发送方一开
+     始没有使用聚合发送数据帧（此时会通过正常的Ack确认帧）， 之后，它
+     想发送一些聚合的数据，则发送方可以通过发送一个BAR去更新接收方的起
+     始序列号。 接收方会回应一个Bitmpa全0的BA给发送方。 
+      
+** BAR Ack Policy
+
+     require Immediate Acknowledgement or not.
+
+* 深入了解BA
+
+  所有操作是基于Sequence Number执行的， Sequence Number的范围是（0,
+  4095）. Sequence Number的空间被分成两个部分，一部分是“旧”，一部分
+  是“新”， 一部分通过二分法来划出他们之间的界限。
+
+** Receive buffer operation
+   针对每次Block Acknowledge, 接收方都会维护一个MAC变量：
+   =NextExpectedSequenceNumber= 。 
+
+   初始值为0. 
+
+   如果收到的帧的Sequence Number小于 =NextExpectedSequenceNumber= ，则
+   会丢弃该帧, 否则都会缓存该帧。 
+
+   当收到 =BlockAckReq= 帧时，它会冲刷当前收到的MSDU和 =A-MSDU= . 会执
+   行如下一些过程：
+   1. 对于那些已经接收到的帧，如果帧的序号小于 =BlockAckReq= 帧中的起始
+      序号，则会被传递到下一个MAC过程中去处理(也即传递给上层处理)。
+   2. 同时，从起始序号开始的， 将对应的帧也传递到下一个MAC过程中去处理，
+      直至出现的序号没有对应收到的帧为止。
+   3. 上述两步过后，如果没有帧需要传递给下一个MAC过程中去处理，且
+      =BlockAckReq= 帧中的起始序号要比 =NextExpectedSequenceNumber= 值
+      要大，则将 =NextExpectedSequenceNumber= 值更新为此值。
+   4. 如果接收到了一个MPDU，但是接收的Buffer已经满了，则序号最早的帧将
+      会被传递到下一个MAC过程去处理。
+   5. 如果接收到了一个MPDU，但是接收的Buffer没有满，且接收到的帧中的
+      序号最小值与 =NextExpectedSequenceNumber= 值相同，则该MPDU将会直
+      接被传递给下一个MAC过程。
+   6. 每次接收者传送一个MSDU或 =A-MSDU= 给下一个MAC过程去处理，
+      =NextExpectedSequenceNumber= 的值会更新为该帧的序号加1.
+   7. 接收者应该以递增的顺序将接收到的帧传送给下一个MAC过程。
+
+** HT-immediate Block Ack extensions
+    该扩展简化了immediate Block Ack来传输A-MPDU, 降低了接收者的资源需
+    求。
+
+    An HT STA shall support HT-immediate Block Ack in the role of *recipient*.
+
+*** HT-immediate Block Ack architecture
+    #+CAPTION HT-immediate Block Ack architecture
+    [[./images/2016/2016070401.png]]
+
+    originator包含一个传输Buffer控制，它使用一个传输窗口，
+    /WinStart_o/代表传输窗口的起始帧序号， /WinSize_o/ 代表Block Ack协
+    商中确定的Buffer数目。 
+
+    Aggregation control 创建 =A-MPDU= , 它可能会调整传输的QoS数据帧的
+    Ack Policy域的值。 
+
+    每个recipient包含一个 *receive reordering buffer control*  ， 它的
+    主要目的是确保接收到的MSDU或A-MSDU按帧序号顺序传递给上层。
+    它也可以用于侦测重复帧，并丢弃。
+
+    For each HT-immediate Block Ack agreement, the recipient chooses
+    either full-state or partial-state operation  (this choice is
+    known only to the recipient).   A STA may simultaneously use
+    full-state operation for some agreements and partial-state
+    operation for other agreements. Under full-state operation, status
+    is maintained in statically assigned memory. Under partial-state
+    operation, status is maintained in a cache memory; 
+
+    The *scoreboard context control* stores an acknowledgment bitmap
+    containing the current reception status of MSDUs or A-MSDUs for
+    HT-immediate Block Ack agreements. 
+
+    The *deaggregation control entity* separates frames contained in an A-MPDU.
+    
+    Each received MPDU is analyzed by the scoreboard context control
+    as well as by the receive reordering buffer control.
+
+    [[./images/2016/2016070801.png]]
+    
+**** Scoreboard context control during full-state operation
+     a recipient shall maintain a block acknowledgment record.
+     The record includes:
+     1. bitmap
+        通过sequence numer索引
+     2. WinStart_R
+        12-bit 无符号整数，代表bitmap中最小序号的位置, 即起始序号.
+     3. WinEnd_R
+        the highest sequence number in the current transmission window.
+     4. WinSize_R
+        maximum transmission window size, 不超过64。
+     
+     STA通过如下规则维护block ack record:
+     1. At HT-immediate Block Ack agreement establishment:
+        - WinStart_R = SSN
+          SSN信息来自ADDBA Response帧。
+        - WinEnd_R = WinStart_R + WinSize_R – 1.
+     2. For each received data MPDU that is related with a specific
+        full-state operation HT-immediate Block Ack agreement, 将按如
+        下规则修改相关Bit位，其中 /SN/ 代表接收到的MPDU的Sequence
+        Number子域的值。
+        - 如果 WinStart_R ≤ SN ≤ WinEnd_R ， 将bitmap中SN对应的bit位置
+          为1.
+        - 如果 WinEnd_R < SN < WinStart_R+2^11
+          1) 将SN值处于 WinEnd_R+1 到 SN-1对应的bit位置为0，
+          2) 设置 WinStart_R = SN – WinSize_R + 1.
+          3) 设置 WinEnd_R=SN.
+          4) 将bitmap中SN对应的bit位置为1。
+        - 如果 WinStart_R+2^11 ≤ SN < WinStart_R， 不做任何修改。
+     3. For each received BlockAckReq frame that is related with a
+        specific full-state operation HTimmediate non-Protected Block
+        Ack agreement, the block acknowledgment record for that
+        agreement is modified as follows, where SSN is the value from
+        the Starting Sequence Number subfield of the received
+        BlockAckReq frame:
+        - 如果 WinStart_R < SSN ≤ WinEnd_R
+          1) Set WinStart_R = SSN
+          2) 将Sequence Number为 WinEnd_R + 1 到 WinStartR + WinSizeR –
+             1所对应的所有bit位设置为0。
+          3) Set WinEnd_R = WinStart_R + WinSize_R – 1.
+        - 如果WinEnd_R < SSN < WinStart_R+2^11
+          1) Set WinStart_R = SSN.
+          2) Set WinEnd_R = WinStart_R + WinSize_R – 1.
+          3) 将Sequence Number为WinStart_R 到WinEnd_R 对应的bit位设置为0。
+        - 如果 WinStart_R+2^11 ≤ SSN < WinStart_R， 不做任何修改。
+
+**** Scoreboard context control during partial-state operation
+     
+        
+

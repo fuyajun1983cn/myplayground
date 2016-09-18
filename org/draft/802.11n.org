@@ -27,41 +27,55 @@
    8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备来讲，算是一个需要考量的缺点。
 
 ** 物理层
-
+   
    1. 如何加快网络速度？
+
       - 增加传输速率, 使用MIMO技术，可达150Mbps，最高可达600Mbps。
+
       - 增加协议的效率，即单位时间内传输更多的数据。
+
    2. MIMO
+
       - 在MIMO系统中，所在天线都是同时活跃。
+
       - MIMO表示方法
+
         TxR:S
+
         S代表Spatial Stream的数据，它的数量决定了设备的最大传输速率。
         R代表接收天线数量，T代表发送天线数量，T和R的值要大于或等于S。
+
    3. 提高速度
+
       - 保留了20MHz的频道，但是增加了802.11a/g中未用到的子载波。
+
       - 支持在40MHz的频道。
+
       - 802.11有许多选项一起决定了数据传输速率
-      - 对于采用单天线的802.11n的设备，数据传输速率会得到一点提升，因为802.11的每个信道会携带更多的subcarriers。
+
+      - 对于采用单天线的802.11n的设备，数据传输速率会得到一点提升，因
+        为802.11的每个信道会携带更多的subcarriers。
+
       - Beamforming, 波束，可以定向传输信号， 主要是对接收方有利。
 
 ** Mac层
    
    1. 基础
       - 帧的大小稍微比802.11的数据帧大些。
-      - 管理帧包含了HT能力信息的元素，来表明它是一个802.11n的网络。
+      - 管理帧包含了HT能力信息的元素，用来表明它是一个802.11n的网络。
       - 设备在发送数据包的过程中，需要包含HT IE信息来表明它是一个
         802.11n的设备。同时,根据AP发送过来的Beacon帧的信息，来判断AP是
         否支持802.11n网络。 
       - 802.11n定义了两种类型的帧：（A-MPDU）和（A-MSDU） 采用聚合帧是
         为了把时间尽量用在传输上。另外，也需要考虑一点，就是聚合帧的大
         小设置要合理，不能影响小的,高优先级帧。
-        - *A-MPDU*：Aggregate MAC Protocol Data Unit
+        - =A-MPDU= ：Aggregate MAC Protocol Data Unit
           
           这是一种更常见的聚合帧形式，它的大小主要由PLCP限制，可以长达
           65535字节。 每个放到聚合帧中的子帧都包含自己的MAC头和FCS，相
           当于每个子帧都是一个独立的MAC帧。
 
-        - *A-MSDU*：Aggregate MAC Service Data Unit， take several
+        - =A-MSDU= ：Aggregate MAC Service Data Unit， take several
           higher-layer packets and build them into a single MAC frame
           payload.
 
@@ -70,7 +84,7 @@
           MAC 帧。这种帧需要更多的软件上的支持，因为网络驱动必须将多个
           高层数据包整合成单个的MAC帧的负载。
 
-          另外，这两个聚合帧可以联合使用，如 =A-MPDU= 的子帧可以是一个
+          另外，这两种聚合帧可以联合使用，如 =A-MPDU= 的子帧可以是一个
           =A-MSDU= 聚合帧。
 
       - Block Acknowledgment (BA) 
@@ -93,12 +107,12 @@
 
         2. Non-member 保护
 
-           当需要在一个网络中保护其他非802.11n设备，以阻止连接上该网络
-           上的802.11n设备的数据传输。
+           当需要在一个网络中保护其他非802.11n设备，以阻止已连接上该网络
+           的802.11n设备的数据传输。
 
         3. 20 MHz保护模式
 
-           这种模式只针对20/40 MHz的网络，当需要在这两种带宽动态变换时。
+           这种模式只针对20/40 MHz的网络，当需要在这两种频宽动态变换时。
 
         4. Non-HT保护模式
 
@@ -118,18 +132,18 @@
 
    1. 频道结构和布局
       
-      - 频道结构与802.11a/g类似，基于OFDM，将无线信道分成若干个子负载，
+      - 频道结构与802.11a/g类似，基于OFDM，将无线信道分成若干个子载波，
         且相互之间正交。
 
-      - 与802.11a/g使用相同的调制和编号方案。
+      - 与802.11a/g使用相同的调制和编码方案。
 
    2. 增加无线频谱的使用
 
-      - 保留了802.11之前标准的20MHz频道，但通过增加子负载来改进频谱效率。
+      - 保留了802.11之前标准的20MHz频道，但通过增加子载波来改进频谱效率。
 
-      - 增加了4个子负载，而无需额外增加Pilot子负载。
+      - 增加了4个子载波，而无需额外增加Pilot子载波。
 
-      - Pilot子负载用于频道测量和校准，是一种开销，就像MIMO增强数据传输的效率一数, 它增强了Pilot负载操作的效率。
+      - Pilot子载波用于频道测量和校准，是一种开销，就像MIMO增强数据传输的效率一数, 它增强了Pilot负载操作的效率。
 
       - 支持40Mhz的信道上操作
 
@@ -141,6 +155,7 @@
 
         1. 发送端选择Modulation Rate和Coding，即描述怎样将数据转变成无
            线电波。
+
            MSC(Modulation and Coding Set)的编号描述了对于一个数据传输
            来说，使用的Spatial Numbers的数量，Modulation方法（BPSK,
            QPSK, 16-QAM, 64-QAM）以及纠错码。
@@ -149,14 +164,19 @@
            Interval。
 
    4. PLCP Framing
+
       802.11n使用PLCP定义了一种新的物理层帧，它支持三种模式：
+
       1. =Non-HT mode=
+
          legacy mode
 
       2. HT mixed mode
+
          这种模式下，会考虑与之前设备的兼容性。
 
       3. =HT-Greenfield mode=
+
          这种模式下，不会考虑与之前设备的兼容性。
 
    5. 速率
@@ -176,6 +196,7 @@
 ** 与互操作性相关的高级物理层特性
    
 *** Radio Medium Coordination
+
     OBSS(Overlapping BSS): Another network that uses available
     airtime. 
     网络设计的基本则就是最小化OBSS的存在。 尽量使周围的AP使用不同的信
@@ -185,19 +206,27 @@
     OBSS。 
 
 *** CCA（Clear-Channel Assessment）
+
     CCA主要用于检测当前准备进行数据传输的信道是否处于忙状态。
     对于11n设备，当工作于20MHz的信道上时，检测媒介是否忙碌的规则如下：
+
     - Signal detection
+
       信号强度大于-80dBm则认为当前信道处于忙状态。
+
     - Energy detection
+
       cutoff value: -62 dBm
+
     - Greenfield detection
+
       -72 dBm
 
     当工作于40MHz信道上时，则会同时检测Primary Channel和Second Channel
     是否处于忙状态。
 
 *** Channel Width Selection (20/40 MHz BSS)
+
     一般情况下，2.4G下，不重叠的40MHz带宽的信道很少，很容易出现干扰问
     题。 
 
@@ -240,8 +269,9 @@
         the sounding frame was received. By comparing the known
         contents of the sounding frame to a representation of its
         contents at the receiver, the beamformer can compute the 
-        steering matrix. downside: a device must be able to send
-        channel measurements back to the beamformer.
+        steering matrix.
+       
+        downside: a device must be able to send channel measurements back to the beamformer.
 
    - 影响BF性能的因素
 
@@ -262,12 +292,12 @@
 
      当无线链路数量超过空中流的数目时，可以使用STBC。Space-Time Block
      Coding (STBC) requires two radio chains to transmit a single
-     spatial stream. 
+     spatial stream. 传输速率虽然会降低，但是提高了传输质量。
 
    - Low-Density Parity Check (LDPC) 
 
      在802.11 关联过程中，会协商是否传递LDPC编码的帧，如果对端在
-     Beacon或Association Request帧中表明了支持LDPC，则802.11n设备只 会
+     Beacon或Association Request帧中表明了支持LDPC，则802.11n设备只会
      传输LDPC编码的帧。
 
 ** MU-MIMO (Multi-User MIMO) VS SU-MIMO
@@ -289,7 +319,135 @@
      - SU: Performed in STA
      - MU: Performed in AP, need to collect channel of all users.
 
+* How does 802.11n get to 600Mbps? [fn:1]
+  802.11n incorporates all earlier amendments to 802.11, including the
+  MAC enhancements in 802.11e for QoS and power savings.
+  The design goal of the 802.11n amendment is “HT” for High
+  Throughput. The throughput it claims is high indeed: up to 600 Mbps
+  in raw bit-rate. Let’s start with the maximum throughput of 802.11g
+  (54Mbps), and see what techniques 802.11n applies to boost it to 600
+  Mbps: 
+
+** More subcarriers
+
+   802.11g has 48 OFDM data subcarriers. 802.11n increases this number
+   to 52, thereby boosting throughput from 54Mbps to 58.5 Mbps.
+
+** FEC
+
+   802.11g has a maximum FEC (Forward Error Correction) coding rate of
+   3/4. 802.11n squeezes some redundancy out of this with a 5/6 coding
+   rate, boosting the link rate from 58.5 Mbps to 65 Mbps.
+
+** Guard Interval
+
+   802.11a has Guard Interval between transmissions of 800ns. 802.11n
+   has an option to reduce this to 400ns, which boosts the throughput
+   from 65 Mbps to 72.2 Mbps.
+
+** MIMO
+
+   thanks to the magical effect of spatial multiplexing, provided
+   there are sufficient multi-path reflections, the throughput of a
+   system goes up linearly with each extra antenna at both ends. Two
+   antennas at each end double the throughput, three antennas at each
+   end triple it, and four quadruple it. The maximum number of
+   antennas in the receive and transmit arrays specified by 802.11n is
+   four. This allows four simultaneous 72.2 Mbps streams, yielding a
+   total throughput of 288.9 Mbps.
+
+** 40 MHz channels
+
+   all previous versions of 802.11 have a channel bandwidth of
+   20MHz. 802.11n has an optional mode (controversial and not usable
+   in many circumstances) where the channel bandwidth is 40 MHz. While
+   the channel bandwidth is doubled, the number of data subcarriers is
+   slightly more than doubled, going from 52 to 108. This yields a
+   total channel throughput of 150 Mbps. So again combining four
+   channels with MIMO, we get 600 Mbps.
+
+** Lower MAC overhead
+
+   But raw throughput is not a very informative number.
+   The 11a/g link rate is 54 Mbps, but the higher layer throughput is
+   only 26 Mbps; the MAC overhead is over 50%! In 11n when the link
+   rate is 65 Mbps, the higher layer throughput is about 50 Mbps; the
+   MAC overhead is down to 25%.
+
+   Bear mind that these numbers are the absolute top speed you can get
+   out of the system. 802.11n has numerous modulation schemes to fall
+   back to when the conditions are less than perfect, which is most of
+   the time.
+
+   But to minimize these fall-backs, 11n contains additional
+   improvements to make the effective throughput as high as possible
+   under all circumstances. These improvements are described in the following
+   paragraphs.
+
+** Fast MCS feedback – rate selection
+
+   Existing equipment finds it hard to track rapid changes in the
+   channel. Say you walk through the shadow of a pole in the
+   building. The rate may go from 50 to 6 to 50 mbps in one
+   step. It’s hard for conventional systems to track this, because
+   they adapt based on transmit errors. With delay sensitive data like
+   voice you have to be very conservative, so adapting up is much
+   slower than down. 11n adds explicit per-packet feedback,
+   recommending the transmission speed for the next packet. This is
+   called Fast MCS (Modulation and Coding Scheme) Feedback.
+
+** LDPC (Low Density Partity Check) coding
+
+   LDPC is a super duper Forward Error Correction mechanism. Although
+   it is almost 50 years old, it is the most effective error
+   correcting code developed to date; it nears the theoretical limit
+   of efficiency. It was little used until recently because of its
+   high compute requirement. An interesting by-product of its
+   antiquity is that it is relatively free of patent issues.
+
+** Transmit beam-forming
+
+   The term beam-forming conjures up images of a laser-like beam of
+   radio waves pointing exactly at the client device, but it doesn’t
+   really work like that. If you look at a fine-resolution map of
+   signal intensity in a room covered by a Wi-Fi access point, it
+   looks like the surface of a pond disturbed by a gust of wind – it
+   is a patchwork of bumps and dips in signal intensity, some as small
+   as a few cubic inches in volume. Transmit beam-forming adjusts the
+   phase and transmit power at the various antennas to move one of the
+   maxima of signal intensity to where the client device is.
+
+** STBC
+
+   In a phone the chances are that there will only be one Wi-Fi
+   antenna, so there will be only one spatial channel. Even so, the
+   MIMO technique of STBC (Space-Time Block Coding) enables the
+   handset to take advantage of the multiple antennas on the Access
+   Point to improve range, both rate-at-range and limiting range.
+
+   Incidentally, to receive 802.11n certification by the Wi-Fi
+   Alliance, all devices must have two or more antennas except
+   handsets which can optionally have a single antenna. Several
+   considerations went into allowing this concession to handsets,
+   mainly size and power constraints. STBC is particularly useful to
+   handsets. It yields the robustness of MIMO without a second radio,
+   which saves all the power the second radio would burn. This power
+   saving is compounded with another: because of the greater
+   rate-at-range the radio is on for less time while transmitting a
+   given quantity of data. STBC is optional in 802.11n, though it
+   should always be implemented for systems that support 802.11n
+   handsets.
+   
+** Hardware assistance
+
+   Many of these features impose a considerable compute load. LDPC and
+   STBC fall into this category. This is an issue for handsets, since
+   computation costs battery life. Fortunately these features are
+   amenable to hardware implementation. With dedicated hardware the
+   computation happens rapidly and with little cost in power.
+
 * HT20 HT40 Coexistence
+
   11n有两种频宽模式：HT(High Throughput)20和HT40。
 
   HT20是出于兼容性考虑：比如，一个区域内存在11b/g信号，那么为了尽量减
@@ -301,30 +459,36 @@
 ** Frame
 
 *** AP
+
     AP在Beacon中，会通过IE中的信息来表明是否支持20/40 Coexistence
 
     [[./images/2016/2016042801.png]]
 
 *** STA
+
     STA在Association Request帧中，也会通过IE中的信息来表明是否支持
     20/40 Coexistence.
 
     [[./images/2016/2016042802.png]]
 
 *** HT20/40 BSS Coexistence Management (Action Frame)
+
     STA可以通过此Action帧来通知周围AP从HT 40MHz转为HT 20MHz。 
 
     [[./images/2016/2016042803.png]]
 
 ** 40 MHz Intolerance
+
    40MHz传输会对20MHz重叠的网络产生很大的影响，802.11n引入了一种机制，
    可以告知周围的AP："Please don’t use 40 MHz transmissions near me."
    这样，周围的AP就会关闭40MHz的带宽传输。
 
 ** OBSS
+
    与当前网络使用相同或部分相同信道的网络。
 
 ** transition between HT40 and HT20
+
    There are many things that will cause fallback to 20 MHz. But the
    most frequently encountered reasons are: 
    1) If an AP detects another BSS (wireless network) within +/1 40
@@ -350,6 +514,7 @@
    bandwidth mode in the 2.4 GHz band unless asked to do.
 
 *** STA 20/40 Coexistence Overall Flow
+
     收到一个 20/40 BSS Coexistence Management Frame， 
 
     [[./images/2016/2016042804.png]]
@@ -362,6 +527,11 @@
 *** HT40 to HT20
     
 *** HT20 to HT40
+
+* Footnotes
+
+[fn:1] http://www.wirevolution.com/2007/09/07/how-does-80211n-get-to-600mbps/
+
 
 
 

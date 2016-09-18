@@ -16,5 +16,7 @@ public class Main {
         } catch(Exception ex) {
             ex.printStackTrace();
         }
+
+        System.out.println("This is a Test");
     }
 }

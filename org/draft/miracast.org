@@ -1,0 +1,182 @@
+#+STARTUP: overview
+#+TITLE: Wifi Display(Miracast)协议学习
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* WiFi Display连接步骤
+** WFD Device Discovery
+
+** WFD Service Discovery(Optional)
+
+** Device Selection
+
+** WFD Connection Setup
+   using p2p connection
+
+   *TCP Connection*
+   The TCP connection shall be initiated by the WFD Sink. The WFD
+   Source plays the TCP server role and the WFD Sink plays the TCP
+   client role. A Control Port (default is 7236 ) is used to establish
+   and manage sessions between the WFD Source and WFD Sink。 The
+   protocol running on the Control Port is RTSP。
+
+** WFD Capability Negotiation
+   After a successful WFD Connection Setup (and establishment of a TCP
+   connection), the WFD Capability Negotiation phase shall commence as
+   specified herein. It takes place prior to the WFD Session
+   establishment.
+
+   [[./images/2016/2016062401.png]]
+
+   RTSP M1和M2主要协商Source和Sink都支持的RTSP methods 
+   RTSP M3和M4主要协商Source和Sink在会话中使用的参数。
+   
+** WFD Session Establishment
+   When an exchange of RTSP M7 request and response messages has
+   successfully completed between the WFD Source and the WFD Sink, the
+   WFD Session is established.
+
+   [[./images/2016/2016062402.png]]
+
+*** WFD Source and WFD Sink session management Reference Model
+
+    [[./images/2016/2016062403.png]]
+
+** User Input Back Channel Setup (Optional)
+
+** Link Content Protection Setup(Optional)
+   The WFD Source establish the HDCP 2.0 session key with the WFD
+   Sink. If the WFD Source and WFD Sink support HDCP system 2.0, both
+   the WFD Source and the WFD Sink shall complete the HDCP 2.0 session
+   key establishment before starting any RTP session used for WFD
+   streaming.If the HDCP 2.0 session key establishment fails, the WFD
+   Sink supporting the HDCP system 2.0 may send an RTSP M7 request
+   message to the WFD Source supporting the HDCP system 2.0 to start
+   an RTP streaming. In this case, the WFD Source can only transmit
+   audio and/or video content that ‘s not required to be protected by
+   the HDCP system 2.0 to the WFD Sink.
+
+** Payload Control
+
+*** Audio & Video Payload Processing Reference Model
+    [[./images/2016/2016062404.png]]
+
+** WFD Source and WFD Sink Standby(Optional)
+
+** WFD Session Teardown
+
+* Information Elements
+  
+** WFD Device Info
+
+** Coupled Sink Info
+
+** WFD Extended Capability
+
+** WFD Session Info
+* RTSP message
+
+  WFD Source开始向WFD Sink发送一个M1请求，开始了WFD Capability协商，终
+  止于M4。M5开始了会话的建立。M6成功之后，会话建立。
+
+  RTSP超时的一些规则：
+  1. 在TCP连接建立起来后，WFD Source必须在6秒之内向WFD Sink发送一个M1
+     请求。
+  2. 除了M16外，所以消息类型的请求与响应交互必须在5秒内完成。
+  3. 在WFD会话建立之前，从收到前一个消息的响应开始到下一个消息请求的传输之间
+     的间隔时间不超过6秒。
+  4. 在WFD会话建立之前 ，从发送一个前一个消息的请求开始，到下一个消息
+     请求的传输，时间不超过6秒。
+  5. 从接收RTSP M6响应开始，到传输RTSP M7请求结束这段时间的超时值为：
+     - 如果HDCP保护未打开，则值为6秒。
+     - 如果HDCP保护有开启，则值为9秒。
+  6. WFD会话建立后，从传输RTSP M5响应开始到传送相应的RTSP M7,M8,M9请求
+     消息结束这段时间超时值为6秒。
+
+** M1
+   由WFD Source发起，开始WFD能力协商过程,即看对方支持哪个方法原语。
+*** Request(Source => Sink)
+    [[./images/2016/2016050602.png]]
+    
+*** Response(Sink => Source)
+    [[./images/2016/2016050603.png]]
+
+** M2
+
+*** Request(Sink => Source)
+     [[./images/2016/2016050604.png]]
+
+*** Response(Source => Sink)
+    [[./images/2016/2016050605.png]]
+    
+** M3
+    查询WFD Sink的属性与能力信息
+*** Request(Source => Sink)
+    [[./images/2016/2016050606.png]]
+
+*** Response(Sink => Source)
+    [[./images/2016/2016050607.png]]
+
+** M4
+    请求WFD Sink设置参数
+*** Request(Source => Sink)
+    [[./images/2016/2016050608.png]]
+
+*** Response(Sink => Source)
+    [[./images/2016/2016050609.png]]
+
+** M5
+    WFD Source通过M5触发WFD Sink向自己请求SETUP，PLAY，PAUSE，TEARDOWN
+*** Request(Source => Sink)
+    [[./images/2016/2016050610.png]]
+
+*** Response(Sink => Source)
+    [[./images/2016/2016050611.png]]
+
+** M6
+    当M5消息中wfd_trigger_method为SETUP时，WFD Sink会发送此消息。
+*** Request(Sink => Source)
+    [[./images/2016/2016050612.png]]
+
+*** Response(Source => Sink)
+    [[./images/2016/2016050613.png]]
+
+** M7
+    : PLAY
+*** Request(Sink => Source)
+    [[./images/2016/2016050614.png]]
+
+*** Response(Source => Sink)
+    [[./images/2016/2016050615.png]]
+
+** M8
+    : TEARDOWN
+
+** M9
+    : PAUSE
+
+** M10
+    : RTSP SET_PARAMETER wfd-route
+
+** M11
+    : RTSP SET_PARAMETER wfd-connector-type
+
+** M12
+    : RTSP SET_PARAMETER wfd-standby
+
+** M13
+    : RTSP SET_PARAMETER wfd-idr-request
+
+** M14
+    : RTSP SET_PARAMETER wfd-uibc-capability
+
+** M15
+    enable or disable UIBC
+    : RTSP SET_PARAMETER wfd-uibc-setting
+
+** M16
+    是一个 =RTSP GET_PARAMETER= 请求，没有body信息，主要用于确认当前的RTSP
+    会话是否处于活跃状态。

@@ -1,0 +1,4928 @@
+#+STARTUP: overview
+#+TITLE: Linux内核编程笔记
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 知识点1 内核线程
+  内核线程可以用户两种方法实现：
+  1. 古老的方法
+     创建内核线程：
+     : ret = kernel_thread(mykthread, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+
+     内核线程方法的实现
+     #+BEGIN_SRC c
+       static DECLARE_WAIT_QUEUE_HEAD(myevent_waitqueue);
+       rwlock_t myevent_lock;
+       extern unsigned int myevent_id;
+
+       static int mykthread(void *unused)
+       {
+         unsigned int event_id = 0;
+         DECLARE_WAITQUEUE(wait, current);
+         //将此线程作为kthreadd的子进程，成为一个内核线程，不占用用户资源
+         daemonize(“mykthread”);
+
+         //daemonize()默认阻塞所有信号，所以…
+         allow_signal(SIGKILL);
+
+         add_wait_queue(&myevent_waitqueue, &wait);
+
+         for ( ; ;)
+           {
+             set_current_state(TASK_INTERRUPTIBLE);
+             schedule();
+             if ( signal_pending(current) )
+               break;
+
+             read_lock(&myevent_lock);
+             if ( myevent_id)
+               {
+                 event_id = myevent_id;
+                 read_unlock(&myevent_lock);
+                 run_umode_handler(event_id);
+               }
+             else
+               {
+                 read_unlock(&myevent_lock);
+               }
+           }
+               
+         set_current_state(TASK_RUNNING);
+         remove_wait_queue(&myevent_waitqueue, &wait);
+         return 0;
+       }
+            
+     #+END_SRC
+
+  2. 现代方法（从2.6.23起）
+     创建内核线程更现代的方法是辅助函数 =kthread_create=
+     函数原型：
+     #+BEGIN_SRC c
+       struct task_struct *kthread_create(int (*threadfin)(void *data), 
+                                          　　void *data, 
+                                          const char namefmt[], 
+                                          …)     
+     #+END_SRC
+
+     例子如下：
+     #+BEGIN_SRC c
+       #include <linux/kthread.h>   // kernel thread helper interface
+       #include <linux/completion.h>
+       #include <linux/module.h>
+       #include <linux/sched.h>
+       #include <linux/init.h>
+
+       MODULE_LICENSE("Dual BSD/GPL");
+       MODULE_AUTHOR("fuyajun1983cn@yahoo.com.cn");
+
+       struct task_struct *my_task;                      
+
+       /* Helper thread */
+       static int
+       my_thread(void *unused)
+       {
+
+         while (!kthread_should_stop()) {
+           
+           set_current_state(TASK_INTERRUPTIBLE);
+           schedule();
+           printk("I am still running\n");
+
+         }
+
+         /* Bail out of the wait queue */
+         __set_current_state(TASK_RUNNING);
+
+         return 0;
+       }
+
+       /* Module Initialization */
+       static int __init
+       my_init(void)
+       {
+         /* ... */
+
+         /*   my_task = kthread_create(my_thread, NULL, "%s", "my_thread");
+              if (my_task) wake_up_process(my_task);
+         ,*/
+         /*kthread_run会调用kthread_create函数创建新进程，并立即唤醒它*/
+         kthread_run(my_thread, NULL, "%s", "my_thread");*/
+
+           /* ... */
+        
+
+           /* ... */
+           return 0;
+       }
+
+       /* Module Release */
+       static void __exit
+       my_release(void)
+       {
+         /* ... */
+         kthread_stop(my_task);
+         /* ... */
+       }
+
+       module_init(my_init);
+       module_exit(my_release);     
+     #+END_SRC
+
+* 知识点2 内核错误码处理宏
+  　　Linux有时候在操作成功时需要返回指针，而在失败时则返回错误码。但
+  是C语言每个函数只允许一个直接的返回值，因此，任何有关可能错误的信息
+  都必须编码到指针中。虽然一般而言，指针可以指向内存中的任意位置，而
+  Linux支持的每个体系结构的虚拟地址空间中都有一个从虚拟地址0到至少4K的
+  区域，该区域中没有任何有意义的信息。因此内核可以重用该地址范围来的编
+  码错误码。
+
+  =ERR_PTR= 是一个辅助宏，用于将数值常数编码为指针。相关的宏如下：
+
+| 宏名称      | 意义                       |
+|-------------+----------------------------|
+| =IS_ERR()=  | 返回值是否是错误码         |
+| =PTR_ERR()= | 将返回值转化为错误码       |
+| =ERR_PTR()= | 根据错误码返回对错误的描述 |
+
+判断内核版本号的宏如下：
+: #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+
+* 知识点3 内核数据结构之链表
+      内核中的许多数据结构都是通过链表来的维护的， Linux内核提供了链表的通
+  用处理操作，供内核中其他数据结构使用。只需将链表结构嵌入到目标数据结
+  构，就可以利用通用的链表操作目标数据结构了
+
+  数据结构定义：
+  #+BEGIN_SRC c
+    #include <linux/list.h>
+    /*内核中的通用链表数据结构定义*/
+    struct list_head
+    {
+      struct list_head *next, *prev;
+    };
+    /*内嵌了通用链表数据结构的自定义的数据结构*/
+    struct mydatastructure
+    {
+      struct list_head mylist;   /* Embed */
+      /*  …   */           /* Actual Fields */
+    };  
+  #+END_SRC
+
+  内核中链表的常用操作：
+  | 宏或函数                     | 意义                                 |
+  |------------------------------+--------------------------------------|
+  | =INIT_LIST_HEAD()=           | 初始化链表头                         |
+  |------------------------------+--------------------------------------|
+  | =list_add()=                 | 将元素增加到链表头后                 |
+  |------------------------------+--------------------------------------|
+  | =list_add_tail()=            | 将元素添加到链表尾                   |
+  |------------------------------+--------------------------------------|
+  | =list_del()=                 | 从链表中删除一个元素                 |
+  |------------------------------+--------------------------------------|
+  | =list_replace()=             | 将链表中的元素替换为另一个           |
+  |------------------------------+--------------------------------------|
+  | =list_entry()=               | 遍历链表中的每一个元素               |
+  |------------------------------+--------------------------------------|
+  | =list_for_each_entry()=      | 简化链表迭代接口                     |
+  |------------------------------+--------------------------------------|
+  | =list_for_each_entry_safe()= | 如果迭代过程中需要删除结点，则用这个 |
+  |------------------------------+--------------------------------------|
+  | =list_empty()=               | 检查链表是否为空                     |
+  |------------------------------+--------------------------------------|
+  | =list_splice()=              | 将两个链表合并                       |
+  |------------------------------+--------------------------------------|
+
+  一个例子：
+  #+BEGIN_SRC c
+    /*用于同步，以及串联逻辑数据结构的辅助结构*/
+    static struct _mydrv_wq {
+      struct list_head mydrv_worklist; /* Work List 链头*/
+      spinlock_t lock;                 /* Protect the list */
+      wait_queue_head_t todo;          /* Synchronize submitter
+                                          and worker */
+    } mydrv_wq;
+
+    /*逻辑相关的数据结构*/
+    struct _mydrv_work {
+      struct list_head mydrv_workitem; /* The work chain */
+      void (*worker_func)(void *);     /* Work to perform */
+      void *worker_data;               /* Argument to worker_func */
+      /* ... */                        /* Other fields */
+    } mydrv_work;
+
+    //Initialize Data Structures
+    static int __init
+    mydrv_init(void)
+    {
+      /* Initialize the lock to protect against
+         concurrent list access */
+      spin_lock_init(&mydrv_wq.lock);
+
+      /* Initialize the wait queue for communication
+         between the submitter and the worker */
+      init_waitqueue_head(&mydrv_wq.todo);
+
+      /* Initialize the list head */
+      INIT_LIST_HEAD(&mydrv_wq.mydrv_worklist);
+
+      /* Start the worker thread. See Listing 3.4 */
+      kernel_thread(mydrv_worker, NULL,
+                      CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+      return 0;
+    }
+  #+END_SRC
+
+  *哈希链表*
+  #+BEGIN_SRC c
+    struct hlist_head
+    {
+      struct hlist_node *first;
+    };
+
+    struct hlist_node
+    {
+      struct hlist_node *next, **pprev;
+    };  
+  #+END_SRC
+
+* 知识点4 内核中的通知链
+  通知链(Notifier Chains)：
+      通知链用于向请求通知的代码区发送状态变化消息，消息只在內核模塊間傳遞。
+  有四種類型的通知鏈：
+  1. Atomic notifier chains: Chain callbacks run in interrupt/atomic
+     context. Callouts are not allowed to block.
+  2. Blocking notifier chains: Chain callbacks run in process
+     context. Callouts are allowed to block.
+  3. Raw notifier chains: There are no restrictions on callbacks,
+     registration, or unregistration.  All locking and protection must
+     be provided by the caller.
+  4. SRCU notifier chains: A variant of blocking notifier chains, with
+     the same restrictions. 一般用於通知鏈被經常調用，而很少被刪除的情
+     形。
+
+  有几个内核中预定义的通知器：
+  - Die Notification: 当一个内核函数触发了一个由“opps”引起的陷阱或错误
+    时。
+  - Net device notification：当一个网卡禁用或启用时
+  - CPU frequency notification：当处理器频率发生变化时
+  - Internet address notification：当一个网卡IP地址发生变化时
+
+  自定义通知链：
+  　　使用 =BLOCKING_NOTIFIER_HEAD()= 初始化，通过
+  =blocking_notifier_chain_register()= 来注册通知链。在中断上下文中，使用
+  =ATOMIC_NOTIFIER_HEAD()= 初始化，通过
+  =atomic_notifier_chain_register()= 来注册
+  通知链。
+
+  代码示例：
+  #+BEGIN_SRC c
+    #include <linux/notifier.h>
+    #include <linux/kdebug.h>
+    #include <linux/netdevice.h>
+    #include <linux/inetdevice.h>
+
+    extern int register_die_notifier(struct notifier_block *nb);
+    extern int unregister_die_notifier(struct notifier_block *nb);
+
+    /* Die notification event handler */
+    int my_die_event_handler(struct notifier_block *self, unsigned long val, void *data)
+    {
+      struct die_args *args = (struct die_args *)data;
+
+      if (val == 1) { /* '1' corresponds to an "oops" */
+        printk("my_die_event: OOPs! at EIP=%lx\n", args->regs->eip);
+      } /* else ignore */
+      return 0;
+    }
+
+    /* Die Notifier Definition */
+    static struct notifier_block my_die_notifier = {
+      .notifier_call = my_die_event_handler,
+    };
+
+
+
+    /* Net Device notification event handler */
+    int my_dev_event_handler(struct notifier_block *self,
+                             unsigned long val, void *data)
+    {
+      printk("my_dev_event: Val=%ld, Interface=%s\n", val,
+             ((struct net_device *) data)->name);
+      return 0;
+    }
+
+    /* Net Device notifier definition */
+    static struct notifier_block my_dev_notifier = {
+      .notifier_call = my_dev_event_handler,
+    };
+
+
+    /* User-defined notification event handler */
+    int my_event_handler(struct notifier_block *self,
+                         unsigned long val, void *data)
+    {
+      printk("my_event: Val=%ld\n", val);
+      return 0;
+    }
+
+    /* User-defined notifier chain implementation */
+    static BLOCKING_NOTIFIER_HEAD(my_noti_chain);
+
+    static struct notifier_block my_notifier = {
+      .notifier_call = my_event_handler,
+    };
+
+    /* Driver Initialization */
+    static int __init
+    my_init(void)
+    {
+      /* ... */
+
+      /* Register Die Notifier */
+      register_die_notifier(&my_die_notifier);
+
+      /* Register Net Device Notifier */
+      register_netdevice_notifier(&my_dev_notifier);
+
+      /* Register a user-defined Notifier */
+      blocking_notifier_chain_register(&my_noti_chain, &my_notifier);
+
+      /* ... */
+      return 0;
+    }
+
+    //驱动模块初始化函数
+    static int __init hello3_init(void)
+    {
+      my_init();
+      blocking_notifier_call_chain(&my_noti_chain, 100, NULL);
+      return 0;
+    }
+
+    module_init(hello3_init);
+    //驱动模块注册函数
+    static void __exit hello3_exit(void)
+    {
+      unregister_die_notifier(&my_die_notifier);
+      unregister_netdevice_notifier(&my_dev_notifier);
+      blocking_notifier_chain_unregister(&my_noti_chain, &my_notifier);
+    }
+
+    module_exit(hello3_exit);  
+  #+END_SRC
+
+* 知识点5 条件编译在内核中的使用
+      当需要根据编译时配置，以不同方式执行某一任务时，一种可能的方法是，使
+  用两个不同的函数，每次调用时，根据某些预处理器条件来的选择正确的一个：
+  #+BEGIN_SRC c
+    void do_somehting()
+    {
+      …
+    #ifdef CONFIG_WORK_HARD
+        do_work_fast();
+    #else
+      do_work_at_your_leisure();
+    #endif
+      …
+    }  
+  #+END_SRC
+
+  由于这需要在每次调用函数时都使用预处理器，内核开发者认为这种方法代表
+  了糟糕的风格，更优雅的一个方案是根据选择不同的配置，来定义函数自身：
+  #+BEGIN_SRC c
+    #ifdef CONFIG_WORK_HARD
+    void do_work()
+    {
+    …
+    }
+    #else
+    void do_work()
+    {
+    …
+    }
+    #endif
+    void do_something()
+    {
+    …
+    do_work();
+    …
+    }  
+  #+END_SRC
+
+* 知识点6 procfs文件系统编程
+      proc文件系统是一种虚拟的文件系统，它只存在于内存当中，一般用来在内核
+  中输出一些信息到用户层，通常可以利用其来打印内核程序中的一些调试信息，
+  具体的操作如下代码。
+  #+BEGIN_SRC c
+    #include <linux/kernel.h>
+    #include <linux/module.h>
+    #include <linux/uaccess.h>
+    #include <linux/proc_fs.h>
+
+    MODULE_LICENSE("Dual BSD/GPL");
+    MODULE_AUTHOR("fu.yajun@byd.com");
+
+    // Entries for /proc/gdl and /proc/gdl/memory
+    static struct proc_dir_entry * mm_proc_mem; //对应目录项
+    static struct proc_dir_entry * mm_proc_dir;  //对应文件
+
+    static ssize_t procfs_test1_write(struct file * file, 
+                                      const char  __user * buffer, 
+                                      size_t count, 
+                                      loff_t *        data)
+    {
+      unsigned char file_name[80];
+      size_t   size_to_copy;
+      size_to_copy = count;
+      memset(file_name, 0x0, 80);
+      copy_from_user(file_name, buffer, size_to_copy);
+      printk("%s", file_name);
+      return size_to_copy;
+    }
+
+    static const struct file_operations procfs_test1_fops = {
+      .write = procfs_test1_write,
+    };
+
+    //----------------------------------------------------------------------------
+    // Initialize proc filesystem
+    //----------------------------------------------------------------------------
+    static int __init mm_procfs_init(void)
+    {
+      mm_proc_dir = 0;
+      mm_proc_mem = 0;
+
+      mm_proc_dir = proc_mkdir("gdl",0);//在/proc下创建一个目录
+      if (mm_proc_dir == 0)
+        {
+          printk(KERN_ERR "/proc/gdl/ creation failed\n");
+          return -1;
+        }
+      //创建/proc/gdl/memory文件
+      　　mm_proc_mem = proc_create("memory", 
+                                    　　                           S_IFREG|S_IRWXU|S_IRWXG|S_IRWXO, 
+                                    　　                         mm_proc_dir, &procfs_test1_fops);
+      if (mm_proc_mem == 0) {
+        printk(KERN_ERR "/proc/gdl/memory creation failed\n");
+        proc_remove(mm_proc_dir);
+        mm_proc_dir = 0;
+        return -1;
+      }
+      if (mm_proc_mem == 0)
+        {
+          printk(KERN_ERR "/proc/gdl/memory creation failed\n");
+          remove_proc_entry("gdl", 0);
+          mm_proc_dir = 0;
+          return -1;
+        }
+
+      return 0;
+    }
+
+
+    //----------------------------------------------------------------------------
+    // De-initialize proc filesystem
+    //----------------------------------------------------------------------------
+    static int __exit mm_procfs_deinit(void)
+    {
+      if (mm_proc_dir != 0)
+        {
+          if (mm_proc_mem != 0)
+            {
+              proc_remove(mm_proc_mem);
+              mm_proc_mem = 0;
+            }
+
+          proc_remove(mm_proc_dir);
+          mm_proc_dir = 0;
+        }
+
+      return 0;
+    }
+
+    module_init(mm_procfs_init);
+    module_exit(mm_procfs_deinit);  
+  #+END_SRC
+
+* 知识点7 内核中的几种内存分配器
+  内存管理是内核是最复杂同时也是最重要的一部分，其中就涉及到了多种内存
+  分配器，如果内核初始化阶段使用的bootmem分配器，分配大块内存的伙伴系
+  统，以及其分配较小块内存的slab、slub和slob分配器。
+
+  1. bootmem分配器
+     bootmem分配器用于在启动阶段早期分配内存。该分配器用一个位图来管理
+     页，位图比特位的数目与系统中物理内存页的数目相同。比特位为1表示已
+     用页，比特位为0，表示空闲页。在需要分配内存时，分配器逐位扫描位图，
+     直至找到一个能提供足够连续页的位置，即所谓的最先最佳或最先适配位
+     置。
+
+     该分配提供了如下内核接口：
+     | 内核接口                        | 说明                                         |
+     |---------------------------------+----------------------------------------------|
+     | =alloc_bootmem=                 | 按指定大小在 =ZONE_NORMAL= 内存域分配内存    |
+     | =alloc_bootmem_pages(size)=     |                                              |
+     |---------------------------------+----------------------------------------------|
+     | =alloc_bootmem_low=             | 功能同上，只是从 =ZONE_DMA= 内存域分配内存。 |
+     | =alloc_bootmem_low_pages(size)= |                                              |
+     |---------------------------------+----------------------------------------------|
+     | =free_bootmem=                  | 释放内存                                     |
+     |---------------------------------+----------------------------------------------|
+
+     每个分配器必须实现一组特定的函数，用于内存分配和缓存：
+     =kmalloc= 、 =__kmalloc= 和 =kmalloc_node= 是一般的内存分配函数。
+     =kmem_cache_alloc= 、 =kmem_cache_alloc_node= 提供特定类型的内核
+     缓存。
+
+  2. slab分配器
+     功能：提供小的内存块，也可用作一个缓存。
+         分配和释放内存在内核代码上很常见。为了使频繁分配和释放内存所导致
+     的开销尽量变小，程序员通常使用空闲链表。当分配的内在块不再需要时，
+     将这块内存插入到空闲链表中，而不是真正的释放掉，这种空闲链表相当
+     于内存块缓冲区。但这种方法的不足之处是，内核没有一种手段能够全局
+     地控制空闲链表的大小，实时地更新这些空闲链表的大小。事实上，内核
+     根本也不可能知道有多少空闲链表存在。
+
+     为了解决上述问题，内核心提供了slab层或slab分配器。它作为一个通用
+     的内核数据结构缓冲层。slab层使用了以下几个基本原理：
+     - 经常使用的数据结构一般来说会被经常分配或释放，所以应该缓存它们。
+
+     - 频繁地分配和释放内存会导致内在碎片（不能找到合适的大块连续的物
+       理地址空间）。为了防止这种问题，缓冲后的空闲链表被存放到连续的
+       物理地址空间上。由于被释放的数据结构返回到了空闲链表，所以没有
+       导致碎片。
+
+     - 在频繁地分配和释放内存空间在情况下，空闲链表保证了更好的性能。
+       因为被释放的对象空间可立即用于下次的分配中。
+
+     - 如果分配器能够知道诸如对象大小、页大小和总的缓冲大小时，它可以
+       作出更聪明的决定。
+
+     - 如果部分缓冲区为每-CPU变量，那么，分配和释放操作可以不需要SMP锁。
+
+     - 如果分配器是非一致内存，它能从相同的内存结点中完成分配操作。
+
+     - 存储的对象可以被着色，以防止多个对象映射到同一个缓冲。
+
+     　　linux中的slab层就是基于上述前提而实现的。
+     slab层将不同的对象进行分组，称之为“缓冲区(cache)”。一个缓冲区存储
+     一种类型的对象。每种类型的对象有一个缓冲区。kmalloc()的实现就是基
+     于slab层之上的，使用了一族通用的缓冲区。这些缓冲区被分成了一些
+     slab。这些slab是由一个或多个物理上连续的页组成的。每个缓冲区可包
+     含多个slab。
+
+     　　每个slab包含有一些数量的对象，也即被缓冲的数据结构。每个slab
+     问量处于三种状态之间：满、部分满、空。当内核请求一个新的对象时，
+     它总是先查看处于部分满状态的slab，查看是否有合适的空间，如果没有，
+     则在空的slab中分配空间。
+
+     [[./images/2016/2016071401.png]]
+
+     每个缓冲区由一个 =kmem_cache= 结构来表示。该结构包含了三个链表：
+     =slabs_full=, =slabs_partial= 和 =slabs_emppty= 。存储在一个
+     =kmem_list= 结构中。
+
+     #+CAPTION: slab分配器接口
+     | 接口名称             | 说明                          |
+     |----------------------+-------------------------------|
+     | =kmem_cache_create=  | 分配一个cache                 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_destroy= | 销毁一个cache                 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_alloc=   | 从一个cache中分配一个对象空间 |
+     |----------------------+-------------------------------|
+     | =kmem_cache_free=    | 释放一个对象空间到cache中     |
+     |----------------------+-------------------------------|
+
+     这些接口不宜在中断上下文中使用。
+
+* 知识点8 内核同步机制——原子操作
+  内核为原子操作提供了两组接口。一组操作整数，一个组操作比特位。
+  1. 整数原子操作
+     数据类型为：
+     #+BEGIN_SRC c
+       typedef struct {
+         volatile int counter;
+       } atomic_t;     
+     #+END_SRC
+
+     [[./images/2016/2016071402.png]]
+
+     为了保持内核在各个平台兼容，以前规定 =atomic_t= 的值不能超过24位（都是
+     SPARC惹的祸），不过现在该规定已经不需要了。
+
+     相关操作如下：
+     #+BEGIN_SRC c
+       void atomic_set(atomic_t *v, int i);
+       atomic_t v = ATOMIC_INIT(0);//设置原子变量v的值 为整数i。
+       int atomic_read(atomic_t *v);//返回原子变量当前的值
+       void atomic_add(int i, atomic_t *v);//将i加到原子变量上
+       void atomic_sub(int i, atomic_t *v)//从原子变量的值中减去i
+       void atomic_inc(atomic_t *v);//增加原子变量的值
+       void atomic_dec(atomic_t *v);//减少原子变量的值     
+     #+END_SRC
+
+     执行相关的操作后测试原子变量的值是否为0
+     Perform the specified operation and test the result; if, after
+     the operation, the atomic value is 0, then the return value is
+     true; otherwise, it is false. Note that there is no
+     =atomic_add_and_test=.
+     #+BEGIN_SRC c
+       int atomic_inc_and_test(atomic_t *v);
+       int atomic_dec_and_test(atomic_t *v);
+       int atomic_sub_and_test(int i, atomic_t *v);     
+     #+END_SRC
+
+     Add the integer variable i to v. The return value is true if the
+     result is negative,false otherwise.
+     : int atomic_add_negative(int i, atomic_t *v);
+
+     Behave just like =atomic_add= and friends, with the exception that
+     they return the new value of the atomic variable to the caller.
+
+     #+BEGIN_SRC c
+       int atomic_add_return(int i, atomic_t *v);
+       int atomic_sub_return(int i, atomic_t *v);
+       int atomic_inc_return(atomic_t *v);
+       int atomic_dec_return(atomic_t *v);     
+     #+END_SRC
+
+     最近的内核也提供了64位的版本，即 =atomic64_t= ，方法和用法与32位类似，
+     方法名相应的地方换为atomic64。
+
+  2. 位操作
+     Sets bit number nr in the data item pointed to by addr.
+     : void set_bit(nr, void *addr);
+
+     Clears the specified bit in the unsigned long datum that lives at
+     addr. Its semantics are otherwise the same as =set_bit=.
+     : void clear_bit(nr, void *addr);
+     : void change_bit(nr, void *addr); // Toggles the bit.
+
+     This function is the only bit operation that doesn’t need to be
+     atomic; it simply returns the current value of the bit.
+     : test_bit(nr, void *addr);  
+
+     Behave atomically like those listed previously, except that they
+     also return the previous value of the bit.
+     #+BEGIN_SRC c
+       int test_and_set_bit(nr, void *addr);
+       int test_and_clear_bit(nr, void *addr);
+       int test_and_change_bit(nr, void *addr);     
+     #+END_SRC
+
+     使用场景：
+     #+BEGIN_SRC c
+       /* try to set lock */
+       while (test_and_set_bit(nr, addr) != 0)
+         wait_for_a_while( );
+       /* do your work */
+       /* release lock, and check... */
+       if (test_and_clear_bit(nr, addr) = = 0)
+         something_went_wrong( ); /* already released: error */     
+     #+END_SRC
+
+     内核也提供了一套非原子位操作函数，函数名就是原子版函数前面加两下
+     划线。
+
+* 知识点9 内核同步机制——自旋锁
+  由于关键代码区可以跨越了多个函数或数据结构，需要有更通用的同步方法：锁。
+  内核中最常见的一种锁就是自旋锁。相同的锁可用于多处。
+
+  自旋锁可用在不可睡眠的场景，如中断处理函数。自旋锁是一种互斥设备，只
+  有两个值 ：“锁定”和“非锁定”。它通常实现为一个整数值的某个比特位。想
+  获取某个锁的代码首先测试相关的位，如果锁可得，则该位的“锁定”位被置位，
+  代码继续执行，反之，代码将进入一个紧凑的循环，不停地检测锁定位直至自
+  旋锁变得可得。该循环是自旋锁的“旋转”部分。 自旋锁主要用于多处理器的
+  情况下。
+
+  1. 通用自旋锁
+     相关操作：
+     - 定义
+       #+BEGIN_SRC c
+         DEFINE_SPINLOCK(mr_lock)
+         spinlock_t my_lock = SPIN_LOCK_UNLOCKED;//静态初始化
+         //或
+         void spin_lock_init(spinlock_t *lock);//动态初始化       
+       #+END_SRC
+
+     - 获取自旋锁
+       : void spin_lock(spinlock_t *lock);//不可中断的
+
+     - 释放自旋锁
+       : void spin_unlock(spinlock_t *lock);
+
+     使用自旋锁时要禁止中断，禁止睡眠，并且应当尽可能减少占用自旋锁的
+     时间
+
+     其他函数
+     #+BEGIN_SRC c
+     void spin_lock(spinlock_t *lock);
+     //在获取自旋锁之前，禁止中断
+     void spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
+     void spin_lock_irq(spinlock_t *lock);
+     //禁止软件中断，但允许硬件中断
+     void spin_lock_bh(spinlock_t *lock)     
+     #+END_SRC
+
+     对应的解锁函数如下：
+     #+BEGIN_SRC c
+     void spin_unlock(spinlock_t *lock);
+     void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags);
+     void spin_unlock_irq(spinlock_t *lock);
+     void spin_unlock_bh(spinlock_t *lock);     
+     #+END_SRC
+
+     非阻塞自旋锁操作（成功返回非0,允许中断）
+     #+BEGIN_SRC c
+     int spin_trylock(spinlock_t *lock);
+     int spin_trylock_bh(spinlock_t *lock);     
+     #+END_SRC
+
+     　　如果被保护的共享资源只在进程上下文访问和软中断上下文访问，那
+     么当在进程上下文访问共享资源时，可能被软中断打断，从而可能进入软
+     中断上下文来对被保护的共享资源访问，因此对于这种情况，对共享资源
+     的访问必须使用 =spin_lock_bh= 和 =spin_unlock_bh= 来保护。当然使
+     用 =spin_lock_irq= 
+     和 =spin_unlock_irq= 以及 =spin_lock_irqsave= 和
+     =spin_unlock_irqrestore= 也可以，
+     它们失效了本地硬中断，失效硬中断隐式地也失效了软中断。但是使用
+     =spin_lock_bh= 和 =spin_unlock_bh= 是最恰当的，它比其他两个快。
+
+     　　如果被保护的共享资源只在进程上下文和tasklet或timer上下文访问，
+     那么应该使用与上面情况相同的获得和释放锁的宏，因为tasklet和timer
+     是用软中断实现的。
+
+     　　如果被保护的共享资源只在一个tasklet或timer上下文访问，那么不
+     需要任何自旋锁保护，因为同一个tasklet或timer只能在一个CPU上运行，
+     即使是在SMP环境下也是如此。实际上tasklet在调用 =tasklet_schedule= 标记
+     其需要被调度时已经把该tasklet绑定到当前CPU，因此同一个tasklet决不
+     可能同时在其他CPU上运行。timer也是在其被使用 =add_timer= 添加到timer队
+     列中时已经被帮定到当前CPU，所以同一个timer绝不可能运行在其他CPU上。
+     当然同一个tasklet有两个实例同时运行在同一个CPU就更不可能了。
+
+     如果被保护的共享资源只在两个或多个tasklet或timer上下文访问，那么
+     对共享资源的访问仅需要用 =spin_lock= 和 =spin_unlock= 来保护，不
+     必使用 =_bh= 版本，因为当tasklet或timer运行时，不可能有其他tasklet或timer在当前
+     CPU上运行。如果被保护的共享资源只在一个软中断（tasklet和timer除外）
+     上下文访问，那么这个共享资源需要用 =spin_lock= 和 =spin_unlock= 来保护，因
+     为同样的软中断可以同时在不同的CPU上运行。
+
+     如果被保护的共享资源在两个或多个软中断上下文访问，那么这个共享资
+     源当然更需要用 =spin_lock= 和 =spin_unlock= 来保护，不同的软中断能够同时在
+     不同的CPU上运行。
+
+     　　如果被保护的共享资源在软中断（包括tasklet和timer）或进程上下
+     文和硬中断上下文访问，那么在软中断或进程上下文访问期间，可能被硬
+     中断打断，从而进入硬中断上下文对共享资源进行访问，因此，在进程或
+     软中断上下文需要使用 =spin_lock_irq= 和 =spin_unlock_irq= 来保护对共享资源的
+     访问。而在中断处理句柄中使用什么版本，需依情况而定，如果只有一个
+     中断处理句柄访问该共享资源，那么在中断处理句柄中仅需要 =spin_lock=
+     和 =spin_unlock= 来保护对共享资源的访问就可以了。因为在执行中断处理句柄
+     期间，不可能被同一CPU上的软中断或进程打断。但是如果有不同的中断处
+     理句柄访问该共享资源，那么需要在中断处理句柄中使用 =spin_lock_irq= 和
+     =spin_unlock_irq= 来保护对共享资源的访问。
+
+     　　在使用 =spin_lock_irq= 和 =spin_unlock_irq= 的情况下，完全可以用
+     =spin_lock_irqsave= 和 =spin_unlock_irqrestore= 取代，那具体应该使用哪一个也
+     需要依情况而定，如果可以确信在对共享资源访问前中断是使能的，那么
+     使用 =spin_lock_irq= 更好一些，因为它比 =spin_lock_irqsave= 要快一些，但是如
+     果你不能确定是否中断使能，那么使用 =spin_lock_irqsave= 和
+     =spin_unlock_irqrestore= 更好，因为它将恢复访问共享资源前的中断标志而
+     不是直接使能中断。当然，有些情况下需要在访问共享资源时必须中断失
+     效，而访问完后必须中断使能，这样的情形使用 =spin_lock_irq= 和
+     =spin_unlock_irq= 最好。
+
+  2. 读/写自旋锁： =rwlock_t=
+     头文件：<linux/spinlock.h>
+     说明：读写自旋锁是一种比自旋锁粒度更小的锁机制，它保留了“自旋”的
+     概念，但是在写操作方面，只能最多有一个写进程，在读操作方面，同时
+     可以有多个读执行单元。当然，读写操作不能同时进行。
+
+     *初始化*
+     #+BEGIN_SRC c
+     rwlock_t my_rwlock = RW_LOCK_UNLOCKED; /* Static way */
+     rwlock_t my_rwlock;
+     rwlock_init(&my_rwlock);  /* Dynamic way */     
+     #+END_SRC
+
+     *读*
+     #+BEGIN_SRC c
+       void read_lock(rwlock_t *lock);
+       void read_lock_irqsave(rwlock_t *lock, unsigned long flags);
+       void read_lock_irq(rwlock_t *lock);
+       void read_lock_bh(rwlock_t *lock);
+       void read_unlock(rwlock_t *lock);
+       void read_unlock_irqrestore(rwlock_t *lock, unsigned long flags);
+       void read_unlock_irq(rwlock_t *lock);
+       void read_unlock_bh(rwlock_t *lock);     
+     #+END_SRC
+     
+     *写*
+     #+BEGIN_SRC c
+       void write_lock(rwlock_t *lock);
+       void write_lock_irqsave(rwlock_t *lock, unsigned long flags);
+       void write_lock_irq(rwlock_t *lock);
+       void write_lock_bh(rwlock_t *lock);
+       int write_trylock(rwlock_t *lock);
+       void write_unlock(rwlock_t *lock);
+       void write_unlock_irqrestore(rwlock_t *lock, unsigned long flags);
+       void write_unlock_irq(rwlock_t *lock);
+       void write_unlock_bh(rwlock_t *lock);     
+     #+END_SRC
+
+  3. 顺序锁：seqlocks
+     　　对读写锁的一种优化。使用顺序锁，读执行单元绝不会被写执行单元
+     阻塞，也就是说，读执行单元可以在写执行单元对被顺序锁保护的共享资
+     源进行写操作时仍然可以继续读，而不必等待写执行单元完成操作，写操
+     作也不需要等待所有读执行单元完成读操作才去进行写操作。用于受保护
+     的资源很小，简单且经常访问，适用于写操作很少但必须很快的场景。不
+     能保护有指针成员变量的数据结构。 
+
+     头文件：<linux/seqlock.h>
+     *示例*
+     #+BEGIN_SRC c
+       seqlock_t lock1 = SEQLOCK_UNLOCKED;
+       seqlock_t lock2;
+       seqlock_init(&lock2);
+       unsigned int seq;
+       do {
+         seq = read_seqbegin(&the_lock);
+         /* Do what you need to do */
+        } while (read_seqretry(&the_lock, seq));     
+     #+END_SRC
+
+     在中断处理函数中使用seqlock，则应当使用IRQ安全的版本：
+     : unsigned int read_seqbegin_irqsave(seqlock_t *lock, unsigned long flags);
+     : int read_seqretry_irqrestore(seqlock_t *lock, unsigned int seq, unsigned long flags);
+
+     获取一个写保护：
+     : void write_seqlock(seqlock_t *lock);
+     释放：
+     : void write_sequnlock(seqlock_t *lock);
+     类似函数:
+     #+BEGIN_SRC c
+       void write_seqlock_irqsave(seqlock_t *lock, unsigned long flags);
+       void write_seqlock_irq(seqlock_t *lock);
+       void write_seqlock_bh(seqlock_t *lock);
+       void write_sequnlock_irqrestore(seqlock_t *lock, unsigned long flags);
+       void write_sequnlock_irq(seqlock_t *lock);
+       void write_sequnlock_bh(seqlock_t *lock);     
+     #+END_SRC
+
+* 知识点10 内核同步机制——信号量
+  1. 通用版
+     信号量用于对一个或多个资源进行互斥访问。基本操作如下：
+     : void sema_init(struct semaphore *sem, int val);//信号量初始化函数
+     静态初始化：
+     #+BEGIN_SRC c
+       DECLARE_MUTEX(name);//初始化为1
+       DECLARE_MUTEX_LOCKED(name);//初始化为0     
+     #+END_SRC
+     
+     动态初始化：
+     #+BEGIN_SRC c
+       void init_MUTEX(struct semaphore *sem);
+       void init_MUTEX_LOCKED(struct semaphore *sem);     
+     #+END_SRC
+
+     在linux中， P函数称为down， V函数称为up。
+     #+BEGIN_SRC c
+       void down(struct semaphore *sem);//不可中断版本
+       int down_interruptible(struct semaphore *sem);//可中断版本
+       int down_trylock(struct semaphore *sem);//不等待版本， 立即返回，0表示成功。     
+     #+END_SRC
+
+     一般情况下使用 =down_interruptible= 函数，它允许一个在信号量上等待的
+     用户空间进程被用户打断。不过在使用该函数时必须记住要检查它的返回
+     值,并做出相应的处理。该函数被中断时返回一个非零值。
+
+     : void up(struct semaphore *sem); //释放占用的信号量
+
+  2. 读写信号量
+     读/写信号量: =rw_semaphore=
+     说明：允许一个进程写，多个进程读
+     头文件：<linux/rwsem.h>
+     *初始化函数：*
+     : void init_rwsem(struct rw_semaphore *sem);
+
+     *相关操作：*
+     #+BEGIN_SRC c
+       void down_read(struct rw_semaphore *sem);
+       Int down_read_trylock(struct rw_semaphore *sem);//非0表示成功
+       void up_read(struct rw_semaphore *sem);
+       void down_write(struct rw_semaphore *sem);
+       int down_write_trylock(struct rw_semaphore *sem);
+       void up_write(struct rw_semaphore *sem);
+       void downgrade_write(struct rw_semaphore *sem);     
+     #+END_SRC
+
+* 知识点11 内核同步机制——互斥量
+  *互斥量*
+  数组结构：struct mutex.
+  静态定义：
+  : DEFINE_MUTEX(name);
+  动态初始化：
+  : mutex_init(&mutex);
+  操作：
+  #+BEGIN_SRC c
+    mutex_lock(&mutex);
+    /* critical region ... */
+    mutex_unlock(&mutex);
+    mutex_trylock(struct mutex *)
+    mutex_is_locked (struct mutex *)  
+  #+END_SRC
+     
+  互斥量有如下一些特性：
+  1. 每次只能有一个任务可以获得互斥量。
+  2. 谁获得，谁释放，不能在一个上下文中获得锁，在另一个上下文中释放锁。
+  3. 不支持嵌套。
+  4. 进程在获得互斥量时不能退出。
+  5. 中断上下文中不能使用。
+  6. 只能使用以上的一些API操作互斥量。
+
+* 知识点12 内核同步机制——完成量
+  内核中的许多部分初始化某些活动为单独的执行线程，然后等待这些线程完成。
+  完成接口是一种有效并简单的方式来实现这样的代码模式。
+  
+  *对象创建*
+  #+BEGIN_SRC c
+    DECLARE_COMPLETION(my_completion);
+    //或
+    struct completion my_completion;/* ... */
+    init_completion(&my_completion);  
+  #+END_SRC
+
+  *操作*
+  #+BEGIN_SRC c
+    void wait_for_completion(struct completion *c); //执行一个不可中断的等待
+    void complete(struct completion *c);//唤醒一个线程
+    void complete_all(struct completion *c);//唤醒多个线程i  
+  #+END_SRC
+
+  当调用 complete时，可重用completion对象，当调用 =complete_all= 时，需要重
+  新初始化后才能重用complete对象，可使用宏 =INIT_COMPLETION=(struct
+  completion c)=
+
+  #+BEGIN_SRC c
+    /***********************************************************************/
+    //完成接口
+    //内核中的许多部分初始化某些活动为单独的执行线程，然后等待这些线程完成。
+    //完成接口是一种有效并简单的方式来实现这样的代码模式。
+    /***********************************************************************/
+
+    #include <linux/completion.h>
+    #include <linux/module.h>
+    #include <linux/sched.h>
+    #include <linux/init.h>
+
+
+    static DECLARE_COMPLETION(my_thread_exit);      /* Completion */
+    static DECLARE_WAIT_QUEUE_HEAD(my_thread_wait); /* Wait Queue */
+    int pink_slip = 0;                              /* Exit Flag */
+
+    /* Helper thread */
+    static int
+    my_thread(void *unused)
+    {
+      DECLARE_WAITQUEUE(wait, current);
+
+      daemonize("my_thread");
+      add_wait_queue(&my_thread_wait, &wait);
+
+      while (1) {
+        /* Relinquish processor until event occurs */
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
+        /* Control gets here when the thread is woken
+           up from the my_thread_wait wait queue */
+
+        /* Quit if let go */
+        if (pink_slip) {
+          break;
+        }
+        /* Do the real work */
+        /* ... */
+
+      }
+
+      /* Bail out of the wait queue */
+      __set_current_state(TASK_RUNNING);
+      remove_wait_queue(&my_thread_wait, &wait);
+
+      /* Atomically signal completion and exit */
+      complete_and_exit(&my_thread_exit, 0);
+    }
+
+    /* Module Initialization */
+    static int __init
+    my_init(void)
+    {
+      /* ... */
+
+      /* Kick start the thread */
+      kernel_thread(my_thread, NULL,
+                    CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD);
+
+      /* ... */
+      return 0;
+    }
+
+    /* Module Release */
+    static void __exit
+    my_release(void)
+    {
+      /* ... */
+      pink_slip = 1;                        /* my_thread must go */
+      wake_up(&my_thread_wait);             /* Activate my_thread */
+      wait_for_completion(&my_thread_exit); /* Wait until my_thread
+                                               quits */
+      /* ... */
+    }
+
+    module_init(my_init);
+    module_exit(my_release);  
+  #+END_SRC
+
+* 知识点13 进程管理
+      进程创建使用系统调用fork()或vfork()，在内核中，这些函数是通过clone()
+  系统调用完成的。进程通过系统调用exit()退出。父进程通过系统调用
+  wait4()系统调用来查询一个停止的子进程的状态。基于wait4()系统调用的C
+  函数有wait(),waitpid(),wait3()和wait4()。
+
+  　　进程采用数据结构 =task_struct= 描述， =struct thread_info= 为进程的一个辅
+  助数据结构，一般存储在进程栈的边界处，通过它可以引用实现的进程数据结
+  构地址。进程描述符是进程的唯一标识。最大进程数可通过
+  =/proc/sys/kernel/pid_max=.来修改，默认为32768.
+
+  　　宏current引用当前的进程，在X86上，它等于
+  =current_thread_info()->task= 。 进程的状态可以通过如下函数进行设置：
+  : set_task_state(task, state);
+
+  　　方法 =set_current_state(state)= 等同于 =set_task_state(current,
+  state)= 。进程上下文是指当内核代表某个用户进程执行某个操作时，就称其
+  处于进程上下文中。
+
+  *进程树*
+   获取当前进程的父进程的代码如下：
+   : struct task_struct *my_parent = current->parent;
+
+   遍历一个进程的子进程的代码如下：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     struct list_head *list;
+     list_for_each(list, &current->children) {
+     　task = list_entry(list, struct task_struct, sibling);
+     　/* task now points to one of current’s children */
+     　　}   
+   #+END_SRC
+
+   初如任务进程的描述符静态分配为 =init_task= 。如下代码永远成功：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     for (task = current; task != &init_task; task = task->parent)
+     ;
+     /* task now points to init */   
+   #+END_SRC
+
+   获取任务列表中的下一个任务的代码如下：
+   : list_entry(task->tasks.next, struct task_struct, tasks)
+
+   获取任务列表中的前一个任务代码如下：
+   : list_entry(task->tasks.prev, struct task_struct, tasks)
+
+   上述代码段分别对应宏 =next_task(task)= 和 =prev_task(task)=
+   宏 =for_each_process(task)=, 遍历整个任务列表，在每次迭代中，task指
+   向列表中的下一个任务：
+   #+BEGIN_SRC c
+     struct task_struct *task;
+     for_each_process(task) {
+     　/* this pointlessly prints the name and PID of each task */
+     　　printk(“%s[%d]\n”, task->comm, task->pid);
+     　}   
+   #+END_SRC
+  
+   *创建线程*
+   创建线程采用的系统调用：
+   : clone(CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND, 0);
+   普通fork()调用：
+   : clone(SIGCHLD, 0);
+   vfork()调用：
+   : clone(CLONE_VFORK | CLONE_VM | SIGCHLD, 0);
+
+| Flag                   | Meaning                                                              |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_FILES=          | Parent and child share open files.                                   |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_FS=             | Parent and child share filesystem information.                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_IDLETASK=       | Set PID to zero (used only by the idle tasks).                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_NEWNS=          | Create a new namespace for the child.                                |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PARENT=         | Child is to have same parent as its parent.                          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PTRACE=         | Continue tracing child.                                              |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTID=         | Write the TID back to user-space.                                    |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTLS=         | Create a new TLS for the child.                                      |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SIGHAND=        | Parent and child share signal handlers and blocked signals.          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SYSVSEM=        | Parent and child share System V =SEM_UNDO= semantics.                |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_THREAD=         | Parent and child are in the same thread group.                       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_VFORK=          | vfork() was used and the parent will sleep until the child wakes it. |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_UNTRACED=       | Do not let the tracing process force CLONE_PTRACE on the child.       |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_STOP=           | Start process in the =TASK_STOPPED= state.                           |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_SETTLS=         | Create a new TLS (thread-local storage) for the child.               |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_CHILD_CLEARTID= | Clear the TID in the child.                                          |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_CHILD_SETTID=   | Set the TID in the child.                                            |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_PARENT_SETTID=  | Set the TID in the parent.                                           |
+|------------------------+----------------------------------------------------------------------|
+| =CLONE_VM=             | Parent and child share address space.                                |
+|------------------------+----------------------------------------------------------------------|
+
+* 知识点14 内核热插拔管理
+  在可插拔的总线如USB（和Cardbus PCI）中，终端用户在主机运行时将设备插
+  入到总线上。在大部分情况下，用户期望设备立即可用。这意味着系统必须作
+  许多事情，包括：
+  - 找到一个可以处理设备的驱动。它可能包括装载一个内核模块，较新的驱动
+    可以用模块初始化工具将设备的支持发布到用户应用工具集中。
+  - 将一个驱动绑定到该设备中。总线框架使用设备驱动的probe()函数来为该
+    设备绑定一个驱动。
+  - 告诉其他的子系统配置新的设备。打印队列可能被使能，网络被开启，磁盘
+    分区被挂载等等。在一些情况下，还会有一些驱动相关的动作。
+
+  Policy Agent：是指当发生热插拔事件时，被内核触发的用户空间程序（如
+  /sbin/hotplug）。通常这些程序是一些shell脚本，通过该脚本去调用更多的
+  管理工具。
+
+  这种机制主要是通过kobject对象模型来实现的。
+  
+  *热插拔相关接口函数：*
+  
+  #+BEGIN_SRC c
+    /**
+     ,* kobject_uevent - notify userspace by ending an uevent
+     ,*
+     ,* @action: action that is happening
+     ,* @kobj: struct kobject that the action is happening to
+     ,*
+     ,* Returns 0 if kobject_uevent() is completed with success or the
+     ,* corresponding error when it fails.
+     ,*/
+    int kobject_uevent(struct kobject *kobj, enum kobject_action action);
+    //相当于kobject_uevent_env(kobj, action, NULL);
+    /**
+     ,* kobject_uevent_env - send an uevent with environmental data
+     ,*
+     ,* @action: action that is happening
+     ,* @kobj: struct kobject that the action is happening to
+     ,* @envp_ext: pointer to environmental data
+     ,*
+     ,* Returns 0 if kobject_uevent() is completed with success or the
+     ,* corresponding error when it fails.
+     ,*/
+    int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+                            char *envp[]);
+    /**
+     ,* add_uevent_var - add key value string to the environment buffer
+     ,* @env: environment buffer structure
+     ,* @format: printf format for the key=value pair
+     ,*
+     ,* Returns 0 if environment variable was added successfully or -ENOMEM
+     ,* if no space was available.
+     ,*/
+    int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
+            __attribute__((format (printf, 2, 3)));
+
+    /**
+     ,* kobject_action_type - translate action string to numeric type
+     ,*
+     ,* @buf: buffer containing the action string, newline is ignored
+     ,* @len: length of buffer
+     ,* @type: pointer to the location to store the action type
+     ,*
+     ,* Returns 0 if the action string was recognized.
+     ,*/
+    int kobject_action_type(const char *buf, size_t count,
+                            enum kobject_action *type);  
+  #+END_SRC
+
+  相关数据结构：
+
+  #+BEGIN_SRC c
+    enum kobject_action {
+            KOBJ_ADD,
+            KOBJ_REMOVE,
+            KOBJ_CHANGE,
+            KOBJ_MOVE,
+            KOBJ_ONLINE,
+            KOBJ_OFFLINE,
+            KOBJ_MAX
+    };
+    /* the strings here must match the enum in include/linux/kobject.h */
+    static const char *kobject_actions[] = {
+            [KOBJ_ADD] =            "add",
+            [KOBJ_REMOVE] =         "remove",
+            [KOBJ_CHANGE] =         "change",
+            [KOBJ_MOVE] =           "move",
+            [KOBJ_ONLINE] =         "online",
+            [KOBJ_OFFLINE] =        "offline",
+    };
+    struct kobj_uevent_env {
+            char *envp[UEVENT_NUM_ENVP];
+            int envp_idx;
+            char buf[UEVENT_BUFFER_SIZE];
+            int buflen;
+    };
+    //热插拔事件相关操作
+    struct kset_uevent_ops {
+            int (*filter)(struct kset *kset, struct kobject *kobj);//事件过滤函数
+            const char *(*name)(struct kset *kset, struct kobject *kobj);//获取总线名称，如USB
+            int (*uevent)(struct kset *kset, struct kobject *kobj,
+                          struct kobj_uevent_env *env);//提交热插拔事件
+    };  
+  #+END_SRC
+
+  相关函数：
+  #+BEGIN_SRC c
+    struct kset *kset_create_and_add(const char *name,
+                                     struct kset_uevent_ops *uevent_ops,
+                                     struct kobject *parent_kobj);  
+  #+END_SRC
+
+  其中 =struct kset_uevent_ops= 中指定具体的uevent函数。
+
+* 知识点15 系统调用
+  用户程序请求内核程序为其服务主要通过以下几种方式：
+  - 中断
+  - 系统调用
+  - 信号
+
+  其中，系统调用是一种常见方式，它在用户进程与硬件之间提供了一个层，该
+  层主要提供以下三个目的：
+  1. 它为用户空间提供了一个抽象的硬件接口
+  2. 它确保了系统的安全与稳定性。
+  3. 为虚拟化系统的实现提供支持。
+
+  操作系统内核提供了许多系统调用接口，一个典型的系统调用过程如下：
+  [[./images/2016/2016071403.png]]
+
+  在x86平台上，系统调用是通过软件中断来实现的，中断号为128（或0x80）。
+  系统调用需要提供系统调用号（传递给eax）以及一些参数（依次传递给ebx,
+  ecx, edx, esi, edi）, 系统调用处理函数通常名为system_call()， 定义在
+  entry.S 或entry_64.S中。它会检查系统调用号的合法性，即是否大于
+  =NR_syscalls= ， 如果是的话，返回-ENOSYS， 否则调用对应的函数：
+  : call  *sys_call_table(,%rax,8)
+
+  [[./images/2016/2016071404.png]]
+
+  *自定义一个系统调用* 
+
+  在Linux中实现一个系统调用不用户关心系统调用处理函数的行为，因此增加
+  一个系统调用非常容易
+  =SYSCALL_DEFINE0~6= 分别声明一个参数为0~6个的系统调用。
+  定义完系统调用函数后， 剩下的工作就是将其注册为一个内核系统调用函数：
+  - 在系统调用表中末尾添加一项，通常赋给该系统调用一个调用号（即在
+    entry.S中的ENTRY( =sys_call_table=)）。
+  - 对每个支持的平台，在<asm/unistd.h>中定义系统调用号。
+  - 将系统调用编译到内核镜像中（而不是编译成一个模块），可以将系统调用
+    函数放在kernel/sys.c文件中。
+
+  例子如下，我们要定义一个foo系统调用函数：
+  #+BEGIN_SRC c
+    /*
+     ,* sys_foo – everyone’s favorite system call.
+     ,*
+     ,* Returns the size of the per-process kernel stack.
+     ,*/
+    asmlinkage long sys_foo(void)// SYSCALL_DEFINE0(sys_foo)
+    {
+      　　return THREAD_SIZE;
+    }  
+  #+END_SRC
+
+  添加foo到entry.S文件中：
+  #+BEGIN_SRC c
+    ENTRY(sys_call_table)
+    .long sys_restart_syscall /* 0 */
+    .long sys_exit
+    .long sys_fork
+    .long sys_read
+    .long sys_write
+    .long sys_open /* 5 */
+
+            …
+    .long sys_rt_tgsigqueueinfo /* 335 */
+    .long sys_perf_event_open
+    .long sys_recvmmsg
+    .long sys_foo  
+  #+END_SRC
+
+  我们的系统调用号为：338
+  在<asm/unistd.h>
+  增加宏定义：
+  : #define __NR_foo 338
+
+  在用户空间中调用， _syscall0~6对应不同参数个数的系统调用
+  #+BEGIN_SRC c
+    #define __NR_foo 283
+    __syscall0(long, foo)
+    int main ()
+    {
+      long stack_size;
+      stack_size = foo ();
+      printf (“The kernel stack size is %ld\n”, stack_size);
+      return 0;
+    }
+      
+  #+END_SRC
+
+* 知识点16 等待队列——休眠与唤醒
+  　　内核中的休眠是通过等待队列来处理的。等待队列是一个由正在等待某个
+  事件发生的进程组成的一个简单链表。在内核用 =wait_queue_head_t= 来表
+  示。
+
+  定义：
+  : DECLARE_WAITQUEUE() （静态定义）
+  或
+  : init_waitqueue_head()  （动态定义）
+
+  在内核中实现休眠的方法有点复杂，实现的模板如下：
+  #+BEGIN_SRC c
+    　　/* ‘q’ is the wait queue we wish to sleep on */ 
+    　　DEFINE_WAIT(wait); 
+    　　add_wait_queue(q, &wait); //这个函数调用是可选
+    　　while (!condition) { /* condition is the event that we are waiting for */ 
+      　　prepare_to_wait(&q, &wait, TASK_INTERRUPTIBLE); 
+      　　if (signal_pending(current)) 
+        　　/* handle signal */ 
+        　　schedule(); 
+      　　} 
+    　　finish_wait(&q, &wait);   
+  #+END_SRC
+
+  一个进程执行如下步骤将自己加入到一个等待队列中：
+  - 通过宏 =DEFINE_WAIT()= 来创建一个等待队列项。
+  - 通过函数 =add_wait_queue()= 将该项加入到一个等待队列中。当等待的事件（条
+    件）为真时，等待队列会唤醒该进程项。当然，需要在其他地方调用
+    =wake_up()= 函数。
+  - 调用 =prepare_to_wait()= 函数将进程的状态改为 =TASK_INTERRUPTIBLE= 或
+    =TASK_UNINTERRUPTIBLE= 。该函数也会在必要的时候将进程加回到等待队列中，
+    在后续的迭代中会用到（提示：第二个步骤可选，因为该函数在任务列表为
+    空的时候也会将当前任务项加入到等待队列中）。
+  - 如果状态设置为 =TASK_INTERRUPTIBLE= ，一个信号会唤醒该进程。这称为伪休
+    眠。因此要检测和处理信号。
+  - 当进程被唤醒，它再次检测条件是否为真。如果为真，它会退出循环。否则，
+    再次调用schedule()然后重复上述过程。
+  - 当条件为真，该进程会将其状态设为 =TASK_RUNNING= 并将自己通过
+    =finish_wait()= 从等待队列中删除。
+
+  一个例子：
+  #+BEGIN_SRC c
+    static ssize_t inotify_read(struct file *file, char __user *buf,
+                                size_t count, loff_t *pos)
+    {
+      struct fsnotify_group *group;
+      struct fsnotify_event *kevent;
+      char __user *start;
+      int ret;
+      DEFINE_WAIT(wait);
+
+      start = buf;
+      group = file->private_data;
+
+      while (1) {
+        prepare_to_wait(&group->notification_waitq, &wait, TASK_INTERRUPTIBLE);
+
+        mutex_lock(&group->notification_mutex);
+        kevent = get_one_event(group, count);
+        mutex_unlock(&group->notification_mutex);
+
+        if (kevent) {
+          ret = PTR_ERR(kevent);
+          if (IS_ERR(kevent))
+            break;
+          ret = copy_event_to_user(group, kevent, buf);
+          fsnotify_put_event(kevent);
+          if (ret < 0)
+            break;
+          buf += ret;
+          count -= ret;
+          continue;
+        }
+
+        ret = -EAGAIN;
+        if (file->f_flags & O_NONBLOCK)
+          break;
+        ret = -EINTR;
+        if (signal_pending(current))
+          break;
+
+        if (start != buf)
+          break;
+
+        schedule();
+      }
+
+      finish_wait(&group->notification_waitq, &wait);
+      if (start != buf && ret != -EFAULT)
+        ret = buf - start;
+      return ret;
+    }  
+  #+END_SRC
+
+  另一种模板
+  #+BEGIN_SRC c
+    /* Helper thread */
+    static int
+    my_thread(void *unused)
+    {
+      DECLARE_WAITQUEUE(wait, current);
+
+      daemonize("my_thread");
+      add_wait_queue(&my_thread_wait, &wait);
+
+      while (1) {
+        /* Relinquish processor until event occurs */
+        　　set_current_state(TASK_INTERRUPTIBLE);
+        　　if (signal_pending(current))
+          　　/*##handle singal event##*/
+          schedule();
+        /* Control gets here when the thread is woken
+           up from the my_thread_wait wait queue */
+
+        /* Quit if let go */
+        if (pink_slip) {
+          break;
+        }
+        /* Do the real work */
+        /* ... */
+
+      }
+
+      /* Bail out of the wait queue */
+      __set_current_state(TASK_RUNNING);
+      remove_wait_queue(&my_thread_wait, &wait);
+
+      /* Atomically signal completion and exit */
+      complete_and_exit(&my_thread_exit, 0);
+    }  
+  #+END_SRC
+
+  唤醒
+  　　通过函数 =wake_up()= 唤醒，它将唤醒所有在特定等待队列上等待的进程。一
+  般情况下默认的唤醒函数为： =default_wake_function()= 。它会调用
+  =try_to_wake_up()= ，将被唤醒的进程状态设置为 =TASK_RUNNING= ，然后调用
+  =enqueue_task()= 将该进程加入到红黑树中，如果被唤醒的进程的优先级大于当
+  前进程的优先级，设置 =need_resched= 为1。休眠与唤醒之间的关系如下：
+  
+  #+CAPTION: 休眠与唤醒之间的关系图
+  [[./images/2016/2016071405.png]]
+
+  　　伪唤醒是指进程是因为接收到某个信号而被唤醒， 而不是等待事件发生
+  而导致其被唤醒。
+
+  　　在最新的内核代码中，一般会使用更高层的接口： =wait_event= 或
+  =wait_event_timeout= 接口。使用 =wake_up_all= 唤醒所有添加到某个等待队列链表中
+  的等待队列。使用模板如下：
+  1. 初始化一个等待队列头：
+     : init_waitqueue_head(&ret->wait_queue);
+     注： 判断队列是否为空： =waitqueue_active(...)= ， 返回false即表
+     示队列为空.
+  2. 等待某个条件发生：
+     =wait_event(...)= 或 =wait_event_timeout(...)=
+     =wait_event_interruptible= 或 =wait_event_interruptible_timeout=
+  3. 唤醒队列
+     =wake_up_all(...)=
+     =wake_up_interruptible_all=
+     =wake_up=
+     =wake_up_interruptible=
+
+* 知识点17 内核数据结构之队列
+  　　在操作系统内核中，一个常见的编程模式就是生产者和消费者。实现这种
+  模式的最容易的方式就是队列。生产者将数据插入队列，消费者将数据移出队
+  列。消费者以数据进队的顺序消费数据。
+
+  　　内核中通用队列的实现称为kfifo，其实现文件位于kernel/kfifo.c中。
+  本部分讨论的API接口是基于2.6.33的。Linux的kfifo工作方式与其他队列一
+  样，提供两个主要的操作：enqueue()和dequeue()。kfifo对象维护了两个偏
+  移量：入口偏移量和出口偏移量。入口偏移量是下次进队发生的位置，出口偏
+  移量是出队发生的位置。出口偏移量问题小于或等于入口偏移量。enqueue操
+  作从入口偏移量处开始，将数据拷贝到队列中，操作完成后，入口偏移量相应
+  的增加（拷进的数据长度）。dequeue操作从出口偏移量处开始，将数据拷贝
+  出队列，操作完成后，出口偏移量相应地增加（拷出的数据长度）。
+
+  - 创建一个队列
+    : int kfifo_alloc(struct kfifo *fifo, unsigned int size, gfp_t gfp_mask);
+    该函数创建和初始化一个大小为size字节的队列。
+    例子：
+    #+BEGIN_SRC c
+      struct kfifo fifo;
+      int ret;
+      ret = kfifo_alloc(&kifo, PAGE_SIZE, GFP_KERNEL);
+      if (ret)
+        return ret;    
+    #+END_SRC
+
+  - 自建队列函数
+    : int kfifo_alloc(struct kfifo *fifo, unsigned int size, gfp_t gfp_mask);
+
+  - 静态定义一个队列
+    #+BEGIN_SRC c
+      DECLARE_KFIFO(name, size);
+      INIT_KFIFO(name);    
+    #+END_SRC
+
+    其中，队列的大小必须是2的指数。
+
+  - 入队
+    : unsigned int kfifo_in(struct kfifo *fifo, const void *from, unsigned int len);
+
+  - 出队
+    #+BEGIN_SRC c
+      unsigned int kfifo_out(struct kfifo *fifo, void *to, unsigned int len);
+      unsigned int kfifo_out_peek(struct kfifo *fifo, void *to, unsigned int len,
+                                      　　unsigned offset);    
+    #+END_SRC
+
+  - 获取队列的大小
+    #+BEGIN_SRC c
+      static inline unsigned int kfifo_size(struct kfifo *fifo);
+      //该函数用于获取用于存储kfifo队列的缓冲区的总大小。
+      static inline unsigned int kfifo_len(struct kfifo *fifo);
+      //该函数用于获取进入kfifo队列的字节数。
+      static inline unsigned int kfifo_avail(struct kfifo *fifo);
+      //队列中可用于写入的剩余缓冲区的大小。
+      static inline int kfifo_is_empty(struct kfifo *fifo);
+      static inline int kfifo_is_full(struct kfifo *fifo);
+      //上述两个函数分别用于判断队列是否为空或满。    
+    #+END_SRC
+
+  - 重置和销毁队列
+    : static inline void kfifo_reset(struct kfifo *fifo);
+
+  - 重置一个队列
+    : void kfifo_free(struct kfifo *fifo);
+
+    释放一个kfifo，与 =kfifo_alloc()= 对应。
+    如果创建kfifo的时候使用的是 =kfifo_init()= 函数，那么提供相应的函
+    数来释放缓冲区，而不是用户 =kfifo_free()= 。
+
+* 知识点18 内核数据结构之映射
+  　　映射也称之为关联数组，它是一组唯一键的集合，每个键与特定的值相关。
+  一般支持至少三个操作：
+  - Add(key, value)
+  - Remove(key)
+  - value=Lookup(key)
+
+    　　Linux提供了一个简单而有效的映射数据结构，它不是通用目的的映射，
+    而是为特殊用例设计的：将UID（唯一标识号）映射到一个指针。除了提供
+    三个主要的映射操作，还基于add操作的基础上提供了一个allocate操作。
+    allocate操作不仅将添加一个UID/值对到映射中，还产生了一个UID。
+
+    　　idr数据结构用于映射用户空间的UID，例如inotify监视描述符到它们
+    相关的内核数据结构中，如 =inotify_watch= 。
+
+    1. 初始化idr
+       先静态定义或动态定义一个idr结构，然后调用
+       : void idr_init(struct idr *idp);
+       如：
+       #+BEGIN_SRC c
+         struct idr id_huh; /* statically define idr structure */
+         idr_init(&id_huh); /* initialize provided idr structure */       
+       #+END_SRC
+
+    2. 分配一个新的UID
+       分两步进行，第一步告诉idr需要分配一个新的UID，使得它能在必要时
+       重置后备树的大小，对应的函数为：
+       : int idr_pre_get(struct idr *idp, gfp_t gfp_mask);
+
+       第二步，请求新的UID，相应的函数为：
+       : int idr_get_new(struct idr *idp, void *ptr, int *id);
+
+       例子如下：
+       #+BEGIN_SRC c
+         int id; 
+         do { 
+         　if (!idr_pre_get(&idr_huh, GFP_KERNEL)) 
+         　　return -ENOSPC; 
+         　ret = idr_get_new(&idr_huh, ptr, &id); 
+         　} while (ret == -EAGAIN);        
+       #+END_SRC
+
+       : int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
+       该函数的工作方式与 =idr_get_new()= 一样，不过它保证了新的UID大于或等
+       于 =starting_id= 。它确保某个UID不被重用，并且保证了分析的UID在系统
+       运行期间都是唯一的。
+
+       #+BEGIN_SRC c
+         int id;
+         do {
+           if (!idr_pre_get(&idr_huh, GFP_KERNEL))
+             return -ENOSPC;
+           ret = idr_get_new_above(&idr_huh, ptr, next_id, &id);
+          } while (ret == -EAGAIN);
+         if (!ret)
+           next_id = id + 1;       
+       #+END_SRC
+
+    3. 查找一个UID
+       : void *idr_find(struct idr *idp, int id);
+       #+BEGIN_SRC c
+         struct my_struct *ptr = idr_find(&idr_huh, id); 
+         if (!ptr) 
+           return -EINVAL; /* error */        
+       #+END_SRC
+
+    4. 删除一个UID
+       : void idr_remove(struct idr *idp, int id);
+
+    5. 销毁一个udr
+       : void idr_destroy(struct idr *idp);
+       如果想强制删除所有的UID，使用如下函数：
+       : void idr_remove_all(struct idr *idp);
+       不过在调用 =idr_destroy()= 之前，要先在该idr上调用
+       =idr_remove_all()= ，确
+       保所有的idr内存被释放。
+
+* 知识点19 内核数据结构之红黑树
+  　　红黑树是一种自平衡的二叉查找树，是Linux主要的二叉树结构。红黑树
+  有一个特殊的颜色属性，要么红色，要么黑色。红黑树通过强制以下条件来保
+  证红黑树仍然是半平衡的。
+  - 所有结点要是红色或黑色的。
+  - 叶子结点是黑色的。
+  - 叶子结点不包含数据。
+  - 所有非叶子结点有两个孩子。
+  - 如果一个结点是红色，那么它的两个孩子都为黑色。
+  - 从某个结点出发，到达任何叶子结点的路径中包含的黑色结点相同。
+
+  　　上述属性表明，最深的叶子的深度不会超过最浅的叶子的深度的二倍。这
+  样，该树总是半平衡的。
+
+  　　在Linux中，红黑树称为rbtree。分别声明和定义在<linux/rbtree.h>和
+  lib/rbtree.c中。一个rbtree的根总是由结构 =rb_root= 来表示。为了创建一个新
+  的红黑树，我们要分配一个新的 =rb_root= 并将其初始化为特殊值 =RB_ROOT=
+  : struct rb_root  root = RB_ROOT
+
+  　　单个结点由结构 =rb_node= 来表示。由于C语言不支持泛型编程，所以rbtree
+  并没有提供查找和插入程序，编程人员必须自行定义，不过可以使用rbtree已
+  经提供的一些帮助函数。
+  
+  #+CAPTION: 红黑树查找程序实现的一个例子
+  #+BEGIN_SRC c
+    struct page * rb_search_page_cache(struct inode *inode,
+                                       unsigned long offset)
+    {
+      struct rb_node *n = inode->i_rb_page_cache.rb_node;
+      while (n) {
+        struct page *page = rb_entry(n, struct page, rb_page_cache);
+        if (offset < page->offset)
+          n = n->rb_left;
+        else if (offset > page->offset)
+          n = n->rb_right;
+        else
+          return page;
+      }
+      return NULL;
+    }  
+  #+END_SRC
+
+  #+CAPTION: 红黑树插入程序实现的一个例子
+  #+BEGIN_SRC c
+    struct page * rb_insert_page_cache(struct inode *inode,
+                                       unsigned long offset,
+                                       struct rb_node *node)
+    {
+      struct rb_node **p = &inode->i_rb_page_cache.rb_node;
+      struct rb_node *parent = NULL;
+      struct page *page;
+      while (*p) {
+        parent = *p;
+        page = rb_entry(parent, struct page, rb_page_cache);
+        if (offset < page->offset)
+          p = &(*p)->rb_left;
+        else if (offset > page->offset)
+          p = &(*p)->rb_right;
+        else
+          return page;
+      }
+      rb_link_node(node, parent, p);
+      rb_insert_color(node, &inode->i_rb_page_cache);
+      return NULL;
+    }  
+  #+END_SRC
+
+  *总结：何时，何地使用什么数据结构？*   
+
+  　　如果，主要的操作是迭代访问数据，使用链表。当性能不是很重要时，也
+  可考虑使用链表。当数据项目总数相对较少时，或需要与其他内核代码进行交互
+  时，使用链表。 
+　  　如果代码符合生产者/消费者模式，使用队列，特别是你想要一个固定大小的缓冲区。
+　　  如果需要将一个UID映射到一个对象，使用映射。
+      如果需要存储大量的数据并要有效地查找数据，使用红黑树。但是如果这些操作
+  不是对时间要求很高的，那么最好用链表。
+
+* 知识点20 内核中断处理
+  　中断又叫异步中断， 由硬件触发。而异常又称为同步中断，由软件触发。
+　　中断服务程序（中断处理函数）是一种处理中断响应的函数，它是一种遵循
+特定原型声明的C函数，它运行在中断上下文中，也称为原子上下文，代码运行
+在此上下文中是不能被阻塞的。中断服务程序必须运行非常快，它最基本的工作
+就是告诉硬件已经收到了它发出的中断，但通常还执行大量其他的工作。为此，
+一般中断服务程序分为两半，一半是数据恢复处理函数，称为上半部，它只执行
+那些可以很快执行的代码，如向硬件确认已经收到中断号等，其他的工作要延迟
+到下半部去执行。
+
+　　执行在中断上下文中的代码需要注意的一些事项：
+- 中断上下文中的代码不能进入休眠。
+- 不能使用mutex，只能使用自旋锁， 且仅当必须时。
+- 中断处理函数不能直接与用户空间进行数据交换。
+- 中断处理程序应该尽快结束。
+- 中断处理程序不需要是可重入的，因为相同的中断处理函数不能同时在多个处
+  理器上运行。
+- 中断处理程序可能被一个优先级更高的中断处理程序所中断。 为了避免这种
+  情况，可以要求内核将中断处理程序标记为一个快速中断处理程序（将本地
+  CPU上的所有中断禁用）， 不过在采取这个动作前要慎重考虑对系统的影响。
+
+ *注册中断处理函数* 
+
+在Linux中，注册一个中断处理函数使用 =request_irq()= ，原型为：
+#+BEGIN_SRC c
+  /* request_irq: allocate a given interrupt line */ 
+  int request_irq(unsigned int irq, //中断号
+                  irq_handler_t handler, //中断处理函数
+                  unsigned long flags, 
+                  const char *name, 
+                  void *dev) 
+#+END_SRC
+
+第一个参数表示要分配的中断号，第二个参数是一个指向实际中断处理程序的指针。
+第三个参数irqflags值可为0， 第四个参数设备名， 第五个参数主要用于共享
+中断。
+
+中断处理函数原型为：
+: typedef irqreturn_t (*irq_handler_t)(int, void *)
+
+中断处理函数的一些标记
+- =IRQF_DISABLED= ：禁用其他所有的中断，该标志用于性能好且执行快的中断
+  处理函数。该标志也表明中断处理函数为一个快速中断处理函数。
+- =IRQF_SAMPLE_RANDOM= ：设备产生的中断对内核熵池有贡献。如果设备以一
+  个可预测的速率引发中断， 不要使用该标志。
+- =IRQF_TIMER= ：表明该中断处理函数为系统计时器中断处理函数。
+- =IRQF_SHARED= ：表明该中断号是共享的。
+- =IRQF_TRIGGER_RISING= ：边沿触发。
+- =IRQF_TRIGGER_HIGH= ：水平触发。
+
+例子：
+#+BEGIN_SRC c
+  #define ROLLER_IRQ 7
+  static irqreturn_t roller_interrupt(int irq, void *dev_id);
+
+  if (request_irq(ROLLER_IRQ, roller_interrupt, IRQF_DISABLED | IRQF_TRIGGER_RISING, “roll”, NULL);
+    {
+      printk(KERN_ERR  “Roll: Can’t register IRQ %d\n”, ROLLER_IRQ);
+      return –EIO;
+    }
+#+END_SRC
+
+释放一个中断处理函数
+: void free_irq(unsigned int irq, void *dev)
+
+编写中断处理器
+: static irqreturn_t intr_handler(int irq, void *dev)
+
+中断处理器的返回值的类型为irqreturn_t。中断处理器可以返回两个特殊值
+=IRQ_HANDLED= 和 =IRQ_NONE= 。也可以使用 =IRQ_RETVAL(val)= 。通常中断处理器标记为
+static，表明它不能在其他的文件中被调用。
+
+ *中断控制* 
+
+禁止和使能中断
+#+BEGIN_SRC c
+  local_irq_disable();
+  /* interrupts are disabled .. */
+  local_irq_enable();
+#+END_SRC
+
+更安全的版本：
+#+BEGIN_SRC c
+  unsigned long flags;
+  local_irq_save(flags); /* interrupts are now disabled */
+  /* ... */
+  local_irq_restore(flags); /* interrupts are restored to their previous state */
+#+END_SRC
+
+ *注意：flags不能传递给另一个函数，所以上述两个函数必须在同一个函数内调
+用。*
+
+上述的函数都可以在中断和进程上下文中调用。
+
+ *禁用和中断某个特定的中断*
+#+BEGIN_SRC c
+  void disable_irq(unsigned int irq);
+  void disable_irq_nosync(unsigned int irq);
+  void enable_irq(unsigned int irq);
+  void synchronize_irq(unsigned int irq);
+#+END_SRC
+
+前面两个函数禁用一个指定的中断线。此外， =disable_irq()= 在中断处理器执行完
+成后才返回，而 =disable_irq_nosync()= 会立即返回。函数 =synchronize_irq()= 在返回
+前等待某个特定的中断处理器退出。
+
+ *中断系统的状态*
+
+=irqs_disabled()= 函数返回0，如果本地处理器上的中断系统禁用的话。
+有两个宏检查当前的上下文状态
+函数 =in_interrupt()= 用于决断此时代码执行的上下文是否处理中断上下文。
+=in_irq()= 仅当内核正在执行一个中断处理函数时才返回非0。
+设备初始化处不适合请求IRQ， 在打开设备时请求IRQ比较合宜。关闭设备时释
+放中断。
+
+* 知识点21 内核中断下半部机制
+下半部的主要任务就是执行中断相关的，不在中断处理器中执行的工作。如何将
+中断任务分为上下两部分分别执行呢，如下提供一些参考：
+- 如果工作对时间敏感，那么在中断处理器中执行。
+- 如果工作与硬件相关，在中断处理器中执行。
+- 如果工作需要确保另一个中断不能打断它，在中断处理器中执行。
+- 对于其他的情况，一般考虑在下半部中执行。
+
+　　通常就尽量使中断处理程序快速完成，将一些不需要迅速处理的工作推迟到
+下半部中去执行。推迟是指现在暂时不执行，也不是在将来的某个特定时刻执行，
+而是在系统不是很忙的时候再执行。总的来说，上半部代码执行时一些或所有中
+断被禁用，而下半部代码在执行的时候所有的中断是打开的。
+
+　　另一种推迟工作的机制是内核计时器，与下半部机制不同，计时器将工作推
+迟到某个指定的时间去执行。历史上和现在正在使用的下半部机制如下表所示：
+
+| Bottom Half         | Status        |
+|---------------------+---------------|
+| BH                  | 在2.5中被移除 |
+|---------------------+---------------|
+| Task queues Softirq | 在2.5中被移除 |
+|---------------------+---------------|
+| Tasklet(微线程)         | 2.3中开始出现 |
+|---------------------+---------------|
+| Work queues(工作队列)    | 2.5中开始出现 |
+|---------------------+---------------|
+
+微线程与软中断不同的地方是：微线程在同一时刻只能在一个处理器上运行。另
+外，不同的微线程可同时运行于不同的处理器上。
+
+ *下半部之间的同步* 
+
+微线程相对自己来说是串行的，即相同的微线程不会同时运行，即便是在不同的处理器上。所有只需考虑微线程之间的同步。
+软中断没有提供串行化，所以所有共享的数据需要适当的锁定。
+在进程上下文中，访问下半部共享数据，需要禁用下半部处理并在访问数据之前获得一个锁。
+在中断上下文中，访问下半部共享数据，需要禁用中断并在访问数据之前获得一个锁。
+任何在一个工作队列中的共享数据也需要锁定。
+
+ *禁用下半部*  
+
+通常情况下，仅仅禁用下半部是不够的，需要获得一个锁，并禁用下半部，特别
+是在驱动程序中。对于内核核心代码，只需要禁用下半部就行了。
+
+禁用下半部的一些函数如下：
+
+| Method                    | Description                                                    |
+|---------------------------+----------------------------------------------------------------|
+| =void local_bh_disable()= | Disables softirq and tasklet processing on the local processor |
+|---------------------------+----------------------------------------------------------------|
+| =void local_bh_enable()=  | Enables softirq and tasklet processing on the local            |
+|                           | processor                                                      |
+|---------------------------+----------------------------------------------------------------|
+
+这些调用可以被嵌套，当然它们调用的次数应该相同。即 =local_bh_disable()= 与
+=local_bh_enable()= 函数之间的调用次数应该相同。这些函数通过
+=preempt_count= （内核抢占也用户相同的计数器）来维护每个任务的计数器。这些
+函数对每个支持的平台来说是唯一的，下面是一些相同代码：
+#+BEGIN_SRC c
+  /*
+   ,* disable local bottom halves by incrementing the preempt_count
+   ,*/
+  void local_bh_disable(void)
+  {
+    　　struct thread_info *t = current_thread_info();
+    　　t ->preempt_count += SOFTIRQ_OFFSET;
+  }
+  /*
+   ,* decrement the preempt_count - this will ‘automatically’ enable
+   ,* bottom halves if the count returns to zero
+   ,*
+   ,* optionally run any bottom halves that are pending
+   ,*/
+  void local_bh_enable(void)
+  {
+    　　struct thread_info *t = current_thread_info();
+    　　t->preempt_count -= SOFTIRQ_OFFSET;
+    /*
+     ,* is preempt_count zero and are any bottom halves pending?
+     ,* if so, run them
+     ,*/
+    　　if (unlikely(!t->preempt_count && softirq_pending(smp_processor_id())))
+      　　　　do_softirq();
+  }
+#+END_SRC
+
+这些函数只对软中断和微线程有意义。
+ 
+* 知识点22下半部机制之软中断
+    软中断(softirq)是用软件方式模拟硬件中断的概念，实现宏观上的异步执行效
+果。softirq是基本的下半部机制， 需要互斥使用。一般很少直接使用。通常只
+用在少数性能比较关键的子系统中。它是可重入的，允许一个softirq的不同实
+例可同时运行在不同的处理器上。软中断的代码位于kernel/softirq.c。
+
+    软中断在编译时静态分配，不能动态注册和销毁。软中断一般用
+=sofirq_action= 结构来表示，定义在<linux/interrupt.h>中：
+#+BEGIN_SRC c
+  struct softirq_action {
+  　　void (*action)(struct softirq_action *);
+  };
+#+END_SRC
+
+一个具有32个元素的访结构数组声明在kernel/softirq.c中：
+: static struct softirq_action softirq_vec[NR_SOFTIRQS];
+
+每个注册的软中断占据数组的一项，因此，总共有 =NR_SOFTIRQS= 个注册的软中断。
+软中断的数目是在编译时静态决定的，不能动态更改。内核中软中断个数的限制
+是32个，但在当前内核中，只有9个。
+
+ *软中断处理函数* 
+
+软中断处理函数原型如下：
+: void softirq_handler(struct softirq_action *)  
+软中断不会抢占另一个软中断，只有中断处理函数才能抢占一个软中断。
+软中断一般用于处理系统中对时间最苛刻和重要的后半部代码。当前，只有两个
+子系统直接使用了软中断：网络子系统和块设备子系统。另外内核计时器和微线
+程都基于软中断之上。
+
+ *执行软中断*  
+
+一个注册的软中断必须被标记后，才能运行。这称之为触发，实质上就是将其标
+记为未决状态。通常，中断处理函数会触发一个软中断，然后返回。在合适的时
+间，软中断会执行。
+检测未决状态下的软中断通常发生在如下几个地方：
+- 从硬件中断代码路径中返回
+- 在ksoftirqd内核线程中
+- 在任何显示地检测并执行未决软中断的代码中，如网络子系统。
+执行软中断的代码主要发生在函数 =__do_softirq()= 函数中，由
+=do_softirq()= 调用。
+主要代码如下：
+#+BEGIN_SRC c
+  u32 pending; 
+  pending = local_softirq_pending(); 
+  if (pending) { 
+  　　struct softirq_action *h; 
+  　　/* reset the pending bitmask */ 
+  　　set_softirq_pending(0); 
+  　　h = softirq_vec; 
+  　　do { 
+  　　　　if (pending & 1) 
+  　　　　　h->action(h); 
+  　　　　　h++; 
+  　　　　　pending >>= 1; 
+  　　　} while (pending); 
+  } 
+#+END_SRC
+
+其基本步骤如下：
+1. 设置本地变量pending的值为宏 =local_softirq_pending()= 返回的值。它是一个
+   32位掩码，如果第n位置1，表示第n个软中断处于未决状态。
+2. 清空掩码。
+3. 指针h被置为 =softirq_vec= 的第一项。
+4. 如果pending的第一位置位，调用h->action(h)。
+5. 递增指针h，使其指向 =softirq_vec= 数组的第二项。
+6. 掩码pending右移一位。
+7. pointer现在指向数组的第二项，pending掩码的第一个比特位就是原来的第
+   二个比特位，重复前述步骤。
+8. 重复执行，直到pending为0。
+
+ *使用软中断*
+
+在声明一个软中断时，用到了软中断的索引号，它是一个枚举类型，定义在
+<linux/interrupt.h>中。内核使用该索引来作为软中断的相对优先级。值越小，
+优先级越大。创建一个新的软中断时，就包括向该枚举类型添加一个新的项。
+
+| Tasklet           | Priority | Softirq Description      |
+|-------------------+----------+--------------------------|
+| =HI_SOFTIRQ=      |        0 | High-priority tasklets   |
+|-------------------+----------+--------------------------|
+| =TIMER_SOFTIRQ=   |        1 | Timers                   |
+|-------------------+----------+--------------------------|
+| =NET_TX_SOFTIRQ=  |        2 | Send network packets     |
+|-------------------+----------+--------------------------|
+| =NET_RX_SOFTIRQ=  |        3 | Receive network packets  |
+|-------------------+----------+--------------------------|
+| =BLOCK_SOFTIRQ=   |        4 | Block devices            |
+|-------------------+----------+--------------------------|
+| =TASKLET_SOFTIRQ= |        5 | Normal priority tasklets |
+|-------------------+----------+--------------------------|
+| =SCHED_SOFTIRQ=   |        6 | Scheduler                |
+|-------------------+----------+--------------------------|
+| =HRTIMER_SOFTIRQ= |        7 | High-resolution timers   |
+|-------------------+----------+--------------------------|
+| =RCU_SOFTIRQ=     |        8 | RCU locking              |
+|-------------------+----------+--------------------------|
+
+ *注册软中断处理函数* 
+
+使用 =open_softirq()= 函数可以注册软中断对应的处理函数，如下例子所示：
+#+BEGIN_SRC c
+  open_softirq(NET_TX_SOFTIRQ, net_tx_action);
+  open_softirq(NET_RX_SOFTIRQ, net_rx_action);
+#+END_SRC
+
+软中断处理函数处于中断上下文中，且所有其他的中断是使能的，不能休眠。当
+一个软中断处理函数运行时，当前处理器的软中断被禁用。但是，另外一个处理
+器可以执行其他的软中断。如果在执行的过程中，触发了相同的软中断，另一个
+处理器可以同时运行它。这意味着，只在软中断处理函数中使用的任何其享的数
+据或全局数据需要进行适当的锁定。这是很重要的一点，也就是为什么尽量使用
+微线程的原因了。仅仅防止软中断不同步运行并不理想。如果一个软中断获得了
+阻止其本身的另一个实例同步运行的锁，就没有任何理由使用软中断了。结果，
+大部分软中断处理函数使用每-处理器数据或其他的技巧以避免显示地使用互斥
+锁。
+
+ *触发软中断*  
+
+当一个软中断处理函数通过 =open_softirq()= 加入到枚举列表后，它就可以运
+行了。调用函数 =raise_softirq()= 就行了，如下所示：
+#+BEGIN_SRC c
+  raise_softirq(NET_TX_SOFTIRQ);
+#+END_SRC
+
+该函数首先会在触发软中断之前禁用所有中断，之后将它们恢复成之前的状态。
+如果所有的中断已经关闭，可以使用另外一个函数： =raise_softirq_irqoff()= ，
+如下所示：
+#+BEGIN_SRC c
+  /*
+  ,* interrupts must already be off!
+  ,*/
+  raise_softirq_irqoff(NET_TX_SOFTIRQ);
+#+END_SRC
+
+softirq使用模板：
+#+BEGIN_SRC c
+  //Using Softirq to Offload work from Interrupt Handlers
+  void __init
+  roller_init()
+  {
+    /* … */
+    open_softirq(ROLLER_SOFT_IRQ, roller_analyze, NULL);
+  }
+
+  /* The bottom half */
+  void
+  roller_analyze()
+  {
+    /* … */
+  }
+
+  /* The interrupt handler */
+  static irqreturn_t
+  roller_interrupt(int irq, void *dev_id)
+  {
+    /* … */
+    /* Mark softirq as pending */
+    raise_softirq(ROLLER_SOFT_IRQ);
+    return IRQ_HANDLED;
+  }
+#+END_SRC
+
+* 知识点23下半部机制之微线程
+　　微线程(tasklet)是一种更通用的下半部机制，大多数情况下应该优先使用
+微线程，只有在对性能要求非常高的时候才考虑使用软中断。然而，微线程是基
+于软中断的，它实际上是一个软中断。内核中的微线程用两个软中断表示：
+=HI_SOFTIRQ= 和 =TASKLET_SOFTIRQ= 。两者唯一的区别在于 =HI_SOFTIRQ= 优
+先级要高些。
+
+ *数据结构* 
+
+#+BEGIN_SRC c
+  struct tasklet_struct {         　　
+      struct tasklet_struct *next;        　　/* next tasklet in the list */ 
+      unsigned long state;        　　/* state of the tasklet */ 
+      atomic_t count;     　　/* reference counter */ 
+      void (*func)(unsigned long);        　　/* tasklet handler function */ 
+      unsigned long data;         　　/* argument to the tasklet function */ 
+  };      　　
+#+END_SRC
+
+状态state的值可为0， =TASKLET_STATE_SCHED= ,  =TASKLET_STATE_RUN= 。
+=TASKLET_STATE_SCHED= 表示某个微线程将被调度运行，而 =TASKLET_STATE_RUN=
+表示某个微线程正在运行。
+
+　　count为微线程的引用计数，为非0时表示微线程被禁用，不能运行。为0时
+表示微线程可以运行，且如果标记为未决状态，将可以运行。
+
+ *调度微线程*  
+
+　　被调度的微线程存储于两个每-CPU结构中： =tasklet_vec= (对于普通微线程)和
+=tasklet_hi_vec= (对于高优先级微线程)。这两个结构都是 =tasklet_struct= 结构构成
+的链表。链表表中的每个结点代表不同的微线程。调度微线程分别采用
+=tasklet_schedule()= 和 =tasklet_hi_schedule()= 。大致步骤如下：
+1. 检查微线程的状态是否为 =TASKLET_STATE_SCHED= 。如果是，该微线程已经被调度，
+   函数立即返回。
+2. 调用 =__tasklet_schedule()= 。
+3. 保存中断系统的状态，然后禁用所有本地中断。
+4. 将被调度的微线程添加到 =tasklet_vec= 或 =tasklet_hi_vec= 链表的头部。这些链表
+   对每个处理器来说是唯一的。
+5. 触发 =TASKLET_SOFTIRQ= 和 =HI_SOFTIRQ= 软中断，这样使得
+   =do_softirq()= 能在将来的某个时刻执行该微线程。（实质上就是将微线程
+   标记为一个未决的软中断）
+6. 恢复中断到之前的状态，然后返回。
+
+这样， =do_softirq()= 在某个时刻会运行这些未决的软中断，并执行相关的处理函
+数，即 =tasklet_action()= 和 =tasklet_hi_action()= 。这两个函数是微线程处理的核心。
+执行的步骤如下：
+1. 禁用本地中断，获取本处理器上的 =tasklet_vec= 和 =tasklet_hi_vec= 链表。
+2. 清除链表。
+3. 启动本地中断。
+4. 遍历链表中的每个未决微线程。
+5. 如果是处理器机器，检测微线程是否运行于另外一个处理器，即检测
+   =TASKLET_STATE_RUN= 标志。如果是，跳过，处理下一个微线程。
+6. 如果否，设置 =TASKLET_STATE_RUN= ，这样就不会在另一个处理器上运行。
+7. 检测微线程的引用数是否为0，以确认微线程是否使能。如果否，跳过，处理
+   下一个微线程。
+8. 执行微线程处理函数。
+9. 清除微线程state域的 =TASKLET_STATE_RUN= 标记。
+10. 重复上述过程，直到完毕。
+
+ *使用微线程* 
+
+静态声明
+#+BEGIN_SRC c
+  DECLARE_TASKLET(name, func, data)
+  DECLARE_TASKLET_DISABLED(name, func, data);
+#+END_SRC
+
+例子如下：
+: DECLARE_TASKLET(my_tasklet, my_tasklet_handler, dev);
+
+等价于：
+#+BEGIN_SRC c
+  struct tasklet_struct my_tasklet = { NULL, 0, ATOMIC_INIT(0),
+                                       my_tasklet_handler, dev };
+#+END_SRC
+
+动态声明
+: tasklet_init(t, tasklet_handler, dev); /* dynamically as opposed to statically */
+
+ *编写自己的微线程处理函数*  
+
+函数原型：
+: void tasklet_handler(unsigned long data)
+跟软中断一样，微线程不能睡眠，所以不能使用户信号量等机制。
+
+ *调度微线程*  
+
+调度微线程使用如下函数：
+: tasklet_schedule(&my_tasklet); /* mark my_tasklet as pending */
+
+　　其实质就是将微线程标记为未决状态。
+　　通过函数 =tasklet_disable()= 来禁用一个微线程，如果被禁用的微线程正在运
+行，函数将等待微线程执行完毕后，返回。函数 =tasklet_disable_nosync()= 将立即
+返回。函数 =tasklet_enable()= 使能一个微线程。
+
+#+CAPTION: tasklet使用模板
+#+BEGIN_SRC c
+  //Using Tasklets to Offload Work from Interrupt Handlers
+  struct roller_device_struct{
+    /* … */
+    struct tasklet_struct tsklt;
+    /* … */
+  };
+
+  void __init roller_init()
+  {
+    struct roller_device_struct *dev_struct;
+    /* … */
+    /* Initialize tasklet */
+    tasklet_init(&dev_struct->tsklt, roller_analyze, dev);
+  }
+
+  /* The bottom half */
+  void
+  roller_analyze()
+  {
+    /* … */
+  }
+
+  /* The interrupt handler */
+  static irqreturn_t
+  roller_interrupt(int irq, void *dev_id)
+  {
+    /* … */
+    /* Mark tasklet as pending */
+    tasklet_schedule(&dev_struct->tsklt);
+    return IRQ_HANDLED;
+  }
+#+END_SRC
+
+* 知识点24 内核线程ksoftirqd
+软中断和微线程的处理都依赖于一组每-处理器内核线程，这些内核线程在当系
+统中软中断或微线程处理过于频繁时协助软中断和微线程的处理。
+
+一个软中断或微线程可以重新激活自己，从来导致其又重新运行，这样会导致用
+户程序无法获得处理器，同时，忽略二次激活也是不可接受的。为了满足这两个
+需求，解决办法是，内核不会立即处理二次激活的软中断或微线程，而是，如果
+软中断或微线程的数目增长过快，内核将唤醒一些内核线程来协助处理，这些内
+核线程执行的优先级为最低（nice值为19），以确保它们不会在更重要的任务之
+前执行。每个处理器都有一个这样的线程，命名为ksoftirqd/n，其中n是处理器
+的编号。比如，对于双核处理器，有两个这样的内核线程：ksoftirqd/0,
+ksoftirqd/1。线程初始化，执行逻辑如下所示：
+
+#+BEGIN_SRC c
+  for (;;) { 
+  　　if (!softirq_pending(cpu)) 
+  　　　　schedule(); 
+  　　set_current_state(TASK_RUNNING); 
+  　　while (softirq_pending(cpu)) { 
+  　　　　do_softirq(); 
+  　　　　if (need_resched()) 
+  　　　　　　schedule(); 
+  　　} 
+  　　set_current_state(TASK_INTERRUPTIBLE); 
+  } 
+#+END_SRC
+
+* 知识点25下半部机制之工作队列
+工作队列是一种不同于软中断和微线程的一种下半部延迟机制。工作队列将工作
+延迟到一个内核线程中执行，它运行在进程上下文中，它是可调度的，并且可以
+休眠。通常，如果延迟的工作中需要休眠，就使用工作队列，否则使用软中断或
+微线程。由于内核开发者反对创建一个新的内核线程，因此，应当尽量使用工作
+队列，它其实是事先创建了一个内核线程。
+
+ *工作队列的实现*
+
+工作队列实际上一种创建内核线程以处理从其他地方入队的任务的接口。这些内
+核线程称为工作者线程。你可以创建一个特殊的工作者线程来处理延迟工作，然
+而，工作队列为我们提供了一个默认的工作者线程。在大多数情况下，直接使用
+该默认工作者线程就可以了。默认的工作都线程称为events/n，其中n为处理器
+的编号。
+
+ *代表线程的数据结构*
+
+#+BEGIN_SRC c
+  struct workqueue_struct { 
+  　　struct cpu_workqueue_struct cpu_wq[NR_CPUS]; 
+  　　struct list_head list; 
+  　　const char *name; 
+  　　int singlethread; 
+  　　int freezeable; 
+  　　int rt; 
+  }; 
+#+END_SRC
+
+每个处理器对应一个 =struct cpu_workqueue_struct= 的数据结构。
+
+#+BEGIN_SRC c
+  struct cpu_workqueue_struct {   
+  　　spinlock_t lock;    /* lock protecting this structure */ 
+  　　struct list_head worklist;  /* list of work */ 
+  　　wait_queue_head_t more_work;        
+
+          struct work_struct *current_struct; 
+          struct workqueue_struct *wq; /* associated workqueue_struct */ 
+          task_t *thread;         /* associated thread */ 
+  };      
+#+END_SRC
+
+ *代表工作的数据结构*
+
+#+BEGIN_SRC c
+  struct work_struct { 
+  　　　atomic_long_t data; 
+  　　　struct list_head entry; 
+  　　　work_func_t func; 
+  }; 
+#+END_SRC
+
+工作者线程的核心代码如下：
+#+BEGIN_SRC c
+  for (;;) { 
+  　　prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE); 
+  　　if (list_empty(&cwq->worklist)) 
+  　　　　schedule(); 
+  　　finish_wait(&cwq->more_work, &wait); 
+  　　run_workqueue(cwq); 
+  } 
+#+END_SRC
+
+在函数 =run_workqueue（）= ，执行实际的延迟工作：
+#+BEGIN_SRC c
+  while (!list_empty(&cwq->worklist)) { 
+  　　struct work_struct *work; 
+  　　work_func_t f; 
+  　　void *data; 
+  　　work = list_entry(cwq->worklist.next, struct work_struct, entry); 
+  　　f = work->func; 
+  　　list_del_init(cwq->worklist.next); 
+  　　work_clear_pending(work); 
+  　　f(work); 
+  } 
+#+END_SRC
+
+ *工作队列相关数据结构的关系*
+
+[[./images/2016/2016071601.png]]
+
+最上层的工作者线程，可能有多个类型。每个处理器上都有每一种类型的工作者
+线程。内核代码可以根据需要创建工作者线程。默认情况下，工作者线程是
+events。每个工作者线程由结构 =cpu_workqueue_struct= 来表示。结构
+=workqueue_struct= 代表每个类型的所有工作者线程。例如，假设除了默认的
+events类型的工作者线程外，还创建了一个falcon类型的工作者线程。假设计算
+机有4个处理器，那么有4个events线程（因而，有4个 =cpu_workqueue_struct= 结构）
+和4个falcon线程（因而，有另外4个 =cpu_workqueue_struct= 结构）。有2个
+=workqueue_struct= ，分别对应events类型和falcon类型。
+
+ *使用默认的工作队列*  
+
+创建工作队列
+1. 静态方式：
+   : DECLARE_WORK(name, void (*func)(void *), void *data);
+2. 动态方式:
+   : INIT_WORK(struct work_struct *work, void (*func)(void *), void *data);
+3. 工作队列处理函数
+   : void work_handler(void *data)
+4. 调度工作队列：
+   : schedule_work(&work)或schedule_delayed_work(&work, delay);
+5. Flush工作队列:
+   : void flush_scheduled_work(void);
+
+该函数不能取消任何延迟的工作，即被 =schedule_delayed_work（）= 调度的工作。
+为了取消一个延迟的工作，调用：
+: int cancel_delayed_work(struct work_struct *work);
+
+ *创建一个新的工作队列*  
+
+: struct workqueue_struct *create_workqueue(const char *name);
+name为工作队列的名称，如默认的工作队列名称为events，如下所示：
+#+BEGIN_SRC c
+  struct workqueue_struct *keventd_wq;
+  keventd_wq = create_workqueue(“events”);
+#+END_SRC
+
+它将为每个处理器创建一个工作者线程，并使之处于就绪状态。
+
+调度工作队列
+
+#+BEGIN_SRC c
+  int queue_work(struct workqueue_struct *wq, struct work_struct *work)
+  int queue_delayed_work(struct workqueue_struct *wq, struct work_struct *work, unsigned long delay)
+#+END_SRC
+
+flush一个工作队列
+
+: flush_workqueue(struct workqueue_struct *wq)
+
+总结如下：
+
+内核中提供了两个辅助接口来使用工作队列：
+: workqueue_struct 和 work_struct。
+
+使用步骤如下：
+1. 创建与一个或多个内核线程关联的工作队列(或一个 =workqueue_struct= 结构体)。
+   为了创建一个服务于某个工作队列的内核线程，使用
+   =create_singlethread_workqueue()= 。创建系统中的一个每-CPU工作者线程，
+   使用 =create_workqueue()= 。 内核也提供了默认的每-CPU工作者线程供你直接
+   使用(event/n， 其中n是CPU号)。
+2. 创建一个工作单元(或一个 =work_struct= 变量)。一个 =work_struct= 变
+   量使用 =INIT_WORK()= 进行初始化。
+3. 提交工作单元到工作队列中。使用 =queue_work()= 将一个工作单元提交到一个专
+   门的工作队列中。使用 =schedule_work()= 将一个工作单元提交给默认的内核工
+   作者线程。
+
+#+CAPTION: 工作队列使用模板
+#+BEGIN_SRC c
+  //Using Workqueue to Offload Work from Interrupt Handlers
+  struct roller_device_struct{
+    /* … */
+    struct work_struct wklt;
+    /* … */
+  };
+
+  void __init roller_init()
+  {
+    struct roller_device_struct *dev_struct;
+    /* … */
+    /* Initialize tasklet */
+    INIT_WORK (&dev_struct-> wklt, roller_analyze, dev);
+  }
+
+  /* The bottom half */
+  void
+  roller_analyze()
+  {
+    /* … */
+  }
+
+  /* The interrupt handler */
+  static irqreturn_t
+  roller_interrupt(int irq, void *dev_id)
+  {
+    /* … */
+    /* Mark workqueue as pending */
+    schedule_work(&dev_struct->wklt);
+    return IRQ_HANDLED;
+  }
+#+END_SRC
+
+* 知识点26内核变量——Jiffies
+全局变量jiffies表示自系统启动以来系统产生的嘀嗒数。当启动时，内核初始
+化该变量为0。每次时钟中断就会增1，所以系统运行时候可以计算为：
+jiffies/HZ秒。
+
+jiffies变量定义如下：
+: extern unsigned long volatile jiffies;
+
+将jiffies转换为秒：(jiffies / HZ)。将秒换算为jiffies：(seconds*HZ)。
+
+ *jiffies比较相关的宏：*
+
+#+BEGIN_SRC c
+  #define time_after(unknown, known) ((long)(known) - (long)(unknown) < 0)
+  #define time_before(unknown, known) ((long)(unknown) - (long)(known) < 0)
+  #define time_after_eq(unknown, known) ((long)(unknown) - (long)(known) >= 0)
+  #define time_before_eq(unknown, known) ((long)(known) - (long)(unknown) >= 0)
+#+END_SRC
+
+使用例子：
+#+BEGIN_SRC c
+  unsigned long timeout = jiffies + HZ/2;         /* timeout in 0.5s */ 
+  /* ... */       
+  if (time_before(jiffies, timeout)) {    
+    /* we did not time out, good ... */   
+   } else {       
+    /* we timed out, error ... */         
+   }      
+#+END_SRC
+
+* 知识点27内核定时器与延时
+内核需要定时器来实现一定的延时。
+
+ *数据结构定义：*  
+
+#+BEGIN_SRC c
+  struct timer_list {
+    struct list_head entry; /* entry in linked list of timers */
+    unsigned long expires; /* expiration value, in jiffies */
+    void (*function)(unsigned long); /* the timer handler function */
+    unsigned long data; /* lone argument to the handler */
+    struct tvec_t_base_s *base; /* internal timer field, do not touch */
+  };
+#+END_SRC
+
+ *操作：*  
+
+声明与初始化
+
+#+BEGIN_SRC c
+  void init_timer(struct timer_list *timer);
+  TIMER_INITIALIZER(_functioin, _expires, _data) //宏用于赋值定时器结构体的function、expires、data和base成员。
+  DEFINE_TIMER(_name, _function, _expires, _data)
+  //setup_timer()也可用于初始化定时器并赋值其成员。
+#+END_SRC
+
+增加定时器
+: void add_timer(struct timer_list *timer);
+
+删除定时器
+#+BEGIN_SRC c
+  int del_timer(struct timer_list *timer);
+  int del_timer _sync (struct timer_list *timer);//注：该函数不能用于中断上下文中，其他情况下尽量使用该函数。
+#+END_SRC
+
+修改定时器的expire
+: int mod_timer(struct timer_list *timer, unsigned long expires);
+
+#+CAPTION: 内核定时器模板
+#+BEGIN_SRC c
+  /*XXX设备结构体*/
+  struct xxx_dev
+  {
+    struct cdev cdev;
+    …
+    timer_list xxx_timer;/*设备要使用的定时器*/
+  };
+
+  /*xxx驱动中的某函数*/
+  xxx_funcl(…)
+  {
+    struct xxx_dev *dev = filp->private_data;
+    …
+      /*初始化定时器*/
+      init_timer(&dev->xxx_timer);
+    dev->xxx_timer.function = &xxx_do_timer;
+    dev->xxx_timer.data = (unsigned long)dev;
+    /*设备结构体指针作为定时器处理函数参数*/
+    dev->xxx_timer.expires = jiffies + delay;
+    /*添加（注册）定时器*/
+    add_timer(&dev->xxx_timer);
+    …
+      };
+
+  /*xxx驱动中的某函数*/
+  xxx_func2(…)
+  {
+    …
+      /*删除定时器*/
+      del_timer(&dev->xxx_timer);
+    …
+      }
+
+  /*定时器处理函数*/
+  static void xxx_do_timer(unsigned long arg)
+  {
+    struct xxx_device *dev = (struct xxx_device*)(arg);
+    …
+      /*调度定时器再执行*/
+      dev->xxx_timer.expires = jiffies + delay;
+    add_timer(&dev->xxx_timer);
+    …
+      }
+#+END_SRC
+
+ *延时机制*  
+
+- 忙等待，如：
+#+BEGIN_SRC c
+unsigned long timeout = jiffies + 10; /* ten ticks */
+while (time_before(jiffies, timeout))
+#+END_SRC
+
+- 重新调度，如：
+#+BEGIN_SRC c
+  unsigned long delay = jiffies + 5*HZ;
+  while (time_before(jiffies, delay))
+  　　cond_resched();
+#+END_SRC
+
+- 小延时
+有时，内核代码需要更精确的延时，如小于一个时钟滴答。通常小于1毫秒，基
+于jiffies的延时是不能满足要求的。内核提供了三个函数分别处理微秒，纳秒
+和毫秒，原型如下：
+#+BEGIN_SRC c
+  void udelay(unsigned long usecs) //微秒
+  void ndelay(unsigned long nsecs) //纳秒
+  void mdelay(unsigned long msecs) //毫秒
+#+END_SRC
+
+udelay()实现为一个循环，它能知道一个给定的时间段有多少次迭代。mdelay()
+函数基于udelay()函数实现的。内核知道处理器1秒钟能完成的循环次数。
+udelay()函数仅用于非常小的延迟。超过1毫秒的延迟不要使用udelay()。对于
+较长的延时，使用mdelay()。类似于忙等待，一般情况下，不要使用这些函数，
+除非有必要。
+
+- =schedule_timeout()=
+一种更好的延迟执行的方式是使用 =schedule_timeout()= 函数。该调用将当前任务
+标记为睡眠状态直到指定的时间已经过去。通常，睡眠的时间很难保证与指定指
+定的时间一致。调用方式如下：
+#+BEGIN_SRC c
+  /* set task’s state to interruptible sleep */
+  set_current_state(TASK_INTERRUPTIBLE);
+  /* take a nap and wake up in “s” seconds */
+  schedule_timeout(s * HZ);
+#+END_SRC
+
+* 知识点28内存管理
+内核将物理页作为内存管理的基本单位，而处理器最小的处理单位可能是一个字
+节或一个字。对于内存管理来说，页是最小的管理单元。MMU维护着以页为最小
+粒度的页表。不同的平台页的大小也不同。许多平台支持多种页大小。大部分32
+位平台拥有4KB个页，而64位平台拥有8KB个页。
+
+ *区域（Zone）*
+
+由于硬件的限制，内核不能将所有的内存物理页一视同仁。有些物理页的地址只
+能用于特定的任务。正是由于这个原因，内核将物理页划分成区域。内核用区域
+来对具有类似属性的页进行分组。内核有４个主要的内存区域：
+1. =ZONE_DMA= ——可以执行DMA操作的区域。
+2. =ZONE_DMA32= ——与 =ZONE_DMA= 类似，该区域包含可以执行DMA操作的页。这些页只能
+   由32位设备访问
+3. =ZONE_NORMAL= ——该区域包含了普通的、正常映射了的页。
+4. =ZONE_HIGHMEM= ——该区域包含了“高内存”，这些物理页不是永久性地映射到了内
+   核的地址空间中。X86平台上的映射情况如下：
+   [[./images/2016/2016071602.png]]
+
+ *底层页操作*  
+
+内核提供了一种底层机制来请求内存，以及几个访问内存的接口。所有这些接口
+分配的内存的粒度为页大小，声明在<linux/gfp.h>，核心函数为：
+: struct page * alloc_pages(gfp_t gfp_mask, unsigned int order)
+该函数分配了2^order 个连续的物理页，并返回指向第一个页结构的指针。
+
+: void * page_address(struct page *page)
+该函数返回指向给定物理页当前对应的逻辑地址的指针。
+
+: unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
+与 =alloc_pages= 类似，只不过返回的是请求页的逻辑地址。
+
+如果只请求一个页，可使用如下相应的函数：
+#+BEGIN_SRC c
+  struct page * alloc_page(gfp_t gfp_mask)
+  unsigned long __get_free_page(gfp_t gfp_mask)
+#+END_SRC
+
+如果需要返回零填充的页，使用函数：
+: unsigned long get_zeroed_page(unsigned int gfp_mask)
+
+与函数 =__get_free_page()= 类似，只不过返回的是零填充后的页。
+
+ *释放页*  
+
+下面的一些函数用于释放不再需要的页：
+#+BEGIN_SRC c
+  void __free_pages(struct page *page, unsigned int order)
+  void free_pages(unsigned long addr, unsigned int order)
+  void free_page(unsigned long addr)
+#+END_SRC
+
+ *kmalloc()* 
+
+kmalloc()函数的操作类似于用户空间的malloc()，只是多了一个flags参数。
+kmalloc()函数是一个获取以字节为单位的内核内存的简单接口。
+
+:void * kmalloc(size_t size, gfp_t flags)
+该函数返回指向某个内存区域的指针，该内存区域在物理上是连续的。
+
+ *kfree()*  
+
+kfree()释放由kmalloc()分配的内核内存空间，其函数原型如下：
+: void kfree(const void *ptr)
+
+ *vmalloc()*
+
+vmalloc()分配一段在物理上不连续，但在虚拟地址空间上是连续的内存。它一
+般用于分配较大的内存空间时。其函数原型如下：
+: void * vmalloc(unsigned long size)
+
+该函数可以会休眠，所以不能在中断上下文中使用或其他不能休眠的情形。
+出于性能上的考虑，在内核代码中，分配内存时一般使用kmalloc()函数。
+
+ *vfree()*  
+
+该函数用于释放由vmalloc()函数分配的内存空间。其函数原型如下所示：
+: void vfree(const void *addr)
+
+ *内核栈*  
+
+内核栈占据一个或二个物理页，取决于编译时的配置选项。这些栈的大小从4KB
+到16KB大小不等。历史上，中断处理程序与进程共享一个栈。当单页栈使能后，
+中断处理函数拥有了自己的栈。
+
+由于内核栈的大小限制，所以在内核函数中，尽量控制栈变量的大小和数量，避
+免在一个函数内部定义很大数组。
+
+ *高内存映射*
+
+在X86平台上，物理地址超过896M的都慎于高内存。这些地址并不永久地或自动
+地映射到内核地址空间。这些物理面必须映射到内核的逻辑地址空间。在X86平
+台上，高内存地址通常映射到了处于3G和4G之间的内存地址。
+
+为了将一个指定的page结构映射到内核的地址空间，使用如下函数：
+: void *kmap(struct page *page)
+该函数可用于低内存地址或高内存地址的物理页映射。当物理页处于低内存，该
+函数返回该页的虚拟地址。当物理页处于高内存时，将创建一个永久映射，并返
+回返回映射后的地址。
+
+:void kunmap(struct page *page)
+该函数解除映射。kmap()和kunmap()函数均不能用于中断上下文中。
+
+ *临时映射*
+
+有时，映射建立必须发生在中断上下文中，这时可以使用另外一对函数。
+: void *kmap_atomic(struct page *page, enum km_type type)
+和
+: void kunmap_atomic(void *kvaddr, enum km_type type)
+
+* 知识点29 每-CPU变量
+现代SMP操作系统使用每-CPU数据——这些数据对每个处理器都是唯一的。通常，
+每-CPU数据存储在一个数组中。数组中的每项对应系统上的一个可能的处理器。
+如：
+: unsigned long my_percpu[NR_CPUS];
+
+访问的方式如下：
+#+BEGIN_SRC c
+  int cpu;
+  cpu = get_cpu(); /* get current processor and disable kernel preemption */
+  my_percpu[cpu]++; /* ... or whatever */
+  printk(“my_percpu on cpu=%d is %lu\n”, cpu, my_percpu[cpu]);
+  put_cpu(); /* enable kernel preemption */
+#+END_SRC
+
+访问每-CPU数据唯一需要考虑的就是内核抢占。内核抢占导致了两个问题，如下
+所示：
+- 如果运行的代码被抢占并被调度到另一个处理器上运行，cpu变量不再合法，
+  因为它指向了错误的处理器（通常，代码在获得当前处理器后不能睡眠）。
+- 如果另一个任务抢占了当前运行的代码，它可能并发地访问相同处理器上的
+  =my_percpu= ，从而导致了一个竞态发生。
+
+然而，任何担心都是多余的，因为 =get_cpu()= 在返回处理器编号的同时，也会禁用
+内核抢占。=put_cpu()= 则恢复内核抢占。注意：如果使用 =smp_processor_id()=
+来获取当前处理器的编号，内核抢占则并不会被禁止。
+
+ *新的percpu接口（2.6后）*
+
+2.6内核引入了一个新的接口，称为percpu，，用于创建和操作每-CPU数据。该
+接口扩展了上述例子。新的接口更简单，但旧的接口依然有效。
+
+定义：
+
+: DEFINE_PER_CPU(type, name);
+
+声明：
+
+: DECLARE_PER_CPU(type, name);
+
+操作变量函数：
+
+: get_cpu_var()   put_cpu_var()
+
+如：
+
+#+BEGIN_SRC c
+  get_cpu_var(name)++; /* increment name on this processor，同时禁用内核抢占 */
+  put_cpu_var(name); /* done; enable kernel preemption */
+#+END_SRC
+
+访问另一个处理器的每-CPU数据：
+:per_cpu(name, cpu)++; /* increment name on the given processor */，
+
+注意，该函数并没有禁用内核抢占。
+
+ *动态分配每-CPU数据*  
+
+内核实现了一个动态分配器，类似于kmalloc()，用于创建每-CPU数据。这些函
+数原型如下：
+#+BEGIN_SRC c
+  void *alloc_percpu(type); /* a macro */
+  void *__alloc_percpu(size_t size, size_t align);
+  void free_percpu(const void *);
+  get_cpu_var(ptr); /* return a void pointer to this processor’s copy of ptr */
+  put_cpu_var(ptr); /* done; enable kernel preemption */
+#+END_SRC
+
+使用例子如下：
+#+BEGIN_SRC c
+  void *percpu_ptr;
+  unsigned long *foo;
+  percpu_ptr = alloc_percpu(unsigned long);
+  if (!ptr)
+    /* error allocating memory .. */
+    foo = get_cpu_var(percpu_ptr);
+  /* manipulate foo .. */
+  put_cpu_var(percpu_ptr);
+#+END_SRC
+
+* 知识点30 进程地址空间
+进程地址空间包含了某个进程可寻址的虚拟内存以及在此虚拟内存中进程可使用
+的地址。每个进程被分配了一个平坦的32或64位地址空间。不同的进程在各自的
+某个相同的内存地址处可以存储不同的数据。另外，进程之间也可以共享地址空
+间，这样的进程被称为线程。
+
+虽然一个进程可以寻址多达4G的内存，但它并没有权利访问所有的地址。地址空
+间中有趣的部分是内存地址区间，如08048000-0804c000，进程对处于这个区间
+中的地址有访问权限。这些合法的区间称为内存区。进程可以通过内核动态地向
+它的进程空间增加或删除内存区。
+
+进程只能访问处于合法内存区的地址。这些内存区域有相关的权限，如可读，可
+写和可执行。任何非法地址或非法访问都将导致“Segmmentation Fault”错误。
+内存区可包含如下一些信息：
+- 可执行文件代码的内存映射，称为代码段。
+- 可执行文件的初始化了的全局变量 ，称为数据段。
+- 零页的内存映射，包含未初始化的全局变量，称为bss段。
+- 用于进程用户空间栈的零页内存映射。
+- 每个共享库附加的代码、数据以及bss段，如C库和动态链接器，被装载到进程
+  的地址空间。
+- 任何内存映射文件。
+- 任何共享内存段。
+- 任何匿名的内存映射，如与malloc()相关的内存映射。
+
+这些内存区域并不重叠。
+
+ *内存描述符* 
+
+内核用被称为内存描述符的数据结构来表示一个进程的地址空间。该结构包含了
+所有与进程地址空间相关的信息。内存描述符用struct mm_struct来表示。数据
+结构如下所示：
+#+BEGIN_SRC c
+  struct mm_struct {
+    struct vm_area_struct *mmap; /* list of memory areas */
+    struct rb_root mm_rb; /* red-black tree of VMAs */
+    struct vm_area_struct *mmap_cache; /* last used memory area */
+    unsigned long free_area_cache; /* 1st address space hole */
+    pgd_t *pgd; /* page global directory */
+    atomic_t mm_users; /* address space users */
+    atomic_t mm_count; /* primary usage counter */
+    int map_count; /* number of memory areas */
+    struct rw_semaphore mmap_sem; /* memory area semaphore */
+    spinlock_t page_table_lock; /* page table lock */
+    struct list_head mmlist; /* list of all mm_structs */
+    unsigned long start_code; /* start address of code */
+    unsigned long end_code; /* final address of code */
+    unsigned long start_data; /* start address of data */
+    unsigned long end_data; /* final address of data */
+    unsigned long start_brk; /* start address of heap */
+    unsigned long brk; /* final address of heap */
+    unsigned long start_stack; /* start address of stack */
+    unsigned long arg_start; /* start of arguments */
+    unsigned long arg_end; /* end of arguments */
+    unsigned long env_start; /* start of environment */
+    unsigned long env_end; /* end of environment */
+    unsigned long rss; /* pages allocated */
+    unsigned long total_vm; /* total number of pages */
+    unsigned long locked_vm; /* number of locked pages */
+    unsigned long saved_auxv[AT_VECTOR_SIZE]; /* saved auxv */
+    cpumask_t cpu_vm_mask; /* lazy TLB switch mask */
+    mm_context_t context; /* arch-specific data */
+    unsigned long flags; /* status flags */
+    int core_waiters; /* thread core dump waiters */
+    struct core_state *core_state; /* core dump support */
+    spinlock_t ioctx_lock; /* AIO I/O list lock */
+    struct hlist_head ioctx_list; /* AIO I/O list */
+  };
+#+END_SRC
+
+=mm_users= 表示使用该地址空间的进程数。=mm_count= 是 =mm_struct= 的主引用计数。如
+果有9个线程共享一个地址空间，则 =mm_users=9= ，而 =mm_count=1=  。当
+=mm_users= 变为0
+后，则 =mm_count= 变为0.mmap和 =mm_rb= 都是用于组织进程空间中的内存区，前者使用
+的链表结构，后者使用的是红黑树。前者主要用于遍历，后者主要用于查找。所
+有的 =mm_struct= 都是通过mmlist链接到一个双重链表中。
+
+ *分配一个内存描述符*
+
+与某个任务相关联的内存描述符存储在任务进程描述符的mm域。current->mm代
+表当前进程的内存描述符。 =copy_mm()= 函数复制父进程的内存描述符。
+=mm_struct= 是
+从 =mm_cachep= slab缓存中通过 =allocate_mm()= 分配的。通常，每个进程都有一外唯
+一的 =mm_struct= ，从而拥有唯一的进程地址空间。
+
+ *销毁一个内存描述符*
+
+当与某个特定的地址空间相关联的进程退出后，会调用exit_mm()函数。
+
+ *虚拟内存区域*
+
+数据结构 =vm_area_struct= 代表虚拟内存区域。 =vm_area_struct= 描述了处于某个地址空
+间中的一个连接区间中的单个内存区域。内核将每个内存区域视为一个唯一的内
+存对象。
+
+ *虚拟内存操作*
+
+=vm_area_struct= 中的域 =vm_ops= 指向了与给定的内存区域相关联的操作函数表。这个
+操作函数表由 =vm_operations_struct= 表示，定义如下：
+#+BEGIN_SRC c
+  struct vm_operations_struct {
+    void (*open) (struct vm_area_struct *);
+    void (*close) (struct vm_area_struct *);
+    int (*fault) (struct vm_area_struct *, struct vm_fault *);
+    int (*page_mkwrite) (struct vm_area_struct *vma, struct vm_fault *vmf);
+    int (*access) (struct vm_area_struct *, unsigned long ,
+                   void *, int, int);
+  };
+#+END_SRC
+
+其中，open在某个内存区域添加到某个地址空间时被调用。close在某个内存区
+域从某个地址空间中删除进调用。fault在一个物理页不存在时调用。
+=page_mkwrite= 在将一个只读的页改为可写的时候调用。access在函数
+=get_user_pages()= 调用失败时被函数 =access_process_vm()= 调用。
+
+* 知识点31 内存文件系统——sysfs
+sysfs是一个内存虚拟文件系统，提供了一个kobject层次结构的视图。sysfs根
+目录下包含至少10个目录：
+- block：该目录包含了系统中注册的每个块设备对应的目录。这些目录中包含
+  了块设备的任何分区。
+- bus：该目录提供了系统总线的一个视图。
+- class：该目录包含了按高级功能组织的系统中所有设备的一个视图。
+- dev：该目录是已注册设备结点的一个视图。
+- devices：该目录是系统设备的拓扑视图。它直接映射了内核中的设备层次结
+  构。
+- firmware：该目录包含了低层子系统如ACPI，EDD，EFI等等系统特定的树。
+- fs：包含了已注册的文件系统的一个视图。
+- kernel：该目录包含了内核配置选项和状态信息。
+- modules：该目录包含了系统加载的模块的一个视图。
+- power：该目录包含了系统范围内的电量管理数据。
+
+ *从sysfs中添加和删除kobjects*
+
+初始化一个kobject，并将其导出到sysfs使用如下函数：
+: int kobject_add(struct kobject *kobj, struct kobject *parent, const char *fmt, ...);
+
+一个kobject代表sysfs中的一个目录，如果父指针不为空，则它代表该父
+kobject对应目录下的一个子目录。struct kobject *
+: kobject_create_and_add(const char *name, struct kobject *parent);
+该函数是一个辅助函数，它将kobject_create()和kobject_add()两个函数操作合为一个函
+数。
+
+删除一个kobject对应的sysfs表示是通过函数
+: void kobject_del(struct kobject *kobj);
+来进行的。
+
+ *向sysfs中增加文件*  
+
+kobject映射为目录，而它的属性则映射为文件。
+
+默认属性
+
+#+BEGIN_SRC c
+  struct attribute {
+    const char *name; /* attribute’s name */
+    struct module *owner; /* owning module, if any */
+    mode_t mode; /* permissions */
+  };
+#+END_SRC
+
+=sysfs_ops= 描述了怎样使用默认属性。
+#+BEGIN_SRC c
+  struct sysfs_ops {
+    /* method invoked on read of a sysfs file */
+    ssize_t (*show) (struct kobject *kobj,
+                     struct attribute *attr,
+                     char *buffer);
+    /* method invoked on write of a sysfs file */
+    ssize_t (*store) (struct kobject *kobj,
+                      struct attribute *attr,
+                      const char *buffer,
+                      size_t size);
+  };
+#+END_SRC
+
+ *创建新属性*  
+
+通常，默认属性已经足够了，然而，有时有些kobject比较特殊，需要提供一些特殊的
+数据或功能。内核提供如下接口：
+: int sysfs_create_file(struct kobject *kobj, const struct attribute *attr);
+当然，也可以创建文件链接，接口如下：
+: int sysfs_create_link(struct kobject *kobj, struct kobject *target, char *name);
+
+ *销毁属性*
+
+对应于属性创建函数，有两个属性销毁接口：
+#+BEGIN_SRC c
+  void sysfs_remove_file(struct kobject *kobj, const struct attribute *attr);
+  void sysfs_remove_link(struct kobject *kobj, char *name);
+#+END_SRC
+
+ *属性声明和定义*
+
+通常情况下，声明和定义一个属性采用如下形式：
+#+BEGIN_SRC c
+  static struct kobj_attribute foo_attribute =
+          __ATTR(foo, 0666, foo_show, foo_store);
+#+END_SRC
+
+其中宏 =__ATTR= 的定义形式为：
+#+BEGIN_SRC c
+  #define __ATTR(_name,_mode,_show,_store) { \
+  　      .attr = {.name = __stringify(_name), .mode = _mode },   \
+  　　    .show   = _show,                                        \
+    　　  .store  = _store,                                       \
+    　　}
+#+END_SRC
+
+在linux/sysfs.h中还定义了其他宏。
+
+不过，在实际使用过程中，我们还可以直接使用linux/device.h中定义的宏来快
+速声明和定义一个属性：
+1. Bus
+   #+BEGIN_SRC c
+     #define BUS_ATTR(_name, _mode, _show, _store)   \
+     struct bus_attribute bus_attr_##_name = __ATTR(_name, _mode, _show, _store)   
+   #+END_SRC
+   生成的属性文件在目录/sys/bus/下
+2. Driver
+   #+BEGIN_SRC c
+     #define DRIVER_ATTR(_name, _mode, _show, _store)        \
+     struct driver_attribute driver_attr_##_name =           \
+             __ATTR(_name, _mode, _show, _store)   
+   #+END_SRC
+
+   生成的属性文件在目录/sys/driver/下
+3. Class
+   #+BEGIN_SRC c
+     #define CLASS_ATTR(_name, _mode, _show, _store)                 \
+     struct class_attribute class_attr_##_name = __ATTR(_name, _mode, _show, _store)   
+   #+END_SRC
+   生成的属性文件在目录/sys/class/下
+4. Device
+   #+BEGIN_SRC c
+     #define DEVICE_ATTR(_name, _mode, _show, _store) \
+             struct device_attribute dev_attr_##_name = __ATTR(_name, _mode, _show, _store)   
+   #+END_SRC
+   生成的属性文件在目录/sys/device
+
+* 知识点32 Direct I/O
+　　通常情况下，大多数I/O操作在内核层次上都会进行数据缓冲，以提高性能。
+然后，有些情况下，直接对用户空间的缓冲区进行I/O读写操作可能更能提高性
+能和数据传输速率，特别针对大数据传递的情形，这样将省去了将数据从内核空
+间复制到用户空间的操作，从而节省了传输时间。
+
+　　当然，在使用Direct I/O之间，也有必要了解下它的一些开销，毕竟，天下
+没有免费的午餐。
+
+　　首先，启用Direct I/O，意味着将失去Buffered I/O的一切好处。其次，
+Direct I/O要求write系统调用必须同步执行，否则应用程序将不知道何时可重
+用它的I/O Buffer。很明显，这将影响应用程序的速度。不过，也有补救措施，
+即在这种情况下，一般都会同时使用异步I/O操作。
+
+　　实现Direct I/O的核心函数是 =get_user_pages= , 它的原形如下：
+#+BEGIN_SRC c
+  int get_user_pages(struct task_struct *tsk,  // current
+                     struct mm_struct *mm,       // current->mm.
+                     unsigned long start,  // start is the (page-aligned) address of the user-space buffer
+                     int len,    // len is the length of the buffer in pages.
+                     int write,  // If write is nonzero, the pages are mapped for write access
+                     int force, // The force flag tells get_user_pages
+                     //to override the protections on the given pages to provide the requested access
+                     // drivers should always pass 0 here.
+                     struct page **pages, 
+                     struct vm_area_struct **vmas);
+#+END_SRC
+
+调用示例：
+#+BEGIN_SRC c
+  down_read(¤t->mm->mmap_sem);
+  result = get_user_pages(current, current->mm, ...);
+  up_read(¤t->mm->mmap_sem);
+  …
+  //avoid pages to be swapped out 
+  if (! PageReserved(page))
+    SetPageDirty(page);
+  …
+
+  // free pages
+  //void page_cache_release(struct page *page);
+#+END_SRC
+
+* 知识点33 大块数据申请及DMA
+　　在内核中有时需要申请一段大内存，方法之一是可以采取如下方法：
+　　示例： 如何将1M的物理内存作为私人使用(假设物理内存大小为256M)：
+1. 在内核启动时，通过mem=255M参数，让内核只能使用255M的空间。
+2. 然后通过如下调用来使用这个1M的私人空间：
+   : dmabuf= ioremap (0xFF00000 /* 255M */, 0x100000 /* 1M */);
+   不过，这种方法不宜使用在开启了高内存的系统上。
+
+ *DMA*
+
+　　默认情况下，Linux内核都假定设备都能在32位地址上进行DMA操作，如果不
+是这样，那么需要通过如下调用来告知内核：
+: int dma_set_mask(struct device *dev, u64mask);
+
+　　下面是一个只支持24位地址DMA操作的示例：
+#+BEGIN_SRC c
+  if (dma_set_mask (dev, 0xffffff))
+    card->use_dma = 1;
+   else {
+     card->use_dma = 0; /* We'll have to live without DMA */
+     printk (KERN_WARN, "mydev: DMA not supported\n");
+   }
+#+END_SRC
+
+　　当然，如果设备本身支持32位DMA操作，则没有必要调用dma_set_mask。
+
+ *DMA映射（大块数据分配）*
+
+　　建立DMA映射包含两个步骤：
+1. 分配一个DMA缓冲空间。
+2. 为该缓冲空间生成一个设备可访问的地址。
+
+　　DMA映射中需要处理cache一致性的问题。表示总线地址的数据类型：
+=dma_addr_t= 
+　　根据DMA缓冲区存在时间的长短，有两种类型的DMA映射：
+1. 一致性DMA映射(Coherent DMA mappings)。
+   这种映射在驱动的生命同期中一直存在。一致缓冲区必须同时对CPU和外设可
+   用，所以一致映射必须存在于cache-cohrent内存中。这种映射使用和建立的
+   代价比较高。
+2. 流式DMA映射(Streaming DMA mappings)
+   流式映射是一种短期的映射，它支持一个或多个DMA操作。根据体系结构的要
+   求，可能会涉及到创建bounce buffer, IOMMU寄存器编程，冲刷处理Caches
+   等。当然，这种方式下，对缓冲区的访问要受制于一些苛刻的规则，特别是
+   对缓冲区的所有权，当映射建立后，缓冲区的所有权属于设备，处理器不能
+   访问或修改它。一般应尽可能地使用这种DMA映射方式，理由如下：
+   1. 一致性DMA映射会独占映射中使用到的寄存器，导致其他模块无法访问。
+   2. 流式DMA映射有更多的优化方式。
+
+   通过如下函数可以建立一致映射：
+   #+BEGIN_SRC c
+     /**
+      ,* dma_alloc_coherent - allocate consistent memory for DMA
+      ,* @dev: valid struct device pointer, or NULL for ISA and EISA-like devices
+      ,* @size: required memory size
+      ,* @handle: bus-specific DMA address
+      ,*
+      ,* Allocate some uncached, unbuffered memory for a device for
+      ,* performing DMA.  This function allocates pages, and will
+      ,* return the CPU-viewed address, and sets @handle to be the
+      ,* device-viewed address.
+      ,*/
+     void *dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle, int flag);   
+   #+END_SRC
+
+   　　上述函数分配的BUFFER大小至少是一个页的大小, 属于大内存分配的情
+   形。
+
+   通过如下函数可以将DMA Buffer映射到请求的VMA中：
+   #+BEGIN_SRC c
+     /**
+      ,* dma_mmap_coherent - map a coherent DMA allocation into user space
+      ,* @dev: valid struct device pointer, or NULL for ISA and EISA-like devices
+      ,* @vma: vm_area_struct describing requested user mapping
+      ,* @cpu_addr: kernel CPU-view address returned from dma_alloc_coherent
+      ,* @handle: device-view address returned from dma_alloc_coherent
+      ,* @size: size of memory originally requested in dma_alloc_coherent知识点14内核调度器
+
+      ,*
+      ,* Map a coherent DMA buffer previously allocated by dma_alloc_coherent
+      ,* into user space.  The coherent DMA buffer must not be freed by the
+      ,* driver until the user space mapping has been released.
+      ,*/
+     int dma_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
+                     void *cpu_addr, dma_addr_t handle, size_t size);   
+   #+END_SRC
+
+ *DMA池*
+
+DMA池是针对小的，一致性DMA映射的分配机制。相关函数：
+#+BEGIN_SRC c
+  struct dma_pool *dma_pool_create(const char *name, struct device *dev,
+  size_t size, size_t align,
+  size_t allocation);
+
+  void dma_pool_destroy(struct dma_pool *pool);
+
+  void *dma_pool_alloc(struct dma_pool *pool, int mem_flags,
+  dma_addr_t *handle);
+
+  void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t addr);   
+#+END_SRC
+
+ 　　对于流式DMA映射，接口要复杂些。建立映射时，需要指定数据移动的方
+向，根据不同的目的，有如下一些选项：
+
+   | =DMA_TO_DEVICE=     | data is being sent to the device (in response, perhaps, to a writesystem call), =DMA_TO_DEVICE= should be used; |
+   |---------------------+-----------------------------------------------------------------------------------------------------------------|
+   | =DMA_FROM_DEVICE=   | data going to the CPU, is marked with =DMA_FROM_DEVICE=.                                                        |
+   |---------------------+-----------------------------------------------------------------------------------------------------------------|
+   | =DMA_BIDIRECTIONAL= | If data can move in either direction, use =DMA_BIDIRECTIONAL=                                                   |
+   |---------------------+-----------------------------------------------------------------------------------------------------------------|
+   | =DMA_NONE=          | only for debug purpose, should never use                                                                        |
+   |---------------------+-----------------------------------------------------------------------------------------------------------------|
+
+传输单个缓冲区：
+
+#+BEGIN_SRC c
+  dma_addr_t dma_map_single(struct device *dev, void *buffer, size_t size,
+                            enum dma_data_direction direction);
+  void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+                        enum dma_data_direction direction);
+#+END_SRC
+
+一旦缓冲区被映射后，它只属于设备，驱动不能访问。如果一定要在映射期间访
+问缓冲区的内容，必须调用如下相关的接口：
+
+#+BEGIN_SRC c
+  void dma_sync_single_for_cpu(struct device *dev, dma_handle_t bus_addr,
+  size_t size, enum dma_data_direction direction);
+  …
+  void dma_sync_single_for_device(struct device *dev, dma_handle_t bus_addr,
+  size_t size, enum dma_data_direction direction);
+#+END_SRC
+
+ *单页流式映射*
+
+有时，要映射包含struct page指针的缓冲区，可使用如下接口：
+#+BEGIN_SRC c
+  dma_addr_t dma_map_page(struct device *dev, struct page *page,
+                          unsigned long offset, size_t size,
+                          enum dma_data_direction direction);
+  void dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+                      size_t size, enum dma_data_direction direction);
+#+END_SRC
+
+代码示例：
+
+#+BEGIN_SRC c
+  static u32 _kernel_page_allocate(void)
+  {
+          struct page *new_page;
+          u32 linux_phys_addr;
+          
+          new_page = alloc_page(GFP_HIGHUSER | __GFP_ZERO | __GFP_REPEAT | __GFP_NOWARN | __GFP_COLD);
+          
+          if ( NULL == new_page )
+          {
+                  return 0;
+          }
+
+          /* Ensure page is flushed from CPU caches. */
+          linux_phys_addr = dma_map_page(NULL, new_page, 0, PAGE_SIZE, DMA_BIDIRECTIONAL);
+
+          return linux_phys_addr;
+  }
+
+  static void _kernel_page_release(u32 physical_address)
+  {
+          struct page *unmap_page;
+
+          #if 1
+          dma_unmap_page(NULL, physical_address, PAGE_SIZE, DMA_BIDIRECTIONAL);
+          #endif
+          
+          unmap_page = pfn_to_page( physical_address >> PAGE_SHIFT );
+          MALI_DEBUG_ASSERT_POINTER( unmap_page );
+          __free_page( unmap_page );
+  }
+#+END_SRC
+
+ *scatter/gather I/O*
+
+它是一种特殊的流式DMA映射，将多个BUFFER，通过一个DMA操作，从或往设备传
+输数据。
+
+* 知识点34 I/O端口和I/O内存
+ *I/O端口和I/O内存*
+
+　　每个外设都是通过读写它的寄存器来控制的。通常，通过内存地址空间或
+I/O地址空间进行访问。在硬件层面上，I/O区域与内存区域（DRAM）在概念上没
+有区别，它们都是通过在地址总线和控制总线上触发电信号来进行读写操作。根
+据处理器的不同，有些处理如X86拥有独立的外设地址空间，以区别普通的内存
+地址空间。针对I/O端口，会提供特殊的CPU访问指令。而有些处理器则使用 统
+一的地址空间。由于大部分I/O总线是基于个人电脑设计的，即使那些单独I/O端
+口地址空间的处理器，在访问外部设备时，必须通过一个外部芯片或在 CPU核上
+增加一个额外的电路来虚构读写I/O端口。
+
+　　同理，基于相同的原因，Linux针对所支持的平台，都实现了I/O端口的概念。
+另外，对于拥有独立I/O端口地址空间的外设，并非所有的设备将它 们的寄存器
+映射到I/O端口。与ISA设备不一样，对于PCI设备，大多数PCI设备将它们的寄存
+器映射到一段内存区域。通常这种映射方式更好，因为访问 内存效率更高，且
+不需要特殊的CPU指令。
+
+　　这样一来，访问外设的寄存器与访问内存变得一样，形式上都是对某段内存
+地址的访问。不同之处在于，普通的内存访问是没有副作用，所有编译器可以对
+一些访问 操作做优化，如Cache值，改变访问顺序等优化操作，而I/O映射的内
+存访问是有副作用的，编译器的一些优化操作会导致一些意想不到的副作用。因
+此，在 Linux中，提供了如下函数来告诉编译器禁止对某段I/O内存的访问操作
+进行优化：
+
+#+BEGIN_SRC c
+  #include <linux/kernel.h>
+  void barrier(void)
+  /**
+     This “software” memory barrier requests the compiler to consider all memory
+     volatile across this instruction.
+  ,,*/
+  #include <asm/system.h>
+    void rmb(void);
+  void read_barrier_depends(void);
+  void wmb(void);
+  void mb(void);
+  /**
+     Hardware memory barriers. They request the CPU (and the compiler) to checkpoint
+     all memory reads, writes, or both across this instruction.
+  ,,*/
+#+END_SRC
+
+使用示例：
+
+#+BEGIN_SRC c
+  writel(dev->registers.addr, io_destination_address);
+  writel(dev->registers.size, io_size);
+  writel(dev->registers.operation, DEV_READ);
+  wmb( );
+  writel(dev->registers.control, DEV_GO);
+#+END_SRC
+
+在上述例子中, =writel(dev->registers.control, DEV_GO)= 必须发生在前面
+三个指令之后。wmb()函数保证了它们执行的先后顺序。
+
+ *I/O端口*
+
+I/O端口是驱动与设备进行通信的手段，它拥有独立的地址空间。
+
+下面考察下相关的操作函数：
+在访问I/O端口前，首先要确保我们对该端口拥有唯一访问权，因此，在访问端
+口前，我们通过如下函数向系统提供访问端口的要求：
+#+BEGIN_SRC c
+  #include <linux/ioport.h>
+  struct resource *request_region(unsigned long first, unsigned long n,
+                                  const char *name);
+#+END_SRC
+
+上述函数告诉内存我们要使用n个端口，端口号从first开始。name是设备的名称。
+如果返回NULL，则表明当前不同使用所请求的端口。可以通过查看
+/proc/ioports的内容了解当前哪些端口被占用了。当然，对应端口请求函数，
+访问端口结束后，可以通过如下函数释放端口。
+
+: void release_region(unsigned long start, unsigned long n);
+
+　　一旦通过 =request_region= 取得到端口的访问权后，就可以通过如下一系列函
+数对端口进行操作了：
+#+BEGIN_SRC c
+  unsigned inb(unsigned port);
+  void outb(unsigned char byte, unsigned port);
+  /**
+     Read or write byte ports (eight bits wide). The port argument is defined as
+     unsigned long for some platforms and unsigned short for others. The return
+     type of inb is also different across architectures.
+  ,*/
+  unsigned inw(unsigned port);
+  void outw(unsigned short word, unsigned port);
+  /**
+     These functions access 16-bit ports (one word wide); they are not available when
+     compiling for the S390 platform, which supports only byte I/O.
+  ,*/
+  unsigned inl(unsigned port);
+  void outl(unsigned longword, unsigned port);
+  /**
+     These functions access 32-bit ports. longword is declared as either unsigned long
+     or unsigned int, according to the platform. Like word I/O, “long” I/O is not
+     available on S390.
+  */
+#+END_SRC
+
+ *I/O内存*
+
+尽量在X86使用I/O端口很多，但是，与设备进行通信的主要机制是通过内存映射
+的寄存器和设备内存，两者都称为I/O内存，对软件来说，是一样的。
+
+I/O内存就是一段类似RAM的内存，处理器通通过总线能够访问到它们。I/O内存
+可以存放数据，也可以映射寄存器，使其行为上与I/O端口类似（读写有副作用，
+需要使用内存屏障）。
+
+　　I/O内存的访问方式依赖于具体的硬件系统体系，I/O内存可以通过页表访问，
+也可以通过其他方式访问。如果通过页表访问，则首先需要为I/O内存映射一块
+驱动可见的物理地址，通常，在执行I/O操作前，需要调用ioremap函数。如果不
+需要通过页表访问，那么I/O内存就类似I/O端口，可以通过适当 的包装函数直
+接进行读写操作。
+
+　　下面考察下I/O内存的相关操作：
+跟I/O端口一样，在使用I/O内存时，必须首先确保I/O内存可用，通过如下函数
+来请求I/O内存的访问：
+: struct resource *request_mem_region(unsigned long start, unsigned long len, char *name);
+
+　　该函数将分配一个包含len字节的内存区域，从start地址开始。当该段内存
+区域不再需要时，通过如下函数释放：
+: void release_mem_region(unsigned long start, unsigned long len);
+
+　　之后，为了使设备驱动能够访问I/O内存地址，必须将申请到的I/O内存地址
+通过ioremap映射。ioremap的函数原型如下：
+#+BEGIN_SRC c
+  #include <asm/io.h>
+  void *ioremap(unsigned long phys_addr, unsigned long size);
+  void *ioremap_nocache(unsigned long phys_addr, unsigned long size);
+  void iounmap(void * addr);
+#+END_SRC
+
+　　通过ioremap映射后得到的地址不能通过指针的反引用直接使用，而是必须
+使用如下一些接口函数：
+#+BEGIN_SRC c
+  unsigned int ioread8(void *addr);
+  unsigned int ioread16(void *addr);
+  unsigned int ioread32(void *addr);
+
+  void iowrite8(u8 value, void *addr);
+  void iowrite16(u16 value, void *addr);
+  void iowrite32(u32 value, void *addr);
+#+END_SRC
+
+ *将I/O端口按照I/O内存来访问*
+
+　　些硬件的一些版本使用I/O端口的方式访问寄存器，而一些版本则使用I/O内
+存的方式访问，为了统一，可以将I/O端口映射为I/O内存的方式进行访问，为了
+实现这个目的，可以使用如下函数：
+: void *ioport_map(unsigned long port, unsigned int count);
+
+该函数将从port地址开始的cont个I/O端口重新映射，使它们看上去像I/O内存。
+之后，就可以使用ioread8及类似的函数访问端口了。需要注意的是，再使用该
+函数之前，仍然需要首先调用request_region函数。解除映射使用如下函数：
+: void ioport_unmap(void *addr);
+
+* 知识点35 framebuffer API
+ *Framebuffer概述*
+
+　　帧缓冲设备（Framebuffer）为图形硬件提供了一种抽象，它代表了一些视
+频硬件的帧缓冲，应用程序可以通过一个定义好的标准接口去访问图形硬件，而
+不需要了解底层的硬件细节。设备可以通过特殊的设备节点访问，通过位于/dev
+目录下，如/dev/fb*，主设备号为29。
+
+　　帧缓冲设备也可以认为是一种内存设备，可以读取它们的内容。可以同时存
+在多个帧缓冲设备。默认情况下，系统通过/dev/fb0设备文件访问图形硬件，也
+可以通过设置环境变量FRAMEBUFFER。
+
+ *Kernel API* 
+
+1. =framebuffer_alloc=
+   #+BEGIN_SRC c
+     /**
+      ,* framebuffer_alloc - creates a new frame buffer info structure
+      ,*
+      ,* @size: size of driver private data, can be zero
+      ,* @dev: pointer to the device for this fb, this can be NULL
+      ,*
+      ,* Creates a new frame buffer info structure. Also reserves @size bytes
+      ,* for driver private data (info->par). info->par (if any) will be
+      ,* aligned to sizeof(long).
+      ,*
+      ,* Returns the new structure, or NULL if an error occurred.
+      ,*
+      ,*/
+     struct fb_info *framebuffer_alloc(size_t size, struct device *dev)   
+   #+END_SRC
+2. =framebuffer_release=
+   #+BEGIN_SRC c
+     /**
+      ,* framebuffer_release - marks the structure available for freeing
+      ,*
+      ,* @info: frame buffer info structure
+      ,*
+      ,* Drop the reference count of the device embedded in the
+      ,* framebuffer info structure.
+      ,*
+      ,*/
+     void framebuffer_release(struct fb_info *info)   
+   #+END_SRC
+3. =register_framebuffer=
+   #+BEGIN_SRC c
+     /**
+      ,*      register_framebuffer - registers a frame buffer device
+      ,*      @fb_info: frame buffer info structure
+      ,*
+      ,*      Registers a frame buffer device @fb_info.
+      ,*
+      ,*      Returns negative errno on error, or zero for success.
+      ,*
+      ,*/
+     int
+     register_framebuffer(struct fb_info *fb_info)   
+   #+END_SRC
+4. =unregister_framebuffer=
+   #+BEGIN_SRC c
+     /**
+      ,*      unregister_framebuffer - releases a frame buffer device
+      ,*      @fb_info: frame buffer info structure
+      ,*
+      ,*      Unregisters a frame buffer device @fb_info.
+      ,*
+      ,*      Returns negative errno on error, or zero for success.
+      ,*
+      ,*      This function will also notify the framebuffer console
+      ,*      to release the driver.
+      ,*
+      ,*      This is meant to be called within a driver's module_exit()
+      ,*      function. If this is called outside module_exit(), ensure
+      ,*      that the driver implements fb_open() and fb_release() to
+      ,*      check that no processes are using the device.
+      ,*/
+     int
+     unregister_framebuffer(struct fb_info *fb_info)   
+   #+END_SRC
+
+* 知识点36 PCI设备驱动接口
+ *概述*
+
+与ISA总线相比，PCI总线传输速度更快，且与具体CPU架构无关，可应用在X86以
+及许多其他类型架构的平台上。通过PCI总线可以连接许多外设，构成一种树型
+结构，如下图所示：
+[[./images/2016/2016071603.png]]
+
+每个PCI外设是通过总线号，设备号和功能号标识的。PCI规范上允许一个系统可
+以拥有256条PCI总线，而对于许多大型系统，256条总线不够用，所以Linux现在
+也支持PCI域，所以一个PCI设备的地址由域，总线，设备和功能号构成：（域
+[16bit]，总线[8bit]，设备[5bit]，功能号[3bit]）每个PCI域可以承载至多
+256条总线。每个总线可以连接32个设备，每个设备可以是一个多达8个功能的多
+功能母板。因此，每个功能在硬件层次上由一个16位的地址或键标识。对于设备
+驱动来讲，我们只需要了解数据结构 =pci_dev= 。
+
+　　每个PCI设备功能的配置空间由256字节，且这些配置寄存器的布局是标准化
+的。
+[[./images/2016/2016071604.png]]
+
+数据结构 =struct pci_device_id= 用于定义一系列驱动支持的不同类型的PCI
+设备：
+#+BEGIN_SRC c
+  struct pci_device_id {
+          __u32 vendor, device;           /* Vendor and device ID or PCI_ANY_ID*/
+          __u32 subvendor, subdevice;     /* Subsystem ID's or PCI_ANY_ID */
+          __u32 class, class_mask;        /* (class,subclass,prog-if) triplet */
+          kernel_ulong_t driver_data;     /* Data private to the driver */
+  };
+#+END_SRC
+
+有两个相关的宏可以用于初始化这个数据结构的实例。
+
+: PCI_DEVICE(vendor, device): 
+　　它会创建一个 =struct pic_device_id= 实例，只匹配那些特定的vendor和device
+的ID。该宏设置subvendor和subdevice的域值为 =PCI_ANY_ID= 。
+
+: PCI_DEVICE_CLASS(device_class, device_class_mask)：
+　　创建一个匹配特定PCI类型的 =struct pci_device_id= 的实例。
+
+　　示例如下：
+#+BEGIN_SRC c
+  static struct pci_device_id i810_ids[ ] = {
+  { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82810_IG1)
+  { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82810_IG3)
+  { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82810E_IG)
+  { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82815_CGC)
+  { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82845G_IG)
+  { 0, },
+  };
+#+END_SRC
+
+　 =pci_device_id= 数据结构需要被导出到用户空间，以允许热插拔和模块加载系
+统知道哪个模块与哪个硬件设备是匹配的，如：
+: MODULE_DEVICE_TABLE(pci, i810_ids);
+
+这条语句创建了一个本地局部变量 =__mod_pci_device_table= ，它指向一个
+=struct pci_device_id= 类型的链表，在之后的内核构建过程中，depmod程序在所有的模块
+中搜索符号 =__mod_pci_device_table= 。如果该符号找到，它将从模块中把数据导出并
+将其增加到文件 =/lib/modules/KERNEL_VERSION/modules.pcimap= 中，当depmod程
+序完成后，所有模块中支持的PCI设备都会列出，包括它的模块名称。当内核通
+知热插拔系统有一个新的PCI设备找到，热插拔系统就会使用modules.pcimap文
+件去寻找合适的驱动加载。
+
+ *PCI设备驱动API*
+
+　　数据结构 =struct pci_driver= 定义了一个PCI驱动所需要的接口和相关数据成
+员信息，
+#+BEGIN_SRC c
+  struct pci_driver {
+          struct list_head node;
+          const char *name;
+          const struct pci_device_id *id_table;   /* must be non-NULL for probe to be called */
+          int  (*probe)  (struct pci_dev *dev, const struct pci_device_id *id);   /* New device inserted */
+          void (*remove) (struct pci_dev *dev);   /* Device removed (NULL if not a hot-plug capable driver) */
+          int  (*suspend) (struct pci_dev *dev, pm_message_t state);      /* Device suspended */
+          int  (*suspend_late) (struct pci_dev *dev, pm_message_t state);
+          int  (*resume_early) (struct pci_dev *dev);
+          int  (*resume) (struct pci_dev *dev);                   /* Device woken up */
+          void (*shutdown) (struct pci_dev *dev);
+          ...
+          struct device_driver     driver;
+          ...
+  };
+#+END_SRC
+
+　　注册一个PCI设备驱动使用如下接口：
+
+: int pci_register_driver(struct pci_driver *drv)
+
+　　注销一个PCI设备驱动使用如下接口：
+
+: int pci_register_driver(struct pci_driver *drv)
+
+　　使能一个PCI设备
+
+在PCI驱动的probe函数中，访问任何设备资源（如I/O区域或中断）之前，必须
+调用如下接口：
+
+: int pci_enable_device(struct pci_dev *dev);
+
+　　访问配置空间
+
+　　内核定义了如下一些接口来访问一个PCI设备的配置空间：
+
+#+BEGIN_SRC c
+  int pci_read_config_byte(struct pci_dev *dev, int where, u8 *val);
+  int pci_read_config_word(struct pci_dev *dev, int where, u16 *val);
+  int pci_read_config_dword(struct pci_dev *dev, int where, u32 *val);
+
+  int pci_write_config_byte(struct pci_dev *dev, int where, u8 val);
+  int pci_write_config_word(struct pci_dev *dev, int where, u16 val);
+  int pci_write_config_dword(struct pci_dev *dev, int where, u32 val);
+#+END_SRC
+
+　　上述几个接口实际是调用的是如下几个接口，在有些情况下，也可以直接使
+用如下几个接口：
+
+#+BEGIN_SRC c
+  int pci_bus_read_config_byte (struct pci_bus *bus, unsigned int devfn, int
+                                where, u8 *val);
+  int pci_bus_read_config_word (struct pci_bus *bus, unsigned int devfn, int
+                                where, u16 *val);
+  int pci_bus_read_config_dword (struct pci_bus *bus, unsigned int devfn, int
+                                 where, u32 *val);
+
+  int pci_bus_write_config_byte (struct pci_bus *bus, unsigned int devfn, int
+                                 where, u8 val);
+  int pci_bus_write_config_word (struct pci_bus *bus, unsigned int devfn, int
+                                 where, u16 val);
+  int pci_bus_write_config_dword (struct pci_bus *bus, unsigned int devfn, int
+                                  where, u32 val);
+#+END_SRC
+
+ *访问I/O和内存空间*
+
+一个PCI设备实现了多达6个I/O地址区域，每个区域由内存地址或I/O地址组成。
+大部分设备将它们的I/O寄存器实现（映射）在多个内存区域。然而，与普通内
+存不一样，I/O寄存器的值不能被CPU通过cache机制缓存，因为每次访问都会有
+副作用，通常其映射的内存区域是“nonprefetchable”。有些PCI设备将I/O寄存
+器映射成一个内存区域，并且允许Cache。
+
+通过上述访问配置信息的接口，我们可以访问每个区域。相应的寄存器名称为：
+=PCI_BASE_ADDRESS_0=, ..., =PCI_BASE_ADDRESS_5= 。由于内核中，PCI设备的I/O区域已
+经集成到了通用的资源管理，所以可以直接使用如下的一些接口：
+#+BEGIN_SRC c
+  unsigned long pci_resource_start(struct pci_dev *dev, int bar);
+  /* The function returns the first address (memory address or I/O port number)
+     associated with one of the six PCI I/O regions. The region is selected by the inte-
+     ger bar (the base address register), ranging from 0–5 (inclusive). */
+  unsigned long pci_resource_end(struct pci_dev *dev, int bar);
+  /*
+    The function returns the last address that is part of the I/O region number bar .
+    Note that this is the last usable address, not the first address after the region. */
+  unsigned long pci_resource_flags(struct pci_dev *dev, int bar);
+  //This function returns the flags associated with this resource.
+#+END_SRC
+
+所有资源类型比较重要的有如下：
+- =IORESOURCE_IO=
+- =IORESOURCE_MEM=
+
+PCI中断
+
+由于系统在初始化的时候已经为设备分配了一个唯一的中断号，所以该中断号就
+存储在配置寄存器 =PCI_INTERRUPT_LINE= 中，只有一个字节宽。
+
+读取中断号可用如下方式：
+
+#+BEGIN_SRC c
+  result = pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &myirq);
+  if (result) {
+    /* deal with error */
+   }
+#+END_SRC
+
+* 知识点37 platform设备驱动
+　　在Linux 2.6的设备驱动模型中，主要关心总线、设备和驱动这3个实体，总
+线将设备和驱动绑定。在系统每注册一个设备的时候，会寻找与之匹配的驱动；
+相反的，在系统每注册一个驱动的时候，会寻找与之匹配的设备，而匹配由总线
+完成。
+
+　　一个现实的Linux设备和驱动通常都需要挂接在一种总线上，对于本身依附
+于PCI、USB、I2 C、SPI等的设备而言，这自然不是问题，但是在嵌入式系统里
+面，SoC系统中集成的独立的外设控制器、挂接在SoC内存空间的外设等却不依附
+于此类总线。基于这一背景，Linux发明了一种虚拟的总线，称为platform总线，
+相应的设备称为 =platform_device= ，而驱动成为 =platform_driver= 。
+
+　　注意，所谓的 =platform_device= 并不是与字符设备、块设备和网络设备并列的
+概念，而是Linux系统提供的一种附加手段，例如，在S3C6410处理器中，把内部
+集成的I2 C、RTC、SPI、LCD、看门狗等控制器都归纳为 =platform_device= ，而它
+们本身就是字符设备。
+
+=platform_device=结构体的定义如代码所示：
+[[./images/2016/2016071605.png]]
+
+　　=platform_driver= 这个结构体中包含probe()、remove()、shutdown()、
+suspend()、resume()函数，通常也需要由驱动实现， 如下代码所示：
+[[./images/2016/2016071606.png]]
+
+　　系统中为platform总线定义了一个 =bus_type= 的实例 =platform_bus_type=
+，其定义如代码所示：
+[[./images/2016/2016071607.png]]
+
+这里要重点关注其match()成员函数，正是此成员表明了 =platform_device= 和
+=platform_driver= 之间如何匹配，如代码所示：
+
+[[./images/2016/2016071608.png]]
+
+　　匹配 =platform_device= 和 =platform_driver= 会采取多种方式，其中名字匹配是一
+种匹配方式。
+
+　　对 =platform_device= 的定义通常在BSP的板文件中实现，在板文件中，将
+=platform_device= 归纳为一个数组，最终通过 =platform_add_devices()= 函数统一注
+册。 =platform_add_devices()= 函数可以将平台设备添加到系统中，这个函数的原型
+为：
+: int platform_add_devices(struct platform_device **devs, int num);
+
+　　该函数的第一个参数为平台设备数组的指针，第二个参数为平台设备的数量，
+它内部调用了 =platform_device_register()= 函数用于注册单个的平台设备。
+
+　　 =platform_device= 的资源由resource结构体描述，其定义如代码所示：
+[[./images/2016/2016071609.png]]
+
+我们通常关心start、end和flags这3个字段，分别标明资源的开始值、结束值和
+类型，flags可以为 =IORESOURCE_IO= 、 =IORESOURCE_MEM= 、
+=IORESOURCE_IRQ= , =IORESOURCE_DMA= 等。start、end的含义会随着flags而变更，如当 flags为
+=IORESOURCE_MEM= 时，start、end分别表示该 =platform_device= 占据的内存的开始地
+址和结束地址；当 flags为 =IORESOURCE_IRQ= 时，start、end分别表示该
+=platform_device= 使用的中断号的开始值和结束值，如果只使用了 1个中断号，开
+始和结束值相同。对于同种类型的资源而言，可以有多份，譬如说某设备占据了
+2个内存区域，则可以定义2个 =IORESOURCE_MEM= 资源。
+
+　　对resource的定义也通常在BSP的板文件中进行，而在具体的设备驱动中透
+过 =platform_get_resource()= 这样的API来获取，此API的原型为：
+: struct resource *platform_get_resource(struct platform_device *, unsigned int, unsigned int);
+
+设备除了可以在BSP中定义资源以外，还可以附加一些数据信息，因为对设备的
+硬件描述除了中断、内存、DMA通道以外，可能还会有一些配置信息，而这些配
+置信息也依赖于板，不适宜直接放置在设备驱动本身，因此，platform也提供了
+=platform_data= 的支持。 =platform_data= 的形式是自定义的。
+[[./images/2016/2016071610.png]]
+
+　　可以看到 =platform_data= 是一个void型的指针，可以指向任何自定义的数据结
+构，我们可以将MAC地址、总线宽度、有无EEPROM信息放入 =platform_data= 。通过
+=platform_device_add_data= 可以向给 =platform_data= 赋值，其代码如下：
+[[./images/2016/2016071611.png]]
+
+由以上分析可知，设备驱动中引入platform的概念至少有如下2大好处：
+1. 使得设备被挂接在一个总线上，因此，符合Linux 2.6的设备模型。其结果是，
+   配套的sysfs结点、设备电源管理都成为可能。
+2. 隔离BSP和驱动。在BSP中定义platform设备和设备使用的资源、设备的具体
+   配置信息，而在驱动中，只需要通过通用API去获取资源和数据，做到了板相
+   关代码和驱动代码的分离，使得驱动具有更好的可扩展性和跨平台性。
+
+* 知识点37 debugfs接口
+在内核开发中，为了更有效地调试驱动的功能，监测一些状态信息，需要利用内
+存文件系统导出一些信息，供用户空间访问。其中debugfs就是一种这样的内存
+文件系统，它常驻内存。要启用它，必须配置内核编译选项： =CONFIG_DEBUG_FS= 。
+它的挂载点为：/sys/kernel/debug。
+
+　　常用API介绍如下：
+1. 创建一个文件
+   #+BEGIN_SRC c
+     struct dentry *debugfs_create_file(const char *name, umode_t mode,
+                                        struct dentry *parent, void *data,
+                                        const struct file_operations *fops);   
+   #+END_SRC
+2. 创建一个目录
+   : struct dentry *debugfs_create_dir(const char *name, struct dentry *parent);
+3. 创建一个链接文件
+   #+BEGIN_SRC c
+     struct dentry *debugfs_create_symlink(const char *name, struct dentry *parent,
+                                           const char *dest);   
+   #+END_SRC
+
+
+使用示例：
+#+BEGIN_SRC c
+  //create /sys/debug/binder directory
+  binder_debugfs_dir_entry_root = debugfs_create_dir("binder", NULL);
+  if (binder_debugfs_dir_entry_root)
+          binder_debugfs_dir_entry_proc = debugfs_create_dir("proc",
+                                           binder_debugfs_dir_entry_root);
+  ret = misc_register(&binder_miscdev);
+  if (binder_debugfs_dir_entry_root) {
+          debugfs_create_file("state",
+                              S_IRUGO,
+                              binder_debugfs_dir_entry_root,
+                              NULL,
+                              &binder_state_fops);
+          ...
+  }
+#+END_SRC
+
+* 知识点38 =seq_file= 接口的使用
+　　顺序文件是内核根据记录序列生成的一种文件。顺序文件一般是按顺序从头
+到尾读取文件内容，尽管支持seek操作，但是效率低下。
+
+　　顺序文件在内核中由 =struct seq_file= 结构体表示，其中主要的一个成员就是
+=struct seq_operations= ，它定义了如下接口：
+#+BEGIN_SRC c
+  struct seq_operations {
+          void * (*start) (struct seq_file *m, loff_t *pos);
+          void (*stop) (struct seq_file *m, void *v);
+          void * (*next) (struct seq_file *m, void *v, loff_t *pos);
+          int (*show) (struct seq_file *m, void *v);
+  };
+#+END_SRC
+
+　　每解发一次 =seq_read= ，都会执行如下几步：
+#+BEGIN_SRC c
+  static int traverse(struct seq_file *m, loff_t offset)
+  {
+          ...
+          p = m->op->start(m, &index);
+          while (p) {
+          ...
+                  error = m->op->show(m, p);
+          ...
+                  p = m->op->next(m, p, &index);
+          }
+          m->op->stop(m, p);
+      ...
+  }
+
+#+END_SRC
+
+迭代完成后，将一次性把buffer中的内容复制到用户空间。可以通过自定义
+=struct seq_operation= 中的几个接口函数来定义访问顺序文件的行为。
+
+通常start函数只是检查当前文件读的位置是否超过界限。next函数主要是计算
+下一次迭代时读取的位置，如果达到界限，才返回们空。stop函数通常不需要执
+行什么操作，show函数则是将内容通过 =seq_printf/seq_putc/seq_puts= 等系列函数
+输出。具体示例如下：
+#+BEGIN_SRC c
+  static void  *procfs_test2_seq_start(struct seq_file *f, loff_t *pos)
+  {
+          return (*pos < MAX_COUNT) ? pos : NULL;
+  }
+
+  static void  *procfs_test2_seq_next(struct seq_file *f, void *v, loff_t *pos)
+  {
+          printk("current pos: %d\n", (int)(*pos));
+          (*pos)++;
+          if (*pos >= MAX_COUNT)
+                  return NULL;
+          return pos;
+  }
+
+  static void  procfs_test2_seq_stop(struct seq_file *f, void *v)
+  {
+          /* Nothing to do */
+  }
+
+  static int  procfs_test2_show(struct seq_file *pi, void *v)
+  {
+          unsigned int i = *(loff_t *) v;
+          seq_putc(pi, strings[i]);
+          return 0;
+  }
+#+END_SRC
+
+　　有时，我们只能简单地一次性输出一些信息出来，可以直接使用 =single_open=
+函数，我们只需要提供对应的show函数即可。
+
+* 知识点39 libfs内核接口
+　　Libfs是内核中的一个库，它提供了几个标准通用的接口，可用于创建用于
+特殊目的的小型文件系统。这些接口非常适用于内存文件。代码位于fs/libfs.c。
+这些接口名称通过以simple开头。
+
+　　debugfs文件系统就是基于这些标准接口实现的。
+
+* 知识点40 内存映射
+　　驱动通常实现mmap()接口，使得用户空间可以直接访问在内核空间中分配或
+保留的内存。例如，PCI设备通过允许用户空间直接访问用于DMA传输的内核空间
+分配的内存。
+
+　　地址类型：
+    1. 用户虚拟地址
+    2. 物理地址
+    3. 总线地址：外设总线与主存之间沟通的地址。带有IOMMU，可以允许分散
+       在内存不同的地址（物理地址不连续）映射为一个物理地址连续的总线
+       地址，设备看到的是连续的物理地址。
+    4. 内核逻辑地址：通过kmalloc返回的地址，通常与物理地址存在线性关系，
+       一一对应。=__pa()= , =__va()= 为相互转换的宏。
+    5. 内核虚拟地址：通过vmalloc以及kmap函数返回的值都属于内核空间虚拟
+       地址，也物理地址不一定存在线性关系。
+
+　　通常只有位于低内存部分的物理地址才有对应的内核逻辑地址（不超过896M
+的部分），高出此部分的物理内存没有内核逻辑地址（即高内存）。通常内核地
+址空间大小为1G，还有减去内核本身的代码和数据结构。内核地址空间的主要消
+耗者是：物理地址的虚拟映射。所有的物理内存必须映射到内核地址空间，才能
+被内核访问。
+
+低内存：存在内核空间逻辑地址的内存
+
+高内存：超出内核地址空间的物理内存，通常没有对应的内核空间逻辑地址。
+
+struct page与虚拟地址之间的关系：
+
+: struct page *virt_to_page(void *kaddr); 
+将内核空间逻辑地址相关联的struct page指针。不适用于vmalloc（高内存）等
+返回的地址。
+
+: struct page *pfn_to_page(int pfn)：
+根据物理页帧号，返回对应的struct page指针。
+
+: void *page_address(struct page *page)：
+　　返回struct page对应的内核虚拟地址。对于高地址而言，必须是映射过的
+struct page才能对应的内核虚拟地址。
+
+: void *kmap(struct page *)：
+返回系统中任何物理页的虚拟地址，对于低内存物理页，它返回对应的逻辑地址，
+对于高内存物理页，它在内核虚拟地址空间一个专门的划定区域创建一个特别的
+映射。该映射只能由kunmap解除。
+
+虚拟地址区域（VMA）
+
+描述了一个进程地址空间中拥有相同属性内存区域。一个进程的内存映射主要由
+下面三部分组成：
+1. 程序的可执行代码区域（通常称为代码段）
+2. 多个数据区域：包含初始化数据，未初始化区域以及程序栈。
+3. 以及每个活跃内存映射的区域。
+
+当用户空间进程调用mmap时，系统会为该映射创建一个新的VMA。
+
+　　驱动中实现mmap，只需要为某个地址空间构建合适的页表即可。有两种构建
+页表的方式：
+1. 调用 =remap_pfn_range= ：一次性将一段物理地址通常页表进行映射到用户
+   空间地址。
+   : int remap_pfn_range(struct vm_area_struct *vma, unsigned long virt_addr, unsigned long pfn, unsigned long size, pgprot_t prot);
+
+   该函数作用于物理地址，但只能访问保留页（ =VM_RESERVED= ，内存系统将
+   不管理这种类型的页，即不会将其交换出磁盘）或超过物理内存的物理地址
+   （即高内存），也就是只能将上述两种类型的物理地址映射到用户空间。
+
+2. 调用nopage：一次只映射一个页到用户空间地址。
+   该函数作用于物理页，即struct page结构。
+
+　　nopage的一个明显的限制是它仅能处理那些拥有对应struct page的物理内
+存。对于主存来说，这不是问题。但是，对于外设，且被映射到一个PCI I/O内
+存区域，这里情况下，驱动就必须使用 =remap_pfn_range= 函数将内存映射到用户空
+间，而不能使用nopage。另一个不能使用nopage的情形是：当要映射的那段内存
+是通过kmalloc申请的（虽然可以通过 =virt_to_page= ，但这种写法违反了一些抽象
+原则）。但是，可以映射vmalloc申请的内存到用户空间，先将vmalloc返回的地
+址转化为struct page。 可通过 =vmalloc_to_page= 函数进行转换。对于ioremap函数
+返回的地址，不能当作一般的内核虚拟地址对待，必须使用 =remap_pfn_range= 将I/O
+地址重新映射到用户空间。
+
+在2.6.19内核版本，引入了nopfn函数，它是基于物理地址进行映射的，实现步
+骤基本如下：
+1. 基于VMA地址，找出你想映射的那个物理页的物理地址，根据物理地址，得出
+   PFN。
+2. 调用 =vm_insert_pfn()= 函数修改进程地址空间。同时设置
+   =vma->vm_flags= 为 =VM_PFNMAP= 。
+3. 返回 =NOPFN_REFAULT= 。
+
+　　在2.6.23内核版本后，又引入了另一个nopage接口，称为fault，来取代
+nopage接口以及nopfn接口。
+
+Vmalloc映射分三步：
+1. =get_vm_area= ：在vmalloc地址空间找到一个合适的区域
+2. =allocate_page= ：从物理内存中请求单个物理页
+3. =map_vm_area= ：将申请的物理页依次顺序地映射到vamlloc区域
+　
+* 知识点41 Linux内核模块
+  Linux内核的整体结构非常庞大，其包含的组件也非常多，我们需要包含所需
+  的部分功能组件。有两种方法：一种是将所需的功能组件编译进内核。二是，
+  将所需的功能组件编译成独立于内核的模块，需要时动态加载进内核。通常采
+  用第二种方式，它的好处是：
+  - 模块本身不被编译入内核映像，从而控制了内核的大小。
+  - 模块一旦被加载，它就和内核中的其他部分完全一样。
+ 
+  #+CAPTION: 一个模块的简单示例
+ #+BEGIN_SRC c
+   #include <linux/init.h>
+   #include <linux/module.h>
+   MODULE_LICENSE("Dual BSD/GPL");
+   static int hello_init(void)
+   {
+     printk(KERN_INFO " Hello World enter\n");
+     return 0;
+   }
+    
+   static void hello_exit(void)
+   {
+     printk(KERN_INFO " Hello World exit\n ");
+   }
+    
+   module_init(hello_init);
+   module_exit(hello_exit);
+    
+   MODULE_AUTHOR("Song Baohua");
+   MODULE_DESCRIPTION("A simple Hello World Module");
+   MODULE_ALIAS("a simplest module");
+ #+END_SRC
+  
+  *Linux内核模块的程序结构*    
+
+  一个Linux内核模块主要由以下几部分组成：
+  - 模块加载函数（必须）
+  - 模块卸载函数（必须）
+  - 模块许可证声明（必须）
+    常见的有：MODULE_LICENSE(“Dual BSD/GPL”)
+  - 模块参数（可选）
+  - 模块导出符号（可选）
+  - 模块作者等信息声明（可选）
+
+  *模块加载函数* 
+
+  一般以 =__init= 标识声明，典型的加载函数的形式如下：
+  #+BEGIN_SRC c
+    static int __init initialization_function(void)
+    {
+      /*初始化代码*/
+    }
+    module_init(initialization_function);  
+  #+END_SRC
+
+  在Linux 2.6内核中，可以使用
+  : request_module(const char *fmt, …)
+  函数加载内核，如下所示:
+  : request_module(“char-major-%d-%d”, MAJOR(dev), MINOR(dev));
+
+  *模块卸载函数* 
+  
+  #+BEGIN_SRC c
+    static void __exit cleanup_function(void)
+    {
+      /*释放代码*/
+    }
+    module_exit(cleanup_function);  
+  #+END_SRC
+
+  *模块参数*
+
+  可以用:
+  : module_param(参数名，参数类型，参数读/写权限)
+  来定义一个参数。如：
+  #+BEGIN_SRC c
+    static char *book_name = “bookname”;
+    static int num = 4000;
+    module_param(book_name, charp, S_IRUGO);
+    module_param(num, int, S_IRUGO);  
+  #+END_SRC
+
+  参数类型可以是：byte, short, ushort, int , uint, long, ulong, charp,
+  bool, invbool(布尔的反)。
+  具体代码如下：
+  #+BEGIN_SRC c
+    #include <linux/init.h>                               
+    #include <linux/module.h>                               
+    MODULE_LICENSE("Dual BSD/GPL");                                
+                                   
+    static char *book_name = "dissecting Linux Device Driver";             
+    static int num = 4000;                               
+                                   
+    static int book_init(void)                                
+    {                               
+       printk(KERN_INFO " book name:%s\n",book_name);                       
+       printk(KERN_INFO " book num:%d\n",num);                              
+       return 0;                               
+    }                                
+    static void book_exit(void)                               
+    {                               
+       printk(KERN_INFO " Book module exit\n ");                           
+    }                               
+    module_init(book_init);                                
+    module_exit(book_exit);                               
+    module_param(num, int, S_IRUGO);                               
+    module_param(book_name, charp, S_IRUGO);
+                                   
+    MODULE_AUTHOR("Song Baohua, author@linuxdriver.cn");
+    MODULE_DESCRIPTION("A simple Module for testing module params");
+    MODULE_VERSION("V1.0");  
+  #+END_SRC
+
+  相应的Makefile文件如下：
+  #+BEGIN_SRC sh
+    obj-m := hello.o
+    obj-m += book.o
+     
+    all:
+       $(MAKE) -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
+     
+    clean:
+       rm -f *.o *.ko *.mod.o  
+  #+END_SRC
+
+  *符号导出*
+
+  命令
+  : cat /proc/kallsyms
+  可查看内核符号表。它记录了符号以及符号所在的内存地址。模块可以使用如
+  下宏导出符号到内核符号表：
+  #+BEGIN_SRC c
+    EXPORT_SYMBOL(符号名);
+    EXPORT_SYMBOL_GPL(符号名);只适用于包含GPL许可权的模块。  
+  #+END_SRC
+
+  例子如下：
+  #+BEGIN_SRC c
+    #include <linux/init.h>                               
+    #include <linux/module.h>                               
+    MODULE_LICENSE("Dual BSD/GPL");                               
+    int add_integar(int a,int b)                               
+    {                               
+       return a+b;                            
+    }
+    int sub_integar(int a,int b)                                
+    {                               
+       return a-b;                            
+    }   
+    EXPORT_SYMBOL(add_integar);
+    EXPORT_SYMBOL(sub_integar);  
+  #+END_SRC
+
+  *模块的声明与描述*
+
+  =MODULE_AUTHOR(author)=: 模块的作者
+  =MODULE_DESCRIPTION(description)= : 模块的描述
+  =MODULE_VERSION(version_string)= : 模块的版本
+  =MODULE_DEVICE_TABLE(table_info)= : 对于USB、PCI等设备
+  =MODULE_ALIAS(alternate_name)= : 模块别名
+
+  *模块的使用计数*
+
+  Linux2.4中，使用 =MOD_INC_USE_COUNT= 、 =MOD_DEC_USE_COUNT= 宏来管理自己被使
+  用的计数。
+
+  Linux2.6中，提供了模块计数管理接口：
+  #+BEGIN_SRC c
+    int try_module_get(struct module *module):
+    void module_put(struct module *module);
+  #+END_SRC
+* 知识点42 字符设备驱动程序框架
+  1. 设备号的内部表示形式
+     类型： =dev_t= 32=12(主设备号) + 20(次设备号)
+     相关宏：
+     #+BEGIN_SRC c
+       #include <linux/kdev_t.h>
+       MAJOR(dev_t dev)
+       MINOR(dev_t dev)
+       MKDEV(int major, int minor);     
+     #+END_SRC
+
+  2. 分配和释放设备号
+     相关函数：
+     #+BEGIN_SRC c
+       //静态分配设备号
+       int register_chrdev_region(dev_t first, unsigned int count,
+                                  char *name);
+       //动态分配设备号
+       int alloc_chrdev_region(dev_t *dev, unsigned int firstminor,
+                               unsigned int count, char *name);
+       void unregister_chrdev_region(dev_t first, unsigned int count);     
+     #+END_SRC
+
+  3. 获取设备号的通常写法
+     #+BEGIN_SRC c
+       if (scull_major) {
+         dev = MKDEV(scull_major, scull_minor);
+         result = register_chrdev_region(dev, scull_nr_devs, "scull");
+        } else {
+         result = alloc_chrdev_region(&dev, scull_minor, scull_nr_devs,
+                                      "scull");
+         scull_major = MAJOR(dev);
+        }
+
+       if (result < 0) {
+         printk(KERN_WARNING "scull: can't get major %d\n", scull_major);
+         return result;
+        }     
+     #+END_SRC
+
+  4. 一些重要的数据结构
+     #+BEGIN_SRC c
+       struct file_operations
+       {
+         //用于防止一个正在使用的模块被卸载，通常值为THIS_MODULE
+         struct module *owner;
+
+         //seek
+         loff_t (*llseek) (struct file *, loff_t, int);
+
+         //read
+         ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+         ssize_t (*aio_read)(struct kiocb *, char __user *, size_t, loff_t);
+
+         //write
+         ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+         ssize_t (*aio_write)(struct kiocb *, const char __user *, size_t, loff_t *);
+
+         //readdir
+         int (*readdir) (struct file *, void *, filldir_t);
+
+         //poll
+         unsigned int (*poll) (struct file *, struct poll_table_struct *);
+
+         //ioctl
+         int (*ioctl) (struct inode *, struct file *, unsigned int, unsigned long);
+
+         //mmap
+         int (*mmap) (struct file *, struct vm_area_struct *);
+
+         //open
+         int (*open) (struct inode *, struct file *);
+
+         //flush
+         int (*flush) (struct file *);
+
+         //release
+         int (*release) (struct inode *, struct file *);
+
+         //fsync
+         int (*fsync) (struct file *, struct dentry *, int);
+         int (*aio_fsync)(struct kiocb *, int);
+         int (*fasync) (int, struct file *, int);
+
+         //lock
+         int (*lock) (struct file *, int, struct file_lock *);
+
+         //readv writev
+         ssize_t (*readv) (struct file *, const struct iovec *, unsigned long, loff_t *);
+         ssize_t (*writev) (struct file *, const struct iovec *, unsigned long, loff_t *);
+
+         //sendfile
+         ssize_t (*sendfile)(struct file *, loff_t *, size_t, read_actor_t, void *);
+
+         //sendpage
+         ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *,
+                              int);
+
+         //get_unmapped_area
+         unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned
+                                            long, unsigned long, unsigned long);
+        
+         //check_flags
+         int (*check_flags)(int)
+
+         //dir_notify
+           int (*dir_notify)(struct file *, unsigned long);
+
+         ...
+
+       };
+
+        
+
+       //代表打开的文件
+       struct file
+       {
+         //读写权限
+         mode_t f_mode;
+
+         //文件读写位置
+         loff_t f_pos;
+
+         //文件标志(O_RDONLY, O_NONBLOCK, O_SYNC)
+         unsigned int f_flags;
+
+         //文件操作
+         struct file_operations *f_op;
+
+         //设备文件的私有数据
+         void *private_data;
+
+         //与文件相关的目录,
+         struct dentry *f_dentry;
+
+         ...
+
+       };
+
+        
+       struct inode
+       {
+         //对于设备文件来说，此域表示真实的设备号
+         dev_t i_rdev;
+
+         //当引结点指向一个字符设备时，代表内核内部结构的字符设备
+         struct cdev *i_cdev;
+
+       };
+
+       //从I结点中获取次设备号
+       unsigned int iminor(struct inode *inode);
+       // 从I结点中获取主设备号
+       unsigned int imajor(struct inode *inode);     
+     #+END_SRC
+
+  5. 注册字符设备
+     头文件：<linux/cdev.h>
+     cdev 结构体的定义：
+     #+BEGIN_SRC c
+       struct cdev
+       {
+         struct kobject kobj;        /*内嵌的kobject对象*/
+         struct module *owner;   /*所属模块*/
+         struct file_operations *ops; /*相关的文件操作*/
+         struct list_head list;
+         dev_t dev;      /*设备模块*/
+         unsigned int count;
+       };     
+     #+END_SRC
+     
+     分配和初始化字符设备相关结构:
+     - 方法1（将cdev作为单独的一个结构）
+       #+BEGIN_SRC c
+         struct cdev *my_cdev = cdev_alloc( ); //分配设备空间
+         my_cdev->ops = &my_fops;
+         //设备初始化
+         void cdev_init(struct cdev *cdev, struct file_operations *fops);
+         //添加设备
+         int cdev_add(struct cdev *dev, dev_t num, unsigned int count);
+         //删除设备
+         void cdev_del(struct cdev *dev);       
+       #+END_SRC
+
+     - 方法2（将cdev作为自定义设备结构的一个成员）
+       #+BEGIN_SRC c
+         struct mydev
+         {
+           …
+           struct cdev;
+         }       
+       #+END_SRC
+
+       设备分配初始化以及删除操作类似
+
+       2.6内核以前的字符设备注册方法
+       #+BEGIN_SRC c
+         int register_chrdev(unsigned int major, const char *name, struct file_operations *fops);
+
+         int unregister_chrdev(unsigned int major, const char *name);       
+       #+END_SRC
+
+  6. 字符设备驱动程序模板
+     字符设备驱动模块加载和卸载函数模板
+     #+BEGIN_SRC c
+       //设备结构体
+
+       struct xxx_dev_t
+
+       {
+
+         struct cdev cdev;
+
+         …
+
+       };
+
+       //设备驱动模块加载函数
+
+       static int __init xxx_init(void)
+
+       {
+
+         …
+
+           //初始化cdev
+           cdev_init(&xxx_dev.cdev, &xxx_fops);
+
+         //获取字符设备号
+         if(xxx_major)
+           {
+             register_chrdev_region(xxx_dev_no, 1, DEV_NAME);
+           }
+         else
+           {
+             alloc_chrdev_region(&xxx_dev_no, 0, 1, DEV_NAME);
+           }
+
+         //注册设备
+         ret = cdev_add(&xxx_dev.cdev, xxx_dev_no, 1);
+       }
+
+       //设备驱动模块卸载函数
+       static void __exit xxx_exit(void)
+       {
+         //释放占用的设备号
+         unregister_chrdev_region(xxx_dev_no, 1);
+         //注销设备
+         cdev_del(&xxx_dev.cdev);
+
+         …
+
+       }     
+     #+END_SRC
+
+     字符设备常用I/O操作函数模板
+     #+BEGIN_SRC c
+       //读设备
+       ssize_t xxx_read(struct file *filep, char __user *buf, size_t count, loff_t *f_pos)
+       {
+
+         …
+
+           copy_to_user(buf, …, …);
+
+         …
+
+       }
+
+       //写设备
+       ssize_t xxx_write(struct file *filep, const char __user *buf, size_t count, loff_t *f_pos)
+       {
+
+         …
+
+           copy_from_user(…, buf, …);
+
+         …
+
+       }
+
+       //ioctl函数
+       int xxx_ioctl(struct inode *inode, struct file *filep, unsigned int cmd, unsigned long arg)
+       {
+
+         …
+
+           switch(cmd)
+             {
+
+             case XXX_CMD1:
+
+               …
+
+                 break;
+
+             case XXX_CMD2:
+
+               …
+
+                 break;
+
+             default:
+
+               //不能支持的命令
+
+               return –ENOTTY;
+
+             }
+
+         return 0;
+
+       }     
+     #+END_SRC
+
+     用户空间与内核空间的数据传输
+
+     #+BEGIN_SRC c
+       //内核空间到用户空间数据的复制
+       unsigned long copy_to_user(void __user *to, const void *from,                         
+                                  unsigned long count);
+
+       //用户空间到内核空间的复制
+       unsigned long copy_from_user(void *to, const void __user *from,
+                                    unsinged long count);     
+     #+END_SRC
+     
+     上述函数均返回不能被复制的字节数，因此，如果完全复制成功，返回值
+     为0.
+     
+     如果要复制的内在是简单类型，如char, int,long等，则可以使用简单的
+     =put_user()= 和 =get_user()= 函数。
+     #+BEGIN_SRC c
+       int val;
+       …
+       get_user(val, (int*)arg);
+       …
+       put_user(val, (int*)arg);     
+     #+END_SRC
+
+  7. 示例
+     #+BEGIN_SRC c
+       /**
+        ,* @file   ebbchar.c
+        ,* @author Derek Molloy
+        ,* @date   7 April 2015
+        ,* @version 0.1
+        ,* @brief   An introductory character driver to support the second article of my series on
+        ,* Linux loadable kernel module (LKM) development. This module maps to /dev/ebbchar and
+        ,* comes with a helper C program that can be run in Linux user space to communicate with
+        ,* this the LKM.
+        ,* @see http://www.derekmolloy.ie/ for a full description and follow-up descriptions.
+        ,*/
+
+       #include <linux/init.h>           // Macros used to mark up functions e.g. __init __exit
+       #include <linux/module.h>         // Core header for loading LKMs into the kernel
+       #include <linux/device.h>         // Header to support the kernel Driver Model
+       #include <linux/kernel.h>         // Contains types, macros, functions for the kernel
+       #include <linux/fs.h>             // Header for the Linux file system support
+       #include <asm/uaccess.h>          // Required for the copy to user function
+       #include <linux/mutex.h>          // Required for the mutex functionality
+       #include <linux/cdev.h>
+       #include <linux/kdev_t.h>
+       #define  DEVICE_NAME "ebbchar"    ///< The device will appear at /dev/ebbchar using this value
+       #define  CLASS_NAME  "ebb"        ///< The device class -- this is a character device driver
+
+       MODULE_LICENSE("GPL");            ///< The license type -- this affects available functionality
+       MODULE_AUTHOR("Derek Molloy");    ///< The author -- visible when you use modinfo
+       MODULE_DESCRIPTION("A simple Linux char driver for the BBB");  ///< The description -- see modinfo
+       MODULE_VERSION("0.1");            ///< A version number to inform users
+
+       static int    majorNumber = 0;                  ///< Stores the device number -- determined automatically
+       static char   message[256] = {0};           ///< Memory for the string that is passed from userspace
+       static short  size_of_message;              ///< Used to remember the size of the string stored
+       static int    numberOpens = 0;              ///< Counts the number of times the device is opened
+       static struct cdev *ebb_cdev = NULL;
+       static struct class*  ebbcharClass  = NULL; ///< The device-driver class struct pointer
+       static struct device* ebbcharDevice = NULL; ///< The device-driver device struct pointer
+
+
+       static DEFINE_MUTEX(ebbchar_mutex);  /// A macro that is used to declare a new mutex that is visible in this file
+                                            /// results in a semaphore variable ebbchar_mutex with value 1 (unlocked)
+                                            /// DEFINE_MUTEX_LOCKED() results in a variable with value 0 (locked)
+
+       // The prototype functions for the character driver -- must come before the struct definition
+       static int     dev_open(struct inode *, struct file *);
+       static int     dev_release(struct inode *, struct file *);
+       static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
+       static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
+
+       /** @brief Devices are represented as file structure in the kernel. The file_operations structure from
+        ,*  /linux/fs.h lists the callback functions that you wish to associated with your file operations
+        ,*  using a C99 syntax structure. char devices usually implement open, read, write and release calls
+        ,*/
+       static struct file_operations fops =
+         {
+           .open = dev_open,
+           .read = dev_read,
+           .write = dev_write,
+           .release = dev_release,
+         };
+
+       /** @brief The LKM initialization function
+        ,*  The static keyword restricts the visibility of the function to within this C file. The __init
+        ,*  macro means that for a built-in driver (not a LKM) the function is only used at initialization
+        ,*  time and that it can be discarded and its memory freed up after that point.
+        ,*  @return returns 0 if successful
+        ,*/
+       static int __init ebbchar_init(void){
+         int result;
+         dev_t dev = MKDEV(majorNumber, 0);
+         printk(KERN_INFO "EBBChar: Initializing the EBBChar LKM\n");
+         /* Figure out our device number. */
+         if (majorNumber)
+           result = register_chrdev_region(dev, 1, DEVICE_NAME);
+         else {
+           result = alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME);
+           majorNumber = MAJOR(dev);
+         }
+         if (majorNumber<0){
+           printk(KERN_ALERT "EBBChar failed to register a major number\n");
+           return majorNumber;
+         }
+         printk(KERN_INFO "EBBChar: registered correctly with major number %d\n", majorNumber);
+
+         ebb_cdev = cdev_alloc();
+         cdev_init(ebb_cdev, &fops);
+         ebb_cdev->owner = THIS_MODULE;
+         result = cdev_add(ebb_cdev, dev, 1);
+         if (result)  {
+           printk(KERN_NOTICE "Error %d add char device.\n", result);
+           return -1;
+         }
+
+         // Register the device class
+         ebbcharClass = class_create(THIS_MODULE, CLASS_NAME);
+         if (IS_ERR(ebbcharClass)){                // Check for error and clean up if there is
+           unregister_chrdev(majorNumber, DEVICE_NAME);
+           printk(KERN_ALERT "Failed to register device class\n");
+           return PTR_ERR(ebbcharClass);          // Correct way to return an error on a pointer
+         }
+         printk(KERN_INFO "EBBChar: device class registered correctly\n");
+
+         // Register the device driver
+         ebbcharDevice = device_create(ebbcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
+         if (IS_ERR(ebbcharDevice)){               // Clean up if there is an error
+           class_destroy(ebbcharClass);           // Repeated code but the alternative is goto statements
+           unregister_chrdev(majorNumber, DEVICE_NAME);
+           printk(KERN_ALERT "Failed to create the device\n");
+           return PTR_ERR(ebbcharDevice);
+         }
+         printk(KERN_INFO "EBBChar: device class created correctly\n"); // Made it! device was initialized
+
+         mutex_init(&ebbchar_mutex); /// Initialize the mutex lock dynamically at runtime
+
+         return 0;
+       }
+
+       /** @brief The LKM cleanup function
+        ,*  Similar to the initialization function, it is static. The __exit macro notifies that if this
+        ,*  code is used for a built-in driver (not a LKM) that this function is not required.
+        ,*/
+       static void __exit ebbchar_exit(void){
+         device_destroy(ebbcharClass, MKDEV(majorNumber, 0));     // remove the device
+         class_unregister(ebbcharClass);                          // unregister the device class
+         class_destroy(ebbcharClass);                             // remove the device class
+         //   unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
+         unregister_chrdev_region(majorNumber, 1);
+         mutex_destroy(&ebbchar_mutex);        /// destroy the dynamically-allocated mutex
+         printk(KERN_INFO "EBBChar: Goodbye from the LKM!\n");
+       }
+
+       /** @brief The device open function that is called each time the device is opened
+        ,*  This will only increment the numberOpens counter in this case.
+        ,*  @param inodep A pointer to an inode object (defined in linux/fs.h)
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*/
+       static int dev_open(struct inode *inodep, struct file *filep){
+
+         if(!mutex_trylock(&ebbchar_mutex)){    /// Try to acquire the mutex (i.e., put the lock on/down)
+           /// returns 1 if successful and 0 if there is contention
+           printk(KERN_ALERT "EBBChar: Device in use by another process");
+           return -EBUSY;
+         }
+
+         numberOpens++;
+         printk(KERN_INFO "EBBChar: Device has been opened %d time(s)\n", numberOpens);
+         return 0;
+       }
+
+       /** @brief This function is called whenever device is being read from user space i.e. data is
+        ,*  being sent from the device to the user. In this case is uses the copy_to_user() function to
+        ,*  send the buffer string to the user and captures any errors.
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*  @param buffer The pointer to the buffer to which this function writes the data
+        ,*  @param len The length of the b
+        ,*  @param offset The offset if required
+        ,*/
+       static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
+         int error_count = 0;
+         // copy_to_user has the format ( * to, *from, size) and returns 0 on success
+         error_count = copy_to_user(buffer, message, size_of_message);
+
+         if (error_count==0){            // if true then have success
+           printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", size_of_message);
+           return (size_of_message=0);  // clear the position to the start and return 0
+         }
+         else {
+           printk(KERN_INFO "EBBChar: Failed to send %d characters to the user\n", error_count);
+           return -EFAULT;              // Failed -- return a bad address message (i.e. -14)
+         }
+       }
+
+       /** @brief This function is called whenever the device is being written to from user space i.e.
+        ,*  data is sent to the device from the user. The data is copied to the message[] array in this
+        ,*  LKM using the sprintf() function along with the length of the string.
+        ,*  @param filep A pointer to a file object
+        ,*  @param buffer The buffer to that contains the string to write to the device
+        ,*  @param len The length of the array of data that is being passed in the const char buffer
+        ,*  @param offset The offset if required
+        ,*/
+       static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+         sprintf(message, "%s(%d letters)", buffer, len);   // appending received string with its length
+         size_of_message = strlen(message);                 // store the length of the stored message
+         printk(KERN_INFO "EBBChar: Received %d characters from the user\n", len);
+         return len;
+       }
+
+       /** @brief The device release function that is called whenever the device is closed/released by
+        ,*  the userspace program
+        ,*  @param inodep A pointer to an inode object (defined in linux/fs.h)
+        ,*  @param filep A pointer to a file object (defined in linux/fs.h)
+        ,*/
+       static int dev_release(struct inode *inodep, struct file *filep){
+         printk(KERN_INFO "EBBChar: Device successfully closed\n");
+         mutex_unlock(&ebbchar_mutex);          /// Releases the mutex (i.e., the lock goes up)
+         return 0;
+       }
+
+       /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
+        ,*  identify the initialization function at insertion time and the cleanup function (as
+        ,*  listed above)
+        ,*/
+       module_init(ebbchar_init);
+       module_exit(ebbchar_exit);
+     #+END_SRC
+* 知识点43 在内核中读写文件
+  有时候，需要在内核中读写外部文件，如输出配置信息或读取配置信息等。
+  我们可以利用文件读写的系统调用，但是系统调用是供用户程序程序使用，所
+  以，要想在内核中使用，需要一点技巧，即基于如下方法：
+  一般系统调用会要求你使用的缓冲区不能在内核区。这个可以用 =set_fs()= 、
+  =get_fs()= 来解决。在读写文件前先得到当前fs：
+  : mm_segment_t   old_fs=get_fs();  
+  并设置当前fs为内核fs：
+  : set_fs(KERNEL_DS);   
+  在读写文件后，再恢复原先的fs:
+  : set_fs(old_fs);  
+
+  *背后原理解释*
+
+  系统调用本来是提供给用户空间的程序访问的，所以，对传递给它的参数
+  （比如上面的buf），它默认会认为来自用户空间，在write()函数中， 为
+  了保护内核空间，一般会用 =get_fs()= 得到的值来和USER_DS进行比较，从而防
+  止用户空间程序“蓄意”破坏内核空间；
+
+  而现在要在内核空间使用系统调用，此时传递给write（）的参数地址就是
+  内核空间的地址了，在 =USER_DS= 之上( =USER_DS= ~ =KERNEL_DS=)，如果不做任何其
+  它处理，在write()函数中，会认为该地址超过了USER_DS范围，所以会认为是
+  用户空间的“蓄意破坏”，从 而不允许进一步的执行； 为了解决这个问题；
+  =set_fs(KERNEL_DS);= 将其能访问的空间限制扩大到 =KERNEL_DS=,这样就可以在内
+  核顺利使用系统调用了！
+
+  *示例*
+  #+BEGIN_SRC c
+    #include <linux/kernel.h>
+    #include <linux/module.h>
+    #include <linux/init.h>
+    #include <linux/fs.h>
+    #include <linux/string.h>
+    #include <linux/mm.h>
+    #include <linux/syscalls.h>
+    #include <asm/unistd.h>
+    #include <asm/uaccess.h>  //set_fs()/get_fs()
+
+    /**
+       -D__KERNEL_SYSCALLS__
+     ,*/
+
+    #define MY_FILE "/root/LogFile"
+
+    char buf[128];
+    struct file *file = NULL;
+
+
+
+    static int __init init(void)
+    {
+      mm_segment_t old_fs;
+      printk("Hello, I'm the module that intends to write messages to file.\n");
+
+
+      if(file == NULL)
+        file = filp_open(MY_FILE, O_RDWR | O_APPEND | O_CREAT, 0644);
+      if (IS_ERR(file)) {
+        printk("error occured while opening file %s, exiting...\n", MY_FILE);
+        return 0;
+      }
+
+      sprintf(buf,"%s", "The Messages.");
+
+      old_fs = get_fs();
+      set_fs(KERNEL_DS);
+      if (file->f_op && file->f_op->write)
+        file->f_op->write(file, (char *)buf, sizeof(buf), &file->f_pos);
+      set_fs(old_fs);
+
+      return 0;
+    }
+
+    static void __exit fini(void)
+    {
+      if(file != NULL)
+        filp_close(file, NULL);
+    }
+
+    module_init(init);
+    module_exit(fini);
+    MODULE_LICENSE("GPL");  
+  #+END_SRC
+
+  最后，Linux内核也封装了两个函数 =kernel_read= , =kernel_write= 函数
+  来读写文件，如下是一个读取文件的例子：
+  #+BEGIN_SRC c
+    /*
+      ,* read_file.c - A Module to read a file from Kernel Space
+      ,*/
+     #include <linux/module.h>
+     #include <linux/fs.h>
+
+     #define PATH "/home/fuyajun/.bash_history"
+     int mod_init(void)
+     {
+           struct file *fp;
+           char buf[512];
+           int offset = 0;
+           int ret, i;
+
+
+           /*open the file in read mode*/
+           fp = filp_open(PATH, O_RDONLY, 0);
+           if (IS_ERR(fp)) {
+                printk("Cannot open the file %ld\n", PTR_ERR(fp));
+                return -1;
+           }
+
+           printk("Opened the file successfully\n");
+           /*Read the data to the end of the file*/
+           while (1) {
+                ret = kernel_read(fp, offset, buf, 512);
+                if (ret > 0) {
+                        for (i = 0; i < ret; i++)
+                                printk("%c", buf[i]);
+                        offset += ret;
+                } else
+                        break;
+            }
+
+           filp_close(fp, NULL);
+           return 0;
+      }
+
+      void mod_exit(void)
+      {
+
+      }
+
+      module_init(mod_init); 
+      module_exit(mod_exit);
+
+     MODULE_LICENSE("GPL");
+     MODULE_AUTHOR("Knare Technologies (www.knare.org)");
+     MODULE_DESCRIPTION("Module to read a file from kernel space");      
+  #+END_SRC
+
+
+
+* 知识点44 poll 和select
+  非阻塞I/O的应用程序通过会调用poll,select和epoll等系统调用，这些系统
+  调用实际上实现的是同一个功能：允许每个进程判断在不阻塞进程的情况下，
+  当前的文件是否可读写。
+
+  上述支持依赖于设备驱动对其提供支持，需要在设备驱动中实现如下函数：
+  : unsigned int (*poll) (struct file *filp, poll_table *wait);
+
+  只要应用程序调用上述系统调用中的任何一个，都会调用到设备驱动 的poll
+  函数，它主要负责如下功能：
+  1. 对一个或多个等待队列中调用 =poll_wait= , 该函数可以查询poll的状态。 If no
+     file descriptors are currently available for I/O, the kernel
+     causes the process to wait on the wait queues for all file
+     descriptors passed to the system call.
+  2. Return a bit mask describing the operations (if any) that could
+     be immediately performed without blocking.
+
+  =poll_table= 是内核用于实现上述系统调用的数据结构，驱动不需要关注它
+  的实现内容，把它当作一个透明的数据即可。
+
+  驱动通过如下函数：
+  : void poll_wait (struct file *, wait_queue_head_t *, poll_table *);
+  将一个等待队列添加到 =poll_wait= 中。
+
+  poll方法返回一个位掩码来表明当前I/O的状态，主要有如下一些I/O状态：
+  - POLLIN
+    This bit must be set if the device can be read without blocking.
+  - POLLRDNORM
+    This bit must be set if “normal” data is available for
+    reading. A readable device returns (POLLIN | POLLRDNORM).
+  - POLLHUP
+    When a process reading this device sees end-of-file, the driver
+    must set POLLHUP (hang-up). A process calling select is told that
+    the device is readable, as dictated by the select functionality.
+  - POLLERR
+    An error condition has occurred on the device. When poll is
+    invoked, the device is reported as both readable and writable,
+    since both read and write return an error code without blocking.
+  - POLLOUT
+    This bit is set in the return value if the device can be written to without blocking.
+  - POLLWRNORM
+    This bit has the same meaning as POLLOUT, and sometimes it
+    actually is the same number. A writable device returns (POLLOUT |
+    POLLWRNORM).
+  - POLLWRBAND
+    Like POLLRDBAND, this bit means that data with nonzero priority
+    can be written to the device. Only the datagram implementation of
+    poll uses this bit, since a datagram can transmit out-of-band
+    data.
+
+    示例：
+    #+BEGIN_SRC c
+      static unsigned int scull_p_poll(struct file *filp, poll_table *wait)
+      {
+        struct scull_pipe *dev = filp->private_data;
+        unsigned int mask = 0;
+        /*
+         ,* The buffer is circular; it is considered full
+         ,* if "wp" is right behind "rp" and empty if the
+         ,* two are equal.
+         ,*/
+        down(&dev->sem);
+        poll_wait(filp, &dev->inq, wait);
+        poll_wait(filp, &dev->outq, wait);
+        if (dev->rp != dev->wp)
+          mask |= POLLIN | POLLRDNORM; /* readable */
+        if (spacefree(dev))
+          mask |= POLLOUT | POLLWRNORM; /* writable */
+        up(&dev->sem);
+        return mask;
+      }    
+    #+END_SRC
+    
+
+
+
+
+
+https://kernelnewbies.org/KernelMemoryAllocation
+
+* 知识点45 iotcl函数
+  Linux系统建议以如下方式定义ioctl()的命令码。
+  | 设备类型(type) | 序列号(nr) | 方向 | 数据尺寸(size) |
+  |----------------+------------+------+----------------|
+  | 8bit           | 8bit       | 2bit | 13/14bit       |
+  |----------------+------------+------+----------------|
+
+  命令码的设备类型字段为一个“幻数”，可以是0~0xff之间的值，命令码的序
+  列号也是8位宽，命令码的方向字段为2位，该字段表示数据传送的方向，可能
+  的值是 =_IOC_NONE= (无数据传输)、=_IOC_READ= (读)、 =_IOC_WRITE= (写)和
+  =_IOC_READ | _IOC_WRITE= (双向)。数据传输的方向是从应用程序的角度来看的。
+
+  命令码的数据长度字段表示涉及的用户数据的大小，这个成员的宽度依赖于体
+  系结构，通常是13位或者14位。
+
+  内核还定义了 =_IO()= 、 =_IOR()= 、 =_IOW()= 和 =_IOWR()= 这4个宏来辅助生成命令，这4
+  个宏的通用定义代码如下：
+  #+BEGIN_SRC c
+    #define _IO(type, nr)     _IOC(_IOC_NONE, (type), (nr), 0)  
+      
+    #define _IOR(type, nr, size) _IOC(_IOC_READ, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOW(type, nr, size) _IOC(_IOC_WRITE, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOWR(type, nr, size) _IOC(_IOC_WRITE, (type), (nr), (_IOC_TYPECHECK(size)))  
+      
+    #define _IOC(dir, type, nr, size) \  
+      
+           (((dir) << _IOC_DIRSHIFT) |\  
+      
+    ((type) << _IOC_TYPESHIFT) | \  
+      
+    ((nr) << _IOC_NRSHIFT)  | \  
+      
+    ((size) << _IOC_SIZESHIFT))    
+  #+END_SRC

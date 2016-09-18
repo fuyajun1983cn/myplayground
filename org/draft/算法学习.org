@@ -1,0 +1,528 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: 数据结构与算法设计学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 算法复杂度速查表[fn:1]
+
+* 数据结构
+
+** 链表
+
+*** 单链表
+    
+*** 静态链表
+
+*** 双向链表
+
+*** 循环链表
+
+** 串
+** 队列
+
+** 栈
+
+** 散列
+
+** 树
+
+*** 二叉树
+
+*** 二叉平衡树(ALV)
+
+*** 二叉查找树(ADT)
+
+*** 二叉排序树(BST)
+
+* 常见算法
+
+** 查找
+
+    算法备忘录——查找
+    http://www.yidianzixun.com/n/0EENsECQ?s=12&appid=yidian&ver=3.6.8&utk=3em6ldsx
+
+*** 顺序查找
+
+*** 有序表查找
+
+**** 二分查找
+
+**** 斐波那契查找
+
+**** 插值查找
+
+** 排序
+
+*** 冒泡排序
+
+*** 选择排序
+
+*** 插入排序
+
+*** 希尔排序
+
+*** 堆排序
+
+*** 快速排序
+
+** 贪婪法
+
+** 分而治之法
+
+** 动态规划法
+
+** 回溯法
+
+** 分支定界法
+
+* 算法问题实例
+** 最大子序列
+   求一个数组的最大子序列（和最大）
+   #+BEGIN_SRC c
+     int MaxSubseqSum(int A[], int N)
+     {
+       int ThisSum, MaxSum;
+       int i;
+       ThisSum = MaxSum = 0;
+       for (i = 0; i < N; i++) {
+         ThisSum += A[i];
+         if (ThisSum > MaxSum)
+           MaxSum = ThisSum;
+         else
+           ThisSum = 0;
+       }
+       return MaxSum;
+     }
+   #+END_SRC
+
+* 面试题集锦
+[[http://www.hawstein.com/posts/ctci-solutions-contents.html][Cracking the coding interview--问题与解答]]
+
+structure your answer with S(Situation), A(Action), R(Response)
+
+** 数组与字符串
+
+*** 字符是否唯一
+    
+**** 题目
+     Implement an algorithm to determine if a string has all unique
+     characters. What if you can not use additional data structures?
+
+     实现一个算法来判断一个字符串中的字符是否唯一(即没有重复).不能使用
+     额外的数据结构。 (即只使用基本的数据结构) 
+
+**** 解答
+
+     #+BEGIN_SRC java
+       public class Solution {
+           public static void main(String args[]) {
+               //测试 代码
+           }
+
+           //判断一个字符串所有的字符是否唯一
+           boolean isUniqueChars(String s) {
+               boolean char_set = new boolean[256];
+               for (int i = 0; i < s.length(); i++) {
+                   int val = s.charAt(i);
+                   if (char_set[val])
+                       return false;
+                   char_set[val] = true;
+               }
+               return true;
+           }
+
+           //假设字符串只包含a~z范围内的字符串
+           //则可以写更简洁一点
+           boolean isUniqueChars2(String s) {
+               int checker = 0;
+
+               for (int i = 0; i < s.length(); i++) {
+                   int val = s.charAt(i);
+                   if (checker & (1 << val))
+                       return false;
+                   checker |= val;
+               }
+               
+               return true;
+           }
+          
+       }     
+     #+END_SRC
+
+*** 翻转字符串
+
+**** 题目
+     Write code to reverse a C-Style String. (C-String means that
+     “abcd” is represented as five characters, including the null
+     character.)
+
+     写代码翻转一个C风格的字符串。(C风格的意思是”abcd”需要用5个字符来
+     表示，包含末尾的 结束字符) 
+
+**** 解答
+
+     #+BEGIN_SRC c
+       void reverse(char *str)
+       {
+         char *end = str;
+         if (str) {
+           while(end)
+             end++;
+           end--;
+           while (str < end) {
+             tmp = *str;
+             ,*str++ = *end;
+             ,*end-- = tmp;
+           }
+         }
+         
+       }
+     #+END_SRC
+
+     #+BEGIN_SRC java
+       public class Solution
+       {
+           public static void main(String[] args)
+           {
+               
+           }
+
+           private static char[] reverse(char[] input)
+           {
+               if (input == null)
+                   return null;
+               
+               if (input.length <= 2)//只有一个字符的情形
+                   return input;
+
+               for (int i = 0; i < (input.length -1)/2; i++) {
+                   char temp = input[i];
+                   input[i] = input[input.length - 2 -i];
+                   input[input.length - 2 - i] = temp;
+               }
+               return input;
+           }
+       }
+     #+END_SRC
+
+*** 移除重复字符
+
+**** 题目
+     Design an algorithm and write code to remove the duplicate
+     characters in a string without using any additional buffer. 
+
+     NOTE: One or two additional variables are fine. An extra copy of
+     the array is not. 
+
+     设计算法并写出代码移除字符串中重复的字符，不能使用额外的缓存空间。
+     注意： 可以使用额外的一个或两个变量，但不允许额外再开一个数组拷贝。 
+     进一步地，
+     为你的程序写测试用例。
+
+**** 解答
+
+     #+BEGIN_SRC java
+       public class Solution
+       {
+           public static void main(String[] args)
+           {
+               
+           }
+
+           private static void deleteDuplicateChars(char[] input)
+           {
+               if (input == null)
+                   return;
+               
+               if (input.length < 2)
+                   return;
+               
+               //1. 标记重复字符
+               char maker = input[0];
+               for (int i = 1; i < input.length - 1; i++) {
+                   for (int j = i + 1; j < input.length; j++) {
+                       if (a[i] == a[j])
+                           a[j] = marker;
+                   }
+               }
+
+               //2. 清理重复的字符
+               int shift = 0;
+               for (int i = 1; i < input.length; i++) {
+                   if (input[i] == marker) {
+                       shift = 1;
+                       while ( (i + shift) < input.length && input[i + shift] == marker)
+                           shift++;
+                       a[i] = a[i + shift];
+                       a[i + shift] = marker;
+                   } 
+               }
+
+               for (int i = 1; i < input.length; i++) {
+                   if (input[i] == marker)
+                       input[i] = '\0';
+               }
+           }
+
+           /**
+            ,* 0 ~ tail之间是已经去除了重复字符串的部分
+            ,*/
+           private static void removeDuplicateChars2(char[] str)
+           {
+               if (str == null)
+                   return ;
+
+               if (str.length < 2)
+                   return;
+
+               int tail = 1;
+
+               for (int i = 1; i < str.length; i++) {
+                   int j ;
+                   for (j = 0; j < tail; j++) {
+                       if (str[i] == str[j])
+                           break;
+                   }
+                   if  (j == tail) {
+                       str[tail] = str[i];
+                       tail++;
+                   }
+               }
+               s[tail] = 0;
+           }
+
+           /**
+            ,* 允许使用固定大小的辅助数组
+            ,*/
+           private static void removeDuplicateChars3(char[] str)
+           {
+               if (str == null)
+                   return;
+               int len = str.length;
+               if (len < 2)
+                   return;
+
+               boolean hits[] = new boolean[256];
+               for (int i = 0; i < 256; i++)
+                   hits[i] = false;
+
+               hits[str[0]] = true;
+               int tail = 1;
+               for (int i = 1; i < len; i++) {
+                   if (!hits[str[i]]) {
+                       str[tail] = str[i];
+                       hits[str[i]] = true;
+                       tail++;
+                   } 
+               }
+               str[tail] = 0;
+           }
+       }
+     #+END_SRC
+
+*** 变位词
+
+**** 题目
+     Write a method to decide if two strings are anagrams or not.
+
+     写一个函数判断两个字符串是否是变位词。
+
+*** 替换空格
+
+**** 题目
+     Write a method to replace all spaces in a string with ‘%20’.
+
+     写一个函数，把字符串中所有的空格替换为%20 
+
+*** 旋转图像
+
+**** 题目
+     Given an image represented by an NxN matrix, where each pixel in
+     the image is 4 bytes, write a method to rotate the image by 90
+     degrees. Can you do this in place? 
+
+     一张图像表示成NxN的矩阵，图像中每个像素是4个字节，写一个函数把图
+     像旋转90度。 你能原地进行操作吗？(即不开辟额外的存储空间) 
+
+*** 行列置0
+
+**** 题目
+     Write an algorithm such that if an element in an MxN matrix is 0,
+     its entire row and column is set to 0. 
+
+     写一个函数处理一个MxN的矩阵，如果矩阵中某个元素为0，那么把它所在
+     的行和列都置为0. 
+
+*** 旋转字符串
+
+**** 题目
+     Assume you have a method isSubstring which checks if one word is
+     a substring of another. Given two strings, s1 and s2, write code
+     to check if s2 is a rotation of s1 using only one call to
+     isSubstring ( i.e., “waterbottle” is a rotation of
+     “erbottlewat”). 
+
+     假设你有一个isSubstring函数，可以检测一个字符串是否是另一个字符串
+     的子串。 给出字符串s1和s2，只使用一次isSubstring就能判断s2是否是
+     s1的旋转字符串， 请写出代码。旋转字符
+     串：”waterbottle”是”erbottlewat”的旋转字符串。 
+
+** 链表
+
+*** 链表去重
+
+**** 题目
+     Write code to remove duplicates from an unsorted linked list.
+     FOLLOW UP
+     How would you solve this problem if a temporary buffer is not
+     allowed?
+
+     从一个未排序的链表中移除重复的项
+     进一步地，
+     如果不允许使用临时的缓存，你如何解决这个问题？
+
+*** 返回链表元素
+
+**** 题目
+     Implement an algorithm to find the nth to last element of a
+     singly linked list.
+
+     实现一个算法从一个单链表中返回倒数第n个元素。
+
+*** 删除链表结点
+    
+**** 题目
+     Implement an algorithm to delete a node in the middle of a single
+     linked list, given only access to that node. 
+
+     EXAMPLE
+
+     Input: the node ‘c’ from the linked list a->b->c->d->e Result:
+     nothing is returned, but the new linked list looks like
+     a->b->d->e
+
+     实现一个算法来删除单链表中间的一个结点，只给出指向那个结点的指针。
+
+     例子：
+
+     输入：指向链表a->b->c->d->e中结点c的指针
+
+     结果：不需要返回什么，得到一个新链表：a->b->d->e
+     
+*** 链表求和
+
+**** 题目
+     You have two numbers represented by a linked list, where each
+     node contains a single digit. The digits are stored in reverse
+     order, such that the 1’s digit is at the head of the list. Write
+     a function that adds the two numbers and returns the sum as a
+     linked list.
+
+     EXAMPLE
+
+     Input: (3 -> 1 -> 5), (5 -> 9 -> 2)
+
+     Output: 8 -> 0 -> 8
+
+     你有两个由单链表表示的数。每个结点代表其中的一位数字。数字的存储
+     是逆序的， 也就是说个位位于链表的表头。写一函数使这两个数相加并返
+     回结果，结果也由链表表示。
+
+     例子：(3 -> 1 -> 5), (5 -> 9 -> 2)
+
+     输入：8 -> 0 -> 8
+
+*** 循环链表开始结点
+
+**** 题目
+     Given a circular linked list, implement an algorithm which
+     returns node at the beginning of the loop. 
+
+     DEFINITION
+
+     Circular linked list: A (corrupt) linked list in which a node’s
+     next pointer points to an earlier node, so as to make a loop in
+     the linked list.
+
+     EXAMPLE
+
+     Input: A -> B -> C -> D -> E -> C [the same C as earlier]
+
+     Output: C
+
+     给定一个循环链表，实现一个算法返回这个环的开始结点。
+
+     定义：
+
+     循环链表：链表中一个结点的指针指向先前已经出现的结点，导致链表中
+     出现环。
+
+     例子：
+
+     输入：A -> B -> C -> D -> E -> C [结点C在之前已经出现过]
+
+     输出：结点C
+
+** 栈与队列
+
+*** 三个栈
+
+*** 栈的集合
+
+*** 汉诺塔
+
+*** 栈实现队列
+
+*** 排序栈
+
+** 树与图
+
+** 排序与搜索
+
+* 杂项
+
+** 二进制转换
+    #+BEGIN_SRC java
+          /**
+           ,* Ex07
+           ,* 结果示例： signedToBinary(1289) 返回“010100001001”
+           ,*                       signedToBinary(-1289) 返回 "101011110111"
+           ,* 负数： 反码 + 符号位
+           ,*/
+          public static String signedToBinary(int n)
+          {
+              if (n == 0)
+                  return "0";
+              if (n > 0)
+                  return "0" + unsignedToBinary(n);
+              //负数转化为二进制可以转化为
+              //对求等同的正数的运算。
+              int mod = 1;
+              while (mod + 2*n < 0)
+                  mod *= 2;
+              return unsignedToBinary(mod + n);
+          }
+
+      /**
+           ,* Ex08
+           ,* 前提条件：n > 0
+           ,*结果示例：unsignedToBinary(1289), 返回"010100001001"
+           ,*/
+          public static String unsignedToBinary(int n)
+          {
+              if (n < 0) {
+                  return " 输入非法!";
+              }
+              String code = "";
+              while (n > 0) {
+                  code = "" + (n%2) + code; //append next bit to the left of the code
+                  n /= 2;
+              }
+              return code;
+          }
+          
+    #+END_SRC
+* Footnotes
+
+[fn:1] https://linux.cn/article-7480-1.html?utm_source=weixin

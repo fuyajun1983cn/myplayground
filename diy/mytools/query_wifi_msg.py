@@ -2,7 +2,6 @@
 #encoding:utf-8
 import os
 import sys
-import sqlite3
 
 
 
@@ -21,126 +20,364 @@ BASE_WIFI_PASSPOINT_MANAGER = 0x00028000   #163840
 BASE_WIFI_PASSPOINT_SERVICE = 0x00028100   #164096
 
 
-BASE = BASE_WIFI_SCANNER_SERVICE
-WifiScanner_Cmds = {
-'CMD_SCAN_RESULTS_AVAILABLE'              : BASE + 0,
-'CMD_FULL_SCAN_RESULTS'                   : BASE + 1,
-'CMD_HOTLIST_AP_FOUND'                    : BASE + 2,
-'CMD_HOTLIST_AP_LOST'                     : BASE + 3,
-'CMD_WIFI_CHANGE_DETECTED'                : BASE + 4,
-'CMD_WIFI_CHANGES_STABILIZED'             : BASE + 5,
-'CMD_DRIVER_LOADED'                       : BASE + 6,
-'CMD_DRIVER_UNLOADED'                     : BASE + 7,
-'CMD_SCAN_PAUSED'                         : BASE + 8,
-'CMD_SCAN_RESTARTED'                      : BASE + 9,
+## BASE Wifi
+## WifiStateMachine
+WifiStateMachine_Cmds = {
+    "CMD_START_SUPPLICANT": BASE_WIFI + 11 ,
+    "CMD_STOP_SUPPLICANT": BASE_WIFI + 12 ,
+    "CMD_START_DRIVER": BASE_WIFI + 13 ,
+    "CMD_STOP_DRIVER": BASE_WIFI + 14 ,
+    "CMD_STATIC_IP_SUCCESS": BASE_WIFI + 15 ,
+    "CMD_STATIC_IP_FAILURE": BASE_WIFI + 16 ,
+    "CMD_STOP_SUPPLICANT_FAILED": BASE_WIFI + 17 ,
+    "CMD_DELAYED_STOP_DRIVER": BASE_WIFI + 18 ,
+    "CMD_DRIVER_START_TIMED_OUT": BASE_WIFI + 19 ,
+    "CMD_START_AP": BASE_WIFI + 21 ,
+    "CMD_START_AP_SUCCESS": BASE_WIFI + 22 ,
+    "CMD_START_AP_FAILURE": BASE_WIFI + 23 ,
+    "CMD_STOP_AP": BASE_WIFI + 24 ,
+    "CMD_SET_AP_CONFIG": BASE_WIFI + 25 ,
+    "CMD_SET_AP_CONFIG_COMPLETED": BASE_WIFI + 26 ,
+    "CMD_REQUEST_AP_CONFIG": BASE_WIFI + 27 ,
+    "CMD_RESPONSE_AP_CONFIG": BASE_WIFI + 28 ,
+    "CMD_TETHER_STATE_CHANGE": BASE_WIFI + 29 ,
+    "CMD_TETHER_NOTIFICATION_TIMED_OUT": BASE_WIFI + 30 ,
+    "CMD_BLUETOOTH_ADAPTER_STATE_CHANGE": BASE_WIFI + 31 ,
+    "CMD_PING_SUPPLICANT": BASE_WIFI + 51 ,
+    "CMD_ADD_OR_UPDATE_NETWORK": BASE_WIFI + 52 ,
+    "CMD_REMOVE_NETWORK": BASE_WIFI + 53 ,
+    "CMD_ENABLE_NETWORK": BASE_WIFI + 54 ,
+    "CMD_ENABLE_ALL_NETWORKS": BASE_WIFI + 55 ,
+    "CMD_BLACKLIST_NETWORK": BASE_WIFI + 56 ,
+    "CMD_CLEAR_BLACKLIST": BASE_WIFI + 57 ,
+    "CMD_SAVE_CONFIG": BASE_WIFI + 58 ,
+    "CMD_GET_CONFIGURED_NETWORKS": BASE_WIFI + 59 ,
+    "CMD_GET_CAPABILITY_FREQ": BASE_WIFI + 60 ,
+    "CMD_GET_SUPPORTED_FEATURES": BASE_WIFI + 61 ,
+    "CMD_GET_PRIVILEGED_CONFIGURED_NETWORKS": BASE_WIFI + 62 ,
+    "CMD_GET_LINK_LAYER_STATS": BASE_WIFI + 63 ,
+    "CMD_START_SCAN": BASE_WIFI + 71 ,
+    "CMD_SET_OPERATIONAL_MODE": BASE_WIFI + 72 ,
+    "CMD_DISCONNECT": BASE_WIFI + 73 ,
+    "CMD_RECONNECT": BASE_WIFI + 74 ,
+    "CMD_REASSOCIATE": BASE_WIFI + 75 ,
+    "CMD_GET_CONNECTION_STATISTICS": BASE_WIFI + 76 ,
+    "CMD_SET_HIGH_PERF_MODE": BASE_WIFI + 77 ,
+    "CMD_SET_COUNTRY_CODE": BASE_WIFI + 80 ,
+    "CMD_ENABLE_RSSI_POLL": BASE_WIFI + 82 ,
+    "CMD_RSSI_POLL": BASE_WIFI + 83 ,
+    "CMD_START_PACKET_FILTERING": BASE_WIFI + 84 ,
+    "CMD_STOP_PACKET_FILTERING": BASE_WIFI + 85 ,
+    "CMD_SET_SUSPEND_OPT_ENABLED": BASE_WIFI + 86 ,
+    "CMD_DELAYED_NETWORK_DISCONNECT": BASE_WIFI + 87 ,
+    "CMD_NO_NETWORKS_PERIODIC_SCAN": BASE_WIFI + 88 ,
+    "CMD_TEST_NETWORK_DISCONNECT": BASE_WIFI + 89 ,
+    "CMD_SET_FREQUENCY_BAND": BASE_WIFI + 90 ,
+    "CMD_ENABLE_TDLS": BASE_WIFI + 92 ,
+    "CMD_OBTAINING_IP_ADDRESS_WATCHDOG_TIMER": BASE_WIFI + 93 ,
+    "CMD_RESET_SUPPLICANT_STATE": BASE_WIFI + 111 ,
+    "CMD_ROAM_WATCHDOG_TIMER": BASE_WIFI + 94 ,
+    "CMD_DISCONNECTING_WATCHDOG_TIMER": BASE_WIFI + 96 ,
+    "CMD_DISABLE_EPHEMERAL_NETWORK": BASE_WIFI + 98 ,
+    "CMD_ENABLE_P2P": BASE_WIFI + 131 ,
+    "CMD_DISABLE_P2P_REQ": BASE_WIFI + 132 ,
+    "CMD_DISABLE_P2P_RSP": BASE_WIFI + 133 ,
+    "CMD_BOOT_COMPLETED": BASE_WIFI + 134 ,
+    "CMD_SET_BATCHED_SCAN": BASE_WIFI + 135 ,
+    "CMD_START_NEXT_BATCHED_SCAN": BASE_WIFI + 136 ,
+    "CMD_POLL_BATCHED_SCAN": BASE_WIFI + 137 ,
+    "CMD_IP_CONFIGURATION_SUCCESSFUL": BASE_WIFI + 138 ,
+    "CMD_IP_CONFIGURATION_LOST": BASE_WIFI + 139 ,
+    "CMD_UPDATE_LINKPROPERTIES": BASE_WIFI + 140 ,
+    "CMD_TARGET_BSSID": BASE_WIFI + 141 ,
+    "CMD_RELOAD_TLS_AND_RECONNECT": BASE_WIFI + 142 ,
+    "CMD_AUTO_CONNECT": BASE_WIFI + 143 ,
+    "CMD_UNWANTED_NETWORK": BASE_WIFI + 144 ,
+    "CMD_AUTO_ROAM": BASE_WIFI + 145 ,
+    "CMD_AUTO_SAVE_NETWORK": BASE_WIFI + 146 ,
+    "CMD_ASSOCIATED_BSSID": BASE_WIFI + 147 ,
+    "CMD_NETWORK_STATUS": BASE_WIFI + 148 ,
 }
 
-db_filename = 'test.db'
-schema_sqlfile = 'test.sql'
+WifiWatchdog_Cmds = {
+    "EVENT_RSSI_CHANGE": BASE_WIFI_WATCHDOG + 3, 
+    "EVENT_NETWORK_STATE_CHANGE": BASE_WIFI_WATCHDOG + 2, 
+    "EVENT_SUPPLICANT_STATE_CHANGE": BASE_WIFI_WATCHDOG + 4, 
+    "EVENT_WIFI_RADIO_STATE_CHANGE": BASE_WIFI_WATCHDOG + 5, 
+    "EVENT_WATCHDOG_SETTINGS_CHANGE": BASE_WIFI_WATCHDOG + 6, 
+    "EVENT_BSSID_CHANGE": BASE_WIFI_WATCHDOG + 7, 
+    "EVENT_SCREEN_ON": BASE_WIFI_WATCHDOG + 8, 
+    "EVENT_SCREEN_OFF": BASE_WIFI_WATCHDOG + 9, 
+    "CMD_RSSI_FETCH": BASE_WIFI_WATCHDOG + 11, 
+    "POOR_LINK_DETECTED": BASE_WIFI_WATCHDOG + 21, 
+    "GOOD_LINK_DETECTED": BASE_WIFI_WATCHDOG + 22, 
+    "EVENT_WATCHDOG_TOGGLED": BASE_WIFI_WATCHDOG + 1, 
+}
 
-db_is_new = not os.path.exists(db_filename)
+WifiP2pManager_Cmds = {
+    "DISCOVER_PEERS": BASE_WIFI_P2P_MANAGER + 1, 
+    "DISCOVER_PEERS_FAILED": BASE_WIFI_P2P_MANAGER + 2, 
+    "DISCOVER_PEERS_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 3, 
+    "STOP_DISCOVERY": BASE_WIFI_P2P_MANAGER + 4, 
+    "STOP_DISCOVERY_FAILED": BASE_WIFI_P2P_MANAGER + 5, 
+    "STOP_DISCOVERY_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 6, 
+    "CONNECT": BASE_WIFI_P2P_MANAGER + 7, 
+    "CONNECT_FAILED": BASE_WIFI_P2P_MANAGER + 8, 
+    "CONNECT_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 9, 
+    "CANCEL_CONNECT": BASE_WIFI_P2P_MANAGER + 10, 
+    "CANCEL_CONNECT_FAILED": BASE_WIFI_P2P_MANAGER + 11, 
+    "CANCEL_CONNECT_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 12, 
+    "CREATE_GROUP": BASE_WIFI_P2P_MANAGER + 13, 
+    "CREATE_GROUP_FAILED": BASE_WIFI_P2P_MANAGER + 14, 
+    "CREATE_GROUP_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 15, 
+    "REMOVE_GROUP": BASE_WIFI_P2P_MANAGER + 16, 
+    "REMOVE_GROUP_FAILED": BASE_WIFI_P2P_MANAGER + 17, 
+    "REMOVE_GROUP_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 18, 
+    "REQUEST_PEERS": BASE_WIFI_P2P_MANAGER + 19, 
+    "RESPONSE_PEERS": BASE_WIFI_P2P_MANAGER + 20, 
+    "REQUEST_CONNECTION_INFO": BASE_WIFI_P2P_MANAGER + 21, 
+    "RESPONSE_CONNECTION_INFO": BASE_WIFI_P2P_MANAGER + 22, 
+    "REQUEST_GROUP_INFO": BASE_WIFI_P2P_MANAGER + 23, 
+    "RESPONSE_GROUP_INFO": BASE_WIFI_P2P_MANAGER + 24, 
+    "ADD_LOCAL_SERVICE": BASE_WIFI_P2P_MANAGER + 28, 
+    "ADD_LOCAL_SERVICE_FAILED": BASE_WIFI_P2P_MANAGER + 29, 
+    "ADD_LOCAL_SERVICE_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 30, 
+    "REMOVE_LOCAL_SERVICE": BASE_WIFI_P2P_MANAGER + 31, 
+    "REMOVE_LOCAL_SERVICE_FAILED": BASE_WIFI_P2P_MANAGER + 32, 
+    "REMOVE_LOCAL_SERVICE_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 33, 
+    "CLEAR_LOCAL_SERVICES": BASE_WIFI_P2P_MANAGER + 34, 
+    "CLEAR_LOCAL_SERVICES_FAILED": BASE_WIFI_P2P_MANAGER + 35, 
+    "CLEAR_LOCAL_SERVICES_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 36, 
+    "ADD_SERVICE_REQUEST": BASE_WIFI_P2P_MANAGER + 37, 
+    "ADD_SERVICE_REQUEST_FAILED": BASE_WIFI_P2P_MANAGER + 38, 
+    "ADD_SERVICE_REQUEST_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 39, 
+    "REMOVE_SERVICE_REQUEST": BASE_WIFI_P2P_MANAGER + 40, 
+    "REMOVE_SERVICE_REQUEST_FAILED": BASE_WIFI_P2P_MANAGER + 41, 
+    "REMOVE_SERVICE_REQUEST_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 42, 
+    "CLEAR_SERVICE_REQUESTS": BASE_WIFI_P2P_MANAGER + 43, 
+    "CLEAR_SERVICE_REQUESTS_FAILED": BASE_WIFI_P2P_MANAGER + 44, 
+    "CLEAR_SERVICE_REQUESTS_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 45, 
+    "DISCOVER_SERVICES": BASE_WIFI_P2P_MANAGER + 46, 
+    "DISCOVER_SERVICES_FAILED": BASE_WIFI_P2P_MANAGER + 47, 
+    "DISCOVER_SERVICES_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 48, 
+    "PING": BASE_WIFI_P2P_MANAGER + 49, 
+    "RESPONSE_SERVICE": BASE_WIFI_P2P_MANAGER + 50, 
+    "SET_DEVICE_NAME": BASE_WIFI_P2P_MANAGER + 51, 
+    "SET_DEVICE_NAME_FAILED": BASE_WIFI_P2P_MANAGER + 52, 
+    "SET_DEVICE_NAME_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 53, 
+    "DELETE_PERSISTENT_GROUP": BASE_WIFI_P2P_MANAGER + 54, 
+    "DELETE_PERSISTENT_GROUP_FAILED": BASE_WIFI_P2P_MANAGER + 55, 
+    "DELETE_PERSISTENT_GROUP_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 56, 
+    "REQUEST_PERSISTENT_GROUP_INFO": BASE_WIFI_P2P_MANAGER + 57, 
+    "RESPONSE_PERSISTENT_GROUP_INFO": BASE_WIFI_P2P_MANAGER + 58, 
+    "SET_WFD_INFO": BASE_WIFI_P2P_MANAGER + 59, 
+    "SET_WFD_INFO_FAILED": BASE_WIFI_P2P_MANAGER + 60, 
+    "SET_WFD_INFO_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 61, 
+    "START_WPS": BASE_WIFI_P2P_MANAGER + 62, 
+    "START_WPS_FAILED": BASE_WIFI_P2P_MANAGER + 63, 
+    "START_WPS_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 64, 
+    "START_LISTEN": BASE_WIFI_P2P_MANAGER + 65, 
+    "START_LISTEN_FAILED": BASE_WIFI_P2P_MANAGER + 66, 
+    "START_LISTEN_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 67, 
+    "STOP_LISTEN": BASE_WIFI_P2P_MANAGER + 68, 
+    "STOP_LISTEN_FAILED": BASE_WIFI_P2P_MANAGER + 69, 
+    "STOP_LISTEN_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 70, 
+    "SET_CHANNEL": BASE_WIFI_P2P_MANAGER + 71, 
+    "SET_CHANNEL_FAILED": BASE_WIFI_P2P_MANAGER + 72, 
+    "SET_CHANNEL_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 73, 
+    "GET_HANDOVER_REQUEST": BASE_WIFI_P2P_MANAGER + 75, 
+    "GET_HANDOVER_SELECT": BASE_WIFI_P2P_MANAGER + 76, 
+    "RESPONSE_GET_HANDOVER_MESSAGE": BASE_WIFI_P2P_MANAGER + 77, 
+    "INITIATOR_REPORT_NFC_HANDOVER": BASE_WIFI_P2P_MANAGER + 78, 
+    "RESPONDER_REPORT_NFC_HANDOVER": BASE_WIFI_P2P_MANAGER + 79, 
+    "REPORT_NFC_HANDOVER_SUCCEEDED": BASE_WIFI_P2P_MANAGER + 80, 
+    "REPORT_NFC_HANDOVER_FAILED": BASE_WIFI_P2P_MANAGER + 81, 
+}
 
+WifiP2pService_Cmds = {
+    "GROUP_CREATING_TIMED_OUT": BASE_WIFI_P2P_SERVICE + 1,
+    "PEER_CONNECTION_USER_ACCEPT": BASE_WIFI_P2P_SERVICE + 2,
+    "PEER_CONNECTION_USER_REJECT": BASE_WIFI_P2P_SERVICE + 3,
+    "DROP_WIFI_USER_ACCEPT": BASE_WIFI_P2P_SERVICE + 4,
+    "DROP_WIFI_USER_REJECT": BASE_WIFI_P2P_SERVICE + 5,
+    "DISABLE_P2P_TIMED_OUT": BASE_WIFI_P2P_SERVICE + 6,
+    "P2P_CONNECTION_CHANGED": BASE_WIFI_P2P_SERVICE + 11,
+    "DISCONNECT_WIFI_REQUEST": BASE_WIFI_P2P_SERVICE + 12,
+    "DISCONNECT_WIFI_RESPONSE": BASE_WIFI_P2P_SERVICE + 13,
+    "SET_MIRACAST_MODE": BASE_WIFI_P2P_SERVICE + 14,
+    "BLOCK_DISCOVERY": BASE_WIFI_P2P_SERVICE + 15,
+    "SET_COUNTRY_CODE": BASE_WIFI_P2P_SERVICE + 16,
+}
 
-def InitDB():
-    with sqlite3.connect(db_filename) as conn:
-        if db_is_new:
-            print("Creating schema")
-            with open(schema_sqlfile, 'rt') as f:
-                schema = f.read()
-            try:
-                conn.executescript(schema)
-            except sqlite2.OperationalError:
-                import atexit
-                atexit.register(os.unlink, db_filename)
-        else:
-            print('Datebase exists, no need to create.')
+WifiMonitor_Cmds = {
+    "SUP_CONNECTION_EVENT": BASE_WIFI_MONITOR + 1,
+    "SUP_DISCONNECTION_EVENT": BASE_WIFI_MONITOR + 2,
+    "NETWORK_CONNECTION_EVENT": BASE_WIFI_MONITOR + 3,
+    "NETWORK_DISCONNECTION_EVENT": BASE_WIFI_MONITOR + 4,
+    "SCAN_RESULTS_EVENT": BASE_WIFI_MONITOR + 5,
+    "SUPPLICANT_STATE_CHANGE_EVENT": BASE_WIFI_MONITOR + 6,
+    "AUTHENTICATION_FAILURE_EVENT": BASE_WIFI_MONITOR + 7,
+    "WPS_SUCCESS_EVENT": BASE_WIFI_MONITOR + 8,
+    "WPS_FAIL_EVENT": BASE_WIFI_MONITOR + 9,
+    "WPS_OVERLAP_EVENT": BASE_WIFI_MONITOR + 10,
+    "WPS_TIMEOUT_EVENT": BASE_WIFI_MONITOR + 11,
+    "DRIVER_HUNG_EVENT": BASE_WIFI_MONITOR + 12,
+    "SSID_TEMP_DISABLED": BASE_WIFI_MONITOR + 13,
+    "SSID_REENABLED": BASE_WIFI_MONITOR + 14,
+    "SUP_REQUEST_IDENTITY": BASE_WIFI_MONITOR + 15,
+    "SUP_REQUEST_SIM_AUTH": BASE_WIFI_MONITOR + 16,
+    "P2P_DEVICE_FOUND_EVENT": BASE_WIFI_MONITOR + 21,
+    "P2P_DEVICE_LOST_EVENT": BASE_WIFI_MONITOR + 22,
+    "P2P_GO_NEGOTIATION_REQUEST_EVENT": BASE_WIFI_MONITOR + 23,
+    "P2P_GO_NEGOTIATION_SUCCESS_EVENT": BASE_WIFI_MONITOR + 25,
+    "P2P_GO_NEGOTIATION_FAILURE_EVENT": BASE_WIFI_MONITOR + 26,
+    "P2P_GROUP_FORMATION_SUCCESS_EVENT": BASE_WIFI_MONITOR + 27,
+    "P2P_GROUP_FORMATION_FAILURE_EVENT": BASE_WIFI_MONITOR + 28,
+    "P2P_GROUP_STARTED_EVENT": BASE_WIFI_MONITOR + 29,
+    "P2P_GROUP_REMOVED_EVENT": BASE_WIFI_MONITOR + 30,
+    "P2P_INVITATION_RECEIVED_EVENT": BASE_WIFI_MONITOR + 31,
+    "P2P_INVITATION_RESULT_EVENT": BASE_WIFI_MONITOR + 32,
+    "P2P_PROV_DISC_PBC_REQ_EVENT": BASE_WIFI_MONITOR + 33,
+    "P2P_PROV_DISC_PBC_RSP_EVENT": BASE_WIFI_MONITOR + 34,
+    "P2P_PROV_DISC_ENTER_PIN_EVENT": BASE_WIFI_MONITOR + 35,
+    "P2P_PROV_DISC_SHOW_PIN_EVENT": BASE_WIFI_MONITOR + 36,
+    "P2P_FIND_STOPPED_EVENT": BASE_WIFI_MONITOR + 37,
+    "P2P_SERV_DISC_RESP_EVENT": BASE_WIFI_MONITOR + 38,
+    "P2P_PROV_DISC_FAILURE_EVENT": BASE_WIFI_MONITOR + 39,
+    "AP_STA_DISCONNECTED_EVENT": BASE_WIFI_MONITOR + 41,
+    "AP_STA_CONNECTED_EVENT": BASE_WIFI_MONITOR + 42,
+    "ASSOCIATION_REJECTION_EVENT": BASE_WIFI_MONITOR + 43,
+    "GAS_QUERY_START_EVENT": BASE_WIFI_MONITOR + 51,
+    "GAS_QUERY_DONE_EVENT": BASE_WIFI_MONITOR + 52,
+    "RX_HS20_ANQP_ICON_EVENT": BASE_WIFI_MONITOR + 53,
+    "HS20_REMEDIATION_EVENT": BASE_WIFI_MONITOR + 61,
+    "HS20_DEAUTH_EVENT": BASE_WIFI_MONITOR + 62,
+}
 
+WifiManager_Cmds = {
+    "CONNECT_NETWORK": BASE_WIFI_MANAGER + 1,
+    "CONNECT_NETWORK_FAILED": BASE_WIFI_MANAGER + 2,
+    "CONNECT_NETWORK_SUCCEEDED": BASE_WIFI_MANAGER + 3,
+    "FORGET_NETWORK": BASE_WIFI_MANAGER + 4,
+    "FORGET_NETWORK_FAILED": BASE_WIFI_MANAGER + 5,
+    "FORGET_NETWORK_SUCCEEDED": BASE_WIFI_MANAGER + 6,
+    "SAVE_NETWORK": BASE_WIFI_MANAGER + 7,
+    "SAVE_NETWORK_FAILED": BASE_WIFI_MANAGER + 8,
+    "SAVE_NETWORK_SUCCEEDED": BASE_WIFI_MANAGER + 9,
+    "START_WPS": BASE_WIFI_MANAGER + 10,
+    "START_WPS_SUCCEEDED": BASE_WIFI_MANAGER + 11,
+    "WPS_FAILED": BASE_WIFI_MANAGER + 12,
+    "WPS_COMPLETED": BASE_WIFI_MANAGER + 13,
+    "CANCEL_WPS": BASE_WIFI_MANAGER + 14,
+    "CANCEL_WPS_FAILED": BASE_WIFI_MANAGER + 15,
+    "CANCEL_WPS_SUCCEDED": BASE_WIFI_MANAGER + 16,
+    "DISABLE_NETWORK": BASE_WIFI_MANAGER + 17,
+    "DISABLE_NETWORK_FAILED": BASE_WIFI_MANAGER + 18,
+    "DISABLE_NETWORK_SUCCEEDED": BASE_WIFI_MANAGER + 19,
+    "RSSI_PKTCNT_FETCH": BASE_WIFI_MANAGER + 20,
+    "RSSI_PKTCNT_FETCH_SUCCEEDED": BASE_WIFI_MANAGER + 21,
+    "RSSI_PKTCNT_FETCH_FAILED": BASE_WIFI_MANAGER + 22,
+}
 
-def InsertWifiCommand(id, name):
-    #init db if not existent
-    InitDB()
- 
-    with sqlite3.connect(db_filename) as conn:
-        print("Inserting Wifi command")
-        curs = conn.cursor()
-        try:
-            curs.execute('insert into wifi_info(command_id, command_name) values(?, ?)', (id, name))
-        except sqlite2.OperationalError:
-            pass
-        else:
-            print("{0} rows has been added.".format(curs.rowcount))
-            conn.commit()
+WifiController_Cmds = {
+    "CMD_EMERGENCY_MODE_CHANGED": BASE_WIFI_CONTROLLER + 1,
+    "CMD_SCREEN_ON": BASE_WIFI_CONTROLLER + 2,
+    "CMD_SCREEN_OFF": BASE_WIFI_CONTROLLER + 3,
+    "CMD_BATTERY_CHANGED": BASE_WIFI_CONTROLLER + 4,
+    "CMD_DEVICE_IDLE": BASE_WIFI_CONTROLLER + 5,
+    "CMD_LOCKS_CHANGED": BASE_WIFI_CONTROLLER + 6,
+    "CMD_SCAN_ALWAYS_MODE_CHANGED": BASE_WIFI_CONTROLLER + 7,
+    "CMD_WIFI_TOGGLED": BASE_WIFI_CONTROLLER + 8,
+    "CMD_AIRPLANE_TOGGLED": BASE_WIFI_CONTROLLER + 9,
+    "CMD_SET_AP": BASE_WIFI_CONTROLLER + 10,
+    "CMD_DEFERRED_TOGGLE": BASE_WIFI_CONTROLLER + 11,
+    "CMD_USER_PRESENT": BASE_WIFI_CONTROLLER + 12,
+}
 
-def QueryWifiCommand(id):
+WifiScanner_Cmds = {
+    "CMD_SCAN": BASE_WIFI_SCANNER + 0,
+    "CMD_START_BACKGROUND_SCAN": BASE_WIFI_SCANNER + 2,
+    "CMD_STOP_BACKGROUND_SCAN": BASE_WIFI_SCANNER + 3,
+    "CMD_GET_SCAN_RESULTS": BASE_WIFI_SCANNER + 4,
+    "CMD_SCAN_RESULT": BASE_WIFI_SCANNER + 5,
+    "CMD_SET_HOTLIST": BASE_WIFI_SCANNER + 6,
+    "CMD_RESET_HOTLIST": BASE_WIFI_SCANNER + 7,
+    "CMD_AP_FOUND": BASE_WIFI_SCANNER + 9,
+    "CMD_AP_LOST": BASE_WIFI_SCANNER + 10,
+    "CMD_START_TRACKING_CHANGE": BASE_WIFI_SCANNER + 11,
+    "CMD_STOP_TRACKING_CHANGE": BASE_WIFI_SCANNER + 12,
+    "CMD_CONFIGURE_WIFI_CHANGE": BASE_WIFI_SCANNER + 13,
+    "CMD_WIFI_CHANGE_DETECTED": BASE_WIFI_SCANNER + 15,
+    "CMD_WIFI_CHANGES_STABILIZED": BASE_WIFI_SCANNER + 16,
+    "CMD_OP_SUCCEEDED": BASE_WIFI_SCANNER + 17,
+    "CMD_OP_FAILED": BASE_WIFI_SCANNER + 18,
+    "CMD_PERIOD_CHANGED": BASE_WIFI_SCANNER + 19,
+    "CMD_FULL_SCAN_RESULT": BASE_WIFI_SCANNER + 20,
+}
 
-    with sqlite3.connect(db_filename) as conn:
-        print("Querying wifi command " + id)
-        curs = conn.cursor()
-        try:
-            curs.execute('select command_name from wifi_info where command_id = ?', (id,))
-        except sqlite3.OperationalError:
-            print("Command Error")
-        else:
-            command_name = curs.fetchone()
-            if command_name is not None:
-                return command_name[0]
-            else:
-                print("No such command")
-
-def DeleteWifiCommand(command_name):
-
-    with sqlite3.connect(db_filename) as conn:
-        print("Deleting wifi command " + id)
-        curs = conn.cursor()
-        try:
-            curs.execute('delete from wifi_info where command_name = ?', (command_name,))
-        except sqlite3.OperationalError:
-            print("Command Error")
-        else:
-            conn.commit()
-
-def UpdateWifiCommand(id, name):
-
-    with sqlite3.connect(db_filename) as conn:
-        print("Updating wifi command " + id)
-        curs = conn.cursor()
-        try:
-            curs.execute('update wifi_info set command_name = ? where command_id = ?', (name, id))
-        except sqlite3.OperationalError:
-            print("Command Error")
-        else:
-            conn.commit()
-
-
-def Test():
-    for command_name, command_id in WifiScanner_Cmds.items():
-        print("Key: {0}, Value: {1}".format(command_id,command_name))
-        InsertWifiCommand(command_id, command_name)
+WifiScannerService_Cmds = {
+    "CMD_SCAN_RESULTS_AVAILABLE": BASE_WIFI_SCANNER_SERVICE + 0,
+    "CMD_FULL_SCAN_RESULTS": BASE_WIFI_SCANNER_SERVICE + 1,
+    "CMD_HOTLIST_AP_FOUND": BASE_WIFI_SCANNER_SERVICE + 2,
+    "CMD_HOTLIST_AP_LOST": BASE_WIFI_SCANNER_SERVICE + 3,
+    "CMD_WIFI_CHANGE_DETECTED": BASE_WIFI_SCANNER_SERVICE + 4,
+    "CMD_WIFI_CHANGES_STABILIZED": BASE_WIFI_SCANNER_SERVICE + 5,
+    "CMD_DRIVER_LOADED": BASE_WIFI_SCANNER_SERVICE + 6,
+    "CMD_DRIVER_UNLOADED": BASE_WIFI_SCANNER_SERVICE + 7,
+    "CMD_SCAN_PAUSED": BASE_WIFI_SCANNER_SERVICE + 8,
+    "CMD_SCAN_RESTARTED": BASE_WIFI_SCANNER_SERVICE + 9,
+}
 
 
 
 if __name__ == '__main__':
 
-#    Test()
+    if len(sys.argv) == 2:
+        id = int(sys.argv[1])
+        for msg_name,msg_id in WifiStateMachine_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+                
 
-   if len(sys.argv) == 4:
-       if sys.argv[1] == 'Insert':
-          InsertWifiCommand(sys.argv[2], sys.argv[3])
-       elif sys.argv[1] == 'Update':
-          UpdateWifiCommand(sys.argv[2], sys.argv[3])
-       else:
-          print("Invalid Command!")
-   elif len(sys.argv) == 3:
-       if sys.argv[1] == 'Query':
-           command_name = QueryWifiCommand(sys.argv[2])
-           if command_name is not None:
-               print("Command Name: " + command_name)
-       elif sys.argv[1] == 'Delete':
-           DeleteWifiCommand(sys.argv[2])
-       else:
-           print("Invalid Command!")
-   else:
-       print("Only support Insert, Update, Query, Dele:e Operations")
+        for msg_name, msg_id in WifiWatchdog_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
 
 
+        for msg_name, msg_id in WifiP2pService_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
 
+
+        for msg_name, msg_id in WifiP2pManager_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+
+        for msg_name, msg_id in WifiMonitor_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+
+        for msg_name, msg_id in WifiManager_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+
+        for msg_name, msg_id in WifiController_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+
+        for msg_name, msg_id in WifiScanner_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)
+
+        for msg_name, msg_id in WifiScannerService_Cmds.items():
+            if (msg_id == id):
+                print("Message Name: %s" %msg_name)
+                sys.exit(0)

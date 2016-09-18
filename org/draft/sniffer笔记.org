@@ -7,6 +7,9 @@
 
 * WireShark
 
+** Packet Capture Mechanism
+    [[./images/2016/2016071207.png]]
+
 ** 可以使用WireShark完成的任务列表
    - Find the top talkers on the network
    - Identify the protocols and applications in use
@@ -40,6 +43,39 @@
    - Identify average and unacceptable service response times (SRT)
    - Graph intervals of periodic packet generation applications or
      protocols
+
+** 网络数据分析 
+
+*** RTP Statistics
+    [[./images/2016/2016070101.png]]
+    
+    - Jitter
+    - Delta
+      The delta is the time difference between the current packet and
+      the previous packet in the stream. max delta is the largest
+      delta value.
+
+    - Skew
+      Skew calculation is defined as follows (from:
+      tap-rtp-common.c). max skew is the largest value of all skew
+      values.
+      #+BEGIN_SRC c
+        /* Calculate skew, i.e. absolute jitter that also catches clock drift
+         ,* Skew is positive if TS (nominal) is too fast
+         ,*/
+        statinfo->skew    = nominaltime - arrivaltime;
+        absskew = fabs(statinfo->skew);
+        if(absskew > fabs(statinfo->max_skew)){
+          statinfo->max_skew = statinfo->skew;
+         }      
+      #+END_SRC
+      
+    - bandwidth
+      The BW column in RTP Streams and RTP Statistics dialogs shows
+      the bandwidth at IP level for the given RTP stream. It is the
+      sum of all octets, including IP and UDP headers (20+8 bytes),
+      from all the packets of the given RTP stream over the last
+      second.
 
 ** Identify Network Problems
    

@@ -4,7 +4,6 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * MLME总体分析
-
 ** 概述
 
 *** 处理接收到的管理帧 =STAHandleRxMgmtFrame rtmp_data.c=
@@ -23,9 +22,66 @@
    - get_netdev_from_bssid() is called for recognizing an Rx packet is belonging to which net device (ra0, p2p0, or uap0)
    - MacTableReset() and AsicDelWcidTab() are called while AP-liked interface is starting or stopping
      - The entry for the already connected STAs of P2P GO or SoftAP will be flushed and then disconnect
+   - UserCfgInit
+     初始化驱动的一些变量。
 
 ** 将数据包发往上层处理
    在 =cmm_mat.c= 中有定义 =MATProtoTb= ，用于相关协议数据包
+
+** 重要数据结构
+*** pAd->CommonCfg.RegTransmitSetting
+        802.11n相关寄存器的设置
+
+*** pAd->MlmeAux
+        hold temporary settings during a connection attemp
+
+*** pAd->StaActive
+       when conection attemp succeed, pAd->MlmeAux will be copied to
+       pAd->StaActive, when failed, driver can auto-recover back to
+       the active settings.
+
+*** pAd->CommonCfg
+       连接时的配置，一般由Upper Layer传递过来的。
+
+*** 重要的计时器
+       - BeaconTimer
+       - ScanTimer
+         设置在每个信道上执行扫描的时间，对应的超时处理函数为 ScanTimeoutAction.
+       - APScanTimer
+       - AuthTimer
+       - AssocTimer
+       - ReassocTimer
+       - DisassocTimer
+** 接口初始化
+
+    只有在物理接口打开的时候，才会初始化其他的虚拟接口。
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081901.png :cmdline -charset UTF-8
+      @startuml
+      start
+      :MainVirtualIF_open;
+      note right: 物理接口的打开函数
+      :VIRTUAL_IF_UP;
+      :rt28xx_open;
+      :rt28xx_init;
+      note right
+      初始化驱动支持的一些接口，如
+      p2p0, uap0
+
+      @enduml
+    #+END_SRC
+
+    rt28xx_init
+** 地区信道描述
+    #+BEGIN_SRC c++
+      extern COUNTRY_REGION_CH_DESC Country_Region_ChDesc_2GHZ[];
+      extern UINT16 const Country_Region_GroupNum_2GHZ;
+      extern COUNTRY_REGION_CH_DESC Country_Region_ChDesc_5GHZ[];
+      extern UINT16 const Country_Region_GroupNum_5GHZ;    
+    #+END_SRC
+** Beacon帧
+    - updateAllBeacon
+    - APMakeBssBeacon
 * MLME主循环处理
   MLME的主循环处理函数是:  =MlmeHandler= 
      
@@ -42,7 +98,12 @@
     周期性执行的一个函数。
 
 * MLME状态机
-
+  
+  状态机的处理函数 MlmeHandler
+  
+** APCLI状态机
+   p2p时使用的状态机
+   
 ** AP状态机
 
 *** AP_AUTH state machine
@@ -55,7 +116,7 @@
     Handle beacon or scan behavior
 
 ** STA状态机
-   
+   STA时使用的状态机
 *** CTNL
     CNTL sends messages to other state machine to trigger actions
     Control STA connection behavior
@@ -69,12 +130,19 @@
     7. =CNTL_WAIT_OID_DISASSOC=
     8. =CNTL_IDLE=
 
+    处理函数 MlmeCntlMachinePerformAction 
+
 *** SYNC
     Handle scan or join BSS behavior
     总共有3个状态：
     1. =SCAN_LISTEN=
     2. =JOIN_WAIT_BEACON=
     3. =SYNC_IDLE=
+
+    MlmeJoinReqAction --> PeerBeaconAtJoinAction --> CntlWaitAuthProc
+    (send auth req, waiting for auth response)
+
+IE_EXT_CAPABILITY
 
 *** AUTH
     Handle authentication packets
@@ -89,10 +157,128 @@
     1. =ASSOC_IDLE=
     2. =ASSOC_WAIT_RSP=
 
+* Device/Driver Init/Exit Module
+  [[./images/2016/2016080301.png]]
+
+  
+** RTMPInitTxRxRingMemory
+
 * 数据接收
 
+** 数据结构
+
+*** memory layout
+
+    /* ====================================================================
+	USB TX / RX Frame Descriptors format
+
+	Tx Memory Layout
+	1. Packet Buffer
+		TxINFO(4 bytes) + TXWI( 16 bytes) + 802.11
+	 31                                                                                                        0
+	+-------------------------------------------------------------------+
+	|                                   TXINFO[31:0]                                                      |
+	+-------------------------------------------------------------------+
+	|                                   TxWI                                                                  |
+	+                                                                                                            +
+	|                                                                                                            |
+	+                                                                                                            +
+	|                                                                                                            |
+	+	                                                                                                       +
+	|	                                                                                                       |
+	+-------------------------------------------------------------------+
+	|                                      802.11                                                             |
+	|                                      .........                                                             |
+	+-------------------------------------------------------------------+
+
+	Rx Memory Layout
+	1. Packet Buffer
+		RxDMALen(4 bytes) + RXWI(16 bytes) + 802.11 + RXINFO (4 bytes)
+	 31                                                                                                     0
+	+-----------------------------------------------------------------+
+	|                                  RXDMALen[31:0]                                                |
+	+-----------------------------------------------------------------+
+	|					 RxWI                                                                  |
+	+                                                                                                        +
+	|                                                                                                        |
+	+                                                                                                        +
+	|                                                                                                        |
+	+	                                                                                                   +
+	|	                                                                                                   |
+	+-----------------------------------------------------------------+
+	|                                  802.11                                                             |
+	|                                  .........                                                             |
+	+-----------------------------------------------------------------+
+	|                                  RXINFO                                                            |
+	+-----------------------------------------------------------------+
+
+=====================================================================*/
+
+*** =RX_BLK=
+    接收的数据包描述
+     #+BEGIN_SRC c
+       ypedef struct _RX_BLK {
+               UCHAR hw_rx_info[RXD_SIZE];     /* include "RXD_STRUC RxD" and "RXINFO_STRUC rx_info " */
+               RXINFO_STRUC *pRxInfo;  /* for RLT, in head of frame buffer, for RTMP, in hw_rx_info[RXINFO_OFFSET] */
+       #ifdef RLT_MAC
+               RXFCE_INFO *pRxFceInfo; /* for RLT, in in hw_rx_info[RXINFO_OFFSET], for RTMP, no such field */
+       #endif                          /* RLT_MAC */
+               RXWI_STRUC *pRxWI;      /*in frame buffer and after "rx_info" fields */
+               HEADER_802_11 *pHeader; /* poiter of 802.11 header, pointer to frame buffer and shall not shift this pointer */
+               PNDIS_PACKET pRxPacket; /* os_packet pointer, shall not change */
+               UCHAR *pData;           /* init to pRxPacket->data, refer to frame buffer, may changed depends on processing */
+               USHORT DataSize;        /* init to  RXWI->MPDUtotalByteCnt, and may changes depends on processing */
+               USHORT Flags;
+
+               /* Mirror info of partial fields of RxWI and RxInfo */
+               USHORT MPDUtotalByteCnt;        /* Refer to RXWI->MPDUtotalByteCnt */
+               UCHAR UserPriority;     /* for calculate TKIP MIC using */
+               UCHAR OpMode;           /* 0:OPMODE_STA 1:OPMODE_AP */
+               UCHAR wcid;             /* copy of pRxWI->wcid */
+               UCHAR U2M;
+               UCHAR key_idx;
+               UCHAR bss_idx;
+               UCHAR TID;
+               CHAR rssi[3];
+               CHAR snr[3];
+               CHAR freq_offset;
+               CHAR ldpc_ex_sym;
+               HTTRANSMIT_SETTING rx_rate;
+       #ifdef HDR_TRANS_SUPPORT
+               BOOLEAN bHdrRxTrans;    /* this packet's header is translated to 802.3 by HW  */
+               BOOLEAN bHdrVlanTaged;  /* VLAN tag is added to this header */
+               UCHAR *pTransData;
+               USHORT TransDataSize;
+       #endif                          /* HDR_TRANS_SUPPORT */
+       } RX_BLK;    
+     #+END_SRC
+
+*** =RX_CONTEXT=
+        #+BEGIN_SRC c
+          /*
+                  Structure to keep track of receive packets and buffers to indicate
+                  receive data to the protocol.
+          ,*/
+          typedef struct _RX_CONTEXT {
+                  PUCHAR TransferBuffer;
+                  PVOID pAd;
+                  PIRP pIrp;              /*used to cancel pending bulk in. */
+                  PURB pUrb;
+                  /*These 2 Boolean shouldn't both be 1 at the same time. */
+                  ULONG BulkInOffset;     /* number of packets waiting for reordering . */
+          /*      BOOLEAN                         ReorderInUse;   // At least one packet in this buffer are in
+                                                          reordering buffer and wait for receive indication */
+                  BOOLEAN bRxHandling;    /* Notify this packet is being process now. */
+                  BOOLEAN InUse;          /* USB Hardware Occupied. Wait for USB HW to put packet. */
+                  BOOLEAN Readable;       /* Receive Complete back. OK for driver to indicate receiving packet. */
+                  BOOLEAN IRPPending;     /* TODO: To be removed */
+                  /*atomic_t                              IrpLock; */
+                  NDIS_SPIN_LOCK RxContextLock;
+                  ra_dma_addr_t data_dma; /* urb dma on linux */
+          } RX_CONTEXT, *PRX_CONTEXT;        
+        #+END_SRC
 ** 基本函数调用流程
-   #+BEGIN_SRC plantuml :file ./images/2016/2016032401.png :cmdline -charset UTF-8
+   #+BEGIN_SRC plantuml :file ./images/2016/2016032499.png :cmdline -charset UTF-8
      title mt76xx驱动数据接收流程
      @startuml
      start
@@ -115,16 +301,19 @@
    #+END_SRC
 
    #+RESULTS:
-   [[file:./images/2016/2016032401.png]]
+   [[file:./images/2016/2016032499.png]]
 
    APRxDataFrameAnnounce (mt76x2 ap)
-   STAHandleRxDataFrame (mt76x2 sta)
+   STAHandleRxDataFrame (mt76x2 sta)  --> STARxDataFrameAnnounce --> CmmRxnonRalinkFrameIndicate
    rx_data_frm_announce (mt7603)
-
+   
+   STAHandleRxMgmtFrame
 
 * 数据发送
   
 ** 概述
+
+    RTUSBKickBulkOut
 
    deq_mgmt_frame
 
@@ -136,9 +325,629 @@
    在函数 RTMPDeQueuePacket 中，会处理加入到发送队列中的需要传输的数据
    包。
    
-   数据结构： _TX_BLK, 触发硬件进行数据发送的函数是： HAL_KickOutTx
+   数据结构： =_TX_BLK=, 触发硬件进行数据发送的函数是： HAL_KickOutTx
 
    驱动注册的Callback函数为：STAHardTransmit (硬件数据包传送)
 
    而这一切，是从 =struct net_device_ops= 中的回调接口
    =ndo_start_xmit= 触发的。
+
+
+** 函数调用流程
+    rt28xx_packet_xmit()
+    -> RTMPSendPackets()
+    -> wdev_tx_pkts()
+    -> STASendPacket()
+    -> RTMPCheckEtherType()
+
+    
+*** Main  Interface
+        在主接口（实际物理接口）初始化时，初始化 =RTMP_OS_NETDEV_OP_HOOK=
+        的xmit回调函数为 =rt28xx_send_packets= ， 这个函数接着会调用
+        =rt28xx_packet_xmit= 。
+
+*** Virtual Interface
+    
+        =CFG80211_VirtualIF_PacketSend= （注册为
+        =RTMP_OS_NETDEV_OP_HOOK= 结
+        构体的xmit回调函数, 该函数实际上在RtmpOSNetDevAttach后，成为了
+        =struct net_device_ops= 的 =ndo_start_xmit= 的回调函数。
+        ->  =CFG80211_PacketSend=
+        ->  =rt28xx_packet_xmit=
+
+*** TX Sw Queue
+       4AC + 1HCCA, pAd->TxSwQueue
+
+* SoftAp
+
+** 初始化Channel选择
+    APAutoSelectChannel
+    
+    启动SoftAp的入口函数是：CFG80211_OpsStartAp, 由上层hostapd触发，
+    标记当前SoftAp动作的状态是：
+    : pAdapter->cfg80211_ctrl.cfg_ap_is_working = TRUE
+
+    hostapd对于softap的一些设置是通过 =cfg80211_ap_settings= 传递下来
+    的。
+
+    hostapd上层设置的一些beacon信息，在driver中通过如下函数：
+    : CFG80211DRV_UpdateApSettingFromBeacon
+    同步到driver的设置中。
+
+    
+* 省电管理
+  代码操作： =PWR_SAVING_OP=
+* 与FW(MCU)交互的接口(mcu_and.c)
+  函数 =andes_ctrl_usb_init= 初始化一些MCU控制相关的一些参数。
+  andes_send_cmd_msg
+  
+* Rate Control
+* Roaming
+  MT76x2STA.dat相关配置：
+  AutoRoaming=0 (with same SSID)
+  RoamThreshold=70
+  FtSupport=0
+  在config.mk中，对应的配置项为： =HAS_DOT11R_FT_SUPPORT=n=
+
+  对于非便携式设备如TV Box，一般会禁用此功能。
+
+** 协议支持
+    1. 802.11k
+       802.11k allows a WLAN device to quickly identify nearby APs
+       that are available for roaming. When the signal strength of the
+       current AP weakens  and the WLAN device needs to roam to a new
+       AP, it will already know the  best candidate AP with which to
+       connect.
+    2. 802.11r
+       When a WLAN device roams from one AP to another on the same
+       network, 802.11r streamlines the authentication process using a
+       feature  called Fast Basic Service Set Transition (FT). FT
+       allows WLAN devices to associate with APs more
+       quickly. Depending on your Wi-Fi hardware  vendor, FT can work
+       with both preshared key (PSK) and 802.1X  authentication
+       methods.
+
+       Coupled with 802.11k's ability to quickly identify the target
+       AP, FT's faster association method may enhance application
+       performance and aims to provide a better Wi-Fi experience.
+
+** 相关代码
+    
+*** 控制变量
+         #+BEGIN_SRC c
+           /* Fast Roaming */
+           BOOLEAN bAutoRoaming;   /* 0:disable auto roaming by RSSI, 1:enable auto roaming by RSSI */
+           CHAR dBmToRoam;         /* the condition to roam when receiving Rssi less than
+                                    ,* this value. It's negative value.         
+         #+END_SRC
+
+*** 执行
+        在函数 STAMlmePeriodicExec 中，会检查是否需要进行Roaming。
+        当检查到Roaming需要发生时，会向MLME状态机中传递：
+        =MT2_MLME_ROAMING_REQ= 消息。对应的处理函数是：　
+        CntlMlmeRoamingProc
+
+* OBSS
+  Overlapping BSS
+  在同一个Channel上，可能存在多个BSS，需要进行数据传输保护
+* PMF
+  
+** 概述
+    PMF stands for Protected Management Frame, IEEE 802.11w is the PMF
+    standard, Its objective is to increase the security by providing
+    data confidentiality of management frames.  It has become a
+    required feature in TGac since 2014.07. 
+
+    一般在认证项目中会遇到这方面的问题。
+
+    
+*** DUT Requirment
+
+        | Combination    | 11ac 5GHz     | 11n 5GHz          | 11n 2.4GHz        |
+        |----------------+---------------+-------------------+-------------------|
+        | Correct        | PMF supported | PMF supported     | PMF supported     |
+        | Not acceptable | PMF supported | PMF supported     | PMF Not Available |
+        | Correct        | PMF supported | PMF Not Available | PMF Not Available |
+        | Not acceptable | PMF supported | PMF Not Available | PMF supported     |
+        |----------------+---------------+-------------------+-------------------|
+
+* 问题调试
+
+** 读取TX RX寄存器状态
+   正常情况下，值应该为0x0c
+   #+BEGIN_SRC c
+     UINT32 Value;
+     RTMP_IO_READ32(pAd, 0x1004, &Value);
+     Value = Value | 0x0c; /* set bit[30]=1 */
+     RTMP_IO_WRITE32(pAd, 0x1004, Value); 
+   #+END_SRC
+
+** Dump Debug Register Values
+    #+BEGIN_SRC c
+      /* Dump Debug Register Values */
+      INT Set_Register_Dump(IN PRTMP_ADAPTER pAd, IN PSTRING arg)
+      {
+
+              UINT32 Value = 0;
+
+              /* Toggle Error */
+              DBGPRINT(RT_DEBUG_OFF, ("--dump_registers:--\n"));
+              read_reg(pAd, 0x40, 0x2820, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2820: 0x%x\n", Value));
+              /* Reset to default */
+              /* write_reg(ad, 0x40, 0x2820, 0x1); */
+              read_reg(pAd, 0x40, 0x023C, &Value); //common register
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_023C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x024c, &Value); //PCIE_REMAP_BASE4 default: 0x0
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_024C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0254, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0254: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1500, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1500: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1504, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1504: 0x%x\n", Value));
+      #ifdef RTMP_MAC_USB
+              read_reg(pAd, 0x40, 0x9018, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9018: 0x%x\n", Value));
+              if (Value == 0x0)
+                      DBGPRINT(RT_DEBUG_OFF, ("UDMA not enabled\n"));
+      #endif
+              read_reg(pAd, 0x40, 0x9100, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9100: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x9110, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_9110: 0x%x\n", Value));
+
+              read_reg(pAd, 0x40, 0x2140, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2140: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2240, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2240: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2280, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2280: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2290, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2290: 0x%x\n", Value));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              read_reg(pAd, 0x41, 0x1004, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1004: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1200, &Value); //0x1200 is the status of MAC
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1200: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A38, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A38: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A30, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A30: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A34, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A34: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0A0C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A0C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09C4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09C4: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09E0, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09E0: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09E8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09E8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F0, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F0: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F4: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09F8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09F8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09FC, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09FC: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x15F4, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_15F4: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0x080c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_080c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1700, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1700: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1704, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1704: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x1708, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_1708: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x170C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_170C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0430, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0430: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0434, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0434: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0438, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0438: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x043C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_043C: 0x%x\n", Value));
+              /* FCE */
+              read_reg(pAd, 0x41, 0x0800, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0800: 0x%x\n", Value));
+              if (Value == 0x0)
+                      DBGPRINT(RT_DEBUG_OFF, ("FCE not enabled\n"));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              /* FW Traffic to Host or not */
+              read_reg(pAd, 0x41, 0x0A0C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0A0C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x080c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_080c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0810, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0810: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0814, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0814: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0818, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0818: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0x0988, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0988: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x098C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_098C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x0998, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_0998: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x099C, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_099C: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09a8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09a8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09ac, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09ac: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09b8, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09b8: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0x09bc, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_09bc: 0x%x\n", Value));
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+              /* USB IP CRs */
+              read_reg(pAd, 0x40, 0x2244, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2244: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2254, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2254: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2264, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2264: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2274, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2274: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2284, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2284: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x2294, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_2294: 0x%x\n", Value));
+              read_reg(pAd, 0x40, 0x80, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x40_80: 0x%x\n", Value));
+
+              read_reg(pAd, 0x41, 0xa10, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a10: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa14, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a14: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa18, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a18: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa1c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a1c: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa20, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a20: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa24, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a24: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa28, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a28: 0x%x\n", Value));
+              read_reg(pAd, 0x41, 0xa2c, &Value);
+              DBGPRINT(RT_DEBUG_OFF, (" 0x41_a2c: 0x%x\n", Value));
+
+              /* RTUSBReadMACRegister(pAd, 0x738, &Value); */
+              read_reg(pAd, 0x41, 0x738, &Value);
+              DBGPRINT(RT_DEBUG_ERROR, ("F/W Heart beat(0x738): 0x%x\n", Value));
+
+              DBGPRINT(RT_DEBUG_OFF, ("\n"));
+              return 0;
+      }
+          
+    #+END_SRC
+** 设置HT Bandwidth
+   #+BEGIN_SRC c
+     //pAd->ScanTab.BssEntry[bss_idx].Channel
+     bbp_set_bw(pAd, BW_20)
+   #+END_SRC
+
+** p2p client连接流程
+    在p2p协商完成后，会开始WPS过程，这个过程会涉及关联
+    入口函数：
+    1. mt76xx_cfg80211_connect
+       cfg80211_ops中的connect回调函数。
+    
+    2. CFG80211DRV_P2pClientConnect
+       #+BEGIN_SRC c
+         pAd->cfg80211_ctrl.FlgCfg80211Connecting = TRUE;
+         Set_ApCli_Ssid_Proc(pAd, (PSTRING) Connect_SSID);
+         Set_ApCli_Enable_Proc(pAd, "1");
+         CFG80211DBG(RT_DEBUG_OFF, ("80211> APCLI CONNECTING SSID = %s\n", Connect_SSID));
+       #+END_SRC
+    3. STAMlmePeriodicExec
+       #+BEGIN_SRC c
+         /* YF_TODO */
+         #if defined(P2P_SUPPORT) || defined(RT_CFG80211_P2P_CONCURRENT_DEVICE)
+         if (RTMP_CFG80211_VIF_P2P_CLI_ON(pAd)) {
+           ...
+           if (pAd->Mlme.OneSecPeriodicRound % 2 == 1)
+             ApCliIfUp(pAd);
+           ...
+             }
+         #endif /* P2P_SUPPORT || RT_CFG80211_P2P_CONCURRENT_DEVICE */              
+       #+END_SRC
+    4. ApCliIfUp
+       #+BEGIN_SRC c
+         if (APCLI_IF_UP_CHECK(pAd, ifIndex)
+             && (pApCliEntry->Enable == TRUE)
+             && (pApCliEntry->Valid == FALSE)
+         #ifdef APCLI_CONNECTION_TRIAL
+             && (ifIndex == 0)
+         #endif /* APCLI_CONNECTION_TRIAL */
+             ) {
+           DBGPRINT(RT_DEBUG_TRACE,
+                    ("(%s) ApCli interface[%d] startup.\n", __func__, ifIndex));
+           MlmeEnqueue(pAd, APCLI_CTRL_STATE_MACHINE, APCLI_CTRL_JOIN_REQ, 0, NULL,
+                       ifIndex);
+          }
+                
+       #+END_SRC
+    5. ApCliCtrlJoinReqAction
+
+** dump发往上层的数据
+    #+BEGIN_SRC c
+      static void check_packet_loss_for_rtp(IN PRTMP_ADAPTER  pAd,  
+                                                     IN PNDIS_PACKET          pPacket)
+      {
+              UCHAR *data = NULL;
+              USHORT *eth_type;
+
+              DBGPRINT(RT_DEBUG_ERROR, ("check_packet_loss_for_rtp\n"));
+
+              data = GET_OS_PKT_DATAPTR(pPacket);
+      #if 0
+              if (OS_NTOHS(get_unaligned((USHORT*)(data + 12))) == 0x0800)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("%s::IP Packet\n", __FUNCTION__));
+              }
+      #endif
+              eth_type = (USHORT *)&data[12];
+              DBGPRINT(RT_DEBUG_ERROR, ("eth_type : 0x%04x\n", OS_NTOHS(get_unaligned(eth_type))));
+              if (*eth_type == cpu_to_be16(ETH_P_IP))  {//IP Header
+                      INT ip_h_len;
+                      UCHAR *ip_h;
+                      UCHAR *udp_h;
+                      UCHAR *rtp_h;
+                      USHORT udp_len;
+                      USHORT src_port = 0;
+                      USHORT dest_port = 0;
+                      USHORT rtp_seqNum = 0;
+                      static USHORT last_rtp_seqNum = 0;
+
+                      DBGPRINT(RT_DEBUG_ERROR, (">Receive IP Packet\n"));
+                  
+                      ip_h = data + 14;
+                      ip_h_len = (ip_h[0] & 0x0f)*4;
+                      
+                      if (ip_h[9] == 0x11)  {/* UDP */
+                              DBGPRINT(RT_DEBUG_ERROR, (">>Receive UDP Packet\n"));
+                              udp_h = ip_h + ip_h_len;        
+                              
+                              memcpy(&src_port, udp_h, 2);
+                              src_port = ntohs(src_port);
+                              memcpy(&dest_port, udp_h + 2, 2);
+                              dest_port = ntohs(dest_port);
+                              DBGPRINT(RT_DEBUG_TRACE, (">>UDP source port: %d, dest port: %d\n", src_port, dest_port));
+                              memcpy(&udp_len, udp_h + 4, 2);
+                              udp_len = ntohs(udp_len);
+                              if (udp_len > 20) {
+                                      rtp_h = udp_h + 8;
+                                      if (rtp_h[1] == 0x80 && rtp_h[0] == 0x21) {//RTP
+                                      
+                                              memcpy(&rtp_seqNum, rtp_h + 2, 2);
+                                              rtp_seqNum = ntohs(rtp_seqNum);
+                                              if (last_rtp_seqNum != 0 && last_rtp_seqNum + 1 != rtp_seqNum) {
+                                                      DBGPRINT(RT_DEBUG_ERROR, (">>>Lost Sequence %d, Current Sequence: %d!!!\n", last_rtp_seqNum + 1 , rtp_seqNum));
+                                              } 
+                                               last_rtp_seqNum = rtp_seqNum;
+                                      }
+                              }
+                              
+                      }else if (ip_h[9] == 0x06) {
+                              DBGPRINT(RT_DEBUG_ERROR, (">>Receive TCP Packet\n"));
+                      } else if (ip_h[9] == 0x01) {
+                              DBGPRINT(RT_DEBUG_TRACE, (">>Receive ICMP Packet\n"));
+                      }
+                      
+              }else if (*eth_type == cpu_to_be16(ETH_P_ARP)) {
+                      DBGPRINT(RT_DEBUG_TRACE,(">Receive a ARP Packet\n"));
+              } else if (*eth_type == cpu_to_be16(0x888e)) {
+                      DBGPRINT(RT_DEBUG_TRACE,(">Receive a EAPOL Packet\n"));
+              }
+              
+      }    
+    #+END_SRC
+
+** 发送速率调整
+    APMlmeDynamicTxRateSwitching
+
+    ref: http://blog.csdn.net/junglefly/article/details/48974077
+
+    http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-being-equal-stronger-signal-strength-is-correlated-with-higher-data-transfer-sp.html
+
+** 判断当前是否处于2.4G信道
+   #+BEGIN_SRC c
+     if (pAd->LatchRfRegs.Channel <= 14) {
+       ...
+      }
+
+     //当前已经连接的Channel
+     pAd->CommonCfg.Channel
+   #+END_SRC
+
+** 判断当前TX Queue是否为空
+    #+BEGIN_SRC c
+      if (mt76x2_polling_txq_empty(pAd) != STATUS_SUCCESS)    {
+        DBGPRINT(RT_DEBUF_OFF, ("Tx buffer has data"))
+       }
+    #+END_SRC
+
+** 查询或设置当前Driver状态
+    #+BEGIN_SRC c
+      RTMP_TEST_FLAG(...)
+      RTMP_SET_FLAG(...)
+
+      OPSTATUS_TEST_FLAG(...)
+      OPSTATUS_SET_FLAG(...)
+    #+END_SRC
+
+** 测试当前STA与AP的连接状态
+    判断是否已经获得AP的认证，即是否可以收发Class 3帧
+    #+BEGIN_SRC c
+      PMAC_TABLE_ENTRY pEntry = &pAd->MacTab.Content[i];
+      ...
+
+      if (pEntry->Sst == SST_ASSOC)
+        printk("can tx/rx class3 frames");
+
+      /* Value domain of pMacEntry->Sst */
+      typedef enum _Sst {
+              SST_NOT_AUTH,           /* 0: equivalent to IEEE 802.11/1999 state 1 */
+              SST_AUTH,               /* 1: equivalent to IEEE 802.11/1999 state 2 */
+              SST_ASSOC               /* 2: equivalent to IEEE 802.11/1999 state 3 */
+      } SST;
+    #+END_SRC
+
+** RTS阀值调整
+    修改dat文件中的默认值：
+    : RTSThreshold=2347
+    或者修改代码： rtmp_comm.h
+    : #define MAX_RTS_THRESHOLD               2347	/* byte count */
+
+** 检查wiphy一些Flag的设置
+    在此函数中CFG80211_WdevAlloc
+    #+BEGIN_SRC c
+      static struct wireless_dev *CFG80211_WdevAlloc(
+              IN CFG80211_CB                                  *pCfg80211_CB,
+              IN CFG80211_BAND                                *pBandInfo,
+              IN VOID                                                 *pAd,
+              IN struct device                                *pDev)
+      {
+              struct wireless_dev *pWdev;
+              ULONG *pPriv;
+
+
+              /*
+               ,* We're trying to have the following memory layout:
+               ,*
+               ,* +------------------------+
+               ,* | struct wiphy                       |
+               ,* +------------------------+
+               ,* | pAd pointer                        |
+               ,* +------------------------+
+               ,*/
+
+              pWdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+              if (pWdev == NULL)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Wireless device allocation fail!\n"));
+                      return NULL;
+              } /* End of if */
+
+              pWdev->wiphy = wiphy_new(&CFG80211_Ops, sizeof(ULONG *));
+              if (pWdev->wiphy == NULL)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Wiphy device allocation fail!\n"));
+                      goto LabelErrWiphyNew;
+              } /* End of if */
+
+              /* keep pAd pointer */
+              pPriv = (ULONG *)(wiphy_priv(pWdev->wiphy));
+              ,*pPriv = (ULONG)pAd;
+
+              set_wiphy_dev(pWdev->wiphy, pDev);
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30))
+              pWdev->wiphy->max_scan_ssids = pBandInfo->MaxBssTable;
+      #endif /* KERNEL_VERSION */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
+              /* @NL80211_FEATURE_INACTIVITY_TIMER:
+                 This driver takes care of freeingup
+                 the connected inactive stations in AP mode.*/
+
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* http://www.permalink.gmane.org/gmane.linux.kernel.wireless.general/86454 */
+              pWdev->wiphy->features |= NL80211_FEATURE_INACTIVITY_TIMER;
+      #endif
+
+      #ifdef CONFIG_AP_SUPPORT
+              pWdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_AP) | BIT(NL80211_IFTYPE_STATION);
+      #endif /* CONFIG_AP_SUPPORT */
+
+      #ifdef CONFIG_STA_SUPPORT
+              pWdev->wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
+
+      #if 0//(LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37))
+              pWdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
+                                          BIT(NL80211_IFTYPE_ADHOC) |
+                                          BIT(NL80211_IFTYPE_AP);
+      #endif /* LINUX_VERSION_CODE */
+      #ifdef P2P_SUPPORT
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
+              pWdev->wiphy->software_iftypes |= BIT(NL80211_IFTYPE_P2P_DEVICE);
+      #endif /* LINUX_VERSION_CODE 3.7.0 */
+      #endif                                                             
+      #endif /* CONFIG_STA_SUPPORT */
+
+              pWdev->wiphy->reg_notifier = CFG80211_RegNotifier;
+
+              /* init channel information */
+              CFG80211_SupBandInit(pCfg80211_CB, pBandInfo, pWdev->wiphy, NULL, NULL);
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30))
+              /* CFG80211_SIGNAL_TYPE_MBM: signal strength in mBm (100*dBm) */
+              pWdev->wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
+              pWdev->wiphy->max_scan_ie_len = IEEE80211_MAX_DATA_LEN; 
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,33))
+              pWdev->wiphy->max_num_pmkids = 4; 
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,38))
+              pWdev->wiphy->max_remain_on_channel_duration = 5000;
+      #endif /* KERNEL_VERSION */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37))
+              pWdev->wiphy->mgmt_stypes = ralink_mgmt_stypes;
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32))
+              pWdev->wiphy->cipher_suites = CipherSuites;
+              pWdev->wiphy->n_cipher_suites = ARRAY_SIZE(CipherSuites);
+      #endif /* LINUX_VERSION_CODE */
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,0))
+              pWdev->wiphy->flags |= WIPHY_FLAG_AP_UAPSD;
+      #endif
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* 018-cfg80211-internal-ap-mlme.patch */
+              pWdev->wiphy->flags |= WIPHY_FLAG_HAVE_AP_SME;
+
+              /*what if you get compile error for below flag, please add the patch into your kernel*/
+              /* 008-cfg80211-offchan-flags.patch */
+              pWdev->wiphy->flags |= WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL;
+      #endif
+
+      #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0))       
+              pWdev->wiphy->iface_combinations = (struct ieee80211_iface_combination *)(&ra_iface_combinations_p2p);
+              pWdev->wiphy->n_iface_combinations = ARRAY_SIZE(ra_iface_combinations_p2p); 
+      #endif
+
+              if (wiphy_register(pWdev->wiphy) < 0)
+              {
+                      DBGPRINT(RT_DEBUG_ERROR, ("80211> Register wiphy device fail!\n"));
+                      goto LabelErrReg;
+              } /* End of if */
+                      
+              return pWdev;
+
+       LabelErrReg:
+              wiphy_free(pWdev->wiphy);
+
+       LabelErrWiphyNew:
+              os_free_mem(NULL, pWdev);
+
+              return NULL;
+      } /* End of CFG80211_WdevAlloc */    
+    #+END_SRC

@@ -1,0 +1,1281 @@
+#+TITLE: Things That I Have Done
+#+AUTHOR: Yajun Fu
+#+EMAIL: fuyajun1983cn AT 163 DOT com
+#+STARTUP:overview
+#+STARTUP: hidestars
+#+OPTIONS: toc:t
+
+* 存档
+* 2016
+** 1月[24/24]
+*** DONE 802.11协议第二阶段学习 [10/10]
+    CLOSED: [2016-01-29 周五 10:00]
+**** DONE [#A] 阅读802.11 General Description                          :STUDY:
+    CLOSED: [2016-01-29 周五 10:00] DEADLINE: <2015-11-27 周五> SCHEDULED: <2015-11-27 周五>
+    - State "WAITING"    from "DONE"       [2016-01-29 周五 10:00]
+
+Added: [2015-11-26 周四 16:45]
+**** DONE [#A] 802.11(1999) chapter 6-7                                :STUDY:
+    CLOSED: [2015-11-30 周一 16:45] DEADLINE: <2015-11-30 周一> SCHEDULED: <2015-11-27 周五>
+   CLOCK: [2015-11-30 周一 13:24]--[2015-11-30 周一 16:46] =>  3:22
+MAC service and frame format
+Added: [2015-11-26 周四 16:50]
+**** DONE [#A] 802.11(1999) chapter 8[0.5d]                            :STUDY:
+    CLOSED: [2015-12-01 周二 18:35] DEADLINE: <2015-12-01 周二> SCHEDULED: <2015-12-01 周二>
+   CLOCK: [2015-12-01 周二 13:27]--[2015-12-01 周二 13:55] =>  0:28
+   CLOCK: [2015-12-01 周二 11:07]--[2015-12-01 周二 12:03] =>  0:56
+802.11 authentication + WEP
+Added: [2015-11-26 周四 16:50]
+**** DONE [#A] 802.11(1999) chapter 9 (PCF class C)[1.5d]              :STUDY:
+    CLOSED: [2015-12-08 周二 17:40] DEADLINE: <2015-12-03 周四> SCHEDULED: <2015-12-02 周三>
+MAC layer function
+Added: [2015-11-26 周四 16:50]
+**** CANCELED [#B] 802.11(1999) chapter 10[1d]                         :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-03 周四> SCHEDULED: <2015-12-03 周四>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+Layer management
+Added: [2015-11-26 周四 16:50]
+**** CANCELED [#A] 802.11(1999) chapter 11[1.5d]                       :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-07 周一> SCHEDULED: <2015-12-04 周五>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+MAC sublayer management entity
+Added: [2015-11-26 周四 16:50]
+**** CANCELED [#C] 802.11(1999) chapter 12,13,15[0.5d]                 :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-07 周一> SCHEDULED: <2015-12-07 周一>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+11 phy layer
+Added: [2015-11-26 周四 16:50]
+**** CANCELED [#C] 802.11b(1999) chapter 3,4,18[1d]                    :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-08 周二> SCHEDULED: <2015-12-08 周二>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+11b phy layer
+Added: [2015-11-26 周四 16:50]
+**** CANCELED [#C] 802.11g(2003) chapter 3,4,7,9,10,18,19[d]           :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-09 周三> SCHEDULED: <2015-12-09 周三>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+11g phy layer
+Added: [2015-11-26 周四 16:55]
+**** CANCELED [#A] 802.11(2007) chapter 8[0.5d]                        :STUDY:
+    CLOSED: [2015-12-09 周三 20:35] DEADLINE: <2015-12-10 周四> SCHEDULED: <2015-12-10 周四>
+    - State "CANCELED"   from "TODO"       [2015-12-09 周三 20:35] \\
+      直接学习权威指南
+WiFi securtiy
+Added: [2015-11-26 周四 16:55]
+
+*** DONE [#A] 模块学习任务 [3/3]
+    1. Common Driver -- AP/P2P
+    2. Supplicant/P2P/WFD
+
+     Thought 1: 以连接AP为情景分析代码Flow，重点关注4-way握手过程
+     
+**** DONE 准备协议学习阶段的报告
+     CLOSED: [2015-12-25 周五 14:45] DEADLINE: <2015-12-22 周二>
+          制作无线权威指南第五章和第七章的学习报告PPT
+**** DONE P2P_AP_Common_Driver [9/9]
+***** DONE AP_SoftAP_P2P_Concurrency_Introduction_Awk_20150303
+***** DONE CFG80211_P2P_WFD_Introduction
+***** DONE CFG80211_SoftAP
+      CLOSED: [2016-01-19 周二 17:20]
+***** DONE Chip InitHook flow_141218 
+***** DONE Generic_netlink
+***** DONE Hostap_Init
+      CLOSED: [2016-01-18 周一 21:00]
+***** DONE mlme_ state_machine_overview_20140102
+***** DONE MT7603U_MT7662 DriverArchitecture
+***** DONE SOP Of Setup MT7601 on linux PC
+      CLOSED: [2015-12-30 周三 20:15] DEADLINE: <2015-12-31 周四>
+**** DONE Supplicant_P2P_WFD [5/5]
+     CLOSED: [2016-01-27 周三 21:10]
+***** DONE WFD
+      CLOSED: [2016-01-26 周二 10:15]
+***** DONE WPS
+      CLOSED: [2016-01-18 周一 20:05]
+***** DONE Wifi P2P Spec
+      CLOSED: [2016-01-26 周二 10:15]
+***** DONE Wifi Simple Configuration Spec
+      CLOSED: [2016-01-26 周二 10:15]
+***** DONE wpa_supplicant_study_report
+      CLOSED: [2016-01-05 周二 11:40] DEADLINE: <2015-12-31 周四>
+*** DONE WPA
+    CLOSED: [2016-01-29 周五 10:00] DEADLINE: <2015-12-29 周二>
+    - State "CANCELED"   from ""           [2016-01-29 周五 10:00]
+    - State "WAITING"    from "DONE"       [2016-01-29 周五 10:00]
+*** DONE CWNA第九章学习                                                :STUDY:
+    CLOSED: [2015-12-08 周二 14:40]
+    CLOCK: [2015-12-02 周三 10:05]--[2015-12-02 周三 11:46] =>  1:41
+    CLOCK: [2015-12-01 周二 16:53]--[2015-12-01 周二 18:32] =>  1:39
+    CLOCK: [2015-12-01 周二 15:00]--[2015-12-01 周二 15:32] =>  0:32
+       MAC Architecture
+       Added: [2015-12-01 周二 14:00]
+*** DONE CWNA第八章                                                    :STUDY:
+   CLOSED: [2015-11-30 周一 20:30]
+   CLOCK: [2015-11-30 周一 17:01]--[2015-11-30 周一 20:29] =>  3:28
+802.11 Medium Access
+Added: [2015-11-27 周五 16:50]
+*** DONE CWNA 第七章                                                   :STUDY:
+   CLOSED: [2015-11-27 周五 16:45]
+无线局域网技术
+Added: [2015-11-26 周四 15:15]
+*** DONE CWNA第六章                                                    :STUDY:
+   CLOSED: [2015-11-26 周四 15:15]
+无线网络和扩频技术
+Added: [2015-11-26 周四 15:15]
+*** DONE 学习CWNA第四章内容                                            :STUDY:
+   CLOSED: [2015-11-25 周三 20:10]
+      天线相关知识
+Added: [2015-11-25 周三 14:45]
+*** DONE 第十三章                                                      :STUDY:
+    CLOSED: [2015-12-10 周四 18:50]
+    CLOCK: [2015-12-10 周四 14:30]--[2015-12-10 周四 18:51] =>  4:21
+    CLOCK: [2015-12-10 周四 10:24]--[2015-12-10 周四 10:54] =>  0:30
+    802.11 Network
+    Security Arch itecture
+    Added: [2015-12-01 周二 18:25]
+*** DONE 第十八章                                                      :STUDY:
+    CLOSED: [2015-12-14 周一 16:25]
+    CLOCK: [2015-12-11 周五 13:56]--[2016-08-02 二 16:24] => 5642:28
+    CLOCK: [2015-12-11 周五 09:57]--[2015-12-11 周五 11:00] =>  1:03
+    802.11n
+    Added: [2015-12-01 周二 18:30]
+*** DONE 阅读第十章                                                    :STUDY:
+    CLOSED: [2016-01-04 周一 17:25] SCHEDULED: <2016-01-04 周一>
+ WLAN Architecture
+Added: [2015-12-14 周一 16:25]
+*** DONE WiFi载波侦听
+    CLOSED: [2015-12-18 周五 16:00] SCHEDULED: <2015-12-16 周三>
+         [[http://www.revolutionwifi.net/revolutionwifi/2011/03/understanding-wi-fi-carrier-sense.html][Understanding Wi-Fi Carrier Sense]]
+*** DONE Chapter 01 An Introduction to Device Drivers
+    CLOSED: [2015-12-15 周二 11:05] DEADLINE: <2015-12-15 周二>
+    CLOCK: [2015-12-15 周二 10:14]--[2015-12-15 周二 11:06] =>  0:52
+*** DONE Chapter 02 Building and Running Modules
+    CLOSED: [2015-12-15 周二 11:45] DEADLINE: <2015-12-15 周二>
+    CLOCK: [2015-12-15 周二 11:14]--[2015-12-15 周二 11:47] =>  0:33
+*** DONE Chapter 03 Char Drivers
+    CLOSED: [2015-12-18 周五 16:00] DEADLINE: <2015-12-16 周三>
+*** DONE Chapter 04 Debugging Techniques
+    CLOSED: [2015-12-18 周五 16:00] DEADLINE: <2015-12-16 周三>
+*** DONE Chapter 05 Concurency and Race Conditions
+    CLOSED: [2015-12-24 周四 09:55] DEADLINE: <2015-12-17 周四>
+*** DONE Chapter 07 Time, Delays, and Deferred Work
+    CLOSED: [2015-12-24 周四 15:10] DEADLINE: <2015-12-18 周五>
+*** DONE Chapter 08 Allocating Memory
+    CLOSED: [2015-12-24 周四 17:40] DEADLINE: <2015-12-21 周一>
+*** DONE Chapter 09 Communicating with Hardware
+    CLOSED: [2015-12-25 周五 13:15] DEADLINE: <2015-12-22 周二>
+*** DONE Chapter 10 Interrupt Handling
+    CLOSED: [2015-12-25 周五 14:40] DEADLINE: <2015-12-22 周二>
+*** DONE Chapter 11 Data Types in the Kernel
+    CLOSED: [2015-12-25 周五 14:40] DEADLINE: <2015-12-23 周三>
+*** DONE Chapter 17 Network Drivers
+    CLOSED: [2015-12-28 周一 20:40]
+      参考文件：loopback.c plip.c e100.c
+    DEADLINE: <2015-12-31 周四>
+*** DONE [WCNCR00055715] 提供一版能在3.14内核编译通过的mt7603驱动版本
+    CLOSED: [2015-12-25 周五 17:45]
+** 2月 [4/4]
+*** DONE TopTech Miracast连接失败                                    :TopTech:
+    - 改动记录
+      1. Assoc Request送上来的IE信息为空，导致WPS Negotiation阶段失败。
+*** DONE 确认Android原生的p2p流程                                    :Dajiang:
+*** DONE 开关一次WiFi后，P2P无法工作                                 :Dajiang:
+      目前这个项目还不属于重点支持的客户，暂时不处理。
+    联系人： 熊工　158 1407 4153
+    wpa_supplicant: 1.3
+*** DONE Miracast断连问题                                          :ChangHong:
+    - 长虹联系人， 范工： 135 1056 9853
+    - 改动记录
+      1. AssocRequest重试次数降为2
+      2. ieee80211_iface_limit
+      3. disable dynamic vga //无错误
+** 3月[12/12]
+*** ✔ DONE DONE 阅读"无压工作的艺术"第五章                     :无压工作的艺术:Study:
+    CLOSED: [2016-05-18 周三 16:25]
+
+*** ✔ DONE DONE 无压的工作艺术第六章                           :无压工作的艺术:Study:
+    CLOSED: [2016-05-18 周三 16:25]
+    CLOCK: [2016-03-25 周五 09:15]--[2016-03-25 周五 09:42] =>  0:27
+
+*** ✔ DONE DONE 阅读“无压工作的艺术”第七章                           :无压工作的艺术:
+    CLOSED: [2016-05-18 周三 16:25]
+*** ✔ DONE DONE 报名                                                    :公司活动:
+    CLOSED: [2016-05-18 周三 16:25]
+    - CLOSING NOTE [2016-03-28 周一 11:10] \\
+      已经完成报名。
+*** ✔ DONE DONE 阅读“无压工作的艺术"第八章                     :STUDY:无压工作的艺术:
+    CLOSED: [2016-05-18 周三 16:25]
+    - CLOSING NOTE [2016-03-29 周二 09:40] \\
+      自觉地去努力进行这种自我指导的思维过程, 掌握控制自己生活的能力
+*** ✔ DONE DONE 阅读”无压工作的艺术“第九章                     :STUDY:无压工作的艺术:
+    CLOSED: [2016-05-18 周三 16:25]
+    - CLOSING NOTE [2016-03-29 周二 10:10] \\
+      重视工作清单的作用,并严格执行。
+    CLOCK: [2016-03-29 周二 09:43]--[2016-03-29 周二 10:12] =>  0:29
+    1. 我们都可能遇到这种情况：有时，思维敏捷；有时，应该远离思考。
+    2. 即使你并非处于最佳状态中，也没有理由变得松懈、低效。
+    3. 除非你对工作了如指掌，否则，你不可能对抉择感到胸有成竹。
+    4. 三种活动
+       1. 处理预先明确的工作
+       2. 处理随时出现的新工作
+       3. 安排下一步的工作。
+    5. 通常，你更容易被卷入到随时冒出来的紧急情况之中，而不是按部就班地
+       去处理你的工作篮、电子邮件和其他悬而未决的问题。
+    6. 工作中的6个层次
+       1. 5万英尺以上：生活
+       2. 4万英尺：3~5年的计划
+       3. 3万英尺：1~2年的目标
+       4. 2万英尺：责任范围
+       5. 1万英尺：当前的工作
+       6. 跑道：目前的行动
+    7. 你的工作是发现你的工作，然后全身心地投入基中
+
+*** ✔ DONE DONE Wireless QoS                                              :802.11协议学习:
+    CLOSED: [2016-05-18 周三 16:25]
+    - CLOSING NOTE [2016-03-29 周二 16:05] \\
+      初步了解QoS原理
+         [[http://www.revolutionwifi.net/revolutionwifi/2010/07/wireless-qos-part-1-background_7048.html][Wireless QoS]]
+**** DONE Part 1 - Background Information
+     CLOSED: [2016-03-28 周一 11:50]
+     - CLOSING NOTE [2016-03-28 周一 11:50] \\
+       本部分讲述的是802.11传统下的获取媒介访问权的方式
+**** DONE Part 2 - IEEE 802.11e Principles
+     CLOSED: [2016-03-29 周二 15:30]
+     - CLOSING NOTE [2016-03-29 周二 15:30] \\
+       Access Categories:
+       VI
+       VO
+       BE
+       BK
+     CLOCK: [2016-03-29 周二 15:25]--[2016-03-29 周二 15:28] =>  0:03
+**** DONE Part 3 - User Priorities, Access Categories and Queues
+     CLOSED: [2016-03-29 周二 15:35]
+     - CLOSING NOTE [2016-03-29 周二 15:35] \\
+       8 User Priorities
+       4 Access Categories
+       every physical station emulate 4 virtual station
+     CLOCK: [2016-03-29 周二 15:29]--[2016-03-29 周二 15:34] =>  0:05
+**** DONE Part 4 - Arbitration Interframe Spacing
+     CLOSED: [2016-03-29 周二 15:40]
+     - CLOSING NOTE [2016-03-29 周二 15:40] \\
+       AIFS is different for different AC under different physical code schem
+**** DONE Part 5 - Contention Window and Final Thoughts
+     CLOSED: [2016-03-29 周二 16:05]
+     - CLOSING NOTE [2016-03-29 周二 16:05] \\
+       Contention Window vary on different AC
+     CLOCK: [2016-03-29 周二 15:40]--[2016-03-29 周二 16:03] =>  0:23
+*** ✔ DONE DONE 阅读”无压工作的艺术“第十章
+    CLOSED: [2016-05-18 周三 16:25]
+    - CLOSING NOTE [2016-03-31 周四 10:15] \\
+      创造性地思考工作
+*** ✔ DONE Tool研究
+    CLOSED: [2016-03-23 三 09:10]
+    - zsh
+    - less
+    - tmux
+    - web幻灯片 Cleaver
+*** ✔ DONE Notepad++插件研究 [3/3]
+    CLOSED: [2016-03-23 三 09:10]
+**** ✘ CANCELED 编写显示emacs org文件插件
+     CLOSED: [2016-03-20 周日 21:45]
+**** ✔ DONE 编译环境
+     CLOSED: [2016-02-28 日 12:55]
+**** ✔ DONE 示例插件研究
+     CLOSED: [2016-03-20 周日 21:45]
+     https://github.com/mpcabd/PyNPP.git
+     - NEXT: 完成一个可用的模块上传
+       
+*** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
+*** ✔ DONE 英文简历制作
+    CLOSED: [2016-03-07 一 16:15]
+** 4月[47/47]
+*** ✔ DONE DONE Miracast卡顿花屏问题                                     :TCL:
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-01 周五 10:35] \\
+      客户没有报新问题，先关闭
+    - State "WAITING"    from "WAITING"    [2016-03-26 周六 11:20] \\
+      请客户多做一些测试
+    MS6308/MS6488 +MT7603 2个机器对比 
+    分析Driver，是否可以统计Driver收包的情况？
+    确认跟wpa_supplicant的版本有关， 下一步需要确认提供的新的
+    wpa_supplicant是否会有其他问题。
+
+*** ✔ DONE CANCELED 是否能更改7603的驱动，在监测到wifi异常时进行复位操作
+    CLOSED: [2016-04-20 周三 15:20]
+    - State "CANCELED"   from "TODO"       [2016-04-02 周六 11:35] \\
+      修改硬件方法处理
+    我司客户长虹在做ESD测试时，wifi被打死，主板工作正常，将wifi的RESET
+    脚手动复位拉低一下就好了！（注：长虹的主板没有对wifi的reset脚做任
+    何控制）
+    中龙通： 宋工 135 1008 2761
+*** ✔ DONE DONE 准备培训的资料
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-06 周三 09:30] \\
+      已经完成，今天晚上准备Share
+    1. wifi driver config
+    2. wext, cfg80211, mac80211, nl80211介绍
+    3. wpa_supplicant介绍
+*** ✔ DONE DONE TX流程分析                                      :Linux网络子系统学习:
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-07 周四 11:30] \\
+      TX流程已经完成学习
+*** ✔ DONE DONE 厘清iwpriv是否有机制判断Buffer溢出的机制
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-07 周四 16:55]
+    最大限制大小为2K。驱动代码必须自己检测
+*** ✔ DONE DONE 下载运行Notepad Plugin程序 
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-10 周日 12:35] \\
+      运行正常
+*** ✔ DONE DONE CSS基础视频学习
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-10 周日 17:35] \\
+      已经完成学习
+*** ✔ DONE DONE 阅读Socket编程小册
+    CLOSED: [2016-04-20 周三 15:20]
+    - CLOSING NOTE [2016-04-11 周一 16:45] \\
+      已经完成学习
+    - State "WAITING"    from "TODO"       [2016-04-11 周一 11:20] \\
+      已经了解基本的Socket编程，接下来了解一点数据链路层socket编程
+*** ✔ DONE DONE 看下上层disable wifi之后，wifi是否有关掉
+    CLOSED: [2016-04-20 周三 15:20]
+    Notes: 会下TERMINATE命令给Supplicant，导致Supplican进程退出
+    android 5.1上验证结果： UI上关闭WiFi或使用命令svc wifi disable都会
+    导致supplicant进程退出 。
+*** ✔ DONE DONE 运行socket测试程序
+    CLOSED: [2016-04-20 周三 15:20]
+*** ✔ DONE DONE 阅读第十二章                                    :CWNA学习:STUDY:
+   CLOSED: [2016-04-20 周三 15:20]
+WLAN Troubleshooting and Design
+Added: [2015-12-14 周一 16:30]
+*** ✔ DONE DONE 在内核Linux 3.18版本中编译驱动代码
+    CLOSED: [2016-04-20 周三 15:20]
+    - Next 在此版本中编译mt76x2的驱动代码
+*** ✔ DONE DONE supplicant如何将unsolicited event上报给应用程序 
+    CLOSED: [2016-04-20 周三 15:20]
+    在wpa_supplicant_ctrl_iface_init中调用了wpa_msg_register_cb注册了
+    callback函数wpa_supplicant_ctrl_iface_msg_cb， 在该函数中，会主动
+    将supplicant中发生的一些关键事件发送给上层监听的对端，以便他们能接
+    收到事件信息。
+*** ✔ DONE DONE 学习服务器上的WiFi文档 
+    CLOSED: [2016-04-20 周三 15:20]
+    - Next Action: 浏览下载的文档，确定学习目标和顺序
+*** ✔ DONE DONE 在Linux 3.10.10上编译mt7601, mt7603驱动代码
+    CLOSED: [2016-04-20 周三 15:20]
+*** ✔ DONE DONE 在Linux 3.14上编译mt7603驱动代码
+    CLOSED: [2016-04-20 周三 15:20]
+*** ✔ DONE DONE 在linux 3.18内核版本上编译LDD3代码 [2/2]
+    CLOSED: [2016-04-20 周三 15:20]
+    - [X] 已经完成在 linux 3.14版本上的Porting
+    - [X] 在3.18版本上进行编译
+*** ✔ DONE DONE EAP Framework代码研究 [6/6]               :wpa_supplicant源码分析:
+    CLOSED: [2016-04-20 周三 15:20]
+    - [X] Next Action: 分析RFC4137文档，整理要点 
+    - [X] Next Action: 分析wpa_supplicant中EAP framework代码，整理出软件流
+      程图或架构图  -- Done
+    - [X] Next Action: 阅读802.1X EAPOL Protocol
+    - [X] Next Action: 整理802.1X EAPOL文档
+    - [X] 分析wpa_supplicant中EAPOL实现细节
+    - [X] Next Actoin: WAPI.pptx
+*** ✔ DONE DONE 练习一下Emacs Tutorial中的前七章内容
+    CLOSED: [2016-04-20 周三 15:20]
+*** ✔ DONE DONE WireShark手册学习
+    CLOSED: [2016-04-20 周三 15:20]
+    - Next Action: 浏览手册内容，确定学习目标和计划
+*** ✔ DONE DONE 整理CWAP笔记 [7/7]
+    CLOSED: [2016-04-20 周三 15:20]
+    - [X] Next Action: 整理2篇 (Done)
+    - [X] Next Action: 整理4-Way Handshakey等相关笔记两扁
+    - [X] Next Action:
+      EAP-PEAP
+      4-Way Handshake
+    - [X] Next Actoin:
+      – 802.11r Key Hierarchy
+      – 802.11r FT Assocition
+      – 802.11r Over-the-Air FT
+      – 802.11r Over-the-DS FT
+    - [X] Next Action: 802.11n HT Analysis
+      – 802.11n Introduction --done
+      – HT Frame Control  --Done
+      – HT Capabilities Information Element  --Done
+      – HT Operations Information Element
+    - [X] Spectrum Analysis
+    - [X] Protocol Analyzer Operation
+*** ✘ CANCELED CANCELED 重新安装虚拟机中的emacs
+    CLOSED: [2016-04-20 周三 15:20]
+    - State "CANCELED"   from "TODO"       [2016-04-20 周三 14:15] \\
+      无需重新安装
+*** ✔ DONE DONE org-table如何在一项中进行多行显示
+    CLOSED: [2016-04-20 周三 15:20]
+    Notes: 使用 table-insert
+*** ✔ DONE 研究是否支持：Org文件中子树上显示另一个Org文件
+    CLOSED: [2016-04-20 周三 15:35]
+    Notes: 可以使用 #+INCLUDE 或者 #+SETUPFILE ,不过不能实时显示文件内
+    容
+*** ✔ DONE WPS
+    CLOSED: [2016-04-21 周四 14:10]
+    - Next Action
+      WSC_NFC+WSC
+
+*** ✔ DONE org key macro
+    CLOSED: [2016-04-21 周四 14:10]
+    F3开始录制宏，F4停止录制宏。 F4运行宏
+*** ✔ DONE 了解UPnP是什么
+    CLOSED: [2016-04-21 周四 14:25]
+    通用即插即用 (UPnP) 是一种用于 PC 机和智能设备（或仪器）的常见对等
+    网络连接的体系结构，尤其是在家庭中。UPnP 以 Internet 标准和技术（例
+    如 TCP/IP、HTTP 和 XML）为基础，使这样的设备彼此可自动连接和协同工
+    作，从而使网络（尤其是家庭网络）对更多的人成为可能。
+
+*** ✔ DONE 熟悉数据链路层Socket编程
+    CLOSED: [2016-04-22 周五 15:40]
+    - [X] 整理libcap编程笔记
+*** ✔ DONE cast TV对wifi/BT需求确认
+    CLOSED: [2016-04-22 周五 15:40]
+*** ✔ DONE 网站改进计划
+    CLOSED: [2016-04-23 周六 14:55]
+    - [X] 增加代码着色功能
+*** ✘ CANCELED TODO 填写深圳市公共租赁住房轮候申请表
+    CLOSED: [2016-04-23 周六 23:20]
+    - State "CANCELED"   from "TODO"       [2016-04-11 周一 16:55]
+
+*** ✘ CANCELED TODO 提取公积金
+    CLOSED: [2016-04-23 周六 23:20]
+*** ✔ DONE WPA Security
+    CLOSED: [2016-04-25 周一 15:35]
+    - Next Action:
+      WPA_Security_Study
+      Supplicant和Authenticator之间通过认证产生一个PMK。
+    - 整理4步握手的过程
+
+*** ✔ DONE 了解上层自动重连的功能 -- Android [0/1]            :wpa_supplicant:
+    CLOSED: [2016-04-25 周一 17:40]
+    CMD_AUTO_CMD
+    enableNetwork
+    selectNetwork
+    reconnect
+    扫描结束后，wpa_supplicant会根据扫描结果，可能选择一个SSID自动连接。
+    Android上层有一个策略类，AutoJoinController会根据一些规则来决定是否
+    有切换网络（信号变弱，漫游等。）
+    - [ ] 研究Android 5.1上的Settings中，对自动连接的设置是如何处理的
+*** ✘ CANCELED 阅读第十六章                                     :CWNA学习:STUDY:
+   CLOSED: [2016-04-25 周一 17:50]
+Site Survey Systems and Devices
+Added: [2015-12-14 周一 16:30]
+*** ✘ CANCELED TODO 802.11i协议第三章                                 :802.11i规范学习:STUDY:
+    CLOSED: [2016-04-25 周一 17:50]
+学习第三章内容
+Added: [2015-11-25 周三 20:15]
+*** ✔ DONE Auto Channel Selection
+    CLOSED: [2016-04-26 周二 12:00]
+    - Next Action:
+      WifiDriverStudy_AutoChannelSelection
+
+*** ✔ DONE 阅读第十九章                                         :CWNA学习:STUDY:
+   CLOSED: [2016-04-27 周三 14:25]
+Very High Throughput (VHT) and 802.11ac
+Added: [2015-12-14 周一 16:30]
+
+     - [X] 绘制CWNA思维导图，结束第一阶段的学习
+
+*** ✔ DONE 2. MIMO and the 802.11n PHY                             :802.11n协议学习:
+    CLOSED: [2016-04-27 周三 17:20]
+*** ✔ DONE 3. Channels, Framing, and Coding                        :802.11n协议学习:
+    CLOSED: [2016-04-27 周三 17:20]
+*** ✔ DONE HT20 & H40 Co-Existence Flow
+    CLOSED: [2016-04-28 周四 16:35]
+    - Next Action: HT20_40_coexistence.pptx
+    - [X] 整理HT2040 Coexistence原理文档
+*** ✔ DONE 6. Advanced MAC Features for Interoperability           :802.11n协议学习:
+    CLOSED: [2016-04-28 周四 16:35]
+*** ✔ DONE Chapter 12 Wireless in Linux
+    CLOSED: [2016-04-29 周五 13:20]
+    iw
+    - Three Components of 802.11 management architecture
+      1. The Physical Layer Management Entity (PLME).
+      2. The System Management Entity (SME).
+      3. The MAC Layer Management Entity (MLME).
+*** ✔ DONE 字符终端中文显示问题
+    CLOSED: [2016-04-06 三 09:30]
+    - 编译Linux内核，打开frame buffer的支持
+    - NEXT: 在工作电脑中安装ArchLinux
+*** ✔ DONE 尽管去做——无压的工作艺术
+    CLOSED: [2016-04-06 三 09:30]
+      NEXT: 下次阅读最后三章
+*** ✔ DONE Understanding Linux Network Internals
+    CLOSED: [2016-04-25 一 21:00]
+    下次从第11章开始
+*** ✔ DONE 大脑使用说明书
+    CLOSED: [2016-04-26 二 10:20]
+
+** 5月[39/39]
+*** ✔ DONE 制作思维导图版个人简历 （初稿）
+     CLOSED: [2016-05-02 周一 14:45]
+*** ✔ DONE 更新博客内容
+     CLOSED: [2016-05-02 周一 15:10]
+*** ✔ DONE 制作个人未来的学习提升计划
+     CLOSED: [2016-05-02 周一 16:20]
+*** ✔ DONE 维护Emacs配置信息
+    CLOSED: [2016-05-03 周二 09:30]
+     - [ ]配置信息同步到github
+*** ✔ DONE 4. Advanced PHY Features for Performance                :802.11n协议学习:
+    CLOSED: [2016-05-03 周二 10:35]
+*** ✔ DONE 5. MAC Basics                                           :802.11n协议学习:
+    CLOSED: [2016-05-03 周二 10:35]
+*** ✔ DONE Chapter 12 PCI Drivers
+    CLOSED: [2016-05-04 周三 12:45]
+*** ✔ DONE Chapter 15 Memory Mapping and DMA
+    CLOSED: [2016-05-04 周三 13:25]
+*** ✔ DONE 分析Xiaomi 8127 Box wpa_supplicant的修改记录 [4/8]
+    CLOSED: [2016-05-05 周四 15:30]
+    - [X] cache p2p device results
+    - [X] add a custom WFD command
+    - [ ] P2P NFC
+    - [X] configuration file
+    - [ ] hs20
+    - [X] Poor link detect
+    - [ ] STAGE SCAN
+    - [ ] P2P & Multi-Channel concurrent
+      如果P2P连接时，已经有连接上AP，则P2P必须切到与AP所在的信道。
+*** ✔ DONE WiFi Display
+    CLOSED: [2016-05-10 周二 16:00]
+    - [X] RTSP协议研究
+    - [X] Miracast交互过程的RTSP协议数据
+
+*** ✔ DONE 7. Planning an 802.11n Network                          :802.11n协议学习:
+    CLOSED: [2016-05-12 周四 12:05]
+*** ✔ DONE 8. Designing and Installing an 802.11n Network          :802.11n协议学习:
+    CLOSED: [2016-05-12 周四 12:05]
+*** ✔ DONE Wifi连接特定热点失败的问题
+    CLOSED: [2016-05-13 周五 16:40]
+    - 0504
+      在Association失败后， 尝试去连接同一个SSID的其他的BSS，连接仍然
+      没有成功。 
+      Action： 需要抓Sniffer Log， Check一下平台的Mac地址是否有问题
+      （广播地址或组播地址？）
+    - 0508
+      Association Request 中的Capabilities信息显示 Immediate Block Ack is not allowed
+    - 0510
+      换当前最新的驱动版本测试一下，看是否有同样问题。
+    - 0512
+      对比正常的Log，发现我们多发出了一些Extended Capabilities的IE信息。 
+      这些Legacy AP来说，出现这些IE可能会被拒绝？
+
+      #+BEGIN_SRC c
+        /*
+         ,* Workaround: Add Extended Capabilities element only if the AP
+         ,* included this element in Beacon/Probe Response frames. Some older
+         ,* APs seem to have interoperability issues if this element is
+         ,* included, so while the standard may require us to include the
+         ,* element in all cases, it is justifiable to skip it to avoid
+         ,* interoperability issues.
+         ,*/
+        if (!bss || wpa_bss_get_ie(bss, WLAN_EID_EXT_CAPAB)) {
+                u8 ext_capab[18];
+                int ext_capab_len;
+                ext_capab_len = wpas_build_ext_capab(wpa_s, ext_capab,
+                                                     sizeof(ext_capab));
+                if (ext_capab_len > 0) {
+                        u8 *pos = wpa_ie;
+                        if (wpa_ie_len > 0 && pos[0] == WLAN_EID_RSN)
+                                pos += 2 + pos[1];
+                        os_memmove(pos + ext_capab_len, pos,
+                                   wpa_ie_len - (pos - wpa_ie));
+                        wpa_ie_len += ext_capab_len;
+                        os_memcpy(pos, ext_capab, ext_capab_len);
+                }
+        }      
+      #+END_SRC
+*** ✔ DONE Miracast连接黑屏
+    CLOSED: [2016-05-13 周五 16:40]
+    - 0504
+      P2P连接都很成功， Miracast也进入了协商过程，并未出现明显错误，但
+      是播放器有报如下错误。
+      #+BEGIN_SRC sh
+        01-01 08:08:37.490 E/RTMediaPlayerClient( 2385): error (100, 0)
+        01-01 08:08:37.490 E/MediaPlayer( 8044): error (100, 0)
+        01-01 08:08:37.491 E/MediaPlayer( 8044): Error (100,0)
+        01-01 08:08:37.501 E/videoPlayerActivity( 8044): videoPlayerActivity->onStop()!
+        01-01 08:08:37.501 E/MediaPlayer( 8044): stop called in state 0
+        01-01 08:08:37.501 E/MediaPlayer( 8044): error (-38, 0)      
+      #+END_SRC
+      另外，平台也没有烧HDCP Key。
+      RTSP信息交互正常，未出现连接不通的情况
+      Action：需要平台端厘清一下上述错误是什么原因导致的？
+*** ✔ DONE Block Acknowledge [3/3]
+    CLOSED: [2016-05-13 周五 17:50]
+    - [X] Next Action: 深入了解BA Spec中的描述
+    - [X] wifi_usb_and_BA_hanadle
+    - [X] Next Page: 9.21.5
+*** ✔ DONE Beacon 
+    CLOSED: [2016-05-13 周五 18:00]
+    - Next Action:
+      MT7603_Driver_study_bcn_tx
+
+*** ✔ DONE wifi p2p
+    CLOSED: [2016-05-16 周一 14:15]
+    set group idle timeout
+
+*** ✔ DONE Raw Socket
+    CLOSED: [2016-05-16 周一 15:15]
+    TX management
+
+*** ✔ DONE AP Authentication and Association
+    CLOSED: [2016-05-17 周二 17:40]
+    - Next Action:
+      Linux Driver AP Authentication and Association
+      STA_AUTH_ASSOC
+*** ✔ DONE 11ac介绍                                                      :802.11ac学习:
+    CLOSED: [2016-05-18 周三 11:35]
+
+*** ✔ DONE Netlink程序调试[2/2]
+    CLOSED: [2016-05-18 周三 14:10]
+    - [X] 在libnl 1.x中验证OK
+    - [X] 在libnl 3.x中验证FAIL。
+
+*** ✔ DONE 客制化C--命令                                             :emacs应用:
+    CLOSED: [2016-05-18 周三 14:30]
+    er/contract-region
+*** ✔ DONE SoftAp                                                 :Wifi驱动持续学习:
+    CLOSED: [2016-05-18 周三 16:15]
+    - Next Action:
+      WOODY_20141216_driver_study_CFG80211_SoftAP
+    - Next Action:
+      MTK_Wi-Fi_SoftAP_Software_Programming_Guide_v4.4
+*** ✔ DONE 简历优化
+    CLOSED: [2016-05-18 周三 16:20]
+    NEXT: 编写一个不超过2页的精简版
+*** ✔ DONE QoS
+    CLOSED: [2016-05-19 周四 11:45]
+
+*** ✔ DONE U-APSD模式                                             :Wifi驱动持续学习:
+    CLOSED: [2016-05-19 周四 13:00]
+    Currently we dont support the keep alive mechanism. So if your
+    station is in UAPSD mode, the station will be kicked out after 300
+    seconds.
+    - Next Action: U-APSD
+    - Next Action: EDCA 
+      http://wifi-insider.com/wlan/wmm.htm
+
+*** ✔ DONE EDCCA介绍                                         :Wifi驱动持续学习:Wifi:
+    CLOSED: [2016-05-19 周四 17:55]
+    - Next Action: Introduction of Carrier Detection and EDCCA
+*** ✔ DONE 饭钱(15)                                                       :生活:
+    CLOSED: [2016-05-23 周一 09:30]
+*** ✔ DONE DFS介绍
+    CLOSED: [2016-05-23 周一 16:00]
+    - Next Action: Introduction of DFS
+
+*** ✔ DONE 大理石，背景墙，窗                                           :个人私事:
+    CLOSED: [2016-05-27 周五 10:20]
+*** ✘ CANCELED 扩展学习 [1/1]
+    CLOSED: [2016-05-27 周五 10:20]
+**** ✔ DONE Google Fruit库研究: Java Guice & C++ Fruit
+     CLOSED: [2016-08-02 二 16:05]
+     https://github.com/google/guice.git
+     https://github.com/google/fruit.git
+*** ✔ DONE Dynamic VGA                                            :Wifi驱动持续学习:
+    CLOSED: [2016-05-27 周五 11:10]
+    - Next Action:
+      mt76x2_dynamic_vga
+
+*** ✔ DONE group idle timeout
+    CLOSED: [2016-05-27 周五 17:50]
+    #+BEGIN_EXAMPLE
+      05-25 10:42:50.650 D/wpa_supplicant( 2963): P2P: Group idle timeout reached - terminate group
+      05-25 10:42:50.650 D/wpa_supplicant( 2963): p2p0: Request to deauthenticate - bssid=00:00:00:00:00:00 pending_bssid=00:00:00:00:00:00 reason=3 state=SCANNING
+    #+END_EXAMPLE
+*** ✘ CANCELED TODO LHD32K220WAU(1)--LTDN40K220WAU Screen Mirror问题 :Hisense:
+    CLOSED: [2016-05-27 周五 17:55]
+    - State "WAITING"    from "INPROGRESS" [2016-03-29 周二 15:25] \\
+      没有有效Log分析，等待客户提供或模拟Miracast Srouce后抓日志
+    - 目前M1手机跟RT5657平台连接时，在WPS完成后，没有进入4步握手阶段
+    - WPS完成后，发送Deauth花费21ms， 对比机只花费4ms.
+    - Next Action：分析平板的Log，看是否有相似性。
+    - 等待手机从印度寄回来 
+      联系人：will 186 2035 7858
+*** ✔ DONE 用python实现根据消息ID查询对应消息文本的功能
+     CLOSED: [2016-05-29 周日 15:30]
+*** ✔ DONE 删除所有Region中的所有空行
+     CLOSED: [2016-05-29 周日 15:30]
+     参考： delete-all-blank-lines
+*** ✘ CANCELED 从源码中提供消息ID和字符串，并保存到Excel表格中。
+     CLOSED: [2016-05-29 周日 15:35]
+*** ✔ DONE 了解TDLS
+    CLOSED: [2016-05-30 周一 16:45]
+    - Next Action: Jason_20141218_TDLS - CFG80211 Introduction
+*** ✔ DONE MT76x2 Data Path
+    CLOSED: [2016-05-30 周一 17:15]
+    - Next Action:
+      MT76x2_Data_Path
+
+** 6月[14/14]
+*** ✔ DONE TX & RX Ring                                              :Wifi Driver持续学习:
+    CLOSED: [2016-06-01 周三 14:00]
+    - Next Action:
+      PCIE_Handle_MT7603E
+      TX.pptx
+      Wifi_driver_TxFlow_Introduction_Xiaohua.pptx
+*** ✔ DONE p2p连接过程中，如何决定BW的？
+    CLOSED: [2016-06-10 周五 22:50]
+    在关联的时候会确定是否使用HT40还是HT20或者是非HT Bandwidth。 在传输
+    过程中，可以会动态调整。
+*** ✔ DONE 中午取款（付房租)                                            :个人事务:
+    CLOSED: [2016-06-10 周五 22:50]
+*** ✔ DONE 还款提醒(星期四)                                             :个人私事:
+    CLOSED: [2016-06-02 周四 18:55]
+*** ✔ DONE 通过系统调用或命令行卸载驱动失败                         :Hissense:
+    CLOSED: [2016-06-08 周三 07:50]
+    Wifi驱动在卸载前必须先禁用WiFi的使用
+*** ✔ DONE [#C] 阅读Emacs Plugin程序设计 [10/10]
+    CLOSED: [2016-06-10 周五 22:50] DEADLINE: <2016-06-30 周四>
+    - [X] 第一章
+    - [X] 第二章 简单的新命令
+    - [X] 第三章 协作命令
+    - [X] 第四章 搜索和修改Buffer
+    - [X] 第五章 文件
+    - [X] 第六章 列表
+    - [X] 第七章 Minor Mode
+    - [X] 第八章 Evaluation and Error Recovery
+    - [X] 第九章 Major Mode
+    - [X] 第十章 完整实例
+*** ✘ CANCELED fbterm导致死机的原因                                :ArchLinux:
+    CLOSED: [2016-06-13 周一 17:45]
+*** ✔ DONE [#B] TCP/IP协议分析 [2/2]
+    CLOSED: [2016-07-04 周一 14:20]
+    - [X] TCP协议分析
+    - [X] ICMP 
+
+*** ✔ DONE WiFi回连的过程中，UP了2次，多花费了1s                     :Hisense:
+    CLOSED: [2016-06-14 周二 14:10]
+    待加Log调试。
+    Android架构差异导致
+*** ✔ DONE SoftAP能开户，但是关联失败。                              :Hisense:
+    CLOSED: [2016-06-14 周二 14:10]
+    需要替换DHCP Server进行对比测试。
+    目前看起来是因为DHCP服务没有启动，目前先请m*协助Hisense去看。
+*** uap0是啥接口                                                     :Hisense:
+    softap, 默认会初始化，相对独立的一个接口
+*** ✔ DONE Linux kernel小程序快速参考
+     CLOSED: [2016-06-20 周一 10:35]
+    - NEXT: 准备第一版
+    - 收集其他的小程序
+    - 整理内核编程笔记
+    SCHEDULED: <2016-04-30 六>
+*** ✔ DONE 分析一下CFG80211DRV_P2pClientConnect流程     :Study:wpa_supplicant:
+     CLOSED: [2016-06-27 周一 09:15]
+*** ✔ DONE 连接隐藏SSID的AP时，有时会连接失败                :Hisense:Project:
+    CLOSED: [2016-06-27 周一 09:20]
+    查看上层调用enableNetwork时的参数, 看disableOthers是否为true. 
+    调试修改：
+    1) 打开Debug级别
+    2) mScanResultAutoJoinAge 设置为0，则相当于关闭掉AutoJoin机制。
+    3) 通过命令行连接WiFi
+   
+    目前请m*提供分析意见。
+
+    driver每次连接多个SSID时，只连接最前面的那个。
+
+    max ssid > 1
+*** ✔ DONE 深入研究wpa_supplicant中SCAN的处理                 :wpa_supplicant:
+     CLOSED: [2016-06-29 周三 14:40]
+    重点看下每一轮Scan的开始与结束为何
+** 7月[15/15]
+*** ✔ DONE 网卡订购电灯等
+    CLOSED: [2016-07-04 周一 13:40]
+    
+*** ✔ DONE 分析助手 [1/2]                                            :Notepad:
+     CLOSED: [2016-07-07 周四 13:35]
+    - [X] 使用Python脚本实现
+    - [ ] 实现为Notepad++的插件形式
+
+*** ✔ DONE 深入了解BA                                       :Study:Wifi驱动持续学习:
+    CLOSED: [2016-07-08 周五 14:35]
+    - Next Action:
+      研究代码实现细节
+
+*** ✔ DONE Rate Control                                     :Driver持续学习:Study:
+     CLOSED: [2016-07-11 周一 11:50]
+    - Next Action:
+      WIFI Driver Study - Rate Control (20141021)
+      APMlmeDynamicTxRateSwitching
+    - http://blog.csdn.net/junglefly/article/details/48974077
+*** ✘ CANCELED TODO 搭建Android以及Java开发环境
+     CLOSED: [2016-07-11 周一 13:45]
+    - Next Action: 研究利用notepad++搭建轻量级Java开发环境和Android开发
+      环境。
+*** ✘ CANCELED zsh
+    CLOSED: [2016-07-11 周一 13:45]
+*** ✔ DONE TX Power                                         :Wifi驱动持续学习:Study:
+     CLOSED: [2016-07-11 周一 16:45]
+    - Next Action:
+      temperature_tx_power_compensation
+
+*** ✔ DONE 研究use_p2p_group_interface=1选项的支持        :wpa_supplicant源码分析:
+    CLOSED: [2016-07-12 周二 14:45]
+*** ✔ DONE p2p协商时Channel的选择                         :wpa_supplicant源码分析:
+    CLOSED: [2016-07-12 周二 15:05]
+    p2p_prepare_channel_best
+*** ✔ DONE 预约体检                                                  :个人私事:ME:
+     CLOSED: [2016-07-13 周三 13:40]
+*** ✔ DONE Chapter 13 USB Drivers
+     CLOSED: [2016-07-26 周二 15:05]
+*** ✔ DONE [#A] Miracast连接上后断开                        :Skyworth:Project:
+    CLOSED: [2016-07-28 周四 10:35]
+    - 0504
+      有看到Beacon Lost的Log出现。
+      主动断开：ApCliCtrlDeAuthAction
+    - 0508
+      打开 HAS_CS_SUPPORT 看下， 是否会有改善。 
+      加大了Beacon Lost的Timeout时间。
+    - 0510
+      查看平台当GO的情况下，p2p的连接情况。
+      另外，Dump下连接成功到发生Beacon Lost这段时间内，驱动的状态信息。
+    - 0513
+      发现有usb disconnect这种问题出现，先请硬件修改。
+    - 0524
+      reason code = 2
+      reason: IDLE
+
+      remap buffer
+    - 0527
+      在平台断开AP的情况下，p2p连接比较稳定, 力推平台端去实现如下需求：
+      1. 进入Miracast时，与AP完全断开，在Miracast退出前，不要自动重连，
+         退出Miracast后，AP自动重连。
+
+      2. 在Miracast期间，禁止如下操作：
+         1. 扫描
+
+         2. 获取扫描结果
+      
+
+*** ✔ DONE 熟悉软件的基本使用 (1~13章) [7/7]                 :WireShark:Study:
+    CLOSED: [2016-07-29 周五 17:05]
+    - [X] 熟悉软件基本功能的定制
+      Chapter 3, 5, 6
+    - [X] 汇总信息解读
+      第七章 page 119
+    - [X] Trace File文件格式研究
+      Chapter 4
+    - [X] Interpret Basic Trace File Statistics
+          page 129
+    - [X] 研究Filter
+      Chapter 9 page 142
+    - [X] Packets研究
+    - [X] 了解专家系统
+*** ✔ DONE 上传无线通信基础电子书
+    CLOSED: [2016-07-30 六 23:05]
+*** ✔ DONE 阅读 Secure Code in C&C++ 第二章
+    CLOSED: [2016-07-31 日 21:55]
+     - Next Action:
+       Stack Management   page 27
+** 8月[34/34]
+*** ✔ DONE hwsim源码分析
+    CLOSED: [2016-08-02 二 21:30]
+*** ✔ DONE CTS/RTS设置                                 :Wifi Driver持续学习:Study:
+    CLOSED: [2016-08-03 周三 14:30]
+    
+*** ✔ DONE Miracast有时无法连接
+    CLOSED: [2016-08-08 周一 11:40]
+    send Invitation Response失败后，没有将pending action state恢复成原
+    值。
+*** ✔ DONE 实现一个jump命令，在不同工作目录之间跳转                :ME:我的开发需求:
+     CLOSED: [2016-08-09 周二 17:15] SCHEDULED: <2016-08-09 周二>
+    CLOCK: [2016-08-09 周二 16:25]--[2016-08-09 周二 17:13] =>  0:48
+    :PROPERTIES:
+    :Effort:   0:30
+    :END:
+*** ✔ DONE TODO 研究Python属性                                         :Study:
+    CLOSED: [2016-08-09 周二 17:45] SCHEDULED: <2016-08-09 周二>
+    CLOCK: [2016-08-09 周二 17:16]--[2016-08-09 周二 17:43] =>  0:27
+   :PROPERTIES:
+   :Effort:   0:30
+   :END:
+      研究getattr, setattr
+Added: [2016-08-09 周二 16:40]
+*** ✔ DONE 插件使用
+    CLOSED: [2016-08-10 周三 12:35]
+**** Hydra
+       NEXT：https://github.com/abo-abo/hydra
+*** ✔ DONE [#A] Miracast连接后丢包                          :Skyworth:Project:
+    CLOSED: [2016-08-10 周三 13:40]
+    - 0512
+      解决丢包问题，需要减少上层的扫描动作。
+      调整接收者的Buffer
+    - 0517
+      存在丢包，乱序的情况
+    - 0523
+      go intent = 15
+      force frequency
+      30.5
+    - 对比（公版平台对比）
+      选择一个干净的信道测试
+      重传次数太多会导致速率降低
+      False CCA
+      RTS/CTS Threshold
+    - 对比测试实现 
+      1. 平台不连接AP的情况下
+
+         1) 手机不连接AP的情况
+            17.4 Mbps
+
+            15.8 Mbps
+
+         2) 手机连接AP的情况(Xiaomi_2.4G 2437)
+            31 Mbps
+            20.9 Mbps
+
+         3) 手机连接AP的情况(Cisco_sa1, 2442)
+            35.4 Mbps
+            34.9 Mbps
+
+         4) 手机清掉已经保存的AP (5785)
+            14.4Mbs
+
+         打印Driver上报给上层的RTP包的序号与TCPDUMP抓到的数据能对应起
+         来。看来确实是我们这边在接收数据时，有些包没有收到。
+
+*** ✔ DONE 修改Org Capture配置                                          :个人需求:
+     CLOSED: [2016-08-10 周三 19:55] SCHEDULED: <2016-08-10 周三>
+*** ✔ DONE Roaming Function                            :Wifi Driver持续学习:Study:
+     CLOSED: [2016-08-11 周四 09:45] SCHEDULED: <2016-08-11 周四>
+     CLOCK: [2016-08-11 周四 09:15]--[2016-08-11 周四 09:44] =>  0:29
+    - Next Action: 文档 E:\documents\wifi\学习资料\SOP\sta\MT76x2,
+      MT7603 Linux WLAN Driver Study Materials\Roaming.ppx
+*** ✔ DONE PMF(Protected Management Frame)             :Wifi Driver持续学习:Study:
+     CLOSED: [2016-08-11 周四 09:50] SCHEDULED: <2016-08-11 周四>
+     CLOCK: [2016-08-11 周四 09:48]--[2016-08-11 周四 09:51] =>  0:03
+    - Next Action:
+      PMF_intro_0915
+
+*** ✔ DONE 整理正则表达式知识点                                        :Study:
+    CLOSED: [2016-08-12 周五 09:25] SCHEDULED: <2016-08-12 周五>
+    CLOCK: [2016-08-12 周五 09:12]--[2016-08-12 周五 09:22] =>  0:10
+   :PROPERTIES:
+   :Effort:   0:10
+   :END:
+整理正则表达式知识点到个人知识库
+Added: [2016-08-12 周五 09:10]
+*** ✔ DONE 打印执业药师专业知识1真题（2015所）                         :Study:
+    CLOSED: [2016-08-12 周五 13:55] SCHEDULED: <2016-08-12 周五>
+
+Added: [2016-08-12 周五 11:10]
+*** ✔ DONE 整理plantuml语法参考笔记                                    :Study:
+   CLOSED: [2016-08-13 六 14:55] SCHEDULED: <2016-08-13 周六>
+    CLOCK: [2016-08-13 六 13:37]--[2016-08-13 六 14:56] =>  1:19
+    CLOCK: [2016-08-11 周四 11:44]--[2016-08-11 周四 11:58] =>  0:14
+    CLOCK: [2016-08-10 周三 19:08]--[2016-08-10 周三 19:53] =>  0:45
+    CLOCK: [2016-08-09 周二 18:04]--[2016-08-09 周二 18:45] =>  0:41
+   :PROPERTIES:
+   :Effort:   3:00
+   :END:
+      整理PlantUML文档
+Added: [2016-08-09 周二 18:00]
+
+*** ✔ DONE 提交报销单                                                   :个人私事:
+    CLOSED: [2016-08-16 周二 11:05] SCHEDULED: <2016-08-16 周二>
+
+Added: [2016-08-15 周一 17:25]
+*** ✔ DONE Test Mode
+    CLOSED: [2016-08-17 周三 10:20]
+    - Next Action:
+      WifiDriverStudy_TestMode
+*** ✔ DONE Sniffer Mode
+    CLOSED: [2016-08-17 周三 10:30]
+    - Next Action: Introduction of Monitor Mode
+
+*** ✔ DONE WDS
+    CLOSED: [2016-08-17 周三 10:45]
+    - Next Action:
+      WIFI_WDS_study
+
+*** ✔ DONE Thermal Protection
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      YF_20141216_driver_study_thermal_protection
+      DRS (Date Rate Switching)
+      当温度过高时，减少传输流
+*** ✔ DONE IGMP snooping
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      WIFI_IGMP_snooping_study_1023
+*** ✔ DONE Sigle SKU
+    CLOSED: [2016-08-17 周三 11:35]
+    - Next Action:
+      MT7603_MT7628_Single_SKU.pptx
+      Single SKU MT76xx.pptx
+      MT76XX_Single_Sku_V2_20140123.doc
+
+*** ✔ DONE Wifi Repeater
+    CLOSED: [2016-08-17 周三 11:50]
+    - Next Action:
+      MT7603_Driver_study_Virtual_interface_and_Apcli_Repeater
+
+*** ✔ DONE [#A] demo 4k miracast                                     :Project:
+    CLOSED: [2016-08-17 周三 16:00] SCHEDULED: <2016-08-16 周二>
+    CLOCK: [2016-08-16 周二 15:38]--[2016-08-16 周二 17:16] =>  1:38
+    分辨率，刷新帧率（支持60fps, 也要支持30fps）, 
+Follow 4k Miracast Demo的事情
+Added: [2016-08-10 周三 13:50]
+*** ✔ DONE [#A] P2P Invitation的问题                                 :Project:
+     CLOSED: [2016-08-18 周四 17:20] SCHEDULED: <2016-08-18 周四>
+     CLOCK: [2016-08-18 周四 09:58]--[2016-08-18 周四 15:36] =>  5:38
+     CLOCK: [2016-08-16 周二 13:38]--[2016-08-16 周二 15:32] =>  1:54
+     CLOCK: [2016-08-15 周一 14:41]--[2016-08-15 周一 17:24] =>  2:43
+     P2P Invitation失败的问题
+     TODO:
+     打开wpa_supplicant日志
+     测试禁用persistent group的情况。update_config=0
+     Set_WirelessMode_Proc失败的原因
+     Added: [2016-08-10 周三 14:00]
+*** ✔ DONE 修正 802.11n，p2p, 802.1x, wps等文档的输入及编排问题        :Study:
+    CLOSED: [2016-08-22 周一 11:50] SCHEDULED: <2016-08-22 周一>
+    CLOCK: [2016-08-22 周一 11:25]--[2016-08-22 周一 11:49] =>  0:24
+
+Added: [2016-08-22 周一 10:05]
+*** ✔ DONE [#C] 整理Wifi吞吐量测试到知识库中                           :Study:
+    CLOSED: [2016-08-23 周二 14:30] SCHEDULED: <2016-08-23 周二>
+
+Added: [2016-08-23 周二 11:00]
+*** ✔ DONE 学习通信原理第一章[2/5]                                     :Study:
+    CLOSED: [2016-08-24 周三 14:55] SCHEDULED: <2016-08-22 周一>
+    CLOCK: [2016-08-24 周三 14:11]--[2016-08-24 周三 14:54] =>  0:43
+    CLOCK: [2016-08-22 周一 13:37]--[2016-08-22 周一 14:24] =>  0:47
+    - [X] 第1讲 电子通信的起源
+    - [X] 第2讲  传输什么——消息
+    - [ ] 第3讲  消息的通路——信道
+    - [ ] 第4讲  无影无形的电波
+    - [ ] 第5讲  两大武林门派
+Added: [2016-08-22 周一 10:05]
+*** ✔ DONE 了解下org-agenda                                            :Check:
+    CLOSED: [2016-08-25 周四 13:50]
+看下循环安排如何定义
+Added: [2016-08-25 周四 09:20]
+*** ✔ DONE [#B] 复习CWNA内容                                           :Study:
+     CLOSED: [2016-08-27 周六 16:35] DEADLINE: <2016-08-31 周三> SCHEDULED: <2016-08-25 周四>
+     CLOCK: [2016-08-27 周六 15:44]--[2016-08-27 周六 16:35] =>  0:51
+     CLOCK: [2016-08-27 周六 10:23]--[2016-08-27 周六 11:48] =>  1:25
+     CLOCK: [2016-08-25 周四 09:29]--[2016-08-25 周四 10:27] =>  0:58
+     CLOCK: [2016-08-24 周三 13:31]--[2016-08-24 周三 14:10] =>  0:39
+     CLOCK: [2016-08-24 周三 09:41]--[2016-08-24 周三 10:14] =>  0:33
+     CLOCK: [2016-08-23 周二 13:22]--[2016-08-23 周二 14:11] =>  0:49
+     CLOCK: [2016-08-23 周二 11:00]--[2016-08-23 周二 11:59] =>  0:59
+     CLOCK: [2016-08-22 周一 10:54]--[2016-08-22 周一 11:24] =>  0:30
+     CLOCK: [2016-08-19 周五 14:11]--[2016-08-19 周五 14:34] =>  0:23
+     CLOCK: [2016-08-19 周五 11:19]--[2016-08-19 周五 12:00] =>  0:41
+     CLOCK: [2016-08-18 周四 16:11]--[2016-08-18 周四 17:05] =>  0:54
+     CLOCK: [2016-08-17 周三 15:59]--[2016-08-17 周三 16:57] =>  0:58
+     CLOCK: [2016-08-16 周二 09:35]--[2016-08-16 周二 10:16] =>  0:41
+     CLOCK: [2016-08-15 周一 10:10]--[2016-08-15 周一 11:15] =>  1:05
+     CLOCK: [2016-08-11 周四 09:53]--[2016-08-11 周四 11:29] =>  1:36
+     CLOCK: [2016-08-09 周二 10:14]--[2016-08-09 周二 11:10] =>  0:56
+    :PROPERTIES:
+    :Effort:   8:00
+    :END:
+     - [X] 第一章
+     - [X] 第二章
+     - [X] 第三章
+     - [X] 第五章
+     - [X] 第六章
+     - [X] 第七章
+     - [X] 第八章
+     - [X] 第九章
+     - [X] 第十章
+     - [X] 第十二章
+     - [X] 第十三章
+     - [X] 第十六章
+     - [X] 第十八章
+*** ✘ CANCELED Chapter 18 TTY Drivers
+    CLOSED: [2016-08-30 周二 13:20]
+*** ✘ CANCELED Chapter 16 Block Drivers
+    CLOSED: [2016-08-30 周二 13:20]
+*** ✔ DONE [#A] Driver Genernal Intro
+     CLOSED: [2016-08-30 周二 16:40] SCHEDULED: <2016-08-23 周二> DEADLINE: <2016-08-31 周三>
+     CLOCK: [2016-08-30 周二 14:57]--[2016-08-30 周二 16:42] =>  1:45
+     CLOCK: [2016-08-23 周二 14:33]--[2016-08-23 周二 17:08] =>  2:35
+     - [X] Davinci Driver introduction
+     - [X] Driver Init
+     - [X] Glue Layer
+     - [X] Davinci BssInfo_StaRec
+     - [X] 7668 SW Proposal
+     - [X] 7668 HW change
+     
+*** ✔ DONE [#A] hostpad学习                                            :Study:
+     CLOSED: [2016-08-30 周二 17:45] DEADLINE: <2016-08-27 周六> SCHEDULED: <2016-08-24 周三>
+     CLOCK: [2016-08-30 周二 16:59]--[2016-08-30 周二 17:41] =>  0:42
+     CLOCK: [2016-08-22 周一 14:25]--[2016-08-22 周一 16:10] =>  1:45
+     CLOCK: [2016-08-19 周五 14:36]--[2016-08-19 周五 16:33] =>  1:57
+     CLOCK: [2016-08-17 周三 18:29]--[2016-08-17 周三 19:25] =>  0:56
+     CLOCK: [2016-08-17 周三 17:11]--[2016-08-17 周三 18:12] =>  1:01
+     CLOCK: [2016-08-16 周二 17:16]--[2016-08-16 周二 18:09] =>  0:53
+     CLOCK: [2016-08-15 周一 13:20]--[2016-08-15 周一 14:34] =>  1:14
+     CLOCK: [2016-08-15 周一 11:15]--[2016-08-15 周一 11:59] =>  0:44
+     CLOCK: [2016-08-09 周二 13:56]--[2016-08-09 周二 15:51] =>  1:55
+     CLOCK: [2016-08-09 周二 13:24]--[2016-08-09 周二 13:56] =>  0:32
+    :PROPERTIES:
+    :Effort:   8:00
+    :END:
+*** ✔ DONE 研究struct inode域的作用(内核中读取文件)
+     CLOSED: [2016-08-31 周三 20:20] SCHEDULED: <2016-08-25 周四>
+          #+BEGIN_SRC c
+            /*******************************************************************************
+
+                    File open/close related functions.
+
+             ,*******************************************************************************/
+            RTMP_OS_FD RtmpOSFileOpen(char *pPath, int flag, int mode)
+            {
+                    struct file *filePtr;
+
+                    if (flag == RTMP_FILE_RDONLY)
+                            flag = O_RDONLY;
+                    else if (flag == RTMP_FILE_WRONLY)
+                            flag = O_WRONLY;
+                    else if (flag == RTMP_FILE_CREAT)
+                            flag = O_CREAT;
+                    else if (flag == RTMP_FILE_TRUNC)
+                            flag = O_TRUNC;
+
+                    filePtr = filp_open(pPath, flag, 0);
+                    if (IS_ERR(filePtr)) {
+                            DBGPRINT(RT_DEBUG_ERROR,
+                                     ("%s(): Error %ld opening %s\n", __func__,
+                                     -PTR_ERR(filePtr), pPath));
+                    }
+
+                    return (RTMP_OS_FD) filePtr;
+            }
+
+            int RtmpOSFileClose(RTMP_OS_FD osfd)
+            {
+                    filp_close(osfd, NULL);
+                    return 0;
+            }
+
+            void RtmpOSFileSeek(RTMP_OS_FD osfd, int offset)
+            {
+                    osfd->f_pos = offset;
+            }
+
+            int RtmpOSFileRead(RTMP_OS_FD osfd, char *pDataPtr, int readLen)
+            {
+                    /* The object must have a read method */
+                    if (osfd->f_op && osfd->f_op->read)
+                            return osfd->f_op->read(osfd, pDataPtr, readLen, &osfd->f_pos);
+
+                    DBGPRINT(RT_DEBUG_ERROR, ("no file read method\n"));
+                    return -1;
+            }
+
+            int RtmpOSFileWrite(RTMP_OS_FD osfd, char *pDataPtr, int writeLen)
+            {
+                    return osfd->f_op->write(osfd, pDataPtr, (size_t) writeLen, &osfd->f_pos);
+            }
+
+
+            void test()
+            {
+              struct file *srcBuf = RtmpOSFileOpen(src, O_RDONLY, 0);
+              ...
+
+             fsize = (ULONG) srcf->f_dentry->d_inode->i_size;
+
+             
+            }
+
+
+          #+END_SRC
+*** ✔ DONE 了解AP SME背后的意义                                        :Study:
+    CLOSED: [2016-08-31 周三 21:05]
+
+Added: [2016-08-18 周四 16:10]
+** 9月[12/12]
+*** ✔ DONE [#A] 海信CTS Verifier的问题                               :Project:
+    CLOSED: [2016-09-02 周五 14:05] SCHEDULED: <2016-08-26 周五>
+      1. GO Negotiation Requrester Test
+         从LOG看TV发出的NEGO请求，被拒绝（电视侧LOG：
+         TV_negotiation_request.txt，NEXSUS平板LOG：
+         nexsus_negotiation_responder.txt）
+         
+         driver在处理p2p管理帧的时候，probe request管理帧被忽略掉了。
+
+      2. Group Owner Test
+         平板发出请求，电视侧没有反应（正常情况应该弹出窗口请用户确认）
+
+      目前看来当go neg failed时，status=1是因为另一方没有点击连接确认按钮所致。
+
+Added: [2016-08-26 周五 09:20]
+*** ✔ DONE Chapter 06 Advanced Char Driver Operations
+     CLOSED: [2016-09-05 周一 20:45] SCHEDULED: <2016-08-25 周四>
+*** ✔ DONE Chapter 14 The Linux Device Model
+     CLOSED: [2016-09-05 周一 21:00] SCHEDULED: <2016-08-25 周四>
+*** ✔ DONE CONFIG_OF device_node
+     CLOSED: [2016-09-05 周一 21:25]
+     描述设备信息与总线之间的逻辑关系。
+*** ✔ DONE LDD3学习 
+     SCHEDULED: <2016-09-05 周一 +1w>
+     - State "✔ DONE"     from ""           [2016-09-06 周二 09:30]
+    :PROPERTIES:
+    :LAST_REPEAT: [2016-09-06 周二 09:30]
+    :END:
+*** ✔ DONE 在7662驱动中添加一个测试的虚拟接口                          :Study:
+    CLOSED: [2016-09-06 周二 20:30] SCHEDULED: <2016-08-25 周四>
+    - 尝试在wlan0上实现softap的功能
+
+Added: [2016-08-25 周四 09:15]
+*** ✔ DONE 分析一下CUSTOMIZED_COUNTRY_REGION_CE_1修改的代码            :Study:
+    CLOSED: [2016-09-06 周二 20:40] SCHEDULED: <2016-08-25 周四>
+
+Added: [2016-08-24 周三 10:50]
+*** ✔ DONE [#A] v620 miracast连接断开问题                            :Project:
+    CLOSED: [2016-09-07 周三 13:25] SCHEDULED: <2016-09-01 周四>
+     - 2016/9/1  16:55:46
+       初步分析是上层主动断开的。
+     - 2016/9/7  13:25:41
+       未复制到，先关闭。
+Added: [2016-09-01 周四 16:55]
+*** ✔ DONE [#B] 准备hostapd学习分享                                    :Study:
+    CLOSED: [2016-09-08 周四 17:25] SCHEDULED: <2016-09-01 周四>
+    CLOCK: [2016-09-05 周一 10:01]--[2016-09-05 周一 19:24] =>  9:23
+    CLOCK: [2016-09-01 周四 13:47]--[2016-09-01 周四 15:47] =>  2:00
+        研究P2P_GO与SoftAp的区别
+        softap启动时接口的详细配置步骤(hostapd  + wifi driver))
+        softap在几个虚拟接口上都能启动成功。
+
+Added: [2016-08-30 周二 17:40]
+*** ✔ DONE hisi v620HK miracast 手机概率性搜索不到电视               :Project:
+     CLOSED: [2016-09-09 周五 09:40] SCHEDULED: <2016-09-08 周四>
+       - 2016/9/8  10:38:59
+       目前已提供一个规避方案给客户
+       Added: [2016-09-08 周四 10:40]
+
+*** ✔ DONE 完整hostapd的PPT讲义                                        :Study:
+    CLOSED: [2016-09-09 周五 11:30] SCHEDULED: <2016-09-09 周五>
+     增加mac80211_hwsim的使用说明
+Added: [2016-09-09 周五 09:30]
+*** ✘ CANCELED [#C] 整理问题集                                         :Study:
+   CLOSED: [2016-09-10 六 13:40] SCHEDULED: <2016-09-01 周四>
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+将问题集写到个人知识库里面
+Added: [2016-08-11 周四 17:15]
+*** ✔ DONE 查询生育保险报销事宜                                        :Check:
+   CLOSED: [2016-09-10 六 14:30] SCHEDULED: <2016-09-07 周三>
+
+Added: [2016-09-07 周三 13:55]
+*** ✔ DONE 准备ZTE编译7668驱动事宜                                   :Project:
+    CLOSED: [2016-09-12 周一 18:50] SCHEDULED: <2016-09-08 周四>
+    CLOCK: [2016-09-09 周五 11:29]--[2016-09-09 周五 11:52] =>  0:23
+    - 已经拿到代码，先在本机上自行编译一版
+Added: [2016-09-08 周四 11:20]
+*** ✔ DONE 基础特性部分—— 1 ~ 10章
+    CLOSED: [2016-09-17 周六 18:00] SCHEDULED: <2016-09-17 周六> DEADLINE: <2016-09-30 周五>
+    CLOCK: [2016-09-17 周六 16:40]--[2016-09-17 周六 18:01] =>  1:21
+    CLOCK: [2016-09-17 周六 13:47]--[2016-09-17 周六 13:55] =>  0:08
+** 10月[/]
+** 11月[/]
+** 12月[/]

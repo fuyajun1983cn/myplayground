@@ -1,0 +1,478 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: C/C++学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 基础语法
+  
+** 初始化与赋值
+   #+BEGIN_SRC c++
+     int i = 0; //初始化
+     i = 1; //赋值   
+   #+END_SRC
+
+   如果将一个类的拷贝函数定义为私有，那么不能通过传值的方式向函数传递
+   此类型的参数。
+
+   使用初始化列表的方式可以减少操作，提高运行时间。（只有初始化的操作，
+   少了一个赋值的操作）
+
+   如果一个类的非静态成员是一个引用类型，所有类的构造函数必须使用初始
+   化列表的语法形式，因为每个引用必须被显示的初始化。
+   例如：
+   #+BEGIN_SRC c++
+     class Payroll_entry
+     {
+     private:
+       Employee& emp;
+     public:
+       Payroll_entry(Employee&);
+     };
+
+     //Compile time error: 'emp' must be initialized
+     Payroll_entry::Payroll_entry(Employee& e)
+     {
+
+     }   
+   #+END_SRC
+
+   声明emp为引用类型的作用有：
+   1. emp创建的时候必须赋一个Employee类型的对象，且不能为0或NULL。
+   2. emp一旦被赋值后，其值不能被修改。
+
+   C++赋值函数要做一个“判断是否对自身赋值”的原因主要是：防止对象删除自
+   身数据后，然后试图拷贝已删除的数据给自己。
+
+** 操作符重载
+   将一个操作符重载函数作为单独的函数还是作为一个类的成员函数呢？
+   如果一个操作符被重载为一个类成员函数，那么隐式转换对第一个操作数无
+   效。=，[]， (), ->这几个操作符的重载函数必须为类的成员函数，否则编
+   译通不过。 通常建议一元操作符重载函数都声明为类的成员函数。
+
+   [[./images/2016/2016070503.png]]
+
+   IO操作符不能重载为类的成员函数
+   转换操作符重载函数必须为类的成员函数，且函数声明中不能有参数列表。
+   （显示转换可以上explicit，这样就必须显示指定转换） 
+   
+** 字符串
+    C标准库里面定义了两种字符串类型
+    - 普通字符   char
+      : "xyz"
+    - 宽字符   =wchar_t=
+      : L"xyz"
+      宽字符串正确分配内存的实例：
+      #+BEGIN_SRC c
+        wchar_t wide_str1[] = L"0123456789";
+        wchar_t *wide_str2 = (wchar_t *)malloc(
+                                               (wcslen(wide_str1) + 1) * sizeof(wchar_t)
+                                               );
+        if (wide_str2 == NULL) {
+          /* handle error */
+         }
+        /* ... */
+        free(wide_str2);
+        wide_str2 = NULL;      
+      #+END_SRC
+      
+
+      C语言中的字符串类型是 =char= 类型的字符数组，而C++语言中则是
+      =const char= 类型的字符数组， 所以在C语言中，字符串是可以修改的。
+
+      #+CAPTION: Field width Member
+      #+BEGIN_SRC c++
+        #include <iostream>
+
+        int main(void)
+        {
+          char buf[12];
+
+          std::cin.width(12);
+          std::cin>>buf;
+          std::cout<<"echo: "<<buf<<std::endl;
+        }
+      #+END_SRC
+
+** 类
+    类中的this指针默认是一个常量指针，它指向一个非常量版的类对象，
+    即指针本身的值不可修改，但是其所指的对象是可以修改的。
+
+    跟指向一个常量类型的引用一样，一个指向常量类型的指针不能用于指针指
+    向的对象。且常量对象的地址也只能存储在一个指向常量类型的指针中。但
+    是，指向常量的指针也是可以指向非常量的类对象，只不过不能通过该指针
+    去修改指向的对象。
+
+　　我们不能通过一个常量类对象调用类的非常量类型的成员函数，它只能调
+    用常量型成员函数。常量型成员函数需要在参数列表后加上一个const修饰
+    符
+
+    　　构造函数不能声明为常量类型的成员函数形式。当创建一个常量型类对
+    象时，对象只有在构造函数完成初始化后，才体现出常量性特征。所以，在
+    构造函数里，可以对常量对象进行读写操作。
+
+    　　在C++11标准中，如果我们想让编译器提供默认的构造函数，可以在参
+    数列表后加上=default。
+
+    　　作为一个编程约定，当我们想要定义的一个类中所有的成员变量和函数
+    是所有人都可以直接访问时，请使用struct来定义，其他情况下，请使用
+    class来定义类。
+
+    一个类除了定义自己的数据和函数成员外，还可以定义自己的类型的本地名称。
+    #+BEGIN_SRC c++
+      class Screen {
+      public:
+        　　typedef std::string::size_type pos;
+        　　//或 using pos = std::string::size_type
+        private:
+        pos cursor = 0;
+        pos height = 0, width = 0;
+        std::string contents;
+      };    
+    #+END_SRC
+
+    另外，类型重命名，一般要放在类的定义的最前面。
+
+    
+*** Mutable成员变量
+    它在任何时候都不是常量，是可更改的，即便在常量成员函数里面。
+
+*** 前置声明
+    一个类可以前置声明，在遇到其定义前，它都被认为是不完全类型。我们仅
+    在如下几种情况下使用不完全类型：
+    1. 定义该类的指针或引用
+    2. 声明使用该类型的参数或返回值。
+    3. 静态的成员变量。
+
+** 引用
+   关于引用的两点说明
+   1. 可以将一个常量引用绑定到一个非常量对象上，通过该引用，不能修改绑
+      定的对象，而对象本身只能通过其他方式进行修改。
+   2. 一般情况下，引用类型必须与被引用的对象类型匹配，不过有两点除外：
+      1. 如果一个表达式可以转换成所要引用的类型，则可以定义一个常量引
+         用指向该表达式
+         #+BEGIN_SRC c++
+           int i = 42;
+           const int &r1 = i; //ok
+           const int &r2 = 42; //ok
+           const int &r3 =  r1 * 2; //ok
+           int &r4 = r * 2; //error, r4 is a plain, not const reference.
+
+           double dval = 3.14;
+           const int &ri = daval
+             //The Compiler will transform this code into something link this:
+             const int temp = dval;
+           const int &ri = temp;         
+         #+END_SRC
+
+         如果ri为变通引用，则通过ri修改的是temp，而不是dval，所以， 此
+         处引用不能声明为非const类型。
+
+      2. 基类类型的引用可以指向从基类派生的对象。
+
+   3. 常量引用和右值引用都可以引用一个右值，然而目的不一样：
+      - 右值引用是为了实现一种所谓的“破坏性读取”优化，减少不必要的拷贝。
+
+      - 常量左值引用是为了阻止对一个参数的修改。
+
+
+
+** 对象与继承
+   声明为const的一个类的对象只能调用声明为const的类的成员函数。 使用指
+   针类型作为一个类的成员可以隐藏相关类型的具体实现。
+
+   子类不能通过将父类的方法声明为私有来达到删除基类方法的目的。
+
+   三种不同的继承方式：public , protected 和private的区别在于对派生类
+   的使用者而言，访问权限不同。而对派生类的实现者（即派生类本身的成员
+   函数）而言，访问权限是一样的。
+
+   如果是私有继承的话，基类的公有类型和保护成员只能被派生类的成员函数
+   和友元函数访问，派生类的使用者也不能通过指针隐式地将派生类的指针转
+   为私有的基类的指针。
+
+   私有继承的一个用武之地就是当子类想重载基类的虚拟函数而又不希望派生
+   类的使用者调用基类的方法。
+
+   *虚拟基类* 当将两个或两个以上的类声明直接或间接继承同一个虚拟基类时，
+   它们将共用一个基类部分，并且由最近的派生类负责创建基类。
+
+   将一个指向虚拟基类的指针转换为任何一个派生类是非法的。
+
+   如果一个虚拟基类没有提供默认的构造函数（即无参的构造函数），那么第
+   一个派生类必须对其初始化。
+
+*** 可调用对象
+    C++中有如下几种可调用对象：函数，指向函数的指针，lambda，通过bind
+    创建的对象，以及重载了function-call操作符的类。
+
+** 调试
+   #+BEGIN_SRC c++
+     assert
+     NDEBUG
+     __FILE__: 文件的名称
+     __LINE__: 当前行号
+     __TIME__: 文件编译时间
+     __DATE__: 文件编译的日期   
+   #+END_SRC
+** C++11 New Feature Overview
+   
+*** Important Minor Syntax Cleanups
+    The requirement to put a space between two closing template
+    expressions has gone:
+    #+BEGIN_SRC c++
+      vector<list<int> >;
+       // OK in each C++ version
+      vector<list<int>>;
+       // OK since C++11    
+    #+END_SRC
+    C++11 lets you use *nullptr* instead of 0 or NULL to specify that a
+    pointer refers to no value (which differs from having an undefined
+    value) nullptr is a new keyword.  It has type =std::nullptr_t=,
+    defined in <cstddef>
+
+*** Automatic Type Deduction with /auto/
+    With C++11, you can declare a variable or an object without
+    specifying its specific type by using auto.
+    #+BEGIN_SRC c++
+      auto i = 42; // i has type int
+      double f();
+      auto d = f(); // d has type double    
+    #+END_SRC
+
+    The type of a variable declared with auto is deduced from its
+    initializer. Thus, an initialization is required:
+    #+BEGIN_SRC c++
+      auto i; // ERROR: can’t dedulce the type of i    
+    #+END_SRC
+
+    
+*** Uniform Initialization and Initializer Lists
+
+    Initialization could happen with parentheses, braces, and/or
+    assignment operators. For this reason, C++11 introduced the concept of
+    uniform initialization, which means that for any initialization, you
+    can use one common syntax. This syntax uses braces, so the following
+    is possible now:
+    #+BEGIN_SRC c++
+      int values[] { 1, 2, 3 };
+      std::vector<int> v { 2, 3, 5, 7, 11, 13, 17 };
+      std::vector<std::string> cities {
+        "Berlin", "New York", "London", "Braunschweig", "Cairo", "Cologne"
+          };
+      std::complex<double> c{4.0,3.0}; // equivalent to c(4.0,3.0)    
+    #+END_SRC
+
+    however, that narrowing initializations — those that reduce
+    precision or where the supplied value gets modified — are not
+    possible with braces. 
+    #+BEGIN_SRC c++
+      int x2 = 5.3; // OK, but OUCH: x2 becomes 5
+      int x3{5.0}; // ERROR: narrowing    
+    #+END_SRC
+
+    To support the concept of initializer lists for user-defined types, C++11 provides the class tem-
+    plate std::initializer_list<>. It can be used to support initializations by a list of values or in
+    any other place where you want to process just a list of values.
+
+    #+BEGIN_SRC c++
+      void print (std::initializer_list<int> vals)
+      {
+        　　for (auto p=vals.begin(); p!=vals.end(); ++p) {
+          　　std::cout << *p << "\n";
+          　　}
+      }
+      // process a list of values
+      print ({12,3,5,7,11,13,17});
+      // pass a list of values to print()    
+    #+END_SRC
+
+    
+*** Range Based for Loops
+    #+BEGIN_SRC c++
+      for ( decl : coll ) {
+        　　statement
+          }
+      Example:
+      for ( int i : { 2, 3, 5, 7, 9, 13, 17, 19 } ) {
+        　　std::cout << i << std::endl;
+       }    
+    #+END_SRC
+    
+*** 左值和右值的一点差异
+    当使用decltype时，作用于左值时，结果将是一个引用，作用于右值时，结果将是一个指针，例如：
+    假设int *p;
+    : decltype(*p) -> int&
+    : decltype(&p) -> int**
+
+    当对象是一个本地非静态对象时，将其右值引用作为一个返回值将会导致错
+    误。
+    #+BEGIN_SRC c++
+      X&& foo ()
+      {
+        X x;
+        ...
+          return x; // ERROR: returns reference to nonexisting object
+      }    
+    #+END_SRC
+
+*** 定义字符串常量
+    原始字符串常量
+    “\\\\n” can be defined as R(”\\n”)
+
+    编码过的字符串常量
+    u8 defines a UTF-8 encoding. A UTF-8 string literal is initialized with the given characters as
+    encoded in UTF-8. The characters have type const char.
+    - u defines a string literal with characters of type =char16_t=.
+    - U defines a string literal with characters of type =char32_t=.
+    - L defines a wide string literal with characters of type
+      =wchar_t=.
+
+    For example:
+    : L"hello" // defines ‘‘hello’’ as wchar_t string literal
+
+*** 关键字noexcept
+    用于指明一个函数不能抛出或不打算抛出异常，例如：
+    : void foo() noexcept
+    这样，如果在foo()函数内部发生异常，但是又没有去处理，则程序会停止，
+    并调用std::terminate()，它默认为调用std::abort()。
+
+    
+*** 常量表达式
+    常量表达式的值不能改变，且在编译期间就会解析。
+    在C++11中，引入了constexpr声明一个变量的初始化是一个常量表达式。由
+    于声明为constexpr类型的变量隐式地为const，所以必须由一个常量表达式
+    初始化。
+    如：
+    #+BEGIN_SRC c++
+      constexpr int mf = 20;
+      constexpr int limit = mf + 1;
+      constexpr int sz = size(); //只有当size()是一个constexpr类型的函数时，则成立。    
+    #+END_SRC
+
+    当使用constexpr声明一个指针常量表达式时，constexpr修饰的是指针本身，
+    而不是指针所指的类型，如：
+    #+BEGIN_SRC C++
+      const int *p = nullptr;  //p是一个指向常量整型的指针
+      constexpr int *q = nullptr;//q是一个指向整型变量的常量指针    
+    #+END_SRC
+    
+*** 类型别名 
+    1. 一种方式是通过typedef方式
+    2. 第二种方式，是采用C++11引入的别名声明using AliasOfClassA =
+       ClassA
+
+*** 显式类型转换
+    =static_cast=: 高精度数据向低精度数据转换
+    =const_cast=: 将一个const类型的对象转换为非const类型。在重载函数中
+    使用较多
+    #+BEGIN_SRC c++
+      const char *cp;
+      // error: static_cast can't cast away const
+      char *q = static_cast<char*>(cp);
+      static_cast<string>(cp); // ok: converts string literal to string
+      const_cast<string>(cp);  // error: const_cast only changes constness    
+    #+END_SRC
+
+    =interpret_cast=:执行比较底层的数据类型转换
+
+    
+*** 异常处理
+    C++库中定义几个类用于报告标准库函数中遇到的一些问题，这些类定义在
+    如下同一个头文件中：
+    #+BEGIN_EXAMPLE
+      <exception>: exception
+      <stdexcept>: exception, runtime_error, range_error, overflow_error, underflow_error, logic_error, domain_error, invalid_error, invalid_argument, length_error, out_of_range
+      <new> : bad_alloc
+      <type_info>: bad_cast    
+    #+END_EXAMPLE
+    
+    
+*** 可变参数函数
+    在C++11中，有两种方式
+    1. 如果所有参数拥有相同类型，则可以传递一个库类型为
+       =initializer_list= 
+       #+BEGIN_SRC c++
+         void error_msg(initializer_list<string> il)
+         {
+             for (auto beg = il.begin(); beg != il.end(); ++beg)
+                 cout << *beg << " " ;
+             cout << endl;
+         }       
+       #+END_SRC
+    2. 如果参数类型不一致，则可以写一个特殊函数，称为variadic模板。
+    3. 用省略号，不过一般用于与C函数对接的时候。
+       #+BEGIN_SRC c++
+         void foo1(const char *format, ...)
+         {
+         　　va_list ap;
+         　　va_start(ap, format);
+         　　...
+         　　Va_end(ap);
+         }
+
+         void foo2(args...)
+         {
+         　　foo1(args);
+         }
+
+         #define D(...) fprintf(stderr, __VA_ARGS__)       
+       #+END_SRC
+
+*** 声明复杂的函数返回类型
+    在C++11新的语法中，当函数的返回类型比较复杂时，比如是指向一个数组
+    的指针，则可以声明如下：
+    #+BEGIN_SRC c++
+      // fcn takes an int argument and returns a pointer to an array of ten ints
+      auto func(int i) -> int(*)[10];    
+    #+END_SRC
+
+    当然，也可以使用decltype。
+
+    
+*** Lambda
+    最简单的lambda
+    #+BEGIN_SRC c++
+      [] {
+        Std::cout << “hello lambda” << std::endl
+      }    
+    #+END_SRC
+
+    语法形式为：
+    #+BEGIN_SRC c++
+      [...]  {...}
+      //或
+      [...] (...) mutable throwSpec ->retType {...}
+
+      //Lambda不能应用模板
+      [] {
+        return 42;
+      }
+
+      [] () -> double {//指定了参数时，则必须显示指定返回值类型
+        return 42;
+      }
+
+      //[=]，表明lambda外部的变量通过传值的方式，给lambda内部访问，不能在内部进行修改。
+      //[&], 表明lambda外部的变量通过引用的方式，给lambda内部访问，可以在内部进行修改。
+    #+END_SRC
+
+* 模块
+
+** Stack & Heap
+    在Linux中，可以查看stack的大小：
+    : ulimit -s
+     You can change the default in (usually) the file /etc/security/limits.conf
+    可以使用函数 =setrlimit()= 进行调整。
+    #+BEGIN_SRC c
+      #include <sys/resource.h>
+      // ...
+      struct rlimit x;
+      if (getrlimit(RLIMIT_STACK, &x) < 0)
+          perror("getrlimit");
+      x.rlim_cur = RLIM_INFINITY;
+      if (setrlimit(RLIMIT_STACK, &x) < 0)
+          perror("setrlimit");    
+    #+END_SRC
+    
+

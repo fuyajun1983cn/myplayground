@@ -385,6 +385,24 @@
 ** =skb_copy_to_linear_data=
 ** =skb_copy_from_linear_data=
    Use memcpy() to copy skb->data.
+** 队列操作
+    #+BEGIN_SRC c
+      //queue
+      struct sk_buff_head ack_quue;
+      ...
+      //获取队列尾部元素
+      skb_queue_tail(...)
+
+      //队列长度
+      skb_queue_len(...)
+
+      //从队列取元素
+      skb_dequeue(...)
+
+      //
+      skb_get_queue_mapping(...)
+
+    #+END_SRC
 * Pass Package to Upper Layer
   驱动通过 =net_rx= 来通知内核有数据包需要提交给上层处理。
   #+BEGIN_SRC c
@@ -408,6 +426,39 @@
     pOSPkt->len = DataSize;
     skb_set_tail_pointer(pOSPkt, pOSPkt->len);
   #+END_SRC
+* 向上层报告数据
+  #+BEGIN_SRC c
+    INT RtmpOSNotifyRawData(IN PNET_DEV pNetDev,
+                            IN PUCHAR buff, IN INT len, IN ULONG type, IN USHORT protocol)
+    {
+            struct sk_buff *skb = NULL;
 
+            skb = dev_alloc_skb(len + 2);
+
+            if (!skb) {
+                    DBGPRINT(RT_DEBUG_ERROR,
+                             ("%s: failed to allocate sk_buff for notification\n", pNetDev->name));
+                    return -ENOMEM;
+            }
+
+            skb_reserve(skb, 2);
+            memcpy(skb_put(skb, len), buff, len);
+            skb->len = len;
+            skb->dev = pNetDev;
+    #if (LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 21))
+            skb->mac.raw = skb->data;
+    #else
+            skb_set_mac_header(skb, 0);
+    #endif /* endif */
+            skb->ip_summed = CHECKSUM_UNNECESSARY;
+            skb->pkt_type = PACKET_OTHERHOST;
+            skb->protocol = htons(protocol);
+            memset(skb->cb, 0, sizeof(skb->cb));
+
+            netif_rx(skb);
+
+            return 0;
+    }  
+  #+END_SRC
   
   

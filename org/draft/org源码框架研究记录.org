@@ -1,0 +1,27 @@
+#+STARTUP: overview
+#+TITLE: Emacs Org源码框架研究
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 可定制的变量
+
+** clock and planning
+    1. org-clock-string
+       CLOCK
+    2. org-closed-string
+       CLOSED
+    3. org-deadline-string
+       DEADLINE
+    4. org-scheduled-string
+       SCHEDULED
+    5.
+
+** modules
+    1. org-modules
+       加载的模块列表
+
+** speed key
+    1.  org-use-speed-commands

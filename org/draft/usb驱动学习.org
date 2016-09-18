@@ -1,0 +1,393 @@
+#+STARTUP: overview
+#+TITLE: Linux USB驱动框架学习
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 理论与规范
+** USB Basics
+
+*** Speed
+    - USB 2.0
+      480Mbps
+    - USB 3.0 
+      4.8Gbps
+
+*** Usb Cables
+    - ground
+    - power
+    - two signal wires
+      
+
+** Inside USB Transfers
+
+** Tansfer Types
+
+** Enumeration
+
+** Chip Choices
+
+** Host Side Business
+
+** Managing Power
+
+* Linux USB驱动
+  USB core  and USB driver
+  
+  #+CAPTION: USB driver overview
+  [[./images/2016/2016072601.png]]
+
+  #+CAPTION: USB device overview
+  [[./images/2016/2016072602.png]]
+
+  USB通信是通过Endpoint进行的，它是一种双向的数据通信管道。
+  有4种类型：
+  1. CONTROL
+     主要用于配置设备，查询设备信息，向设备发送命令，或者查询设备的状
+     态报告。这些EP通过很小，每个USB设备有一个CONTROL EP称为“endpoint
+     0”, 由USB Core在设备插入时用于配置设备。USB协议保证了总是拥有足
+     够的带宽来传输这些通信数据。
+  2. INTERRUPT
+     这种EP一般以固定的速率传输小块数据，USB键盘和鼠标主要采用这种方式
+     与Host进行通信。 也可以用于向USB设备发送控制命令，但通常不会用来
+     传输大量的数据。USB协议也会保证预留足够的带宽来确保数据通信的顺利
+     进行。
+  3. BULK
+     这种EP一般用于传输大量数据，USB协议不能保证在指定的时间内完成数据
+     传输，可以会需要将数据分块分多次进行传输。一般用于打印机，存储设
+     备以及网卡设备。
+  4. ISOCHRONOUS
+     这种EP也是用于传输大量数据，但是不保证传输数据不丢失。一般用于音
+     频和视频设备。
+
+     控制和BULK EP用于异步数据传输。中断和ISOCHRONOUS EP用于周期性数据
+     传输， USB Core会为它们预留带宽以保证数据能持续地进行传输。
+
+** 数据结构
+
+      devices have one (usually) or more configs;   configs have one
+  (often) or more interfaces;  interfaces have one (usually) or more
+  settings;  each interface setting has zero or (usually) more
+  endpoints.
+
+  a USB interface represents basic functionality.
+
+  #+CAPTION: endpoints
+    #+BEGIN_SRC c
+      struct usb_host_endpoint {
+              struct usb_endpoint_descriptor          desc;
+              struct usb_ss_ep_comp_descriptor        ss_ep_comp;
+              struct list_head                urb_list;
+              void                            *hcpriv;
+              struct ep_device                *ep_dev;        /* For sysfs info */
+
+              unsigned char *extra;   /* Extra descriptors */
+              int extralen;
+              int enabled;
+              int streams;
+      };
+
+
+      /* USB_DT_ENDPOINT: Endpoint descriptor */
+      struct usb_endpoint_descriptor {
+              __u8  bLength;
+              __u8  bDescriptorType;
+
+        /**
+           This is the USB address of this specific endpoint. Also included in this 8-bit
+      value is the direction of the endpoint. The bitmasks USB_DIR_OUT and USB_DIR_IN
+      can be placed against this field to determine if the data for this endpoint is
+      directed to the device or to the host.
+        ,*/
+              __u8  bEndpointAddress;
+        /**
+           This is the type of endpoint. The bitmask USB_ENDPOINT_XFERTYPE_MASK should
+      be placed against this value in order to determine if the endpoint is of type
+      USB_ENDPOINT_XFER_ISOC, USB_ENDPOINT_XFER_BULK, or of type USB_ENDPOINT_
+      XFER_INT. These macros define a isochronous, bulk, and interrupt endpoint,
+      respectively.
+        ,*/
+              __u8  bmAttributes;
+        /**
+           This is the maximum size in bytes that this endpoint can handle at once. Note
+      that it is possible for a driver to send amounts of data to an endpoint that is bigger
+      than this value, but the data will be divided up into wMaxPacketSize chunks
+      when actually transmitted to the device. For high-speed devices, this field can be
+      used to support a high-bandwidth mode for the endpoint by using a few extra
+      bits in the upper part of the value.
+        ,*/
+              __le16 wMaxPacketSize;
+        /**
+           If this endpoint is of type interrupt, this value is the interval settingfor the endpoint—
+      that is, the time between interrupt requests for the endpoint. The value is
+      represented in milliseconds.
+        ,*/
+              __u8  bInterval;
+
+              /* NOTE:  these two are _only_ in audio endpoints. */
+              /* use USB_DT_ENDPOINT*_SIZE in bLength, not sizeof. */
+              __u8  bRefresh;
+              __u8  bSynchAddress;
+      } __attribute__ ((packed));
+    #+END_SRC
+      
+
+  #+CAPTION: Interfaces
+  #+BEGIN_SRC c
+    struct usb_interface {
+            /* array of alternate settings for this interface,
+             ,* stored in no particular order */
+            struct usb_host_interface *altsetting;
+
+            struct usb_host_interface *cur_altsetting;      /* the currently
+                                             ,* active alternate setting */
+            unsigned num_altsetting;        /* number of alternate settings */
+
+            /* If there is an interface association descriptor then it will list
+             ,* the associated interfaces */
+            struct usb_interface_assoc_descriptor *intf_assoc;
+
+            int minor;                      /* minor number this interface is
+                                             ,* bound to */
+            enum usb_interface_condition condition;         /* state of binding */
+            unsigned sysfs_files_created:1; /* the sysfs attributes exist */
+            unsigned ep_devs_created:1;     /* endpoint "devices" exist */
+            unsigned unregistering:1;       /* unregistration is in progress */
+            unsigned needs_remote_wakeup:1; /* driver requires remote wakeup */
+            unsigned needs_altsetting0:1;   /* switch to altsetting 0 is pending */
+            unsigned needs_binding:1;       /* needs delayed unbind/rebind */
+            unsigned resetting_device:1;    /* true: bandwidth alloc after reset */
+
+            struct device dev;              /* interface specific device info */
+            struct device *usb_dev;
+            atomic_t pm_usage_cnt;          /* usage counter for autosuspend */
+            struct work_struct reset_ws;    /* for resets in atomic context */
+    };  
+  #+END_SRC
+
+  重要的成员主要是：  altsetting, =num_altsetting=, =cur_altsetting=,
+  和 minor。
+
+** USB and Sysfs
+    
+    - physical USB device
+      : struct usb_device
+    - individual USB interfaces
+      : struct usb_interface
+  
+      USB sysfs device naming scheme:
+      =root_hub-hub_port:config.interface=
+      /sys/devices/pci0000:00/0000:00:09.0/usb2/2-1/2-1:1.0
+
+      root hub: usb2
+      device name: 2-1 (root hub number + port number)
+      USB interfaces: 2-1:1.0
+      
+      For a two-deep tree, the device name looks like:
+      =root_hub-hub_port-hub_port:config.interface=
+
+** USB Urbs
+    urb is used to send or receive data to or from a specific USB
+    endpoint on a specific USB device in an asynchronous manner.
+
+    The typical lifecycle of a urb is as follows:
+    - Created by a USB device driver.
+    - Assigned to a specific endpoint of a specific USB device.
+    - Submitted to the USB core, by the USB device driver.
+    - Submitted to the specific USB host controller driver for the
+      specified device by the USB core.
+    - Processed by the USB host controller driver that makes a USB
+      transfer to the device.
+    - When the urb is completed, the USB host controller driver
+      notifies the USB device driver.
+
+      #+BEGIN_SRC c
+        struct urb {
+          /**
+             Pointer to the struct usb_device to which this urb is sent. This variable must be
+             initialized by the USB driver before the urb can be sent to the USB core.
+          ,*/
+          struct usb_device *dev;
+
+          /**
+             Endpoint information for the specific struct usb_device that this urb is to be
+             sent to. This variable must be initialized by the USB driver before the urb can be
+             sent to the USB core.
+
+             unsigned int usb_sndctrlpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies a control OUT endpoint for the specified USB device with the specified
+             endpoint number.
+
+             unsigned int usb_rcvctrlpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies a control IN endpoint for the specified USB device with the specified
+             endpoint number.
+
+             unsigned int usb_sndbulkpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies a bulk OUT endpoint for the specified USB device with the specified
+             endpoint number.
+
+             unsigned int usb_rcvbulkpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies a bulk IN endpoint for the specified USB device with the specified
+             endpoint number.
+
+             unsigned int usb_sndintpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies an interrupt OUT endpoint for the specified USB device with the
+             specified endpoint number.
+
+             unsigned int usb_rcvintpipe(struct usb_device *dev, unsigned int endpoint)
+             Specifies an interrupt IN endpoint for the specified USB device with the
+             specified endpoint number.
+
+             unsigned int usb_sndisocpipe(struct usb_device *dev, unsigned int
+             endpoint)
+             Specifies an isochronous OUT endpoint for the specified USB device with
+             the specified endpoint number.
+
+             unsigned int usb_rcvisocpipe(struct usb_device *dev, unsigned int
+             endpoint)
+             Specifies an isochronous IN endpoint for the specified USB device with the
+             specified endpoint number.
+          ,*/
+          unsigned int pipe;
+
+          unsigned int transfer_flags;
+
+          /**
+             In order for the host
+             controller to properly access this buffer, it must be created with a call to kmalloc,
+             not on the stack or statically.
+          ,*/
+          void *transfer_buffer;
+
+          /**
+             Buffer to be used to transfer data to the USB device using DMA.
+          ,*/
+          dma_addr_t transfer_dma;
+
+          int transfer_buffer_length;
+
+          /**
+             valid only for control urbs.
+          ,*/
+          unsigned char *setup_packet;
+
+          /**
+             DMA buffer for the setup packet for a control urb.
+          ,*/
+          dma_addr_t setup_dma;
+
+          /**
+             Pointer to the completion handler function that is called by the USB core when
+             the urb is completely transferred or when an error occurs to the urb.
+          ,*/
+          usb_complete_t complete;
+
+          void *context;
+
+          //实际传输的数据长度
+          int actual_length;
+
+          //当前urb的状态，在完成回调函数中访问
+          int status;
+
+          /**
+             Sets or returns the initial frame number for isochronous transfers to use.
+          ,*/
+          int start_frame;
+
+          /**
+             The interval at which the urb is polled.
+          ,*/
+          int interval;
+
+          /**
+             Valid only for isochronous urbs and specifies the number of isochronous transfer
+        buffers to be handled by this urb.
+          ,*/
+          int number_of_packets;
+
+          int error_count;
+
+          /**
+             Valid only for isochronous urbs.
+          ,*/
+          struct usb_iso_packet_descriptor iso_frame_desc[0];
+        }      
+      #+END_SRC
+
+*** Creating and Destroying Urbs
+        #+BEGIN_SRC c
+          /**
+             @param iso_packets   the number of isochronous packets this urb should contain, 0 for other type of urb.
+             @param mem_flags the same as kmalloc
+          ,*/
+          struct urb *usb_alloc_urb(int iso_packets, int mem_flags);
+
+
+          void usb_free_urb(struct urb *urb);
+        #+END_SRC
+       
+*** Interrupt urbs
+         #+BEGIN_SRC c
+           void usb_fill_int_urb(struct urb *urb, struct usb_device *dev,
+                                 unsigned int pipe, void *transfer_buffer,
+                                 int buffer_length, usb_complete_t complete,
+                                 void *context, int interval);         
+         #+END_SRC
+
+
+*** Bulk urbs
+         #+BEGIN_SRC c
+           void usb_fill_bulk_urb(struct urb *urb, struct usb_device *dev,
+                                  unsigned int pipe, void *transfer_buffer,
+                                  int buffer_length, usb_complete_t complete,
+                                  void *context);         
+         #+END_SRC
+
+      
+*** Control urbs
+         #+BEGIN_SRC c
+           void usb_fill_control_urb(struct urb *urb, struct usb_device *dev,
+                                     unsigned int pipe, unsigned char *setup_packet,
+                                     void *transfer_buffer, int buffer_length,
+                                     usb_complete_t complete, void *context);         
+         #+END_SRC
+       
+*** Isochronous urbs
+         #+BEGIN_SRC c
+           urb->dev = dev;
+           urb->context = uvd;
+           urb->pipe = usb_rcvisocpipe(dev, uvd->video_endp-1);
+           urb->interval = 1;
+           urb->transfer_flags = URB_ISO_ASAP;
+           urb->transfer_buffer = cam->sts_buf[i];
+           urb->complete = konicawc_isoc_irq;
+           urb->number_of_packets = FRAMES_PER_DESC;
+           urb->transfer_buffer_length = FRAMES_PER_DESC;
+           for (j=0; j < FRAMES_PER_DESC; j++) {
+             urb->iso_frame_desc[j].offset = j;
+             urb->iso_frame_desc[j].length = 1;
+            }         
+         #+END_SRC
+
+*** Submitting Urbs
+         #+BEGIN_SRC c
+           int usb_submit_urb(struct urb *urb, int mem_flags);         
+         #+END_SRC
+
+         After a urb has been submitted to the USB core successfully,
+         it should never try to access any fields of the urb structure
+         until the complete function is called.
+         
+*** Canceling Urbs
+         #+BEGIN_SRC c
+           int usb_kill_urb(struct urb *urb);
+           //tell the USB core to stop an urb ,
+           //This function does not wait for the urb to be fully stopped before
+           //returning go the caller
+           int usb_unlink_urb(struct urb *urb);         
+         #+END_SRC
+
+

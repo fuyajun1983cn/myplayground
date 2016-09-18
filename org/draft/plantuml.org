@@ -1,0 +1,2706 @@
+#+STARTUP: overview
+#+TITLE: PlantUML语法速查
+#+STARTUP: hidestars
+#+OPTIONS:    H:3  toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* Sequence Diagram
+** Basic examples
+   
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062901.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     Alice -> Bob: Another authentication Request
+     Alice <-- Bob: another authentication Response
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062901.png]]
+
+** Comments
+   注释用单引号或多行注释 /' ... '/
+
+** Declaring participant
+   可以使用 *participant* 关键字来改变参与者的顺序
+   也可以使用其他的关键字声明一个参与者：
+   - actor
+   - boundary
+   - control
+   - entity
+   - database
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062902.png :cmdline -charset UTF-8
+     @startuml
+     actor Foo1
+     boundary Foo2
+     control Foo3
+     entity Foo4
+     database Foo5
+     Foo1 -> Foo2 : To boundary
+     Foo1 -> Foo3 : To control
+     Foo1 -> Foo4 : To entity
+     Foo1 -> Foo5 : To database
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062902.png]]
+
+   可以使用 *as* 关键字来重命名一个参与者
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062903.png :cmdline -charset UTF-8
+     @startuml
+     actor Bob #red
+     ' The only difference between actor
+     'and participant is the drawing
+     participant Alice
+     participant "I have a really\nlong name" as L #99FF99
+     /' You can also declare:
+     participant L as "I have a really\nlong name" #99FF99
+     '/
+     Alice ->Bob: Authentication Request
+     Bob ->Alice: Authentication Response
+     Bob ->L: Log transaction
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062903.png]]
+
+** Use non-letters in participants
+   可以直接使用引号来定义参与者，并使用 *as* 关键字来起个别名。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062904.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> "Bob()" : Hello
+     "Bob()" -> "This is very\nlong" as Long
+     ' You can also declare:
+     ' "Bob()" -> Long as "This is very\nlong"
+     Long --> "Bob()" : ok
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062904.png]]
+
+** Message to Self
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062905.png :cmdline -charset UTF-8
+     @startuml
+     Alice ->Alice: This is a signal to self.\nIt also demonstrates\nmultiline \ntext
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062905.png]]
+
+** Change arrow style
+   可以改变箭头的形状：
+   1. add a final x to denote a lost message
+   2. use \ or / instead of < or > to have only the bottom or top part of the arrow
+   3. repeat the arrow head (for example, >> or //) head to have a thin drawing
+   4. use -- instead of - to have a dotted arrow
+   5. add a final ”o” at arrow head
+   6. use bidirectional arrow
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062906.png :cmdline -charset UTF-8
+     @startuml
+     Bob ->x Alice
+     Bob -> Alice
+     Bob ->> Alice
+     Bob -\ Alice
+     Bob \\- Alice
+     Bob //-- Alice
+     Bob ->o Alice
+     Bob o\\-- Alice
+     Bob <-> Alice
+     Bob <->o Alice
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016062906.png]]
+
+** Change arrow color
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062907.png :cmdline -charset UTF-8
+     @startuml
+     Bob -[#red]> Alice : hello
+     Alice -[#0000FF]->Bob : ok
+     @enduml   
+   #+END_SRC
+
+** Message sequence numbering
+   使用关键字 *autonumber* 来自动给消息添加数字序号
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062908.png :cmdline -charset UTF-8
+     @startuml
+     autonumber
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     @enduml   
+   #+END_SRC
+
+   可以使用 :autonumber 'start' 'increment'  指定一个起始数字和增量。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062909.png :cmdline -charset UTF-8
+     @startuml
+     autonumber
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber 15
+     Bob -> Alice : Another authentication Request
+     Bob <- Alice : Another authentication Response
+     autonumber 40 10
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+   双引号之间也可以指定数字显示的格式， 可以参考Java类 *DecimalFormat*
+   中对格式的要求。 (’0’ means digit, ’#’ means digit and zero if
+   absent)
+   在格式中，可以使用html标签。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062910.png :cmdline -charset UTF-8
+     @startuml
+     autonumber "<b>[000]"
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber 15 "<b>(<u>##</u>)"
+     Bob -> Alice : Another authentication Request
+     Bob <- Alice : Another authentication Response
+     autonumber 40 10 "<font color=red ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+   也可以使用 autonumber stop 'increment' 'format' 以及 autonumber
+   resume 'increment' 'format'来暂停和恢复数字编号。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062911.png :cmdline -charset UTF-8
+     @startuml
+     autonumber 10 10 "<b>[000]"
+     Bob -> Alice : Authentication Request
+     Bob <- Alice : Authentication Response
+     autonumber stop
+     Bob -> Alice : dummy
+     autonumber resume "<font color=red ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     autonumber stop
+     Bob -> Alice : dummy
+     autonumber resume 1 "<font color=blue ><b>Message 0 "
+     Bob -> Alice : Yet another authentication Request
+     Bob <- Alice : Yet another authentication Response
+     @enduml
+   #+END_SRC
+
+** Title
+   为序列图定义一个标题
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062912.png :cmdline -charset UTF-8
+     @startuml
+     title Simple communication example
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Legend(图例) the diagram
+   The legend and end legend are keywords is used to put a legend. You
+   can optionally specify to have left, right or center alignment for
+   the legend.
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016062913.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob : Hello
+     legend right
+     Short
+     legend
+     endlegend
+     @enduml   
+   #+END_SRC
+
+** Splitting diagrams
+   *newpage* 关键字用于将一个图分解成多个图， 在 *newpage* 之后可以添
+   加一个标题。 
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070102.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob : message 1
+     Alice -> Bob : message 2
+     newpage
+     Alice -> Bob : message 3
+     Alice -> Bob : message 4
+     newpage A title for the\nlast page
+     Alice -> Bob : message 5
+     Alice -> Bob : message 6
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016070102.png]]
+
+** Grouping message
+   可以使用如下一些关键字组合消息：
+   - alt/else
+   - opt
+   - loop
+   - par
+   - break
+   - critical
+   - group 后面跟着要显示的文字 
+     end 关键字关闭一个group，group是可以嵌套的。
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070103.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     alt successful case
+     Bob -> Alice: Authentication Accepted
+     else some kind of failure
+     Bob -> Alice: Authentication Failure
+     group My own label
+     Alice -> Log : Log attack start
+     loop 1000 times
+     Alice -> Bob: DNS Attack
+     end
+     Alice -> Log : Log attack end
+     end
+     else Another type of failure
+     Bob -> Alice: Please repeat
+     end
+     @enduml   
+   #+END_SRC
+
+** Notes on messages
+   消息也可以添加注解，可以是显示在左边，可以显示在右边，也可以多行显
+   示。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070104.png :cmdline -charset UTF-8
+     @startuml
+     Alice ->Bob : hello
+     note left: this is a first note
+     Bob ->Alice : ok
+     note right: this is another note
+     Bob ->Bob : I am thinking
+     note left
+     a note
+     can also be defined
+     on several lines
+     end note
+     @enduml           
+   #+END_SRC
+
+** Some other notes
+   注解也可以以某个注解的位置为参考进行显示，也可以修改背景色。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070105.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     participant Bob
+     note left of Alice #aqua
+     This is displayed
+     left of Alice.
+     end note
+     note right of Alice: This is displayed right of Alice.
+     note over Alice: This is displayed over Alice.
+     note over Alice , Bob #FFAAAA: This is displayed\n over Bob and Alice.
+     note over Bob , Alice
+     This is yet another
+     example of
+     a long note.
+     end note
+     @enduml   
+   #+END_SRC
+
+** Changing notes shape
+   可以使用 *hnote* 和 *rnote* 关键字改变注解的形状。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070106.png :cmdline -charset UTF-8
+     @startuml
+     caller -> server : conReq
+     hnote over caller : idle
+     caller <- server : conConf
+     rnote over server
+     "r" as rectangle
+     "h" as hexagon
+     endrnote
+     @enduml   
+   #+END_SRC
+
+** Creole and HTML
+   可以使用creale格式定义注解
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070107.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     participant "The **Famous** Bob" as Bob
+     Alice -> Bob : hello --there --
+     ... Some ~~long delay~~ ...
+     Bob -> Alice : ok
+     note left
+     This is **bold**
+     This is //italics//
+     This is ""monospaced""
+     This is --stroked --
+     This is __underlined__
+     This is ~~waved~~
+     end note
+     Alice -> Bob : A //well formatted// message
+     note right of Alice
+     This is <back:cadetblue ><size:18>displayed </size ></back >
+     __left of__ Alice.
+     end note
+     note left of Bob
+     <u:red >This </u> is <color #118888> displayed </color >
+     ,**<color purple >left of </color > <s:red >Alice </strike > Bob**.
+     end note
+     note over Alice , Bob
+     <w:#FF33FF >This is hosted </w> by <img sourceforge.jpg >
+     end note
+     @enduml   
+   #+END_SRC
+
+** Divider
+   使用 == 将图拆分为一些逻辑步骤。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070108.png :cmdline -charset UTF-8
+     @startuml
+     == Initialization ==
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     == Repetition ==
+     Alice -> Bob: Another authentication Request
+     Alice <-- Bob: another authentication Response
+     @enduml   
+   #+END_SRC
+
+** Reference
+   可以使用 *ref over* 在图中使用引用。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070109.png :cmdline -charset UTF-8
+     @startuml
+     participant Alice
+     actor Bob
+     ref over Alice , Bob : init
+     Alice -> Bob : hello
+     ref over Bob
+     This can be on
+     several lines
+     end ref
+     @enduml   
+   #+END_SRC
+
+** Delay
+   可以使用 *...* 表示一个延迟。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070110.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: Authentication Request
+     ...
+     Bob --> Alice: Authentication Response
+     ...5 minutes latter...
+     Bob --> Alice: Bye !
+     @enduml   
+   #+END_SRC
+
+** Space
+   使用 *|||* 来表示图中的一些空格。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070111.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob: message 1
+     Bob --> Alice: ok
+     |||
+     Alice -> Bob: message 2
+     Bob --> Alice: ok
+     ||45||
+     Alice -> Bob: message 3
+     Bob --> Alice: ok
+     @enduml   
+   #+END_SRC
+
+** Lifeline Activation and Destruction
+   生命周期图, *active* 和 *deactive* 表示参与者的生命周期， *destroy*
+   表示一个参考者生命周期的结束。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070112.png :cmdline -charset UTF-8
+     @startuml
+     participant User
+     User -> A: DoWork
+     activate A
+     A -> B: << createRequest >>
+     activate B
+     B -> C: DoWork
+     activate C
+     C --> B: WorkDone
+     destroy C
+     B --> A: RequestCreated
+     deactivate B
+     A -> User: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+   生命周期图也可以嵌套。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070113.png :cmdline -charset UTF-8
+     @startuml
+     participant User
+     User -> A: DoWork
+     activate A #FFBBBB
+     A -> A: Internal call
+     activate A #DarkSalmon
+     A -> B: << createRequest >>
+     activate B
+     B --> A: RequestCreated
+     deactivate B
+     deactivate A
+     A -> User: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+** Participant creation
+   *create* 关键字表示在接收到某个消息后，会创建一个新对象。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070114.png :cmdline -charset UTF-8
+     @startuml
+     Bob -> Alice : hello
+     create Other
+     Alice -> Other : new
+     create control String
+     Alice -> String
+     note right : You can also put notes!
+     Alice --> Bob : ok
+     @enduml
+   #+END_SRC
+
+** Incoming and outgoing messages
+   当只表强调图的某个部分时，可以使用 "["和"]"分别表示图的左边和右边。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070115.png :cmdline -charset UTF-8
+     @startuml
+     [-> A: DoWork
+     activate A
+     A -> A: Internal call
+     activate A
+     A ->] : << createRequest >>
+     A<--] : RequestCreated
+     deactivate A
+     [<- A: Done
+     deactivate A
+     @enduml   
+   #+END_SRC
+
+   还可以使用如下语法：
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070116.png :cmdline -charset UTF-8
+     @startuml
+     [-> Bob
+     [o-> Bob
+     [o->o Bob
+     [x-> Bob
+     [<- Bob
+     [x<- Bob
+     Bob ->]
+     Bob ->o]
+     Bob o->o]
+     Bob ->x]
+     Bob <-]
+     Bob x<-]
+     @enduml
+   #+END_SRC
+
+** Stereotypes and Spots
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070117.png :cmdline -charset UTF-8
+     @startuml
+     participant "Famous Bob" as Bob << Generated >>
+     participant Alice << (C,#ADD1B2) Testable >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+    
+   使用 skinparam guillemet 改变原型显示的字体。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070118.png :cmdline -charset UTF-8
+     @startuml
+     skinparam guillemet false
+     participant "Famous Bob" as Bob << Generated >>
+     participant Alice << (C,#ADD1B2) Testable >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+
+   使用(X,color)add a spotted character in a colored circle
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070119.png :cmdline -charset UTF-8
+     @startuml
+     participant Bob << (C,#ADD1B2) >>
+     participant Alice << (C,#ADD1B2) >>
+     Bob ->Alice: First message
+     @enduml   
+   #+END_SRC
+
+** More information on titles
+   标题格式化
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070120.png :cmdline -charset UTF-8
+     @startuml
+     title __Simple__ **communication** example
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+   标题中也可以包含换行符
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070121.png :cmdline -charset UTF-8
+     @startuml
+     title __Simple__ communication example\non several lines
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+   
+   也可以使用  *title* *end title* 关键字定义跨跃多行的标题。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070122.png :cmdline -charset UTF-8
+     @startuml
+     title
+     <u>Simple </u> communication example
+     on <i>several </i> lines and using <font color=red >html </font >
+     This is hosted by <img:sourceforge.jpg >
+     end title
+     Alice -> Bob: Authentication Request
+     Bob -> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Participants encompass
+   可以使用框框把参考者框起来
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070123.png :cmdline -charset UTF-8
+     @startuml
+     box "Internal Service" #LightBlue
+     participant Bob
+     participant Alice
+     end box
+     participant Other
+     Bob -> Alice : hello
+     Alice -> Other : hello
+     @enduml   
+   #+END_SRC
+
+** Removing Footer
+   可以使用 *hide footbox* 来删除图的footer。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070124.png :cmdline -charset UTF-8
+     @startuml
+     hide footbox
+     title Footer removed
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     @enduml   
+   #+END_SRC
+
+** Skinparam
+   可以使用 *skinparm* 来改变绘制时，使用的字体和颜色。
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016070125.png :cmdline -charset UTF-8
+     @startuml
+     skinparam backgroundColor #EEEBDC
+     skinparam sequence {
+     ArrowColor DeepSkyBlue
+     ActorBorderColor DeepSkyBlue
+     LifeLineBorderColor blue
+     LifeLineBackgroundColor #A9DCDF
+     ParticipantBorderColor DeepSkyBlue
+     ParticipantBackgroundColor DodgerBlue
+     ParticipantFontName Impact
+     ParticipantFontSize 17
+     ParticipantFontColor #A9DCDF
+     ActorBackgroundColor aqua
+     ActorFontColor DeepSkyBlue
+     ActorFontSize 17
+     ActorFontName Aapex
+     }
+     actor User
+     participant "First Class" as A
+     participant "Second Class" as B
+     participant "Last Class" as C
+     User -> A: DoWork
+     activate A
+     A -> B: Create Request
+     activate B
+     B -> C: DoWork
+     activate C
+     C --> B: WorkDone
+     destroy C
+     B --> A: Request Created
+     deactivate B
+     A --> User: Done
+     deactivate A
+     @enduml
+   #+END_SRC
+* Use Case Diagram
+** Usecases
+    用例可以使用 '( )' 表示，或者使用关键字 *usecase* , 还可以使用
+    *as* 关键字来定义一个别名。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071210.png :cmdline -charset UTF-8
+      @startuml
+      (First usecase)
+      (Another usecase) as (UC2)
+      usecase UC3
+      usecase (Last\nusecase) as UC4
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071210.png]]
+
+** Actors
+    活动者可以使用 ': :'表示，或者使用关键字 *actor* ，还可以使用 *as*
+    关键字来定义一个别名。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071211.png :cmdline -charset UTF-8
+      @startuml
+      :First Actor:
+      :Another\nactor: as Men2
+      actor Men3
+      actor :Last actor: as Men4
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071211.png]]
+
+** Usecases description
+    可以使用如下一些分隔符来表示多行用例描述。 
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071212.png.png :cmdline -charset UTF-8
+      @startuml
+      usecase UC1 as "You can use
+      several lines to define your usecase.
+      You can also use separators.
+      --
+      Several separators are possible.
+      ==
+      And you can add titles:
+      ..Conclusion..
+      This allows large description."
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071212.png.png]]
+
+** Basic Example
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071213.png :cmdline -charset UTF-8
+      @startuml
+      User -> (Start)
+      User --> (Use the application) : A small label
+      :Main Admin: ---> (Use the application) : This is\nyet another\nlabel
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071213.png]]
+
+** Extension
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071214.png :cmdline -charset UTF-8
+      @startuml
+      :Main Admin: as Admin
+      (Use the application) as (Use)
+      User <|-- Admin
+      (Start) <|-- (Use)
+      @enduml
+    #+END_SRC
+
+** Using notes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071215.png :cmdline -charset UTF-8
+      @startuml
+      :Main Admin: as Admin
+      (Use the application) as (Use)
+      User -> (Start)
+      User --> (Use)
+      Admin ---> (Use)
+      note right of Admin : This is an example.
+      note right of (Use)
+      A note can also
+      be on several lines
+      end note
+      note "This note is connected\nto several objects." as N2
+      (Start) .. N2
+      N2 .. (Use)
+      @enduml
+    #+END_SRC
+
+** Stereotypes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071216.png :cmdline -charset UTF-8
+      @startuml
+      User << Human >>
+      :Main Database: as MySql << Application >>
+      (Start) << One Shot >>
+      (Use the application) as (Use) << Main >>
+      User -> (Start)
+      User --> (Use)
+      MySql --> (Use)
+      @enduml
+    #+END_SRC
+
+** Changing arrows direction
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071217.png :cmdline -charset UTF-8
+      @startuml
+      :user: --> (Use case 1)
+      :user: -> (Use case 2)
+      @enduml
+    #+END_SRC
+
+    You can also change directions by reversing the link:
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071218.png :cmdline -charset UTF-8
+      @startuml
+      (Use case 1) <.. :user:
+      (Use case 2) <- :user:
+      @enduml
+    #+END_SRC
+
+    还可以在箭头中直接使用 *left* *right* *up* *down* 等关键字指定
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071219.png :cmdline -charset UTF-8
+      @startuml
+      :user: -left-> (dummyLeft)
+      :user: -right-> (dummyRight)
+      :user: -up-> (dummyUp)
+      :user: -down-> (dummyDown)
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071219.png]]
+    
+** Title the diagram
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071220.png :cmdline -charset UTF-8
+      @startuml
+      title Simple <b>Usecase </b>\nwith one actor
+      "Use the application" as (Use)
+      User -> (Use)
+      @enduml
+    #+END_SRC
+
+** Splitting diagrams
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071221.png :cmdline -charset UTF-8
+      @startuml
+      :actor1: --> (Usecase1)
+      newpage
+      :actor2: --> (Usecase2)
+      @enduml
+    #+END_SRC
+
+** Left to right direction
+    默认方向是从上到下。
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071222.png :cmdline -charset UTF-8
+      @startuml
+      'default
+      top to bottom direction
+      user1 --> (Usecase 1)
+      user2 --> (Usecase 2)
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071223.png :cmdline -charset UTF-8
+      @startuml
+      left to right direction
+      user1 --> (Usecase 1)
+      user2 --> (Usecase 2)
+      @enduml
+    #+END_SRC
+
+** Skinparam
+    改变颜色和显示的字体
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071224.png :cmdline -charset UTF-8
+      @startuml
+      skinparam handwritten true
+      skinparam usecase {
+      BackgroundColor DarkSeaGreen
+      BorderColor DarkSlateGray
+      BackgroundColor << Main >> YellowGreen
+      BorderColor << Main >> YellowGreen
+      ArrowColor Olive
+      ActorBorderColor black
+      ActorFontName Courier
+      ActorBackgroundColor << Human >> Gold
+      }
+      User << Human >>
+      :Main Database: as MySql << Application >>
+      (Start) << One Shot >>
+      (Use the application) as (Use) << Main >>
+      User -> (Start)
+      User --> (Use)
+      MySql --> (Use)
+      @enduml
+    #+END_SRC
+
+** Complete example
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071225.png :cmdline -charset UTF-8
+      @startuml
+      left to right direction
+      skinparam packageStyle rect
+      actor customer
+      actor clerk
+      rectangle checkout {
+      customer -- (checkout)
+      (checkout) .> (payment) : include
+      (help) .> (checkout) : extends
+      (checkout) -- clerk
+      }
+      @enduml
+    #+END_SRC
+
+* Class Diagram
+** Relations between classes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080904.png :cmdline -charset UTF-8
+      @startuml
+      Class01 <|-- Class02
+      Class03 *-- Class04
+      Class05 o-- Class06
+      Class07 .. Class08
+      Class09 -- Class10
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080905.png :cmdline -charset UTF-8
+      @startuml
+      Class11 <|.. Class12
+      Class13 --> Class14
+      Class15 ..> Class16
+      Class17 ..|> Class18
+      Class19 <--* Class20
+      @enduml
+    #+END_SRC
+
+** Label on relations
+     #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080906.png :cmdline -charset UTF-8
+       @startuml
+       Class01 "1" *-- "many" Class02 : contains
+       Class03 o-- Class04 : aggregation
+       Class05 --> "1" Class06
+       @enduml
+     #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080907.png :cmdline -charset UTF-8
+      @startuml
+      class Car
+      Driver - Car : drives >
+      Car *- Wheel : have 4 >
+      Car -- Person : < owns
+      @enduml
+    #+END_SRC
+
+** Adding methods
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080908.png :cmdline -charset UTF-8
+      @startuml
+      Object <|-- ArrayList
+      Object : equals()
+      ArrayList : Object[] elementData
+      ArrayList : size()
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016080908.png]]
+
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080909.png :cmdline -charset UTF-8
+      @startuml
+      class Dummy {
+      String data
+      void methods()
+      }
+      class Flight {
+      flightNumber : Integer
+      departureTime : Date
+      }
+      @enduml
+    #+END_SRC
+
+** Defining visibility
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080910.png :cmdline -charset UTF-8
+      @startuml
+      class Dummy {
+      -field1
+      #field2
+      ~method1()
+      +method2()
+      }
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080911.png :cmdline -charset UTF-8
+      @startuml
+      skinparam classAttributeIconSize 0
+      class Dummy {
+      -field1
+      #field2
+      ~method1()
+      +method2()
+      }
+      @enduml
+    #+END_SRC
+
+** Abstract and Static
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080912.png :cmdline -charset UTF-8
+      @startuml
+      class Dummy {
+      {static} String id
+      {abstract} void methods()
+      }
+      @enduml
+    #+END_SRC
+    
+** Advanced class body
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080913.png :cmdline -charset UTF-8
+      @startuml
+      class Foo1 {
+      You can use
+      several lines
+      ..
+      as you want
+      and group
+      ==
+      things together.
+      __
+      You can have as many groups
+      as you want
+      --
+      End of class
+      }
+      class User {
+      .. Simple Getter ..
+      + getName()
+      + getAddress()
+      .. Some setter ..
+      + setName()
+      __ private data __
+      int age
+      -- encrypted --
+      String password
+      }
+      @enduml
+    #+END_SRC
+
+** Notes and stereotypes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080914.png :cmdline -charset UTF-8
+      @startuml
+      class Object << general >>
+      Object <|--- ArrayList
+      note top of Object : In java , every class\nextends this one.
+      note "This is a floating note" as N1
+      note "This note is connected\nto several objects." as N2
+      Object .. N2
+      N2 .. ArrayList
+      class Foo
+      note left: On last defined class
+      @enduml
+    #+END_SRC
+
+** More on notes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080915.png :cmdline -charset UTF-8
+      @startuml
+      class Foo
+      note left: On last defined class
+      note top of Object
+      In java , <size:18>every </size > <u>class </u>
+      <b>extends </b>
+      <i>this </i> one.
+      end note
+      note as N1
+      This note is <u>also </u>
+      <b><color:royalBlue >on several </color >
+      <s>words </s> lines
+      And this is hosted by <img:sourceforge.jpg >
+      end note
+      @enduml
+    #+END_SRC
+
+** Note on links
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080916.png :cmdline -charset UTF-8
+      @startuml
+      class Dummy
+      Dummy --> Foo : A link
+      note on link #red: note that is red
+      Dummy --> Foo2 : Another link
+      note right on link #blue
+      this is my note on right link
+      and in blue
+      end note
+      @enduml
+    #+END_SRC
+
+** Abstract class and interface
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080917.png :cmdline -charset UTF-8
+      @startuml
+      abstract class AbstractList
+      abstract AbstractCollection
+      interface List
+      interface Collection
+      List <|-- AbstractList
+      Collection <|-- AbstractCollection
+      Collection <|- List
+      AbstractCollection <|- AbstractList
+      AbstractList <|-- ArrayList
+      class ArrayList {
+      Object[] elementData
+      size()
+      }
+      enum TimeUnit {
+      DAYS
+      HOURS
+      MINUTES
+      }
+      annotation SuppressWarnings
+      @enduml
+    #+END_SRC
+
+** Using non-letters
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080918.png :cmdline -charset UTF-8
+      @startuml
+      class "This is my class" as class1
+      class class2 as "It works this way too"
+      class2 *-- "foo/dummy" : use
+      @enduml
+    #+END_SRC
+
+** Hide attributes, methods
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080919.png :cmdline -charset UTF-8
+      @startuml
+      class Dummy1 {
+      +myMethods()
+      }
+      class Dummy2 {
+      +hiddenMethod()
+      }
+      class Dummy3 <<Serializable >> {
+      String name
+      }
+      hide members
+      hide <<Serializable >> circle
+      show Dummy1 methods
+      show <<Serializable >> fields
+      @enduml
+    #+END_SRC
+
+** Hide classes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080920.png :cmdline -charset UTF-8
+      @startuml
+      class Foo1
+      class Foo2
+      Foo2 *-- Foo1
+      hide Foo2
+      @enduml
+    #+END_SRC
+
+** Use generics
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080921.png :cmdline -charset UTF-8
+      @startuml
+      class Foo <? extends Element > {
+      int size()
+      }
+      Foo *- Element
+      @enduml
+    #+END_SRC
+
+** Specific Spot
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080921.png :cmdline -charset UTF-8
+      @startuml
+      class System << (S,#FF7700) Singleton >>
+      class Date << (D,orchid) >>
+      @enduml
+    #+END_SRC
+
+** Packages
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080922.png :cmdline -charset UTF-8
+      @startuml
+      package "Classic Collections" #DDDDDD {
+      Object <|-- ArrayList
+      }
+      package net.sourceforge.plantuml {
+      Object <|-- Demo1
+      Demo1 *- Demo2
+      }
+      @enduml
+    #+END_SRC
+
+** Packages style
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080923.png :cmdline -charset UTF-8
+      @startuml
+      scale 750 width
+      package foo1 <<Node >> {
+      class Class1
+      }
+      package foo2 <<Rect >> {
+      class Class2
+      }
+      package foo3 <<Folder >> {
+      class Class3
+      }
+      package foo4 <<Frame >> {
+      class Class4
+      }
+      package foo5 <<Cloud >> {
+      class Class5
+      }
+      package foo6 <<Database >> {
+      class Class6
+      }
+      @enduml
+    #+END_SRC
+
+** Namespaces
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080924.png :cmdline -charset UTF-8
+      @startuml
+      class BaseClass
+      namespace net.dummy #DDDDDD {
+      .BaseClass <|-- Person
+      Meeting o-- Person
+      .BaseClass <|- Meeting
+      }
+      namespace net.foo {
+      net.dummy.Person <|- Person
+      .BaseClass <|-- Person
+      net.dummy.Meeting o-- Person
+      }
+      BaseClass <|-- net.unused.Person
+      @enduml
+    #+END_SRC
+
+** Automatic namespace creation
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080925.png :cmdline -charset UTF-8
+      @startuml
+      set namespaceSeparator ::
+      class X1::X2::foo {
+      some info
+      }
+      @enduml
+    #+END_SRC
+
+    关闭自动创建包的行为
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080926.png :cmdline -charset UTF-8
+      set namespaceSeparator none
+      class X1.X2.foo {
+      some info
+      }
+    #+END_SRC
+
+** Lollipop interface
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080927.png :cmdline -charset UTF-8
+      @startuml
+      class foo
+      bar ()- foo
+      @enduml
+    #+END_SRC
+
+** Changing arrows direction
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080928.png :cmdline -charset UTF-8
+      @startuml
+      Room o- Student
+      Room *-- Chair
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080929.png :cmdline -charset UTF-8
+      @startuml
+      Student -o Room
+      Chair --* Room
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080930.png :cmdline -charset UTF-8
+      @startuml
+      foo -left-> dummyLeft
+      foo -right-> dummyRight
+      foo -up-> dummyUp
+      foo -down-> dummyDown
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016080930.png]]
+
+** Title the diagram
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080931.png :cmdline -charset UTF-8
+      @startuml
+      title Simple <b>example </b>\nof title
+      Object <|-- ArrayList
+      @enduml
+    #+END_SRC
+
+** Legend the diagram
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080932.png :cmdline -charset UTF-8
+      @startuml
+      Object <|- ArrayList
+      legend right
+      <b>Object </b> and <b>ArrayList </b>
+      are simple class
+      endlegend
+      @enduml
+    #+END_SRC
+
+** Association classes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080933.png :cmdline -charset UTF-8
+      @startuml
+      class Student {
+      Name
+      }
+      Student "0..*" - "1..*" Course
+      (Student , Course) .. Enrollment
+      class Enrollment {
+      drop()
+      cancel()
+      }
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080934.png :cmdline -charset UTF-8
+      @startuml
+      class Student {
+      Name
+      }
+      Student "0..*" -- "1..*" Course
+      (Student , Course) . Enrollment
+      class Enrollment {
+      drop()
+      cancel()
+      }
+      @enduml
+    #+END_SRC
+
+** Skinparam
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080935.png :cmdline -charset UTF-8
+      @startuml
+      skinparam class {
+      BackgroundColor PaleGreen
+      ArrowColor SeaGreen
+      BorderColor SpringGreen
+      }
+      skinparam stereotypeCBackgroundColor YellowGreen
+      Class01 "1" *-- "many" Class02 : contains
+      Class03 o-- Class04 : aggregation
+      @enduml
+    #+END_SRC
+
+** Skinned Stereotypes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080936.png :cmdline -charset UTF-8
+      @startuml
+      skinparam class {
+      BackgroundColor PaleGreen
+      ArrowColor SeaGreen
+      BorderColor SpringGreen
+      BackgroundColor <<Foo >> Wheat
+      BorderColor <<Foo >> Tomato
+      }
+      skinparam stereotypeCBackgroundColor YellowGreen
+      skinparam stereotypeCBackgroundColor << Foo >> DimGray
+      Class01 <<Foo >>
+      Class03 <<Foo >>
+      Class01 "1" *-- "many" Class02 : contains
+      Class03 o-- Class04 : aggregation
+      @enduml
+    #+END_SRC
+
+** Color gradient
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080937.png :cmdline -charset UTF-8
+      @startuml
+      skinparam backgroundcolor AntiqueWhite/Gold
+      skinparam classBackgroundColor Wheat|CornflowerBlue
+      class Foo #red-green
+      note left of Foo #blue\9932CC
+      this is my
+      note on this class
+      end note
+      package example #GreenYellow/LightGoldenRodYellow {
+      class Dummy
+      }
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016080937.png]]
+
+** Splitting large files
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016080938.png :cmdline -charset UTF-8
+      @startuml
+      ' Split into 4 pages
+      page 2x2
+      class BaseClass
+      namespace net.dummy #DDDDDD {
+      .BaseClass <|-- Person
+      Meeting o-- Person
+      .BaseClass <|- Meeting
+      }
+      namespace net.foo {
+      net.dummy.Person <|- Person
+      .BaseClass <|-- Person
+      net.dummy.Meeting o-- Person
+      }
+      BaseClass <|-- net.unused.Person
+      @enduml
+    #+END_SRC
+
+* Activity Diagram
+  活动图的新语法
+
+** Simple Activity
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061002.png :cmdline -charset UTF-8
+     @startuml
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     @enduml   
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016061002.png]]
+
+** Start/Stop
+   定义活动图的开始和结束位置
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061003.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     stop
+     @enduml   
+   #+END_SRC
+
+   也可以使用end关键字
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061004.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :Hello world;
+     :This is on defined on
+     several **lines**;
+     end
+     @enduml   
+   #+END_SRC
+
+** Conditional
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061005.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (Graphviz installed?) then (yes)
+     :process all\ndiagrams;
+     else (no)
+     :process only
+     __sequence__ and __activity__ diagrams;
+     endif
+     stop
+     @enduml           
+   #+END_SRC
+
+   elseif
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061006.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (condition A) then (yes)
+     :Text 1;
+     elseif (condition B) then (yes)
+     :Text 2;
+     stop
+     elseif (condition C) then (yes)
+     :Text 3;
+     elseif (condition D) then (yes)
+     :Text 4;
+     else (nothing)
+     :Text else;
+     endif
+     stop
+     @enduml
+   #+END_SRC
+
+** Repeat loop
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061007.png :cmdline -charset UTF-8
+     @startuml
+     start
+     repeat
+     :read data;
+     :generate diagrams;
+     repeat while (more data?)
+     stop
+     @enduml   
+   #+END_SRC
+
+** While loop
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061008.png :cmdline -charset UTF-8
+     @startuml
+     start
+     while (data available?)
+     :read data;
+     :generate diagrams;
+     endwhile
+     stop
+     @enduml
+   #+END_SRC
+
+   使用lable和is关键字
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061009.png :cmdline -charset UTF-8
+     @startuml
+     while (check filesize ?) is (not empty)
+     :read file;
+     endwhile (empty)
+     :close file;
+     @enduml   
+   #+END_SRC
+
+** Parallel processing
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061010.png :cmdline -charset UTF-8
+     @startuml
+     start
+     if (multiprocessor?) then (yes)
+     fork
+     :Treatment 1;
+     fork again
+     :Treatment 2;
+     end fork
+     else (monoproc)
+     :Treatment 1;
+     :Treatment 2;
+     endif
+     @enduml   
+   #+END_SRC
+
+** Notes
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061011.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :foo1;
+     note left: This is a note
+     :foo2;
+     note right
+     This note is on several
+     //lines// and can
+     contain <b>HTML </b>
+     ====
+     ,* Calling the method ""foo()"" is prohibited
+     end note
+     stop
+     @enduml   
+   #+END_SRC
+
+** Title Legend
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061012.png :cmdline -charset UTF-8
+     @startuml
+     title this is my title
+     if (condition?) then (yes)
+     :yes;
+     else (no)
+     :no;
+     note right
+     this is a note
+     end note
+     endif
+     stop
+     legend
+     this is the legend
+     endlegend
+     footer dummy footer
+     header
+     this is
+     a long __dummy__ header
+     end header
+     @enduml
+   #+END_SRC
+
+** Colors
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061013.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :starting progress;
+     #HotPink:reading configuration files
+     These files should edited at this point!;
+     #AAAAAA:ending of the process;
+     @enduml   
+   #+END_SRC
+
+** Arrow
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061014.png :cmdline -charset UTF-8
+     @startuml
+     :foo1;
+     -> You can put text on arrows;
+     if (test) then
+     -[#blue]->
+     :foo2;
+     -[#green]-> The text can
+     also be on several lines
+     and **very** long...;
+     :foo3;
+     else
+     -[#black]->
+     :foo4;
+     endif
+     -[#gray]->
+     :foo5;
+     @enduml
+   #+END_SRC
+
+** Grouping
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061015.png :cmdline -charset UTF-8
+     @startuml
+     start
+     partition Initialization {
+     :read config file;
+     :init internal variable;
+     }
+     partition Running {
+     :wait for user interaction;
+     :print information;
+     }
+     stop
+     @enduml   
+   #+END_SRC
+
+** Swimlanes
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061016.png :cmdline -charset UTF-8
+     @startuml
+     |Swimlane1|
+     start
+     :foo1;
+     |#AntiqueWhite|Swimlane2|
+     :foo2;
+     :foo3;
+     |Swimlane1|
+     :foo4;
+     |Swimlane2|
+     :foo5;
+     stop
+     @enduml   
+   #+END_SRC
+
+** Detach
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061017.png :cmdline -charset UTF-8
+     @startuml
+     :start;
+     fork
+     :foo1;
+     :foo2;
+     fork again
+     :foo3;
+     detach
+     endfork
+     if (foo4) then
+     :foo5;
+     detach
+     endif
+     :foo6;
+     detach
+     :foo7;
+     stop
+     @enduml   
+   #+END_SRC
+** SDL 通过改变最后的;分隔符，可以设置不同的Activity渲染图形
+   - |
+   - <
+   - >
+   - /
+   - ]
+   - }
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061018.png :cmdline -charset UTF-8
+     @startuml
+     :Ready;
+     :next(o)|
+     :Receiving;
+     split
+     :nak(i)<
+     :ack(o)>
+     split again
+     :ack(i)<
+     :next(o)
+     on several line|
+     :i := i + 1]
+     :ack(o)>
+     split again
+     :err(i)<
+     :nak(o)>
+     split again
+     :foo/
+     split again
+     :i > 5}
+     stop
+     end split
+     :finish;
+     @enduml   
+   #+END_SRC
+
+** Complete example
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016061019.png :cmdline -charset UTF-8
+     @startuml
+     start
+     :ClickServlet.handleRequest ();
+     :new page;
+     if (Page.onSecurityCheck) then (true)
+     :Page.onInit();
+     if (isForward?) then (no)
+     :Process controls;
+     if (continue processing?) then (no)
+     stop
+     endif
+     if (isPost?) then (yes)
+     :Page.onPost();
+     else (no)
+     :Page.onGet();
+     endif
+     :Page.onRender ();
+     endif
+     else (false)
+     endif
+     if (do redirect?) then (yes)
+     :redirect process;
+     else
+     if (do forward?) then (yes)
+     :Forward request;
+     else (no)
+     :Render page template;
+     endif
+     endif
+     stop
+     @enduml   
+   #+END_SRC
+* Component Diagram
+** Components
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081001.png :cmdline -charset UTF-8
+      @startuml
+      [First component]
+      [Another component] as Comp2
+      component Comp3
+      component [Last\ncomponent] as Comp4
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081001.png]]
+
+** Interfaces
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081002.png :cmdline -charset UTF-8
+      @startuml
+      () "First Interface"
+      () "Another interface" as Interf2
+      interface Interf3
+      interface "Last\ninterface" as Interf4
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081002.png]]
+
+** Basic example
+    Links between elements are made using combinations of dotted line
+    (..), straight line (--), and arrows (-->) symbols.
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081003.png :cmdline -charset UTF-8
+      @startuml
+      DataAccess - [First Component]
+      [First Component] ..> HTTP : use
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081003.png]]
+** Using notes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081004.png :cmdline -charset UTF-8
+      @startuml
+      interface "Data Access" as DA
+      DA - [First Component]
+      [First Component] ..> HTTP : use
+      note left of HTTP : Web Service only
+      note right of [First Component]
+      A note can also
+      be on several lines
+      end note
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081004.png]]
+
+** Grouping Components
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081005.png :cmdline -charset UTF-8
+      @startuml
+      package "Some Group" {
+      HTTP - [First Component]
+      [Another Component]
+      }
+
+      node "Other Groups" {
+      FTP - [Second Component]
+      [First Component] --> FTP
+      }
+
+      cloud {
+      [Example 1]
+      }
+
+      database "MySql" {
+          folder "This is my folder" {
+              [Folder 3]
+          }
+
+          frame "Foo" {
+              [Frame 4]
+          }
+      }
+
+      [Another Component] --> [Example 1]
+      [Example 1] --> [Folder 3]
+      [Folder 3] --> [Frame 4]
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081005.png]]
+
+** Changing arrows direction
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081006.png :cmdline -charset UTF-8
+      @startuml
+      [Component] --> Interface1
+      [Component] -> Interface2
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081007.png :cmdline -charset UTF-8
+      @startuml
+      Interface1 <-- [Component]
+      Interface2 <- [Component]
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081008.png :cmdline -charset UTF-8
+      @startuml
+      [Component] -left-> left
+      [Component] -right-> right
+      [Component] -up-> up
+      [Component] -down-> down
+      @enduml
+    #+END_SRC
+
+** Title the diagram
+    You can use title and end title keywords for a longer title
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081009.png :cmdline -charset UTF-8
+      @startuml
+      title Very simple component\ndiagram
+      interface "Data Access" as DA
+      DA - [First Component]
+      [First Component] ..> HTTP : use
+      @enduml
+    #+END_SRC
+
+** Use UML2 notation
+    The skinparam componentStyle uml2 command is used to switch to
+    UML2 notation
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081010.png :cmdline -charset UTF-8
+      @startuml
+      skinparam componentStyle uml2
+      interface "Data Access" as DA
+      DA - [First Component]
+      [First Component] ..> HTTP : use
+      @enduml
+    #+END_SRC
+
+** Individual colors
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081011.png :cmdline -charset UTF-8
+      @startuml
+      component [Web Server] #Yellow
+      @enduml
+    #+END_SRC
+
+** Skinparam
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081012.png :cmdline -charset UTF-8
+      @startuml
+      skinparam component {
+      FontSize 13
+      InterfaceBackgroundColor RosyBrown
+      InterfaceBorderColor orange
+      BackgroundColor <<Apache >> Red
+      BorderColor <<Apache >> #FF6655
+      FontName Courier
+      BorderColor black
+      BackgroundColor gold
+      ArrowFontName Impact
+      ArrowColor #FF6655
+      ArrowFontColor #777777
+      }
+      () "Data Access" as DA
+      DA - [First Component]
+      [First Component] ..> () HTTP : use
+      HTTP - [Web Server] << Apache >>
+      @enduml
+    #+END_SRC
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081013.png :cmdline -charset UTF-8
+      @startuml
+      [AA] <<static lib>>
+      [BB] <<shared lib>>
+      [CC] <<static lib>>
+      node node1
+      node node2 <<shared node>>
+      database Production
+      skinparam component {
+      backgroundColor <<static lib>> DarkKhaki
+      backgroundColor <<shared lib>> Green
+      }
+      skinparam node {
+      borderColor Green
+      backgroundColor Yellow
+      backgroundColor <<shared node>> Magenta
+      }
+      skinparam databaseBackgroundColor Aqua
+      @enduml
+    #+END_SRC
+
+* State Diagram
+** Simple State
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081014.png :cmdline -charset UTF-8
+      @startuml
+      [*] --> State1
+      State1 --> [*]
+      State1 : this is a string
+      State1 : this is another string
+      State1 -> State2
+      State2 --> [*]
+      @enduml
+    #+END_SRC
+
+** Composite state
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081015.png :cmdline -charset UTF-8
+      @startuml
+      scale 350 width
+      [*] --> NotShooting
+      state NotShooting {
+      [*] --> Idle
+      Idle --> Configuring : EvConfig
+      Configuring --> Idle : EvConfig
+      }
+      state Configuring {
+      [*] --> NewValueSelection
+      NewValueSelection --> NewValuePreview : EvNewValue
+      NewValuePreview --> NewValueSelection : EvNewValueRejected
+      NewValuePreview --> NewValueSelection : EvNewValueSaved
+      state NewValuePreview {
+      State1 -> State2
+      }
+      }
+      @enduml
+    #+END_SRC
+
+** Long name
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081016.png :cmdline -charset UTF-8
+      @startuml
+      scale 600 width
+      [*] -> State1
+      State1 --> State2 : Succeeded
+      State1 --> [*] : Aborted
+      State2 --> State3 : Succeeded
+      State2 --> [*] : Aborted
+      state State3 {
+      state "Accumulate Enough Data\nLong State Name" as long1
+      long1 : Just a test
+      [*] --> long1
+      long1 --> long1 : New Data
+      long1 --> ProcessData : Enough Data
+      }
+      State3 --> State3 : Failed
+      State3 --> [*] : Succeeded / Save Result
+      State3 --> [*] : Aborted
+      @enduml
+    #+END_SRC
+
+** Concurrent state
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081017.png :cmdline -charset UTF-8
+      @startuml
+      [*] --> Active
+      state Active {
+      [*] -> NumLockOff
+      NumLockOff --> NumLockOn : EvNumLockPressed
+      NumLockOn --> NumLockOff : EvNumLockPressed
+      --
+      [*] -> CapsLockOff
+      CapsLockOff --> CapsLockOn : EvCapsLockPressed
+      CapsLockOn --> CapsLockOff : EvCapsLockPressed
+      --
+      [*] -> ScrollLockOff
+      ScrollLockOff --> ScrollLockOn : EvCapsLockPressed
+      ScrollLockOn --> ScrollLockOff : EvCapsLockPressed
+      }
+      @enduml
+    #+END_SRC
+
+** Arrow direction
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081018.png :cmdline -charset UTF-8
+      @startuml
+      [*] -up-> First
+      First -right-> Second
+      Second --> Third
+      Third -left-> Last
+      @enduml
+    #+END_SRC
+
+** Note
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081019.png :cmdline -charset UTF-8
+      [*] --> Active
+      Active --> Inactive
+      note left of Active : this is a short\nnote
+      note right of Inactive
+      A note can also
+      be defined on
+      several lines
+      end note
+      @enduml
+    #+END_SRC
+
+    floating notes:
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081020.png :cmdline -charset UTF-8
+      @startuml
+      state foo
+      note "This is a floating note" as N1
+      @enduml
+    #+END_SRC
+
+** More in notes
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081021.png :cmdline -charset UTF-8
+      @startuml
+      [*] --> NotShooting
+      state "Not Shooting State" as NotShooting {
+      state "Idle mode" as Idle
+      state "Configuring mode" as Configuring
+      [*] --> Idle
+      Idle --> Configuring : EvConfig
+      Configuring --> Idle : EvConfig
+      }
+      note right of NotShooting : This is a note on a composite state
+      @enduml
+    #+END_SRC
+
+** Skinparam
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081022.png :cmdline -charset UTF-8
+      @startuml
+      skinparam backgroundColor LightYellow
+      skinparam state {
+      StartColor MediumBlue
+      EndColor Red
+      BackgroundColor Peru
+      BackgroundColor <<Warning >> Olive
+      BorderColor Gray
+      FontName Impact
+      }
+      [*] --> NotShooting
+      state "Not Shooting State" as NotShooting {
+      state "Idle mode" as Idle <<Warning >>
+      state "Configuring mode" as Configuring
+      [*] --> Idle
+      Idle --> Configuring : EvConfig
+      Configuring --> Idle : EvConfig
+      }
+      NotShooting --> [*]
+      @enduml
+    #+END_SRC
+
+* Object Diagram
+
+** Definition of objects
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081101.png :cmdline -charset UTF-8
+      @startuml
+      object firstObject
+      object "My Second Object" as o2
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081101.png]]
+
+** Relations between objects
+    Composition *--
+    Aggregation o--
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081102.png :cmdline -charset UTF-8
+      @startuml
+      object Object01
+      object Object02
+      object Object03
+      object Object04
+      object Object05
+      object Object06
+      object Object07
+      object Object08
+      Object01 <|-- Object02
+      Object03 *-- Object04
+      Object05 o-- "4" Object06
+      Object07 .. Object08 : some labels
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081102.png]]
+
+** Adding fields
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081103.png :cmdline -charset UTF-8
+      @startuml
+      object user
+      user : name = "Dummy"
+      user : id = 123
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081103.png]]
+
+    or
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081104.png :cmdline -charset UTF-8
+      @startuml
+      object user {
+      name = "Dummy"
+      id = 123
+      }
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081104.png]]
+
+** Common features with class diagrams
+    - Visibility
+    - Defines notes
+    - Use packages
+    - Title the diagram
+    - Skin the output
+    - Split the image
+
+* Common commands
+
+** Footer and header
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081105.png :cmdline -charset UTF-8
+      @startuml
+      Alice -> Bob: Authentication Request
+      header
+      <font color=red >Warning:</font >
+      Do not use in production.
+      endheader
+      center footer Generated for demonstration
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081105.png]]
+
+** Zoom
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081106.png :cmdline -charset UTF-8
+      @startuml
+      scale 180*90
+      Bob ->Alice : hello
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081106.png]]
+
+* Salt
+  设计图形界面
+** Basic widgets
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081107.png :cmdline -charset UTF-8
+      @startuml
+      salt
+      {
+      Just plain text
+      [This is my button]
+      () Unchecked radio
+      (X) Checked radio
+      [] Unchecked box
+      [X] Checked box
+      "Enter text here "
+      ^This is a droplist^
+      }
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081107.png]]
+
+** Using grid
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081108.png :cmdline -charset UTF-8
+      @startsalt
+      {
+      Login | "MyName "
+      Password | "**** "
+      [Cancel] | [ OK ]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081108.png]]
+
+    在花括号号，可以通过如下字符指定是否显示网格的行或列
+    '#' To display all vertical and horizontal lines
+    '!'  To display all vertical lines
+    '-'  To display all horizontal lines
+    '+' To display external lines
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081109.png :cmdline -charset UTF-8
+      @startsalt
+      {+
+      Login | "MyName "
+      Password | "**** "
+      [Cancel] | [ OK ]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081109.png]]
+
+** Using separator
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081110.png :cmdline -charset UTF-8
+      @startsalt
+      {
+      Text1
+      ..
+      "Some field"
+      ==
+      Note on usage
+      ~~
+      Another text
+      --
+      [Ok]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081110.png]]
+
+** Tree widget
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081111.png :cmdline -charset UTF-8
+      @startsalt
+      {{
+      T
+      + World
+      ++ America
+      +++ Canada
+      +++ USA
+      ++++ New York
+      ++++ Boston
+      +++ Mexico
+      ++ Europe
+      +++ Italy
+      +++ Germany
+      ++++ Berlin
+      ++ Africa
+      }}
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081111.png]]
+
+** Enclosing brackets
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081112.png :cmdline -charset UTF-8
+      @startsalt
+      {
+      Name | " "
+      Modifiers: | { (X) public | () default | () private | () protected
+      [] abstract | [] final | [] static }
+      Superclass: | { "java.lang.Object " | [Browse ...] }
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081112.png]]
+
+** Adding tabs
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081113.png :cmdline -charset UTF-8
+      @startsalt
+      {+
+      {/ <b>General | Fullscreen | Behavior | Saving }
+      {{
+      Open image in: | ^Smart Mode^ }
+      [X] Smooth images when zoomed
+      [X] Confirm image deletion
+      [ ] Show hidden images
+      }[
+      Close]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081113.png]]
+
+    Tab could also be vertically oriented:
+
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081114.png :cmdline -charset UTF-8
+      @startsalt
+      {+
+      {/ <b>General
+      Fullscreen
+      Behavior
+      Saving } |
+      {{
+      Open image in: | ^Smart Mode^ }
+      [X] Smooth images when zoomed
+      [X] Confirm image deletion
+      [ ] Show hidden images
+      [Close]
+      }}
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081114.png]]
+
+** Using menu
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081115.png :cmdline -charset UTF-8
+      @startsalt
+      {+
+      {* File | Edit | Source | Refactor }
+      {/ General | Fullscreen | Behavior | Saving }
+      {{
+      Open image in: | ^Smart Mode^ }
+      [X] Smooth images when zoomed
+      [X] Confirm image deletion
+      [ ] Show hidden images
+      }[
+      Close]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081115.png]]
+
+    It is also possible to open a menu:
+    
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081116.png :cmdline -charset UTF-8
+      @startsalt
+      {+
+      {* File | Edit | Source | Refactor
+      Refactor | New | Open File | - | Close | Close All }
+      {/ General | Fullscreen | Behavior | Saving }
+      {{
+      Open image in: | ^Smart Mode^ }
+      [X] Smooth images when zoomed
+      [X] Confirm image deletion
+      [ ] Show hidden images
+      }[
+      Close]
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081116.png]]
+
+** Advanced table
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081117.png :cmdline -charset UTF-8
+      @startsalt
+      {#
+      . | Column 2 | Column 3
+      Row header 1 | value 1 | value 2
+      Row header 2 | A long cell | *
+      }
+      @endsalt
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081117.png]]
+
+* Creole
+  定义文本样式 
+  
+** Emphasized text
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081301.png :cmdline -charset UTF-8
+     @startuml
+     Alice -> Bob : hello --there --
+     ... Some ~~ long delay ~~ ...
+     Bob -> Alice : ok
+     note left
+     This is ** bold **
+     This is // italics //
+     This is "" monospaced ""
+     This is --stroked --
+     This is __underlined__
+     This is ~~ waved ~~
+     end note
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081301.png]]
+
+** List
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081302.png :cmdline -charset UTF-8
+     @startuml
+     object demo {
+     ,* Bullet list
+     ,* Second item
+     ,** Sub item
+     }
+     legend
+     # Numbered list
+     # Second item
+     ## Sub item
+     ## Another sub item
+     # Third item
+     end legend
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081302.png]]
+
+** Escape character
+   使用~转义字符
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081303.png :cmdline -charset UTF-8
+     @startuml
+     object demo {
+     This is not ~___underscored__.
+     This is not ~"" monospaced "".
+     }
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081303.png]]
+
+** Horizontal lines
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081304.png :cmdline -charset UTF-8
+     @startuml
+     database DB1 as "
+     You can have horizontal line
+     ----
+     Or double line
+     ====
+     Or strong line
+     ____
+     Or dotted line
+     ..My title ..
+     Enjoy!
+     "
+     note right
+     This is working also in notes
+     You can also add title in all these lines
+     == Title ==
+     --Another title --
+     end note
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081304.png]]
+
+** Headings
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081305.png :cmdline -charset UTF-8
+     @startuml
+     usecase UC1 as "
+     = Extra -large heading
+     Some text
+     == Large heading
+     Other text
+     === Medium heading
+     Information
+     ....
+     ==== Small heading"
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081305.png]]
+
+** Legacy HTML
+   Some HTML tags are also working:
+   - <b> for bold text
+   - <u> or <u:#AAAAAA> or <u:colorName> for underline
+   - <i> for italic
+   - <s> or <s:#AAAAAA> or <s:colorName> for strike text
+   - <w> or <w:#AAAAAA> or <w:colorName> for wave underline text
+   - <color:#AAAAAA> or <color:colorName>
+   - <back:#AAAAAA> or <back:colorName> for background color
+   - <size:nn> to change font size
+   - <img:file> : the file must be accessible by the filesystem
+   - <img:http://url> : the URL must be available from the Internet
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081306.png :cmdline -charset UTF-8
+     @startuml
+     :* You can change <color:red >text color </color>
+     ,* You can change <back:cadetblue>background color </back>
+     ,* You can change <size:18>size </size>
+     ,* You use <u>legacy </u> <b>HTML <i>tag </i></b>
+     ,* You use <u:red >color </u> <s:green>in HTML </s> <w:#0000FF>tag </w>
+     ----
+     ,* Use image : <img:./images/2016/2016081305.png>
+     ;
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081306.png]]
+
+** Table
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081307.png :cmdline -charset UTF-8
+     @startuml
+     skinparam titleFontSize 14
+     title
+     Example of simple table
+     |= |= table |= header |
+     | a | table | row |
+     | b | table | row |
+     end title
+     [*] --> State1
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081307.png]]
+
+** Tree
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081308.png :cmdline -charset UTF-8
+     @startuml
+     skinparam titleFontSize 14
+     title
+     Example of Tree
+     |_ First line
+     |_ **Bom(Model )**
+     |_ prop1
+     |_ prop2
+     |_ prop3
+     |_ Last line
+     end title
+     [*] --> State1
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081308.png]]
+
+** Special characters
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081309.png :cmdline -charset UTF-8
+     @startuml
+     usecase foo as "this is &#8734; long"
+     usecase bar as "this is also <U+221E> long"
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081309.png]]
+
+** OpenIconic
+   OpenIconic is an very nice open source icon set. You can use the following syntax: <&ICON_NAME>.
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081310.png :cmdline -charset UTF-8
+     @startuml
+     title: <size:20><&heart>Use of OpenIconic <&heart></size >
+     class Wifi
+     note left
+     Click on <&wifi>
+     end note
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081310.png]]
+
+   complete List of OpenIconic
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081311.png :cmdline -charset UTF-8
+     @startuml
+     listopeniconic
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081311.png]]
+
+** Defining and using sprites(精灵）
+   A Sprite is a small graphic element that can be used in diagrams.
+
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081312.png :cmdline -charset UTF-8
+     @startuml
+     sprite $foo1 {
+     FFFFFFFFFFFFFFF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     F0123456789ABCF
+     FFFFFFFFFFFFFFF
+     }
+     Alice -> Bob : Testing <$foo1>
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081312.png]]
+
+** Encoding Sprite
+   To encode sprite, you can use the command line like:
+   : java -jar plantuml.jar -encodesprite 16z foo.png
+   where foo.png if the image file you want to use (it will be
+   converted to gray automatically) After -encodesprite, you have to
+   specify a format: 4, 8, 16, 4z, 8z or 16z. The number indicates the
+   gray level and the optionnal z is used to enable compression in
+   definition. 
+
+** Importing Sprite
+   You can also launch the GUI to generate a sprite from an existing
+   image.
+   Click in the menubar then on File/Open Sprite Window.
+
+   After copying an image into you clipboard, several possible
+   definitions of the corresponding will be displayed : you will just
+   have to pickup the one you want. 
+
+** Examples
+   #+BEGIN_SRC sh
+     @startuml
+     sprite $printer [15x15/8z] NOtH3W0W208HxFz_kMAhj7lHWpa1XC716sz0Pq4MVPEWfBHIuxP3L6kbTcizR8tAhzaqFvXwvFfPEq
+     start
+     :click on <$printer> to print the page;
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+
+   #+BEGIN_SRC sh
+     @startuml
+     sprite $bug [15x15/16z] PKzR2i0m2BFMi15p__FEjQEqB1z27aeqCqixa8S4OT7C53cKpsHpaYPDJY_12MHM - BLRyywPhrrlw3qum
+     sprite $printer [15x15/8z] NOtH3W0W208HxFz_kMAhj7lHWpa1XC716sz0Pq4MVPEWfBHIuxP3L6kbTcizR8tAhzaqFvXwvFfPEq
+     sprite $disk {
+     444445566677881
+     436000000009991
+     43600000000ACA1
+     53700000001A7A1
+     53700000012B8A1
+     53800000123B8A1
+     63800001233C9A1
+     634999AABBC99B1
+     744566778899AB1
+     7456AAAAA99AAB1
+     8566AFC228AABB1
+     8567AC8118BBBB1
+     867BD4433BBBBB1
+     39AAAAABBBBBBC1
+     }
+     title Use of sprites (<$printer>, <$bug>...)
+     class Example {
+     Can have some bug : <$bug>
+     Click on <$disk> to save
+     }
+     note left : The printer <$printer> is available
+     @enduml   
+   #+END_SRC
+
+* Changing fonts and colors
+
+** Usage
+   You can change colors and font of the drawing using the
+   =skinparam= command.
+   : skinparam backgroundColor yellow
+
+   
+** Nested
+   To avoid repetition, it is possible to nest definition. So the
+   following definition :
+   #+BEGIN_SRC sh
+     skinparam xxxxParam1 value1
+     skinparam xxxxParam2 value2
+     skinparam xxxxParam3 value3
+     skinparam xxxxParam4 value4
+   #+END_SRC
+   is strictly equivalent to:
+   #+BEGIN_SRC sh
+     skinparam xxxx {
+     Param1 value1
+     Param2 value2
+     Param3 value3
+     Param4 value4
+     }
+   #+END_SRC
+
+** Color
+   You can use either standard color name or RGB code.
+
+   [[./images/2016/2016081313.png]]
+
+** Font color, name and size
+   You can change the font for the drawing using xxxFontColor,
+   xxxFontSize and xxxFontName parameters.
+   #+BEGIN_SRC  sh
+     skinparam classFontColor red
+     skinparam classFontSize 10
+     skinparam classFontName Aapex   
+   #+END_SRC
+   
+   You can also change the default font for all fonts using skinparam
+   defaultFontName.
+   #+BEGIN_SRC sh
+     skinparam defaultFontName Aapex   
+   #+END_SRC
+
+   [[./images/2016/2016081314.png]]
+
+   [[./images/2016/2016081315.png]]
+
+   [[./images/2016/2016081316.png]]
+
+** Black and White
+   You can force the use of a black white output using the skinparam
+   monochrome true command.
+   #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081317.png :cmdline -charset UTF-8
+     @startuml
+     skinparam monochrome true
+     actor User
+     participant "First Class" as A
+     participant "Second Class" as B
+     participant "Last Class" as C
+     User -> A: DoWork
+     activate A
+     A -> B: Create Request
+     activate B
+     B -> C: DoWork
+     activate C
+     C --> B: WorkDone
+     destroy C
+     B --> A: Request Created
+     deactivate B
+     A --> User: Done
+     deactivate A
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:./images/2016/2016081317.png]]
+
+* Preprocessing
+
+* Internationalization
+  #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081318.png :cmdline -charset UTF-8
+    @startuml
+    skinparam backgroundColor #EEEBDC
+    actor 使用者
+    participant " 頭等艙 " as A
+    participant " 第二類 " as B
+    participant " 最後一堂課 " as 別的東西
+    使用者 -> A: 完成這項工作
+    activate A
+    A -> B: 創建請求
+    activate B
+    B -> 別的東西 : 創建請求
+    activate 別的東西
+    別的東西 --> B: 這項工作完成
+    destroy 別的東西
+    B --> A: 請求創建
+    deactivate B
+    A --> 使用者 : 做完
+    deactivate A
+    @enduml
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:./images/2016/2016081318.png]]
+
+  
+** Charset
+   : java -jar plantuml.jar -charset UTF-8 files.txt
+
+* Color Names
+  Here is the list of colors recognized by PlantUML. Note that color
+  names are case insensitive.
+
+  [[./images/2016/2016081319.png]]

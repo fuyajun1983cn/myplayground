@@ -76,7 +76,7 @@
      };
    #+END_SRC
 ** =struct sk_buff=
-
+    [[./images/2016/2016071101.png]]
 ** =struct net_device=
 
 * 接收数据
@@ -409,3 +409,7 @@
        ...
      }   
    #+END_SRC
+
+** 参考网址
+   1. https://wiki.linuxfoundation.org/networking/start
+   2. https://wireless.wiki.kernel.org/en/users/Drivers/iwlwifi

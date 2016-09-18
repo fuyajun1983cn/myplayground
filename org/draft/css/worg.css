@@ -54,7 +54,8 @@
 	-moz-border-radius-bottomleft: 5px;
 	/* ensure doesn't flow off the screen when expanded */
 	max-height: 80%;
-	overflow: auto; }
+	overflow: auto; 
+	z-index:3000;}
     #table-of-contents h2 {
 	font-size: 13pt;
 	max-width: 9em;

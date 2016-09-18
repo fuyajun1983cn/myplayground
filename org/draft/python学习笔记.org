@@ -1,0 +1,946 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: Python学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 基础语法
+
+** 属性
+     getattr()函数是Python自省的核心函数，具体使用大体如下：
+     #+BEGIN_SRC python
+       class A:   
+           def __init__(self):   
+               self.name = 'Mike'
+               
+           def method(self):   
+               print("This is a test")
+         
+       Instance = A()   
+       print getattr(Instance , 'name, 'not find') #如果Instance 对象中有属性name则打印self.name的值，否则打印'not find'
+       print getattr(Instance , 'age', 'not find')   #如果Instance 对象中有属性age则打印self.age的值，否则打印'not find'
+       print getattr(a, 'method', 'default')   
+       #如果有方法method，否则打印其地址，否则打印default   
+       print getattr(a, 'method', 'default')()   
+       #如果有方法method，运行函数并打印None否则打印default       
+     #+END_SRC
+
+     setattr(obj, name, value)
+
+     参数是一个对象,一个字符串和一个任意值。字符串可能会列出一个现有的
+     属性或一个新的属性。这个函数将值赋给属性的。该对象允许它提供。例
+     如,setattr(x,“foobar”,123)相当于x.foobar = 123。
+
+     delattr(obj, name)
+
+     参数是由一个对象(记住python中一切皆是对象)和一个字符串组成的。
+     string参数必须是对象属性名之一。该函数删除该obj的一个由string指定
+     的属性。delattr(x, 'foobar')=del x.foobar
+
+     hasattr(object, name)
+
+     确定对象是否有name属性，返回一个boolean值。 
+    
+
+* 标准库
+
+** 文本
+   
+*** fnmatch
+
+*** re
+
+** 数据结构
+
+*** collections 
+
+*** operator
+
+*** itertools
+
+** 算法 
+
+** 数学
+
+** 文件系统 
+
+** 数据存储与交换
+
+*** 读写Excel文件 --- xlrd
+
+    使用介绍
+    1. 导入模块
+       #+BEGIN_SRC python
+       import xlrd
+       #+END_SRC
+    2. 打开Excel文件读取数据
+       #+BEGIN_SRC python
+         data = xlrd.open_workbook('excelFile.xls')       
+       #+END_SRC
+    3. 使用技巧
+       #+BEGIN_SRC python
+         #获取一个工作表
+         table = data.sheets()[0]          #通过索引顺序获取
+
+         table = data.sheet_by_index(0) #通过索引顺序获取
+
+
+         table = data.sheet_by_name(u'Sheet1')#通过名称获取
+
+         #获取整行和整列的值（数组）
+
+          table.row_values(i)
+
+          table.col_values(i)
+
+         #获取行数和列数
+
+         nrows = table.nrows
+
+         ncols = table.ncols
+
+         #循环行列表数据
+         for i in range(nrows ):
+             print table.row_values(i)
+          
+         #单元格
+         cell_A1 = table.cell(0,0).value
+          
+         cell_C4 = table.cell(2,3).value
+          
+         #使用行列索引
+         cell_A1 = table.row(0)[0].value
+          
+         cell_A2 = table.col(1)[0].value
+          
+         #简单的写入
+         row = 0
+         col = 0
+          
+         # 类型 0 empty,1 string, 2 number, 3 date, 4 boolean, 5 error
+         ctype = 1 value = '单元格的值'
+          
+         xf = 0 # 扩展的格式化
+          
+         table.put_cell(row, col, ctype, value, xf)
+          
+         table.cell(0,0)  #单元格的值'
+          
+         table.cell(0,0).value #单元格的值'       
+       #+END_SRC
+
+*** 数据库-SQLite
+
+    #+BEGIN_SRC python
+      import sqlite3
+      import os
+
+      def InitDB():
+          with sqlite3.connect(db_filename) as conn:
+              if db_is_new:
+                  print("Creating schema")
+                  with open(schema_sqlfile, 'rt') as f:
+                      schema = f.read()
+                  try:
+                      conn.executescript(schema)
+                  except sqlite2.OperationalError:
+                      import atexit
+                      atexit.register(os.unlink, db_filename)
+              else:
+                  print('Datebase exists, no need to create.')
+
+
+      def InsertWifiCommand(id, name):
+          #init db if not existent
+          InitDB()
+       
+          with sqlite3.connect(db_filename) as conn:
+              print("Inserting Wifi command")
+              curs = conn.cursor()
+              try:
+                  curs.execute('insert into wifi_info(command_id, command_name) values(?, ?)', (id, name))
+              except sqlite2.OperationalError:
+                  pass
+              else:
+                  print("{0} rows has been added.".format(curs.rowcount))
+                  conn.commit()
+
+      def QueryWifiCommand(id):
+
+          with sqlite3.connect(db_filename) as conn:
+              print("Querying wifi command " + id)
+              curs = conn.cursor()
+              try:
+                  curs.execute('select command_name from wifi_info where command_id = ?', (id,))
+              except sqlite3.OperationalError:
+                  print("Command Error")
+              else:
+                  command_name = curs.fetchone()
+                  if command_name is not None:
+                      return command_name[0]
+                  else:
+                      print("No such command")
+
+      def DeleteWifiCommand(command_name):
+
+          with sqlite3.connect(db_filename) as conn:
+              print("Deleting wifi command " + id)
+              curs = conn.cursor()
+              try:
+                  curs.execute('delete from wifi_info where command_name = ?', (command_name,))
+              except sqlite3.OperationalError:
+                  print("Command Error")
+              else:
+                  conn.commit()
+
+      def UpdateWifiCommand(id, name):
+
+          with sqlite3.connect(db_filename) as conn:
+              print("Updating wifi command " + id)
+              curs = conn.cursor()
+              try:
+                  curs.execute('update wifi_info set command_name = ? where command_id = ?', (name, id))
+              except sqlite3.OperationalError:
+                  print("Command Error")
+              else:
+                  conn.commit()
+          
+    #+END_SRC
+
+    
+** 数据压缩与存档
+
+** 加密
+
+** 进程和线程
+
+** 网络
+
+** 因特网
+
+** 电子邮件
+
+** 应用程序构建
+
+** 国际化与本地化
+
+** 开发者工具
+
+** 运行时特性
+
+** 语言工具
+
+** 模块与打包
+
+* 实用技巧
+
+** 数据结构与算法 
+   列表，集合与字典
+   collections
+   
+*** Unpacking a Sequence into Separate Variables
+    
+**** Problems
+     You have an N-element tuple or sequence that you would like to
+     unpack into a collection of N variables.
+
+**** Solution
+     #+BEGIN_SRC python
+       >>> p = (4, 5)
+       >>> x, y = p
+       >>> x
+       4
+       >>> y
+       5
+       >>>
+
+       >>> data = [ 'ACME', 50, 91.1, (2012, 12, 21) ]
+       >>> name, shares, price, date = data
+       >>> name
+       'ACME'
+       >>> date
+       (2012, 12, 21)
+
+       >>> name, shares, price, (year, mon, day) = data
+       >>> name
+       'ACME'
+       >>> year
+       2012
+       >>> mon
+       12
+       >>> day
+       21
+       >>>
+
+       >>> s = 'Hello'
+       >>> a, b, c, d, e = s
+       >>> a
+       'H'
+       >>> b
+       'e'
+       >>> e
+       'o'
+       >>>
+     #+END_SRC
+
+*** Unpacking Elements from Iterables of Arbitrary Length
+
+**** Problem
+     You need to unpack N elements from an iterable, but the iterable
+     may be longer than N elements, causing a "too many values to
+     unpack" exception.
+
+**** Solution
+     使用星表达式
+     #+BEGIN_SRC python
+       >>> *trailing, current = [10, 8, 7, 1, 9, 5, 10, 3]
+       >>> trailing
+       [10, 8, 7, 1, 9, 5, 10]
+       >>> current
+       3
+
+       #星表达式变量是一个列表
+       records = [
+            ('foo', 1, 2),
+            ('bar', 'hello'),
+            ('foo', 3, 4),
+       ]
+
+       def do_foo(x, y):
+           print('foo', x, y)
+
+       def do_bar(s):
+           print('bar', s)
+
+       for tag, *args in records:
+           if tag == 'foo':
+               do_foo(*args)
+           elif tag == 'bar':
+               do_bar(*args)
+
+
+
+       #丢弃不想要的变量
+       >>> record = ('ACME', 50, 123.45, (12, 18, 2012))
+       >>> name, *_, (*_, year) = record
+       >>> name
+       'ACME'
+       >>> year
+       2012
+       >>>
+
+     #+END_SRC
+
+*** Keeping the Last N Items
+
+**** Problem
+     You want to keep a limited history of the last few items seen
+     during iteration or during some other kind of processing.
+
+**** Solution
+     #+BEGIN_SRC python
+       >>> q = deque(maxlen=3)
+       >>> q.append(1)
+       >>> q.append(2)
+       >>> q.append(3)
+       >>> q
+       deque([1, 2, 3], maxlen=3)
+       >>> q.append(4)
+       >>> q
+       deque([2, 3, 4], maxlen=3)
+       >>> q.append(5)
+       >>> q
+       deque([3, 4, 5], maxlen=3)     
+     #+END_SRC
+
+*** Finding the Largest or Smallest N Items
+    
+**** Problem
+     You want to make a list of the largest or smallest N items in a
+     collection.
+
+**** Solution
+
+     #+BEGIN_SRC python
+       import heapq
+
+       nums = [1, 8, 2, 23, 7, -4, 18, 23, 42, 37, 2]
+       print(heapq.nlargest(3, nums))  # Prints [42, 37, 23]
+       print(heapq.nsmallest(3, nums)) # Prints [-4, 1, 2]
+
+       portfolio = [
+          {'name': 'IBM', 'shares': 100, 'price': 91.1},
+          {'name': 'AAPL', 'shares': 50, 'price': 543.22},
+          {'name': 'FB', 'shares': 200, 'price': 21.09},
+          {'name': 'HPQ', 'shares': 35, 'price': 31.75},
+          {'name': 'YHOO', 'shares': 45, 'price': 16.35},
+          {'name': 'ACME', 'shares': 75, 'price': 115.65}
+       ]
+
+       cheap = heapq.nsmallest(3, portfolio, key=lambda s: s['price'])
+       expensive = heapq.nlargest(3, portfolio, key=lambda s: s['price'])
+     #+END_SRC
+
+*** Implementing a Priority Queue
+
+**** Problem
+     You want to implement a queue that sorts items by a given
+     priority and always returns the item with the highest priority on
+     each pop operation.
+
+**** Solution
+     #+BEGIN_SRC python
+       import heapq
+
+       class PriorityQueue:
+           def __init__(self):
+               self._queue = []
+               self._index = 0
+
+           def push(self, item, priority):
+               heapq.heappush(self._queue, (-priority, self._index, item))
+               self._index += 1
+
+           def pop(self):
+               return heapq.heappop(self._queue)[-1]
+
+
+       >>> class Item:
+       ...     def __init__(self, name):
+       ...         self.name = name
+       ...     def __repr__(self):
+       ...         return 'Item({!r})'.format(self.name)
+       ...
+       >>> q = PriorityQueue()
+       >>> q.push(Item('foo'), 1)
+       >>> q.push(Item('bar'), 5)
+       >>> q.push(Item('spam'), 4)
+       >>> q.push(Item('grok'), 1)
+       >>> q.pop()
+       Item('bar')
+       >>> q.pop()
+       Item('spam')
+       >>> q.pop()
+       Item('foo')
+       >>> q.pop()
+       Item('grok')
+       >>>
+     #+END_SRC
+
+*** Mapping Keys to Multiple Values in a Dictionary
+    
+**** Problem
+     You want to make a dictionary that maps keys to more than one
+     value (a so-called "multidict").
+
+**** Solution
+     #+BEGIN_SRC python
+       from collections import defaultdict
+
+       d = defaultdict(list)
+       d['a'].append(1)
+       d['a'].append(2)
+       d['b'].append(4)
+       ...
+
+       d = defaultdict(set)
+       d['a'].add(1)
+       d['a'].add(2)
+       d['b'].add(4)
+       ...
+
+
+       d = {}    # A regular dictionary
+       d.setdefault('a', []).append(1)
+       d.setdefault('a', []).append(2)
+       d.setdefault('b', []).append(4)
+       ...
+
+
+       #自己实现的话
+       d = {}
+       for key, value in pairs:
+           if key not in d:
+                d[key] = []
+           d[key].append(value)
+
+       #利用库
+       d = defaultdict(list)
+       for key, value in pairs:
+           d[key].append(value)
+
+
+     #+END_SRC
+
+*** Keeping Dictionaries in Order
+
+**** Problem
+
+     You want to create a dictionary, and you also want to control the
+     order of items when iterating or serializing.
+
+**** Solution
+
+     #+BEGIN_SRC python
+       #保持插入顺序
+       from collections import OrderedDict
+
+       d = OrderedDict()
+       d['foo'] = 1
+       d['bar'] = 2
+       d['spam'] = 3
+       d['grok'] = 4
+
+       # Outputs "foo 1", "bar 2", "spam 3", "grok 4"
+       for key in d:
+           print(key, d[key])
+           
+     #+END_SRC
+
+*** Calculating with Dictionaries
+
+**** Problem
+     You want to perform various calculations (e.g., minimum value,
+     maximum value, sorting, etc.) on a dictionary of data.
+
+**** Solution
+
+     #+BEGIN_SRC python
+       >>> prices = { 'AAA' : 45.23, 'ZZZ': 45.23 }
+       >>> min(zip(prices.values(), prices.keys()))
+       (45.23, 'AAA')
+       >>> max(zip(prices.values(), prices.keys()))
+       (45.23, 'ZZZ')
+       >>>     
+     #+END_SRC
+
+*** Finding Commonalities in Two Dictionaries
+    
+**** Problem
+     You have two dictionaries and want to find out what they might
+     have in common (same keys, same values, etc.).
+
+**** Solution
+     #+BEGIN_SRC python
+       a = {
+          'x' : 1,
+          'y' : 2,
+          'z' : 3
+       }
+
+       b = {
+          'w' : 10,
+          'x' : 11,
+          'y' : 2
+       }
+
+       # Find keys in common
+       a.keys() & b.keys()   # { 'x', 'y' }
+
+       # Find keys in a that are not in b
+       a.keys() - b.keys()   # { 'z' }
+
+       # Find (key,value) pairs in common
+       a.items() & b.items() # { ('y', 2) }
+
+       # Make a new dictionary with certain keys removed
+       c = {key:a[key] for key in a.keys() - {'z', 'w'}}
+       # c is {'x': 1, 'y': 2}
+     #+END_SRC
+
+*** Removing Duplicates from a Sequence while Maintaining Order
+
+**** Problem
+     You want to eliminate the duplicate values in a sequence, but
+     preserve the order of the remaining items.
+
+**** Solution
+     #+BEGIN_SRC python
+       def dedupe(items):
+           seen = set()
+           for item in items:
+               if item not in seen:
+                   yield item
+                   seen.add(item)
+
+
+       >>> a = [1, 5, 2, 1, 9, 1, 5, 10]
+       >>> list(dedupe(a))
+       [1, 5, 2, 9, 10]
+       >>>
+     #+END_SRC
+
+*** Naming a Slice
+
+**** Problem
+     Your program has become an unreadable mess of hardcoded slice
+     indices and you want to clean it up.
+
+**** Solution
+     #+BEGIN_SRC python
+       ######    0123456789012345678901234567890123456789012345678901234567890'
+       record = '....................100          .......513.25     ..........'
+       cost = int(record[20:32]) * float(record[40:48])
+
+       SHARES = slice(20,32)
+       PRICE  = slice(40,48)
+
+       cost = int(record[SHARES]) * float(record[PRICE])
+     #+END_SRC
+
+*** Determining the Most Frequently Occurring Items in a Sequence
+
+**** Problem
+     You have a sequence of items, and you’d like to determine the
+     most frequently occurring items in the sequence.
+
+**** Solution
+     #+BEGIN_SRC python
+       words = [
+          'look', 'into', 'my', 'eyes', 'look', 'into', 'my', 'eyes',
+          'the', 'eyes', 'the', 'eyes', 'the', 'eyes', 'not', 'around', 'the',
+          'eyes', "don't", 'look', 'around', 'the', 'eyes', 'look', 'into',
+          'my', 'eyes', "you're", 'under'
+       ]
+
+       from collections import Counter
+       word_counts = Counter(words)
+       top_three = word_counts.most_common(3)
+       print(top_three)
+       # Outputs [('eyes', 8), ('the', 5), ('look', 4)]     
+     #+END_SRC
+
+*** Sorting a List of Dictionaries by a Common Key
+
+**** Problem
+     You have a list of dictionaries and you would like to sort the
+     entries according to one or more of the dictionary values.
+
+**** Solution
+     #+BEGIN_SRC python
+       rows = [
+           {'fname': 'Brian', 'lname': 'Jones', 'uid': 1003},
+           {'fname': 'David', 'lname': 'Beazley', 'uid': 1002},
+           {'fname': 'John', 'lname': 'Cleese', 'uid': 1001},
+           {'fname': 'Big', 'lname': 'Jones', 'uid': 1004}
+       ]
+
+       from operator import itemgetter
+
+       rows_by_fname = sorted(rows, key=itemgetter('fname'))
+       rows_by_uid = sorted(rows, key=itemgetter('uid'))
+
+       print(rows_by_fname)
+       print(rows_by_uid)
+
+     #+END_SRC
+
+*** Sorting Objects Without Native Comparison Support
+
+**** Problem
+     You want to sort objects of the same class, but they don’t natively support comparison operations.
+
+**** Solution
+
+     #+BEGIN_SRC python
+       >>> class User:
+       ...     def __init__(self, user_id):
+       ...         self.user_id = user_id
+       ...     def __repr__(self):
+       ...         return 'User({})'.format(self.user_id)
+       ...
+       >>> users = [User(23), User(3), User(99)]
+       >>> users
+       [User(23), User(3), User(99)]
+       >>> sorted(users, key=lambda u: u.user_id)
+       [User(3), User(23), User(99)]
+       >>>
+
+
+       #另一种方法
+       >>> from operator import attrgetter
+       >>> sorted(users, key=attrgetter('user_id'))
+       [User(3), User(23), User(99)]
+       >>>
+
+     #+END_SRC
+
+*** Grouping Records Together Based on a Field
+
+**** Problem
+     You have a sequence of dictionaries or instances and you want to
+     iterate over the data in groups based on the value of a
+     particular field, such as date.
+
+**** Solution
+
+     #+BEGIN_SRC python
+       rows = [
+           {'address': '5412 N CLARK', 'date': '07/01/2012'},
+           {'address': '5148 N CLARK', 'date': '07/04/2012'},
+           {'address': '5800 E 58TH', 'date': '07/02/2012'},
+           {'address': '2122 N CLARK', 'date': '07/03/2012'},
+           {'address': '5645 N RAVENSWOOD', 'date': '07/02/2012'},
+           {'address': '1060 W ADDISON', 'date': '07/02/2012'},
+           {'address': '4801 N BROADWAY', 'date': '07/01/2012'},
+           {'address': '1039 W GRANVILLE', 'date': '07/04/2012'},
+       ]
+
+
+       from operator import itemgetter
+       from itertools import groupby
+
+       # Sort by the desired field first
+       rows.sort(key=itemgetter('date'))
+
+       # Iterate in groups
+       for date, items in groupby(rows, key=itemgetter('date')):
+           print(date)
+           for i in items:
+               print('    ', i)
+
+       #Another method
+       from collections import defaultdict
+       rows_by_date = defaultdict(list)
+       for row in rows:
+           rows_by_date[row['date']].append(row)
+
+       >>> for r in rows_by_date['07/01/2012']:
+       ...     print(r)
+       ...
+       {'date': '07/01/2012', 'address': '5412 N CLARK'}
+       {'date': '07/01/2012', 'address': '4801 N BROADWAY'}
+       >>>    
+     #+END_SRC
+
+*** Filtering Sequence Elements
+
+**** Problem
+     You have data inside of a sequence, and need to extract values or
+     reduce the sequence using some criteria.
+
+**** Solution
+     #+BEGIN_SRC python
+       #list comprehension
+       >>> mylist = [1, 4, -5, 10, -7, 2, 3, -1]
+       >>> [n for n in mylist if n > 0]
+       [1, 4, 10, 2, 3]
+       >>> [n for n in mylist if n < 0]
+       [-5, -7, -1]
+       >>>
+
+       #if input is large, use generator expression
+       >>> pos = (n for n in mylist if n > 0)
+       >>> pos
+       <generator object <genexpr> at 0x1006a0eb0>
+       >>> for x in pos:
+       ...     print(x)
+       ...
+       1
+       4
+       10
+       2
+       3
+       >>>
+
+       #when filter expression is not easy to express
+       #use filter()
+       values = ['1', '2', '-3', '-', '4', 'N/A', '5']
+
+       def is_int(val):
+           try:
+               x = int(val)
+               return True
+           except ValueError:
+               return False
+
+       ivals = list(filter(is_int, values))
+       print(ivals)
+       # Outputs ['1', '2', '-3', '4', '5']
+     #+END_SRC
+
+*** Extracting a Subset of a Dictionary
+
+**** Problem
+     You want to make a dictionary that is a subset of another
+     dictionary.
+
+**** Solution
+     #+BEGIN_SRC python
+       #use dictionary comprehension
+       prices = {
+          'ACME': 45.23,
+          'AAPL': 612.78,
+          'IBM': 205.55,
+          'HPQ': 37.20,
+          'FB': 10.75
+       }
+
+       # Make a dictionary of all prices over 200
+       p1 = { key:value for key, value in prices.items() if value > 200 }
+
+       # Make a dictionary of tech stocks
+       tech_names = { 'AAPL', 'IBM', 'HPQ', 'MSFT' }
+       p2 = { key:value for key,value in prices.items() if key in tech_names }
+
+     #+END_SRC
+
+*** Mapping Names to Sequence Elements
+
+**** Problem
+     You have code that accesses list or tuple elements by position,
+     but this makes the code somewhat difficult to read at
+     times. You’d also like to be less dependent on position in the
+     structure, by accessing the elements by name.
+
+**** Solution
+     #+BEGIN_SRC python
+       >>> from collections import namedtuple
+       >>> Subscriber = namedtuple('Subscriber', ['addr', 'joined'])
+       >>> sub = Subscriber('jonesy@example.com', '2012-10-19')
+       >>> sub
+       Subscriber(addr='jonesy@example.com', joined='2012-10-19')
+       >>> sub.addr
+       'jonesy@example.com'
+       >>> sub.joined
+       '2012-10-19'
+       >>>     
+     #+END_SRC
+
+*** Transforming and Reducing Data at the Same Time
+
+**** Problem
+     You need to execute a reduction function (e.g., sum(), min(),
+     max()), but first need to transform or filter the data.
+
+**** Solution
+     #+BEGIN_SRC python
+       #Use generator expression argument
+       # Determine if any .py files exist in a directory
+       import os
+       files = os.listdir('dirname')
+       if any(name.endswith('.py') for name in files):
+           print('There be python!')
+       else:
+           print('Sorry, no python.')
+
+       # Output a tuple as CSV
+       s = ('ACME', 50, 123.45)
+       print(','.join(str(x) for x in s))
+
+       # Data reduction across fields of a data structure
+       portfolio = [
+          {'name':'GOOG', 'shares': 50},
+          {'name':'YHOO', 'shares': 75},
+          {'name':'AOL', 'shares': 20},
+          {'name':'SCOX', 'shares': 65}
+       ]
+       min_shares = min(s['shares'] for s in portfolio)     
+     #+END_SRC
+
+*** Combining Multiple Mappings into a Single Mapping
+
+**** Problem
+     You have multiple dictionaries or mappings that you want to
+     logically combine into a single mapping to perform certain
+     operations, such as looking up values or checking for the
+     existence of keys.
+
+**** Solution
+     #+BEGIN_SRC python
+       a = {'x': 1, 'z': 3 }
+       b = {'y': 2, 'z': 4 }
+
+       from collections import ChainMap
+       c = ChainMap(a,b)
+       print(c['x'])      # Outputs 1  (from a)
+       print(c['y'])      # Outputs 2  (from b)
+       print(c['z'])      # Outputs 3  (from a)
+     #+END_SRC
+
+** 字符串与文本
+
+** 实现一个简单的扩展 
+    主要步骤：
+    1. 新建一个目录。
+    2. 在该目录下创建一个名为 setup.py的python脚本以及一个C扩展代码
+    3. 在该目录下运行 
+       : python setup.py install
+    4. 测试
+
+** 网络编程
+
+*** TCP
+        - 服务器端代码
+          #+BEGIN_SRC python
+            #!/usr/bin/env python3
+            #coding:utf-8
+
+            from socket import *
+            serverPort = 12000
+            serverSocket = socket(AF_INET, SOCK_STREAM)
+            serverSocket.bind(('', serverPort))
+            serverSocket.listen(1)
+            print("The server is ready to receive:")
+            while 1:
+                connectSocket, addr = serverSocket.accept()
+                sentence = connectSocket.recv(1024)
+                capitalizeSentense = sentence.upper()
+                connectSocket.send(capitalizeSentense)
+          #+END_SRC
+        - 客户端代码
+          #+BEGIN_SRC python
+            #!/usr/bin/env python3
+            #coding:utf-8
+
+            from socket import *
+            serverName = 'localhost'
+            serverPort = 12000
+            clientSocket = socket(AF_INET, SOCK_STREAM)
+            clientSocket.connect((serverName,serverPort))
+            sentence = input('Input lowercase sentence:')
+            clientSocket.send(sentence.encode())
+            modifiedSentence = clientSocket.recv(1024)
+            print('From Server: ', modifiedSentence.decode())
+            clientSocket.close()
+          #+END_SRC
+
+*** UDP
+         - 服务器端代码
+           #+BEGIN_SRC python
+             #!/usr/bin/env python3
+             #coding:utf-8
+
+             from socket import *
+
+             serverPort = 12000
+             serverSocket = socket(AF_INET, SOCK_DGRAM)
+             serverSocket.bind(('', serverPort))
+             print("The server is read to receive")
+             while 1:
+                 message, clientAddress = serverSocket.recvfrom(2048)
+                 modifiedMessage = message.upper()
+                 serverSocket.sendto(modifiedMessage, clientAddress)
+           #+END_SRC
+
+         - 客户端代码
+           #+BEGIN_SRC python
+             #!/usr/bin/env python3
+             #coding:utf-8
+
+             from socket import *
+
+             serverName ='localhost'
+             serverPort = 12000
+             clientSocket = socket(AF_INET, SOCK_DGRAM)
+             message = input('请输入小写字母语句：')
+             #sockets by themselves always
+             #deal in binary byte strings, not text.
+             #need use the two methods to convert between them
+             #str.encode  from text to byte strings
+             #bytes.decode from byte strings to text
+             clientSocket.sendto(message.encode(), (serverName, serverPort))
+             modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+             print(modifiedMessage.decode())
+             clientSocket.close()
+           #+END_SRC

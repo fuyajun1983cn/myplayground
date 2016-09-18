@@ -136,8 +136,9 @@
    这些Key称为临时Key，因为每次设备与AP关联时，都会重新产生。这些Key一
    起统称为PTK(pairwise transient key)。
 
-    [[./images/2016/2016042502.png
-]]
+    [[./images/2016/2016042502.png]]
+
+
    PMK利用认证过程中产生的生成Key的原料来产生的。对于Pre-Shared Key，
    直接将其作为PMK来使用。
    认证结束后，即当收到认证方发送的EAP-Success消息，双方都应该获取到了

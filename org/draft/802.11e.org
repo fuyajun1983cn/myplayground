@@ -1,0 +1,182 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: 802.11e(QoS)学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* 802.11e简介
+  在IEEE 802.11e，有两种类型的QoS：
+  1. prioritized QoS
+     a weak requirement
+  2. parameterized QoS
+     a strict requirement
+
+** new field in 802.11 header
+   
+*** TID (traffic ID)
+    select a UP (user priority) for prioritized QoS or a TSPEC
+    (traffic specification) for parameterized 
+
+    0 – 7 are considered user priorities
+
+    8 – 16 refer to TSPECs.
+
+** Action
+
+   A TSPEC between an AP and an STA is negotiated by means of new
+   management commands – ADDTS Request, ADDTS Response and DELTS.
+
+    After a TSPEC is successfully negotiated, an STA can get a TXOP by
+    one of two ways:
+    
+    1. Using EDCA, an STA can contend for the medium, and if it
+       acquires the medium can use the medium for TXOP time limit. The
+       STA must observe the TXOP time limit as specified in an IE in
+       beacons.
+    2. During CP/CFP, an AP can grant an STA a TXOP using the QoS
+       CF-Poll (called as “polled TXOP” in contrast to “EDCA
+       TXOP”). The TXOP limit is specified in the CF-Poll frame. While
+       the spec allows an AP to grant a “polled TXOP” to an STA during
+       either CFP or CP, it is recommended that it not be issued
+       during CFP, but only during CP for reasons of simplicity in
+       implementation.
+
+** WiFi Multimedia (WMM)
+
+   supports only EDCA but not HCCA. 
+   Without HCCA, parametererized QoS can not be supported. 
+
+
+    
+* Enhanced Distributed Channel Access (EDCA)
+  
+** Basic Elements for QoS
+   - Traffic Differentiation
+   - Concept of Transmission Opportunity (TXOP)
+     1. 一個傳送機會(TXOP)是一個有限的時間區域。在這時間區域內，一工作
+        站(station)可儘可能地傳送訊框(frames)。
+     2. 若訊框(frame)太大而超過傳送機會(TXOP)的時間區域則必須切割分段
+        (fragment)成較小的訊框(frames)來傳送。
+     3. 若傳送機會(TXOP)的時間區域為0時只能傳送一個資料封包。
+
+** New Contention Channel Access
+   - Enhanced Distributed Channel Access (EDCA)
+     1. EDCA提供在802.11中競爭基礎(Contention-Based)頻道存取機制，
+        排定優先順序(priority)的品質服務(QoS)。此優先順序是以區分訊務
+        流量類別而實現。802.1D的8個訊務流量類別(Traffic Classes, TC)對
+        應至4個(語音、視訊、盡力傳送、背景)802.11e的存取類別(Access
+        Categories, AC)。訊務流量類別被指派至不同的資料佇列(Queue),每
+        個佇列根據下列基礎指定優先順序及使用時間存取媒介：
+        - 仲裁內框間隔(Arbitration Inter Frame Spacing, AIFS)
+        - 競爭窗框(Contention Window, CWmin/CWmax)
+        - 傳輸機會(Transmission Opportunity, TXOP)
+     2. AIFS時間短的能提早獲得媒介。傳輸機會(TXOP)為指派給節點傳
+        輸無線訊框的時間長度。優先順序更高的流量，其等待的AIFS時
+        槽越小，而且退後等待(Backoff)時間也更短。TXOP的長度對應在
+        特定優先權所預期的串流類型。
+     3. 許可(進入)控制(Admission Control)透過傳輸規格保護優先次序高
+        的訊務流量類別不會受其他優先次序較低的流量影響。
+        
+
+** New Contention Free Channel Access
+   - HCF Controlled Channel Access (HCCA)
+     HCCA是HCF的一構成要素(component) 同時提供服務
+     品質(QoS)參數化(parameterized)的支持。
+
+     它除傳承傳統(legacy) PCF的規則外，同時引進一些新
+     規則。
+
+     HCCA不同於PCF的運作，而對無線媒介(Wireless
+     Medium )提供polled access，這可用在無競爭時期(CFP)
+     與競爭時期(CP)。
+
+** Automatic Power-Save Delivery (APSD)
+
+** New mechanisms for higher throughput
+   - Block Acknowledgement (Block Ack)
+   - Direct Link Setup (DLS)
+
+** Same Contention Based that EDC but…
+   - *8 priority levels* per station (identical to IEEE 802.1D priority
+     tags) mapped to 4 access categories (AC)
+   - Different *Arbitration InterFrame Space* (AIFS) per access categories
+   - TxOP Burst Limits
+
+* EDCA Frame Priorities
+
+  [[/images/2016/2016051901.png]]
+
+
+* EDCA Implementation Model
+
+  [[./images/2016/2016051902.png]]
+
+
+* Arbitration InterFrame Space
+
+  [[./images/2016/2016051903.png]]
+
+* Throughput Enhancements
+
+  improve channel utilization and efficiency.
+  
+*** Block ACK
+    Improves channel efficiency by aggregating several
+    acknowledgments into one frame.
+
+**** 2 types of Block Ack mechanisms:
+     immediate and delayed
+
+     [[/images/2016/2016051906.png]]
+
+*** Direct Link Protocol
+    Ability to exchange data directly between two
+    stations in the network, without traversing the AP.
+
+    [[/images/2016/2016051907.png]]
+
+*** Automatic Power-Save Delivery
+    =ps-poll= is inefficient for current product, one poll one packet.
+
+    Enhancing Power Saving mode in QoS Basic Service Set
+
+    *QoS-AP* automatically delivers downlink frames,which belong to some
+    specified Access Category, to *Power-Saving* stations
+
+    Two types of delivery mechanism
+    1. Unscheduled APSD (U-APSD)
+    2. Scheduled APSD (S-APSD)
+
+**** Unscheduled APSD (U-APSD)
+     [[./images/2016/2016051904.png]]
+
+     STA will announce its capability for uapsd (ac) through wmm ie
+     . it will tell ap which AC is supported for STA. u can check the
+     (re)association packet to get the information .
+
+     Power-saving QoS-STA wakes up and send a “trigger”data
+     frame belonging to “trigger-enabled” AC to QoS-AP
+
+     After receiving “trigger” frame, a Service Period (SP) is
+     started
+
+     QoS-AP send frames belonging to “delivery-enabled” AC
+     to QoS-STA
+
+**** Scheduled APSD (S-APSD)
+
+     [[./images/2016/2016051905.png]]
+
+     QoS-STA negotiates a APSD Schedule with QoS-AP
+
+     QoS-AP start transmitting the frames of the specified
+     Traffic Stream at Service Start Time and the following
+     periods
+
+     QoS STA must wake up at Service Start Time and the
+     following periods to receive frames
+
+
+
+
+

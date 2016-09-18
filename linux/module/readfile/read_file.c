@@ -45,5 +45,5 @@
   module_exit(mod_exit);
 
  MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Knare Technologies (www.knare.org)");
+ MODULE_AUTHOR("Jackson Fu(fuyajun1983cn@163.com");
  MODULE_DESCRIPTION("Module to read a file from kernel space");    

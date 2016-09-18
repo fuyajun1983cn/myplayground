@@ -34,6 +34,7 @@ public class BasicTest1 {
         char smiley = '\u263a';
 
         System.out.println("smiley: " + smiley);
+
     }
 
 }

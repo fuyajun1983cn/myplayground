@@ -1,0 +1,1696 @@
+#+STARTUP: overview
+#+STARTUP: hidestars
+#+TITLE: Java学习笔记
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 技术体系
+  Java技术体系包括：
+  1、Java程序设计语言
+  2、各种硬件平台上的Java虚拟机
+  3、Class文件格式
+  4、Java API 类库
+  5、来自商业机构和开源社区的第三方Java类库
+
+  [[./images/2016/2016090901.jpeg]]
+
+* 基础语法
+
+** 概述
+   1. 基本数据类型
+      - boolean
+        其值只能为true和false
+      - char
+        16位UTF码
+      - byte
+        8位整数
+      - short
+        16位整数
+      - int
+        32整数
+      - long
+        64位整数
+      - float
+        32位浮点小数
+      - double
+        64位浮点小数
+   2. 不能创建一个泛型类型的数组
+      #+BEGIN_SRC java
+        public class ArrayOfGenericType<T> {
+            T[] array; // OK
+            @SuppressWarnings("unchecked")
+            public ArrayOfGenericType(int size) {
+                //! array = new T[size]; // Illegal
+                array = (T[])new Object[size]; // "unchecked" Warning
+            }
+            // Illegal:
+            //! public <U> U[] makeArray() { return new U[10]; }
+        }      
+      #+END_SRC
+      不过，可以将一个数组向上转换为泛型类型的数组：
+      : LinkedList<MapEntry<K,V>>[] buckets =　new LinkedList[SIZE];
+
+   3. 对于想使用”foreach”的Java对象，必须实现Iterable接口。
+
+   4. Java对象垃圾回收
+      普通Java对象，如果没有其他引用，就可能被垃圾回收器回收了。但是，
+      如果想继续保持该Java对象是可用的，即最大限度延缓被虚拟机回收的时
+      间，同时又保证它是可被回收的，则需要使用引用类型将对象包裹起
+      来——Reference。Java定义了三种引用类型：SoftReference，
+      WeakReference，PhantomReference。它们的语义依次变弱。
+      SoftReference一般用于实现内存敏感的缓存。WeakReference用于实现”
+      规范化映射”——对象的实例可同时用在一个程序的不同地方，以节省存储
+      空间。PhantomReference用于以一种更灵活的方式调用垃圾回收机制，它
+      的实现基于ReferenceQueue。
+
+   5. New IO, 基础类，FileChannel以及ByteBuffer
+      [[./images/2016/2016073102.png]]
+
+      Buffer类是一个抽象类，它有众多的具体子类，包括ByteBuffer，
+      CharBufer，DoubleBuffer，IntBuffer，LongBuffer和ShortBuffer。每
+      个Buffer都具有：
+      - 一个容量，它永远不能改变。
+      - 一个读写位置，下一个值将在此进行读写。
+      - 一个界限，超过它进行读写是没有意义的。
+      - 一个可选的标记，用于重复一个读入或写出操作。
+
+      这些值满足下面的条件：
+      0 <= 标记 <= 位置 <= 界限 <= 容量
+
+      文件锁：
+      : FileLock lock = channel.lock();
+      或
+      : FileLock lock = channel.tryLock();
+
+      映射一个文件：
+      #+BEGIN_SRC java
+      public static long checksumMappedFile(String filename) throws IOException
+      {
+      FileInputStream in = new FileInputStream(filename);
+      FileChannel channel = in.getChannel();
+
+      CRC32 crc = new CRC32();
+      int length = (int)channel.size();
+      MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, length);
+
+      for (int p = 0; p < length; p++) {
+      int c = buffer.get(p);
+      crc.update(c);
+      }
+      return crc.getValue();
+      }
+      #+END_SRC
+
+   6. 对象序列化
+      要使对象能序列化，该对象必须实现接口：Serializable. 如果想在对象
+      序列化的过程中进行一些客制化操作，则必须实现接口：Externalizable。
+      重写它的两个接口：readExternal()和writeExternal()方法，在调用
+      readObject以及writeObject时，会自动调用上述两个接口。另外，当被
+      序列化的对象实现Externalizable接口时，必须提供默认的构造函数，且
+      访问权限是Public的。另外，如果对象继承自Externalizable接口，则可
+      以完全控制对象序列时，哪些成员被序列化，哪些则不被序列化。然而，
+      当对象直接从Serializable接口继承时，则默认情况下，所有成员变量都
+      会被自动序列化，除非我们显示指定修饰符：transient。不过，此时如
+      果我们显示在对象中添加了如下两个方法：
+
+      #+BEGIN_SRC java
+        private void writeObject(ObjectOutputStream stream)
+            throws IOException;
+        private void readObject(ObjectlnputStream stream)
+            throws IOException, ClassNotFoundException      
+      #+END_SRC
+
+      则在对象序列化中，也会自动被调用。在上述两个接口中，也可以自定义
+      对象序列化的过程。
+
+      补充：
+      向遗留代码中所有类型安全的枚举（Java5之前的版本）及向所有支持单
+      例设计模式的类中添加readResolve方法。（它是一种特殊的序列化方法，
+      在对象序列化之后就会调用它，它必须返回一个对象，而该对象之后会成
+      为readObject的返回值）
+
+   7. Annotation（标注）
+      三个标准的标注：
+      - @Override
+      - @Deprecated
+      - @SuppressWarning
+
+      以及4个用于标注Annotation的标注：
+      | @Target     | 该标注应用的范围：ElementType的值为：                |
+      |             | CONSTRUCTOR：构造函数声明                            |
+      |             | FIELD：成员变量声明，包含Enum常量                    |
+      |             | =LOCAL_VARIABLE= ：局部变量声明                      |
+      |             | METHOD：成员方法声明                                 |
+      |             | PACKAGE：包声明                                      |
+      |             | PARAMETER：参数声明                                  |
+      |             | TYPE：类，接口（包含标注类型）或enum声明             |
+      |-------------+------------------------------------------------------|
+      | @Retention  | 标注保持多久。RetantionPolicy的值为：                |
+      |             | SOURCE：编译器将丢弃标注                             |
+      |             | CLASS：被编译器保留在Class文件中，但是可能被VM丢弃。 |
+      |             | RUNTIME：被VM保留，可通过反射读取                    |
+      |-------------+------------------------------------------------------|
+      | @Documented | 包含该标注到Javvdoc中。                              |
+      |-------------+------------------------------------------------------|
+      | @Inherited  | 允许子类继承父类的标注                               |
+      |-------------+------------------------------------------------------|
+
+      实例：
+      #+BEGIN_SRC java
+      @Target(ElementType.METHOD)
+      @Retention(RetentionPolicy.RUNTIME)
+      public @interface Test {}      
+      #+END_SRC
+
+      其中@Target定义该annotation应用的范围，如应用于方法还是变量？
+      @Retention定义了该annotation保持的阶段，SOURCE（源码中），CLASS（类文件中）或RUNTIME（运行时）
+      Annotation通常会包含元素（参数），它类似接口方法，并可以声明默认值。
+      不包含元素的Annotation称为标记Annotation。
+
+   8. enable Asserts
+      #+BEGIN_SRC java
+        ClassLoader.getSystemClassLoader()
+            .setDefaultAssertionStatus(true); // Enable asserts      
+      #+END_SRC
+
+   9. 线程
+      java.util.concurrent.Executors简化了多线程编程。
+      #+BEGIN_SRC java
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.exectute(new Runnable() {...});      
+      #+END_SRC
+
+      　　Executor可以创建不同的Executor，如FixedThreadPool就限制了执
+      行提交任务的线程数量。SingleThreadExecutor则只创建一个线程。
+
+      Runnable会开启一个独立的任务，但是他不会返回结果。如果需要返回结
+      果，则可以实现Callable接口。
+
+   10. 关键字volatile: try to ensure that no compiler optimizaitons are
+       performed.
+       　　保证变量访问的原子型以及可见性。如果多个线程访问同一个变量，
+       该变量应该声明为volatile。否则，该变量的访问就必须用synchronized
+       修饰。另外，volatile也不能保证原子操作，只是阻止编译器做优级化
+       （如将变量的值缓存在一个寄存器中），避免多个线程看到的变量值不一
+       值。
+
+   11. Daemon线程
+       #+BEGIN_SRC java
+         Thread daemon = new Thread(new SimpleDaemons());
+         daemon.setDaemon(true); // Must call before start()
+         daemon.start();       
+       #+END_SRC
+
+       　　查看一个线程是否Daemon线程，可以调用方法isDaemon()，如果一
+       个线程是Daemon线程，则通过它创建的任何线程都自动成为Daemon线程。
+
+       　　Daemon线程退出他们的run方法，不会执行finally语句里面的代码。
+
+       等待另一个线程完成，调用方法：join()
+       怎样捕捉传递到run()方法外的异常？
+       #+BEGIN_SRC java
+         public class ExceptionThread implements Runnable {
+             public void run() {
+                 throw new RuntimeException();
+             }
+             public static void main(String[] args) {
+                 ExecutorService exec = Executors.newCachedThreadPool();
+                 exec.execute(new ExceptionThread());
+             }
+         } ///:~       
+       #+END_SRC
+
+       上述线程方法中抛出了一个无法捕捉的异常，用 =try-catch= 无效。
+       为了解决这个问题，可以自定义一个Thread.UncaughtExceptionHandler。
+       然后，对每个线程对象调用
+       : setUncaughtExceptionHandler(...)
+
+       如果，想在全局范围内替换的话，需要调用：
+       : Thread.setDefaultUncaughtExceptionHandler(...)
+
+       这样，当某个线程以及所在线程组都没有设置Handler的情况下，会调用
+       上述设置的Handler。
+
+   12. 线程同步
+       *synchronized*
+
+       　　Lock对象（处理特殊情况时使用）：ReentrantLock(一个尝试获取
+       该类型的锁的线程可被其他线程中断)
+
+       使用模式：
+       #+BEGIN_SRC java
+         Lock.lock();
+         Try {
+         ...
+         Return ..;
+         } finally {
+         Lock.unlock();
+         }       
+       #+END_SRC
+
+       　　原子操作：不可分割的操作，即在这个操作完成前，不会发生上下
+       文切换。对基本数据类型的操作就是原子操作，但是对long及double类
+       型的数据操作就不能保证是原子操作。不过，如果使用volatile修饰符
+       的话，就可以保证原子性。
+
+       *Atomic类*
+
+       Java SE5引入了原子变量类型如AtomicInteger，AtomicLong，
+       AtomicReference。这些类主要是利用一些处理器的机器层面的原子性。
+
+       *线程本地存储*
+
+       ThreadLocal类，它是一个Generic类，通过声明为类的一个静态成员变
+       量，且它的值通过get()和set()来访问。
+
+       *停止一个被Blocking的线程*
+
+       　　调用interrupt()或interrupted()。另外，一般推荐通过
+       ExecutService来间接停止线程。首先通过调用它的submit()方法，提交
+       一个Runnale对象。然后调用cancel(true)来中止一个线程。但是，无法
+       中断一个试图获取Synchronized的锁或试图执行I/O的线程。然而，
+       Block在ReentrantLock的线程可以被中断。
+
+   13. 线程间的协作
+       线程间的协作通常Mutex（Synchronized或Lock）并配合使用Object对象
+       的wait()和notifyAll()方法。另外，JavaSE5的同步库同样提供了
+       Condition类，它有await()和signal()方法。不过，通常等待的条件可
+       能产生竞态，需要提供保护。
+
+       　　另外，sleep()和yield()方法都不会释放对象锁，但是wait()方法
+       会中断当前线程执行，并且释放对象锁。
+
+       　　另外，只能在如下三种地方调用wait()和notify()等方法：
+       1. Synchronized限定的方法
+       2. Synchronized限定的代码块
+       3. Synchronized限定的类的静态成员方法
+
+       否则，会抛出IllegalMonitorStateException异常。
+
+       更复杂的情况下，可以使用Lock和Condition对象。
+
+   14. 同步队列
+       　　BlockingQueue是一个同步队列接口，当线程往里面取元素时，而此
+       时队列为空的话，则会掛起当前线程，直到队列不为空为止。有两个实
+       现类：LinkedBlockingQueue和ArrayBlockingQueue。
+       LinkedBlockingQueue无固定大小，而ArrayBlockingQueue有固定大小。
+       还有一个SynchronousQueue，不过它的大小是1，一般用于如下情景：
+
+       　　切换线程，当运行于一个线程中的对象必须与运行于另一个线程中
+       的对象同步时，即它要传递一些信息，如事件或任务等。
+
+       　　DelayQueue是一个无固定大小的BlockingQueue，不过它实现了
+       Delayed接口，该队列中的元素按delay的大小排序，位于队首的元素拥
+       有最大的已经逝去的超时值。如果没有delay到期，则队首元素为空，此
+       时poll()函数返回null。
+
+       　　PriorityBlockingQueue是一个按优先级排序的队列。
+
+       　　PipedReader和PipedWriter其实类似同步队列，只不过它先于
+       BlockingQueue出现，PipedReader在管道无数据时，会自动掛起当前线
+       程。另外，跟同步队列一样，管道也是可以被中断的。而普通的
+       in.read()则不能被中断。
+
+   15. 死锁
+       形成死锁的四个条件：
+       1. 互斥：一个资源一次只能被一个线程访问。
+       2. 至少有一个线程正在占有一个资源并等待另一个被其他线程占用的资源。
+       3. 其他线程不能强制占用当前线程获取的资源。
+       4. 循环等待。
+
+       只要上述任何一个条件不成立，则可以避免死锁发生。
+
+   16. JavaSE5java.util.concurrent库新引入的一些类
+       *CountDownLatch*
+
+       　　这个类一般用于同步一个或多个线程。这些线程都要等待其他线程
+       执行的一系列操作。
+
+       　　使用时，传递一个初始值count给CountDownLatch，任何调用
+       await()的线程就会阻塞直到count减为0。它是一次性的，不可重复。调
+       用countDown()方法的线程不会被阻塞。
+
+       *CyclicBarrier*
+
+       与CountDownLatch类似，只不过可以重复使用多次。它还接受一个
+       Runnable的参数，当Count为零时，会自动执行。
+
+       *Semaphore*
+
+       信号量，可以同时控制多个共享资源的访问，获取资源访问权，用
+       acquire()，返还资源访问权用release()。
+
+       *Exchanger*
+
+       它是一个barrier，用于在两个线程之间交换对象。
+
+   17. Lock-free容器
+       CopyOnWriteArrayList：在遍历元素的时候，可以删除元素。
+
+       ConpyOnWriteArraySet，ConcurrentHasMap，ConcurrentLinkedQueue.
+
+   18. Java SE 5.0引入了4个附加的接口
+
+       Closeable: void close()  throws IOException
+       
+       Flushable: void flush() 清空这个Flushable
+
+       Readable：int read(CharBuffer cb)，尝试读入cb可以持有的数量的
+       char值。返回讲稿的char值的数量，无法再获得更多的值时，返回-1.
+
+       Appendable: Appendable append(char c), Appendable
+       append(CharSequence cs)
+       向这个Appendable中追加给定的码元或者给定的序列中的所有码元，返
+       回this。
+
+** 类加载器
+   类加载器加载一个类时，包含加载与链接两个过程，其中链接过程又可以分
+   为几个子步骤进行，如下图所示：
+   
+   #+CAPTION: Loading and linking (with subphases of linking)
+   [[./images/2016/2016072301.png]]
+
+   
+*** 类加载器的类型
+    - Primordial (or bootstrap) classloader
+      加载最基本的类库，属于虚拟机的一部分。
+    - Extension classloader
+      加载扩展的类库，一般包含安全方面的扩展。
+    - Application (or system) classloader
+      最广泛使用的类加载器，加载应用程序的类。
+    - Custom classloader
+      客制化的类加载器，一般用于特定环境。
+
+    [[./images/2016/2016072302.png]]
+
+*** Java反射机制(New In Jave 7)
+    
+**** MethodHandle
+     What is a MethodHandle ? The official answer is that it’s a typed
+     reference to a method (or field, constructor, and so on) that is
+     directly executable. Another way of saying this is that a method
+     handle is an object that represents the ability to call a method
+     safely. 
+
+     #+BEGIN_SRC java
+       MethodHandle mh = getTwoArgMH();
+       MyType ret;
+       try {
+           ret = mh.invokeExact(obj, arg0, arg1);
+       } catch (Throwable e) {
+           e.printStackTrace();
+       }     
+     #+END_SRC
+
+**** MethodType
+     A MethodType is an immutable object that represents the type
+     signature of a method.
+     Every method handle has a MethodType instance that includes the
+     return type and the argument types.
+
+     #+BEGIN_SRC java
+       MethodType mtToString = MethodType.methodType(String.class);
+       MethodType mtSetter = MethodType.methodType(void.class, Object.class);
+       MethodType mtStringComparator = MethodType.methodType(int.class,
+       String.class, String.class);     
+     #+END_SRC
+     
+     
+**** Looking up method handles
+     #+BEGIN_SRC java
+       public MethodHandle getToStringMH() {
+           MethodHandle mh;
+           MethodType mt = MethodType.methodType(String.class);
+           MethodHandles.Lookup lk = MethodHandles.lookup();
+           try {
+               mh = lk.findVirtual(getClass(), "toString", mt);
+           } catch (NoSuchMethodException | IllegalAccessException mhx) {
+               throw (AssertionError)new AssertionError().initCause(mhx);
+           }
+           return mh;
+       }
+     #+END_SRC
+
+**** Example : reflection vs. proxies vs. MethodHandles
+     使用三种不同的方法访问ThreadPoolManager的私有方法cancel(). 
+     #+BEGIN_SRC java
+       public class ThreadPoolManager {
+           private final ScheduledExecutorService stpe =
+               Executors.newScheduledThreadPool(2);
+           private final BlockingQueue<WorkUnit<String>> lbq;
+           public ThreadPoolManager(BlockingQueue<WorkUnit<String>> lbq_) {
+               lbq = lbq_;
+           }
+           public ScheduledFuture<?> run(QueueReaderTask msgReader) {
+               msgReader.setQueue(lbq);
+               return stpe.scheduleAtFixedRate(msgReader, 10, 10,
+                                               TimeUnit.MILLISECONDS);
+           }
+
+           private void cancel(final ScheduledFuture<?> hndl) {
+               stpe.schedule(new Runnable() {
+                       public void run() { hndl.cancel(true); }
+                   }, 10, TimeUnit.MILLISECONDS);
+           }
+
+           public Method makeReflective() {
+               Method meth = null;
+               try {
+                   Class<?>[] argTypes = new Class[] { ScheduledFuture.class };
+                   meth = ThreadPoolManager.class.getDeclaredMethod("cancel",
+                                                                    argTypes);
+                   meth.setAccessible(true);
+               } catch (IllegalArgumentException | NoSuchMethodException
+                        | SecurityException e) {
+                   e.printStackTrace();
+               }
+               return meth;
+           }
+           public static class CancelProxy {
+               private CancelProxy() { }
+               public void invoke(ThreadPoolManager mae_, ScheduledFuture<?> hndl_) {
+                   mae_.cancel(hndl_);
+               }
+           }
+
+           public CancelProxy makeProxy() {
+               return new CancelProxy();
+           }
+           public MethodHandle makeMh() {
+               MethodHandle mh;
+               MethodType desc = MethodType.methodType(void.class,
+                                                       ScheduledFuture.class);
+               try {
+                   mh = MethodHandles.lookup()
+                       .findVirtual(ThreadPoolManager.class, "cancel", desc);
+               } catch (NoSuchMethodException | IllegalAccessException e) {
+                   throw (AssertionError)new AssertionError().initCause(e);
+               }
+               return mh;
+           }
+       }
+     #+END_SRC
+
+     三种不同的调用形式：
+     #+BEGIN_SRC java
+       private void cancelUsingReflection(ScheduledFuture<?> hndl) {
+           Method meth = manager.makeReflective();
+           try {
+               System.out.println("With Reflection");
+               meth.invoke(hndl);
+           } catch (IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException e) {
+               e.printStackTrace();
+           }
+       }
+
+       private void cancelUsingProxy(ScheduledFuture<?> hndl) {
+           CancelProxy proxy = manager.makeProxy();
+           System.out.println("With Proxy");
+           proxy.invoke(manager, hndl);
+       }
+
+       private void cancelUsingMH(ScheduledFuture<?> hndl) {
+           MethodHandle mh = manager.makeMh();
+           try {
+               System.out.println("With Method Handle");
+               mh.invokeExact(manager, hndl);
+           } catch (Throwable e) {
+               e.printStackTrace();
+           }
+       }
+
+       BlockingQueue<WorkUnit<String>> lbq = new LinkedBlockingQueue<>();
+       manager = new ThreadPoolManager(lbq);
+       final QueueReaderTask msgReader = new QueueReaderTask(100) {
+               @Override
+               public void doAction(String msg_) {
+                   if (msg_ != null) System.out.println("Msg recvd: "+ msg_);
+               }
+           };
+       hndl = manager.run(msgReader);
+     #+END_SRC
+
+* 标准库
+
+** 数据结构
+   
+*** List
+
+*** HashMap
+    #+BEGIN_SRC java
+      public HashMap<String, ScanResult> scanResultCache;
+
+      scanResultCache = new HashMap<Sting, ScanREsult>();
+
+      for (ScanResult result : scanResultCache.values()) {
+          ...
+      }
+
+      //通过迭代器遍历
+      Iterator<HashMap.Entry<String,ScanResult>> iter = scanResultCache.entrySet().iterator();
+      while (iter.hasNext()) {
+          HashMap.Entry<String,ScanResult> entry = iter.next();
+          ScanResult result = entry.getValue();
+
+          if ((result.seen + delay) < milli) {
+              iter.remove();
+          }
+      }
+    #+END_SRC
+
+*** BitSet
+    #+BEGIN_SRC java
+      BitSet bs = new BitSet();
+
+      if (bs.cardinality() > 1) {
+          ...
+      }
+
+      if (bs.get(...) == true) {
+          ...
+      }
+
+
+    #+END_SRC
+
+** Swing
+*** 主要类的继承关系
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016071801.png :cmdline -charset UTF-8
+      @startuml
+      Object <|-- Component
+      Component <|-- Container
+      Container <|-- JComponent
+      Container <|-- Window
+      JComponent <|-- JPanel
+      Window <|-- Frame
+      Frame <|-- JFrame
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016071801.png]]
+
+** NIO
+    新引入Channel，Buffer，Charset等概念，新引入了Path类，代替File类中
+    的大部分接口：
+    #+BEGIN_SRC java
+       Path path = FileSystems.getDefault().getPath("logs", "access.log");
+       BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8);
+    #+END_SRC
+*** Non Blocking & Asynchronous I/O
+     With =non-blocking= I/O, you're getting events through a selector
+     when the channel is ready to do I/O. The asynchronous API gives
+     you a notification when the I/O is completed.
+
+     开发高性能和高扩展性的应用时，可以考虑使用 Apache MINA 框架，项目
+     地址为： http://mina.apache.org/
+
+* JNI
+  
+* 虚拟机
+** 虚拟机的结构
+   Java虚拟机的基本功能要求就是能读取.class格式的文件，将执行里面定义
+   的操作即可。其他的一些实现细节，如运行时数据区域的内存布局，使用的
+   垃圾回收算法以及任何Java虚拟机指令的内部优化等，都与具体实现有关。
+
+   　　Java虚拟机也是操作两种类型的数据：原始数据类型和引用数据类型。
+   所有的类型检测都在运行前由编译器完成，虚拟机不做数据类型检查。针对
+   不同的数据类型，虚拟机都有对应的指令。
+
+       *原始数据类型:*
+
+   　　byte, short, int, long, char, float, double, boolean,
+   returnAddress，其中returnAddress的值是指向Java虚拟机指令的操作码，
+   与Java语言的类型无直接联系。
+
+       *引用数据类型：*
+
+   　　类，数组以及接口。
+
+   *运行时的数据区域*
+
+   1. pc寄存器
+      每个虚拟机线程拥有自己的pc寄存器。任何时候，每个虚拟机线程都在执
+      行本线程的方法，如果当前执行的方法不是本地方法，则pc寄存器包含虚
+      拟机当前执行的地址，如果当前执行的方法是本地方法，则pc寄存器的值
+      是未定义。pc寄存器足够宽，能容纳一个returnAddress或一个本地指针
+      大小。
+
+   2. Java虚拟机栈
+      每个虚拟机线程有一个私有的栈，创建于虚拟机线程本身产生时。栈存储
+      帧。栈与一般的编程语言（C语言）的栈作用类似：保存局部变量和中间
+      结果，在方法调用和返回时扮演一定作用。一般不会对栈直接进行操作，
+      除非执行push和pop帧操作，所以帧可以是基于堆分配的，栈所需的内存
+      也不需要是连续的。
+
+      虚拟机栈的大小可以是固定的，也可以是动态调整的。对于栈大小是固定
+      的情形，每个虚拟机栈的大小设置可以在栈创建的时候独立设置。而对于
+      动态调整的情形，一般允许用户指定一个上限和一个下限。如果线程中的
+      计算需要栈大小超过允许值，会抛出StackOverflowError异常。如果栈是
+      动态可调整的，但是没有足够的内存，则会抛出OutOfMemoryError异常。
+
+   3. 堆
+      Java虚拟机有一个堆，它在所有虚拟机线程中是共享的。它是运行时的一
+      个数据区域，提供所有类实例与已分配数组的内存。
+
+      　　堆在虚拟机启动的时候就创建了。对象所占用的堆存储空间被一个自
+      动的存储管理系统回收（即垃圾回收系统）。对象从来不需要显示地析构。
+      垃圾回收机制与具体的虚拟机实现强相关。
+
+      堆的大小可以是固定的，也可以是动态调整的。堆所占用的内存不需要是
+      连续的。
+
+   4. 方法区域
+      Java虚拟机有一个方法区域，它是被所有虚拟机线程共享的。方法区域的
+      作用类似于一般编程语言编译后的代码或一个UNIX进程的text段。它存储
+      了每个类的结构如运行时常量池，域和方法数据以及方法和构造方法的代
+      码，包含一个用于类，实例初始化和接口初始化的特殊方法。
+
+   5. 运行时常量池
+      一个运行时常量池是在.class文件中每个类或每个接口的运行时
+      constant_pool表的表现形式。它包含几种类型的常量，如果编译阶段就
+      已经知道的数字常量，以及运行时才能解析的域，方法。运行时常量池类
+      似一般编程语言的符号表，不过它包含更大范围的数据。
+
+      每个运行时常量池是从Java虚拟机的方法区域分配的。一般是在类或接口
+      创建的时候。
+
+   6. 本地方法栈
+      本地方法栈一般由Java虚拟机的指令解释器使用，通常本地栈在每个线程
+      创建的时候分配。
+
+   7. 帧
+      　　帧用于存储数据和中间结果，同时也执行动态链接，返回方法调用结
+      果以及分发异常。每当一个方法调用时，就会创建一个新的帧，当对应的
+      方法调用结束，帧就会销毁。帧是在该帧的线程的虚拟机栈中分配的。每
+      个帧都有自己的局部变量数组，自己的操作数栈，以及当前方法所在的类
+      的运行时常量池的一个引用。
+
+      本地变量数组的大小以及操作栈在编译时就确定了。
+
+      　　任何时候，只有一个帧处于活跃状态，称之为当前帧，它的方法称为
+      当前方法，方法所在的类称为当前类。当方法调用了另外一个方法或本身
+      调用完成，则当前帧就不在是当前帧了。帧可以扩展一些与具体实现相关
+      的信息，如调试信息。
+
+   8. 局部变量
+      　　每个帧都包含称之为局部变量的数组。局部变量数组的长度在编译期
+      间确定，并以一个类或接口以及与帧相关的方法的代码的二进制表示形式
+      一起提供。
+
+      　　单个局部变量可以持有boolean, byte, char, short, int, float,
+      reference或returnAddress类型。一对(两个局部变量的组合)局部变量可
+      以持有long或double类型的值。
+
+      　　本地变量通过索引来寻址。第一个局部变量的索引值为零，通常为
+      this。
+
+   9. 操作数栈
+      每个帧包含一个LIFO的栈，称为操作数栈。栈的最大深度在编译时已经确
+      定。操作数栈在帧则创建时，是空的。Java虚拟机提供了指令从局部变量
+      或域中加载常量或值到操作数栈中。虚拟机提供了指令从操作数栈中拿操
+      作数，在他们上面执行操作，并将结果放进操作数栈。操作数栈也用于准
+      备传递给方法的参数和接收方法的结果。
+
+   10. 动态链接
+       　　每个帧包含一个运行时常量池的引用。动态链接将代码中的符号方
+       法引用转换成具体的方法引用，必要时加载类以解析当前仍末定义的符
+       号，并将这些符号访问转换成合适的偏移值（与这些变量运行时位置相
+       关的存储结构）。
+
+       [[./images/2016/2016073101.png]]
+
+   11. 特别命名的初始化方法
+       　　Java虚拟机中，每个类的构造方法都被视为一个名字为”<init>”的
+       对象实例化方法。它只能通过Java虚拟机的特别指令：invokespecial调
+       用。另外，类和接口的初始化方法也有一个特别的名字“<clinit>”，它
+       只能由Java虚拟机隐式调用，不会被Java虚拟机指令直接调用。上述特
+       别的命名是由编译器提供的。
+
+   12. 异常
+       　　Java虚拟机中的一个异常由Throwable或其子类的实例表示。异常可
+       以是异步发生，也可以是同步发生。
+
+   13. 指令集
+       　　Java虚拟机指令由一般由一个字节长的操作码跟着零个或多个操作数
+       组成。不考虑异常发生的话，总体执行逻辑如下：
+
+       #+BEGIN_SRC c
+         do {
+             atomically calculate pc and fetch opcode at pc;
+         if (operands) fetch operands;
+             execute the action for the opcode;
+         } while (there is more to do);       
+       #+END_SRC
+** JVM运行原理
+   JVM是java的核心和基础，在java编译器和os平台之间的虚拟处理器。它是一
+   种基于下层的操作系统和硬件平台并利用软件方法来实现的抽象的计算机，
+   可以在上面执行java的字节码程序。java编译器只需面向JVM，生成JVM能理
+   解的字节码文件。
+
+   1. Java源文件经编译器，编译成字节码（其中方法被编译为字节码指令）。
+   2. 通过类加载器将字节码加载到虚拟机内存，并将字节码所代表的静态存储
+      结构转化为方法区的运行时数据结构。
+   3. 通过JVM解释器将每一条字节码指令翻译成特定平台上的机器码，然后通
+      过特定平台运行。
+
+      [[./images/2016/2016090902.gif]]
+
+      首先，我们需要弄清楚什么是字节码？字节码是如何来描述类的静态结构
+      的呢？
+
+      代码编译的结果从本地机器码转变为字节码是存储格式发展的一小步，却
+      是编程语言发展的一大步。为什么这么说呢？
+
+      一般的高级语言如果要在不同的平台上运行，至少需要编译成不同的目标
+      代码。例如，我们将c/c++的源程序编译生成的目标代码（可执行文件）
+      拷贝到其他机器上运行，可能会因为运行环境不匹配而无法执行。因为编
+      译生成的机器码是与特定平台相关的（如操作系统的指令集，字宽），因
+      此当我们将可执行程序在其他操作系统上执行，可能会因为指令不支持或
+      者指令格式不兼容而无法执行。
+
+      Java语言中，程序编译后生成的是字节码而不是机器码。字节码不包含任
+      何平台相关的信息，故具有平台无关性。但是任何程序的执行最终都是需
+      要先转换成平台相关的机器码才能被物理计算机执行，因此就需要在不同
+      的平台上具有不同的虚拟机实现，从而将字节码转换成平台相关的机器码。
+      当我们将程序编译生成的字节码拷贝到不同的平台上，只要该平台上具有
+      平台相关的Java虚拟机，我们就能正确的运行字节码，这也就是所谓的
+      “一次编译，到处运行”。实质上，到处运行的能力，是建立在各种不同平
+      台的虚拟机基础上的，而不是单单依靠字节码的平台无关性。
+
+      因此说各种不同平台的虚拟机和字节码共同构成了平台无关性的基石。
+*** Java虚拟机的语言无关性
+
+    此外，Java虚拟机不和包括Java语言在内的任何语言绑定，它只与“Class文
+    件”这种特定的二进制文件格式所关联，也就是说，虚拟机并不关心
+    Class（描述类静态结构的字节码）的来源是何种语言。
+
+    [[./images/2016/2016090903.jpeg]]
+*** Class类文件的结构
+
+    注意：任何一个Class文件都对应着唯一一个类或接口的定义信息，但反过
+    来说，类或接口并不一定都得定义在文件里（比如类或接口也可以直接通过
+    类加载器直接生成）。本文中，将任意一个有效的类或接口所应该满足的格
+    式成为“Class文件格式”，实际上它并不一定以磁盘文件的形式存在。
+
+    Class文件是一组以字节（8bit）为基础单位的二进制流，各个数据项严格
+    按照顺序紧凑地排列在Class文件中，中间没有任何间隔。Class文件用于描
+    述类或接口的静态存储结构。
+
+    Class文件格式采用一种伪结构来存储数据，类似于数据库中元组的存储结
+    构。之所以说，这是一种伪结构，是因为Class文件中的数据并没有使用额
+    外的信息去描述这种结构，而是我们将Class文件中的数据项按照约定好的
+    格式（结构）进行存储，这样我们在解析时也可以同样按照特定的约定去解
+    析Class文件。
+
+    这种伪结构中只有两种数据类型：无符号数和表。
+
+    符号数属于基本的数据类型，以u1、u2、u4和u8来分别表示1个字节、2个字
+    节、4个字节和8个字节的无符号数，无符号数用来描述：数字、索引引用、
+    数量值或者按照UTF-8编码构成字符串值。
+
+    表是由多个无符号数或者其他表作为数据项构成的复合数据类型（表的类型
+    名习惯以 =_info= 结尾）。可以这样理解，每种类型的表就是一种数据格式的
+    约定，其规定了表中允许出现哪些数据项、以及它们的数据类型（无符号数
+    或表）以及它们在表中出现的顺序。
+
+    例如，整个Class文件本质上就是一张表，而该表中又包含多种其他类型的
+    表。
+
+    [[./images/2016/2016090904.jpeg]]
+*** 魔术（magic）
+    
+    类型为u4、数量为1，即1个4字节的无符号数，用于确定这个文件是否为一
+    个能被虚拟机接受的Class文件（即进行身份识别）。
+*** 次版本（minor_version）和主版本（major_version）
+
+    类型均为u2、数量均为1，这两个数据项用于描述编译生成该Class文件的
+    JDK版本，高版本的JDK能兼容以前版本的Class文件。
+*** 常量池容量（ =constant_pool_count= ）和常量池（ =constant_pool= ）
+
+    1. 常量池容量
+
+       常量池可以理解为Class文件之中的资源仓库，由于常量池中常量的数量
+       不是固定的，所以需要前置一个容量计数器来描述常量池中常量的个数，
+       类型为u2，称为常量池容量。
+
+    2. 常量池
+
+       常量池主要存放两大类常量：字面量和符号引用。字面量比较接近于
+       Java语言层面的常量概念，如文本字符串，声明为final的常量值等。而
+       符号引用则属于编译原理方面的概念，包括下面三类常量：
+
+       - 类和接口的全限定名
+
+       - 字段的名称和描述符
+
+       - 方法的名称和描述符
+
+
+       *Class文件中为什么存在符号引用*
+       
+       Java代码在进行Javac编译的时候，并不像c/c++那样有“连接”这个步骤，
+       而是在虚拟机加载Class文件的时候进行动态连接。也就是说，在Class
+       文件中不会保存各个方法、字段的最终内存布局信息，因此这些字段、
+       方法的符号引用不经过运行期转换的话无法直接得到真正的内存入口地
+       址，也就无法直接被虚拟机使用。当虚拟机运行时，需要从常量池获取
+       对应的符号引用，然后在类创建时或运行时解析、翻译到具体的内存地
+       址之中。
+
+       常量池中每一项常量都是一个表，每个表的开始都有一个u1类型的标志
+       位，代表当前这个常量属于那种常量类型。
+
+       [[./images/2016/2016090905.jpeg]]
+*** 访问标志（ =access_flags= ）
+
+    类型u2、数量为1，这个标志用于识别一些类或者接口层次的访问信息，包
+    括：这个class是类还是接口；是否定义为public类型；是否定义了
+    abstract类型；如果是类的话，是否被声明为final等
+*** 类索引、父类索引和接口索引集合
+    
+    类索引（ =this_class= ）和父类索引（ =super_class= ）都是一个u2类型的数据，
+    这里也验证了java是单继承体系。因为类实现接口的数量是不确定的，因此
+    接口索引集合有一个前置的容量计数器（ =interfaces_count= ），类型为u2。
+    此外，类索引、父类索引和接口索引都是u2类型的索引值，它们各自指向一
+    个常量池中的常量。
+
+    Class文件中由这三个数据项来确定这个类的继承关系。
+*** 字段表集合（fields）
+
+    字段（field）包括类级变量以及实例变量（不包括方法内部声明的局部变
+    量），由于其数量是不确定的，因此字段表集合有一个前置的容量计数器
+    （ =fields_count= ），类型为u2。字段（field）的类型为 =field_info= 。我们可
+    以想一想，在Java中描述一个字段需要哪些方面的信息？（public、
+    private和protected）、static、final、volatile、transient等修饰符，
+    以及字段数据类型和字段名称。Java支持的修饰符是确定的，对于各个修饰
+    符，只需要一个bit位标记即可。而字段数据类型和字段名称，这些都是无
+    法固定的，只能引用常量池中的常量来描述。
+
+    [[./images/2016/2016090906.jpeg]]
+
+    =access_flags= 就是用于标记修饰符的数据项。 =name_index= 和
+    =descriptor_index= ，
+    他们都是对常量池的引用，分别代表字段名称和字段数据类型的描述符。
+
+     *何为描述符？*
+
+     例如，方法inc和字段m的名称描述符就是inc和m，比较直接。对于字段和
+     方法的描述符就相对复杂。如，类型java.lang.String,其描述符为
+     “[[Ljava/lang/String”，方法java.lang.String toString的描述符为
+     “Ljava.lang.String”。不难发现，描述符也是一种伪结构，数据按照约定
+     的格式组织，解析的时候按照约定进行解析。为什么使用描述符？因为每
+     个特定的数据类型对应的描述符是一样的，如果我们有多个这样的类型，
+     我们只需要在常量池中维护一个这样的描述符（常量），而描述字段类型
+     的时候我们只需要一个对常量池中常量的引用。显然，这样就可以缩小
+     Class文件的大小。
+
+     注：字段表集合中不会列出从超类或者父接口中继承而来的字段，但是有
+     可能列出原来Java代码之中不存在的字段，譬如在内部类中为了保持对外
+     部类的访问性，会自动添加指向外部类实例的字段。
+*** 方法表集合（methods）
+
+    方法表的结构如同字段表一样，依次包含了访问标志、名称索引、描述符索
+    引（指向方法特征签名的描述符）、属性表集合。
+
+    [[./images/2016/2016090907.jpeg]]
+
+    有人不禁会问，那么方法里面的Java代码去那里了呢？
+
+    方法里边的Java代码，经过编译器编译成字节码指令后，存放在方法属性表
+    集合中一个名为Code的属性里。
+
+    与字段表集合相对应的，如果父类方法在子类中没有被重写，方法表集合中
+    就不会出现来自父类的方法信息。但同样的，有可能会出现由编译器自动添
+    加的方法，最典型的便是类的构造器“"方法和实例构造器”“方法。
+
+    在Java语言中，要重写（Override）一个方法，除了要与原来方法具有相同的简单名称之外，还需要具有相同的特征签名（包括参数列表和返回值）。
+*** 属性表集合（attributes）
+
+    在Class文件、字段表、方法表中都可以携带自己的属性表集合，用于描述
+    某些场景专有的信息。
+
+    虚拟机类加载机制
+
+    在Class文件中描述的各种信息，最终都需要加载到虚拟机中之后才能运行
+    和使用。而虚拟机如何加载这些Class文件呢？Class文件中的信息进入到虚
+    拟机后会发生什么变化呢？
+
+    虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换
+    解析和初始化，最终形成可以被虚拟机直接使用的Java类型，这就是虚拟机
+    的类加载机制。
+
+    与那些在编译时需要进行连接工作的语言不同，在java语言里，类型的加载、
+    连接和初始化过程都是在运行期间完成的，这种策略虽然会令类加载时稍微
+    增加了一些性能开销，但是会为Java应用程序提供高度的灵活性，Java里天
+    生可以动态扩展的语言特性就是依赖运行期动态加载和动态连接这个特点实
+    现的。
+
+    类的生命周期
+
+    [[./images/2016/2016090908.jpeg]]
+
+    其中验证、准备、解析部分统称为连接（Linking）。
+
+    类的加载时机
+
+    加载、验证、准备、初始化和卸载这5个阶段的顺序是确定的。而解析阶段
+    则不一定：它在某些情况下可以在初始化阶段之后再开始，这是为了支持
+    Java语言的运行时绑定（也称为动态绑定或晚期绑定）。
+*** 初始化
+
+    什么情况下需要开始类加载过程的第一个阶段：加载？Java虚拟机规范并没
+    有强制约束，这点依赖虚拟机的具体实现。
+
+    但是对于初始化阶段，虚拟机规范则严格规定了如下几种情况必须立即进行”初
+    始化"（而加载、验证、准备自然需要在此之前开始）
+
+    1. 使用new关键字实例化对象的时候、读取或设置一个类的静态字段的时候
+       （被final修饰，已在编译期把结果放入常量池的静态字段除外），以及
+       调用一个类的静态方法的时候。
+    2. 使用java.lang.reflect包的方法对类进行反射调用的时候，如果类没有
+       进行过初始化，则需要先触发其初始化。
+    3. 当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要
+       先触发其父类的初始化。
+    4. 当虚拟机启动时，用户需要指定一个要执行的主类（包含main方法的那
+       个类），虚拟机会先初始化这个主类。 
+
+       
+    以上场景中的行为称为对一个类的主动引用。除此之外，所有引用类的方式
+    都不会触发初始化，称为被动引用。
+
+    被动引用的例子
+
+    1. 通过子类引用父类的静态字段，不会导致子类的初始化
+
+       #+BEGIN_SRC java
+         public class SuperClass {
+             //父类
+             static{ System.out.println("SuperClass init!"); }
+             public static int value=123;//父类的静态字段
+         }
+
+         public class SubClass extends SuperClass{//子类
+             static{ System.out.println("SubClass init!"); } }
+
+         public class NoInitialization {
+             //测试类
+             public static void main(String args) { System.out.println(SubClass.value);//通过子类来引用父类中定义的静态字段
+             } }       
+       #+END_SRC
+
+       对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过其
+       子类来引用父类中定义的静态字段，只会触发父类的初始化而不会触发
+       子类的初始化。
+
+    2. 通过数组定义来引用类，不会触发此类的初始化
+
+       #+BEGIN_SRC java
+         public class NoInitialization {
+             public static void main(String args) {
+                 SuperClass sca=new SuperClass[10];
+             }
+         }       
+       #+END_SRC
+       运行后发现：没有输出。这说明没有触发SuperClass类的初始化。但是，
+       这段代码却触发了另一个名为“[Lorg.SuperClass”的类的初始化，对于
+       用户代码而言，这并不是一个合法的类名，它是由虚拟机自动生成的、
+       直接继承于java.lang.Object的子类。
+
+       这个类代表了一个元素类型为org.SuperClass的一维数组，数组中应有
+       的属性和方法（length属性和clone方法）都实现在这个类里。Java语言
+       对数组的访问比c/c++相对安全是因为这个类封装了数组元素的访问方法，
+       而c/c++直接翻译为对数组指针的移动。在Java语言里，当检查到发生数
+       组越界时会抛出java.lang.ArrayIndexOutOfBoundsException异常。
+
+    3. 常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定
+       义常量的类，因此不会触发定义常量的类的初始化。
+
+       #+BEGIN_SRC java
+         public class ConstantClass {
+             static{ System.out.println("ConstantClass init！");
+             }
+
+             public static final double PI=3.14159;//定义静态常量
+         }
+
+         public class NoInitialization {
+             public static void main(String args) {
+                 double r=5.5;
+                 System.out.println("area:"+ConstantClass.PI*r*r);
+             }
+         }       
+       #+END_SRC
+
+       没有输出“ConstantClass init!”，这是因为虽然NoInitialization类在
+       Java源码中引用了ConstantClass类中的常量PI，但其实在编译阶段通过
+       常量传播化，已经将此常量的值“3.14159”存储到NoInitialization类的
+       常量池中，以后NoInitialization对常量PI的引用实际上都被转换为对
+       自身常量池中常量的引用。也就是说，实际上NoInitialization的Class
+       文件之中并没有ConstantClass类的符号引用入口，这两个类在编译成
+       Class之后就不存在任何联系了。
+
+       
+
+    接口的加载过程接口的加载过程
+
+    接口的加载过程和类加载过程稍微有些不同。
+
+    上面的代码中都使用静态代码块“static{}”来输出初始化信息，而接口中不
+    能使用静态代码块，但是编译器仍然为接口生成“”类构造器，用于初始化接
+    口中所定义的成员变量。
+
+    接口与类真正区别在于：当一个类在初始化时，要求其父类全部都已经初始
+    化过了，但是一个接口在初始化时，并不要求其父接口全部都完成了初始化，
+    只有在真正使用到父接口的时候（如引用接口中定义的常量）才会初始化。
+
+    类加载的详细过程
+
+    *加载*
+
+    “加载”是“类加载”过程的一个阶段。在加载阶段，虚拟机需要完成以下3件
+    事情：
+
+    1. 通过一个类的全限定名来获取定义此类的二进制字节流
+    2. 将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。
+    3. 在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个
+       类的各种数据的访问入口。
+
+
+    对于第一条“通过一个类的全限定名来获取此类的二进制字节流”，虚拟机没
+    有指明二进制字节流要从一个Class文件中获取，准确的说是根本没有指明
+    要从哪里获取、怎么获取。虚拟机设计团队在加载阶段搭建了一个相当开放
+    的、广阔的“舞台”，很多Java技术都建立在这一基础之上。
+
+    1. 从zip、jar、war中获取。
+    2. 从网络中获取，如Applet。
+    3. 运行时计算生成，这种场景使用最多的就是动态代理技术，在
+       java.lang.reflect.Proxy中，就是用了ProxyGenerator.generate
+       ProxyClass方法来为特定接口生成形式为“*$Proxy”的代理类的二进制字
+       节流。
+    4. 由其他文件生成，典型场景就是JSP应用，即由JSP文件生成对应的Class类。
+    5. 从数据库中读取，这种场景相对少见，例如中间件服务器，可以选择将
+       程序安装到数据库中来完成程序代码在集群间的分发。
+
+
+    相对于类加载阶段的其他阶段，一个非数组类的加载阶段（准确的说，是加
+    载阶段中获取类的二进制字节流的动作）时开发人员可控性最强的，因为加
+    载阶段既可以使用系统提供的引导类加载器来完成，也可以由用户自定义的
+    类加载器取完成，开发人员可以通过自定义自己的类加载器取控制字节流的
+    获取方式。
+
+    加载完成之后，虚拟机外部的二进制字节流就按照虚拟机所需要的格式存储
+    在方法区之中，方法区中的数据存储格式由虚拟机实现自行定义。然后在内
+    存中实例化一个java.lang.Class类的对象，这个对象将作为程序访问方法
+    区中的该数据类型的入口。（虚拟机并没有明确规定该Class对象是放在堆
+    上，对于HotSpot虚拟机而言，Class对象比较特殊，它虽然是对象，但是存
+    放在方法区里面）
+
+    *验证*
+
+    验证就是连接阶段的第一步，这一阶段的目的是为了确保Class文件的字节
+    流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。
+
+    *准备*
+
+    正式为类变量分配内存并设置类变量初始值的阶段，这些变量所使用的内存
+    都将在方法区中进行分配。
+
+    注意：这时候进行内存分配的仅包括类变量（被static关键字修饰的变量），
+    而不包括实例变量，实例变量将会在对象实例化时随着对行啊一起分配在
+    Java堆中。
+
+    其次，这里所说的初始值“通常情况”下是数据类型的零值，假设一个类变量
+    定义为：
+
+    那变量value在准备阶段过后的初始值为0而不是123，因为这时候尚未开始
+    执行任何java方法。把value赋值为123的指令时程序编译后，存在于类构造
+    器方法之中，所以把value赋值为123的动作将在初始化阶段才会执行
+
+    此外，还有一种特殊情况：如果类字段的字段属性表中存在ConstantValue
+    属性，那在准备阶段变量value就会被初始化为ConstantValue属性所指定的
+    值，假设一个类变量value的定义变为：
+
+    : public static final int value =123；
+
+    编译时Javac将会为value生成ConstantValue属性，在准备阶段虚拟机就会
+    根据ConstantValue的设置将value赋值为123。
+
+    *解析*
+
+    解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程。
+
+    符号引用
+
+    符号引用以一组符号来描述所引用的目标，符号可以是任何形式的字面量，
+    只要使用时能无歧义地定位到目标即可。符号引用与虚拟机实现的内存布局
+    无关，引用的目标并不一定已经加载到内存中。
+
+    直接引用
+
+    直接引用可以是直接指向目标地址的指针、相对偏移量或是一个能间接定位
+    到目标的句柄。直接引用是和虚拟机实现的内存布局相关的，同一个符号引
+    用在不同虚拟机实例上翻译出来的直接引用一般不会相同。如果有了直接引
+    用，那引用的目标必定已经在内存中存在。
+
+    *初始化*
+
+    类初始化阶段是类加载过程的最后一步。前面的类记载过程，除了在加载阶
+    段用户应用程序可以通过自定义类加载器参与之外，其余动作完全由虚拟机
+    主导和控制。到了初始化阶段，才真正开始执行类中定义的Java程序代码
+    （或者说是字节码）
+
+    准备阶段，变量已经赋过一次系统要求的初始值，而初始化阶段是根据程序
+    员通过程序制定的主观计划去初始化变量和其他资源。初始化阶段就是执行
+    类构造器方法的过程。
+
+    方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块
+    （static{}块）中的语句合并产生的，编译器收集的顺序是由语句在源文件
+    中出现的顺序所决定的，静态语句块中只能访问到定义在静态语句块之前的
+    变量，定义在它之后的变量，在前面的静态语句块中可以赋值，但是不能访
+    问。
+
+    虚拟机字节码执行引擎
+
+    执行引擎是java虚拟机最核心的组成部分之一。“虚拟机”是一个相对于“物
+    理机”的概念，这两种机器都有代码执行能力，其区别是物理机的执行引擎
+    是直接建立在处理器、硬件、指令集和操作系统层面上的，而虚拟机的执行
+    引擎则是由自己实现的，因此可以自行执行指令集与执行引擎的体系结构，
+    并且能够执行那些不被硬件直接支持的指令集格式。
+
+    在java虚拟规范中制定了虚拟机字节码执行引擎的概念模型。这个概念模型
+    称为各个虚拟机执行引擎的统一外观。在不同虚拟机实现里面，执行引擎在
+    执行java代码的时候可能会有解释执行（通过解释器执行）和编译执行（通
+    过即时编译产生本地代码执行）两种选择，也可以二者兼备，甚至可以包含
+    几个不同级别的编译器执行引擎。
+
+    但从外观上看，所有的java虚拟机的执行引擎都是一致的：输入的是字节码
+    文件、处理过程是字节码执行引擎解析的等效过程，输出的是执行结果。下
+    面主要从概念模型的角度来讲解虚拟机的方法调用和字节码执行。
+
+    运行时栈帧结构
+
+    栈帧是用于支持虚拟机进行方法调用和方法执行的数据结构，它是虚拟机运
+    行时数据区中的虚拟机栈的栈元素。栈帧存储了方法的局部变量表、操作数
+    栈、动态连接和方法返回地址等信息。每一个方法从调用开始至执行完成的
+    过程，都对应着一个栈帧在虚拟机栈里面从入栈到出栈的过程。
+
+    在编译期间，栈帧中需要多大的局部变量表，多深的操作数栈都已经完全确
+    定了，并且写入到方法表的Code属性之中，因此一个栈帧需要分配多少内存，
+    不会受到运行期变量数据的影响，而仅仅取决于具体的虚拟机实现。
+
+    一个线程对应一个虚拟机栈，虚拟机栈是线程私有的，一个线程中的方法调
+    用链可能会很长，很多方法都同时处于执行状态，因此虚拟机栈中存放很多
+    栈帧。对于执行引擎来说，在活动的线程中，只有位于栈顶的栈帧才是有效
+    的，称为当前栈帧，与这个栈帧相关联的方法称为当前方法。执行引擎运行
+    的所有字节码执行都只针对当前栈帧进行操作。
+
+    [[./images/2016/2016090909.jpeg]]
+*** 局部变量表
+
+    局部变量表是一组变量值存储空间，用于存放方法参数和方法内部定义的局
+    部变量。在Java程序编译为Class文件时，就在该方法的Code属性的
+    max_locals数据项中确定了该方法所需要分配的局部变量表的最大荣来那个，
+    局部变量表的容量以Slot为最小单位。在方法执行时，虚拟机是使用局部变
+    量表完成参数值到参数变量列表的传递过程的，如果执行的是实例方法（非
+    static），那局部变量表中第0个Slot默认是用于传递方法所属对象实例的
+    引用，在方法中可以通过关键字this来访问到这个隐含的参数。其余方法参
+    数则按照参数表顺序排序，占用从1开始的Slot，参数表分配完成后，再根
+    据方法体内部定义的变量顺序和作用域分配其余的Slot。
+
+    为了尽可能节省栈帧空间，局部变量表中的Slot是可以重用的。因为，方法
+    体中定义的变量，其作用域并不一定会覆盖整个方法体。
+
+    注意：关于局部变量表，还有一点可能会对实际开发产生影响，就是局部变
+    量不像前面介绍的类变量那样存在“准备阶段”。我们知道，类变量有两次赋
+    初始值的过程，一次是在准备阶段，赋予系统初始值；另一次是在初始化阶
+    段，赋予程序员定义的初始值。因此，即使在初始化阶段程序员没有为类变
+    量赋值也没有关系，类变量仍然具有一个确定的初始值。但局部变量就不一
+    样，如果一个局部变量定义了但没有赋初始值是不能使用的，因为虚拟机不
+    会为其指定默认初始值，还好编译器能够在编译期间就能检查到并提示这一
+    点（即使编译能通过或者手动生成字节码的方式制造出下面代码的效果，字
+    节码校验的时候也会被虚拟机发现而导致类加载失败）。
+
+    #+BEGIN_SRC java
+      public static void main(String args){ int a; System.out.println(a);//编译器提示错误 }    
+    #+END_SRC
+
+    为什么执行引擎不给局部变量设置默认初始值呢？我们可以试想一下，对于
+    局部变量都是程序员主观定义并有责任对其设置有意义的初始值，如果虚拟
+    机给局部变量设置了默认的初始值，那么即使程序员忘记了设定有意义的初
+    始值，程序也能“正常运行”，这样可能在运行时会报异常或者说程序一直
+    “错误的执行”。而编译器通过编译期检查，强制程序员遵循这样一种约束，
+    可以避免大量由于疏忽而产生的错误，对于具有潜在错误的代码，在编译期
+    间给出错误提示远比在运行期间报异常要好得多。此外，由于局部变量可能
+    重用Slot，假设我们能够正常运行，那么变量的初始值将是不可预期的（使
+    用该Slot的上一个局部变量的值），这显然不够安全的。那么，如果虚拟机
+    执行引擎每次给局部变量分配了Slot之后都首先设置默认的初始值，对于方
+    法参数、局部变量，我们一般都会给定特定环境下具有特定意义的初始值而
+    非系统的默认值，这样我们设置默认初始化值之后，又需要设置我们指定的
+    初始值，显然绝大多数时候设定默认的初始值是一种无用功。
+
+    此外，局部变量表建立在线程的堆栈（虚拟机栈）上，因此是线程似有的。
+*** 操作数栈
+
+    操作数栈也常称为操作栈，它是一个“先入后出”栈。同局部变量表一样，操
+    作数栈的最大深度也是在编译的时候写入到Code属性的max_stacks数据项中
+    的。
+
+    在概念模型上，两个栈帧作为虚拟机栈的元素，是完全独立的，但是大多数
+    虚拟机实现中都会做一些优化处理，令两个帧帧出现一部分重叠。
+
+    [[./images/2016/2016090910.jpeg]]
+
+    Java虚拟机的解释执行引擎称为“基于栈的执行引擎”（Java虚拟机采用“面
+    向操作数栈”的架构），其中所指的“栈”就是操作数栈。
+*** 动态连接
+
+    每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用，持有这个
+    引用是为了支持方法调用过程中的动态连接。我们知道Class文件的常量池
+    中存在大量的符号引用，这些符号引用一部分会在类加载阶段或者第一次使
+    用的时候转化为直接引用，这种转化称为静态解析。另外一部分在每次运行
+    期间转化为直接引用，这部分称为动态连接。
+*** 方法返回地址
+
+    当一个方法开始执行后，只有两种方式可以退出这个方法。第一种方式，执
+    行引擎遇到任意一个方法返回的字节码指令，这时候可能会有返回值传递给
+    上层的方法调用者，这种退出方法的方式称为正常完成出口。第二种方式，
+    在方法执行过程中遇到了异常，并且这个异常没有在方法体内得到处理，就
+    会导致方法退出，这种退出方法的方式称为异常完成出口。一个方法使用异
+    常完成出口的方式退出，是不会给它的上层调用者产生任何返回值的。
+
+    方法退出的过程实际上就等同于把当前栈帧出战，因此退出时可能执行的操
+    作有：恢复上层方法的局部变量表和操作数栈，把返回值（如果有）压入调
+    用者栈帧的操作数栈，调用PC计数器的值以指向方法调用指令后面的一条指
+    令等。
+
+    基于栈的字节码解释执行引擎虚拟机是如何执行方法中的字节码指令的呢？
+    之前提到，许多Java虚拟机的执行系统在执行Java代码的时候都有解释执行
+    （通过解释器执行）和编译执行（通过即时编译器产生本地代码执行）两种
+    选择。我们先探讨解释执行时，虚拟机执行引擎是如何工作的。解释执行
+
+    不论是解释还是编译执行，也不论是物理机还是虚拟机，大部分程序的程序
+    代码到物理机的目标代码或虚拟机能执行的指令集之前，都需要经过如下各
+    个步骤：
+
+    [[./images/2016/2016090911.jpeg]]
+
+    Java语言中，Javac编译器完成了程序代码经过词法分析、语法分析到抽象
+    语法树，再遍历语法树生成线性的字节码指令流的过程。因为这一部分动作
+    时在Java虚拟机之外进行的，而解释器在虚拟机内部，所有Java程序的编译
+    就是半独立的实现。
+
+    基于栈的指令集与基于寄存器的指令集
+
+    Java虚拟机的指令由一个字节长度的操作码（Opcode 代表某种特定操作）+
+    零个或者多个操作数（Operands）构成。由于Java虚拟机采用面向操作数栈
+    而不是寄存器的架构，所以大多数的指令都不包含操作数，只是一个操作码。
+
+    用一个字节来代表操作码，也是为了尽可能获取短小精干的编译代码。这种
+    追求尽可能小数据量、高传输效率的设计是由Java语言设计之初面向网络、
+    智能家电的技术背景所决定的，并一直沿用至今。
+
+    那么，基于栈的指令集与基于寄存器的指令集这两者之间有什么不同呢？
+
+    优点：基于栈的指令集主要的优点就是可移植性，寄存器由硬件直接提供，
+    程序直接依赖这些硬件寄存器不可避免地要受到硬件资源的约束。如果使用
+    基于栈的指令集架构，用户程序不会直接使用这些寄存器，而是由虚拟机实
+    现来自行决定把一些访问最频繁的数据放到寄存器中以获取尽可能好的性能，
+    这样实现起来也更加简单。此外，栈架构的指令集还有一些其他优点，如代
+    码相对紧凑、编译器实现更加简单（不需要考虑空间分配问题，所有空间都
+    在栈上操作）等。
+
+    缺点：执行速度相对来说慢一些。 栈实现在内存之中，频繁的栈访问也就
+    意味着频繁的内存访问，相对于处理器来说，内存始终是执行速度的瓶颈。
+
+    基于栈的解释器执行过程
+
+    [[./images/2016/2016090912.jpeg]]
+
+    [[./images/2016/2016090913.jpeg]]
+
+    [[./images/2016/2016090914.jpeg]]
+
+    执行指令bipush，将100压入操作数栈栈顶。
+
+    [[./images/2016/2016090915.jpeg]]
+
+    执行指令istore_1，将操作数栈顶的100存入第1个Slot。
+
+    [[./images/2016/2016090916.jpeg]]
+
+    [[./images/2016/2016090917.jpeg]]
+
+    前六条指令执行完成之后，我们定义的三个局部变量就都已经存储到了对应
+    的Slot中。
+
+    接下来我们需要开始执行加法运算，而加法运算需要两个操作数，因此我们
+    先把我们需要的两个操作数压入操作数栈。
+
+    [[./images/2016/2016090918.jpeg]]
+
+    当加法指令需要的操作数准备好之后，我们从操作数栈中取出两个操作数并
+    执行加法指令，然后将执行结果放回操作数栈。
+
+    [[./images/2016/2016090919.jpeg]]
+
+    [[./images/2016/2016090920.jpeg]]
+
+    接着我们需要执行乘法，首先我们把另外一个操作数（300）压入操作数栈，
+    然后从操作数栈中取出两个操作数并执行乘法，将结果放回操作数栈，最后
+    方法执行结束并返回。
+
+    上面的执行过程仅仅是一种概念模型，虚拟机最终会对执行过程做一些优化
+    来提升性能。
+
+* 实用技巧
+
+** 打印函数调用栈
+   #+BEGIN_SRC java
+     void logDbg(String message, boolean stackTrace) {
+         if (stackTrace) {
+             Log.e(TAG, message + " stack:"
+                   + Thread.currentThread().getStackTrace()[2].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[3].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[4].getMethodName() + " - "
+                   + Thread.currentThread().getStackTrace()[5].getMethodName());
+         } else {
+             Log.e(TAG, message);
+         }
+     }   
+   #+END_SRC
+
+* Java面试题
+
+  1. 什么是线程？
+     线程是操作系统能够进行运算调度的最小单位，它被包含在进程之中，是
+     进程中的实际运作单位。程序员可以通过它进行多处理器编程，你可以使
+     用多线程对运算密集型任务提速。比如，如果一个线程完成一个任务要
+     100毫秒，那么用十个线程完成改任务只需10毫秒。Java在语言层面对多
+     线程提供了卓越的支持，它也是一个很好的卖点。
+  2. 线程和进程有什么区别？
+     线程是进程的子集，一个进程可以有很多线程，每条线程并行执行不同的
+     任务。不同的进程使用不同的内存空间，而所有的线程共享一片相同的内
+     存空间。别把它和栈内存搞混，每个线程都拥有单独的栈内存用来存储本
+     地数据。
+  3. 如何在Java中实现线程？
+     在语言层面有两种方式。java.lang.Thread 类的实例就是一个线程但是它
+     需要调用java.lang.Runnable接口来执行，由于线程类本身就是调用的
+     Runnable接口所以你可以继承java.lang.Thread 类或者直接调用Runnable
+     接口来重写run()方法实现线程。
+  4. 用Runnable还是Thread？
+     这个问题是上题的后续，大家都知道我们可以通过继承Thread类或者调用
+     Runnable接口来实现线程，问题是，那个方法更好呢？什么情况下使用它？
+     这个问题很容易回答，如果你知道Java不支持类的多重继承，但允许你调
+     用多个接口。所以如果你要继承其他类，当然是调用Runnable接口好了。
+  5. Thread 类中的start() 和 run() 方法有什么区别？
+     这个问题经常被问到，但还是能从此区分出面试者对Java线程模型的理解
+     程度。start()方法被用来启动新创建的线程，而且start()内部调用了
+     run()方法，这和直接调用run()方法的效果不一样。当你调用run()方法的
+     时候，只会是在原来的线程中调用，没有新的线程启动，start()方法才会
+     启动新线程。
+  6. Java中Runnable和Callable有什么不同？
+     Runnable和Callable都代表那些要在不同的线程中执行的任务。Runnable
+     从JDK1.0开始就有了，Callable是在JDK1.5增加的。它们的主要区别是
+     Callable的 call() 方法可以返回值和抛出异常，而Runnable的run()方法
+     没有这些功能。Callable可以返回装载有计算结果的Future对象。
+  7. Java中CyclicBarrier 和 CountDownLatch有什么不同？
+     CyclicBarrier 和 CountDownLatch 都可以用来让一组线程等待其它线程。
+     与 CyclicBarrier 不同的是，CountdownLatch 不能重新使用。
+  8. Java内存模型是什么？
+     Java内存模型规定和指引Java程序在不同的内存架构、CPU和操作系统间有
+     确定性地行为。它在多线程的情况下尤其重要。Java内存模型对一个线程
+     所做的变动能被其它线程可见提供了保证，它们之间是先行发生关系。这
+     个关系定义了一些规则让程序员在并发编程时思路更清晰。比如，先行发
+     生关系确保了：
+     - 线程内的代码能够按先后顺序执行，这被称为程序次序规则。
+     - 对于同一个锁，一个解锁操作一定要发生在时间上后发生的另一个锁定
+       操作之前，也叫做管程锁定规则。
+     - 前一个对volatile的写操作在后一个volatile的读操作之前，也叫
+       volatile变量规则。
+     - 一个线程内的任何操作必需在这个线程的start()调用之后，也叫作线程
+       启动规则。
+     - 一个线程的所有操作都会在线程终止之前，线程终止规则。
+     - 一个对象的终结操作必需在这个对象构造完成之后，也叫对象终结规则。
+     - 可传递性
+  9. Java中的volatile 变量是什么？
+     volatile是一个特殊的修饰符，只有成员变量才能使用它。在Java并发程
+     序缺少同步类的情况下，多线程对成员变量的操作对其它线程是透明的。
+     volatile变量可以保证下一个读取操作会在前一个写操作之后发生，就是
+     上一题的volatile变量规则。
+  10. 什么是线程安全？Vector是一个线程安全类吗？
+      如果你的代码所在的进程中有多个线程在同时运行，而这些线程可能会同
+      时运行这段代码。如果每次运行结果和单线程运行的结果是一样的，而且
+      其他的变量的值也和预期的是一样的，就是线程安全的。一个线程安全的
+      计数器类的同一个实例对象在被多个线程使用的情况下也不会出现计算失
+      误。很显然你可以将集合类分成两组，线程安全和非线程安全的。Vector
+      是用同步方法来实现线程安全的, 而和它相似的ArrayList不是线程安全
+      的。
+  11. Java中什么是竞态条件？ 举个例子说明。
+      竞态条件会导致程序在并发情况下出现一些bugs。多线程对一些资源的竞
+      争的时候就会产生竞态条件，如果首先要执行的程序竞争失败排到后面执
+      行了，那么整个程序就会出现一些不确定的bugs。这种bugs很难发现而且
+      会重复出现，因为线程间的随机竞争。
+  12. Java中如何停止一个线程？
+      Java提供了很丰富的API但没有为停止线程提供API。JDK 1.0本来有一些
+      像stop(), suspend() 和 resume()的控制方法但是由于潜在的死锁威胁
+      因此在后续的JDK版本中他们被弃用了，之后Java API的设计者就没有提
+      供一个兼容且线程安全的方法来停止一个线程。当run() 或者 call() 方
+      法执行完的时候线程会自动结束,如果要手动结束一个线程，你可以用
+      volatile 布尔变量来退出run()方法的循环或者是取消任务来中断线程。
+  13. 一个线程运行时发生异常会怎样？
+      这是我在一次面试中遇到的一个很刁钻的Java面试题, 简单的说，如果异
+      常没有被捕获该线程将会停止执行。Thread.UncaughtExceptionHandler
+      是用于处理未捕获异常造成线程突然中断情况的一个内嵌接口。当一个未
+      捕获异常将造成线程中断的时候JVM会使用
+      Thread.getUncaughtExceptionHandler()来查询线程的
+      UncaughtExceptionHandler并将线程和异常作为参数传递给handler的
+      uncaughtException()方法进行处理。
+  14. 如何在两个线程间共享数据？
+      你可以通过共享对象来实现这个目的，或者是使用像阻塞队列这样并发的数据结构。
+  15. Java中notify 和 notifyAll有什么区别？
+      这又是一个刁钻的问题，因为多线程可以等待单监控锁，Java API 的设
+      计人员提供了一些方法当等待条件改变的时候通知它们，但是这些方法没
+      有完全实现。notify()方法不能唤醒某个具体的线程，所以只有一个线程
+      在等待的时候它才有用武之地。而notifyAll()唤醒所有线程并允许他们
+      争夺锁确保了至少有一个线程能继续运行。
+  16. 为什么wait, notify 和 notifyAll这些方法不在thread类里面？
+      这是个设计相关的问题，它考察的是面试者对现有系统和一些普遍存在但
+      看起来不合理的事物的看法。回答这些问题的时候，你要说明为什么把这
+      些方法放在Object类里是有意义的，还有不把它放在Thread类里的原因。
+      一个很明显的原因是JAVA提供的锁是对象级的而不是线程级的，每个对象
+      都有锁，通过线程获得。如果线程需要等待某些锁那么调用对象中的
+      wait()方法就有意义了。如果wait()方法定义在Thread类中，线程正在等
+      待的是哪个锁就不明显了。简单的说，由于wait，notify和notifyAll都
+      是锁级别的操作，所以把他们定义在Object类中因为锁属于对象。
+  17. 什么是ThreadLocal变量？
+      ThreadLocal是Java里一种特殊的变量。每个线程都有一个ThreadLocal就
+      是每个线程都拥有了自己独立的一个变量，竞争条件被彻底消除了。它是
+      为创建代价高昂的对象获取线程安全的好方法，比如你可以用
+      ThreadLocal让SimpleDateFormat变成线程安全的，因为那个类创建代价
+      高昂且每次调用都需要创建不同的实例所以不值得在局部范围使用它，如
+      果为每个线程提供一个自己独有的变量拷贝，将大大提高效率。首先，通
+      过复用减少了代价高昂的对象的创建个数。其次，你在没有使用高代价的
+      同步或者不变性的情况下获得了线程安全。线程局部变量的另一个不错的
+      例子是ThreadLocalRandom类，它在多线程环境中减少了创建代价高昂的
+      Random对象的个数。
+  18. 什么是FutureTask？
+      在Java并发程序中FutureTask表示一个可以取消的异步运算。它有启动和
+      取消运算、查询运算是否完成和取回运算结果等方法。只有当运算完成的
+      时候结果才能取回，如果运算尚未完成get方法将会阻塞。一个
+      FutureTask对象可以对调用了Callable和Runnable的对象进行包装，由于
+      FutureTask也是调用了Runnable接口所以它可以提交给Executor来执行。
+  19. Java中interrupted 和 isInterruptedd方法的区别？
+      interrupted() 和 isInterrupted()的主要区别是前者会将中断状态清除
+      而后者不会。Java多线程的中断机制是用内部标识来实现的，调用
+      Thread.interrupt()来中断一个线程就会设置中断标识为true。当中断线
+      程调用静态方法Thread.interrupted()来检查中断状态时，中断状态会被
+      清零。而非静态方法isInterrupted()用来查询其它线程的中断状态且不
+      会改变中断状态标识。简单的说就是任何抛出InterruptedException异常
+      的方法都会将中断状态清零。无论如何，一个线程的中断状态有有可能被
+      其它线程调用中断来改变。
+  20. 为什么wait和notify方法要在同步块中调用？
+      主要是因为Java API强制要求这样做，如果你不这么做，你的代码会抛出
+      IllegalMonitorStateException异常。还有一个原因是为了避免wait和
+      notify之间产生竞态条件。
+  21. 为什么你应该在循环中检查等待条件?
+      处于等待状态的线程可能会收到错误警报和伪唤醒，如果不在循环中检查
+      等待条件，程序就会在没有满足结束条件的情况下退出。因此，当一个等
+      待线程醒来时，不能认为它原来的等待状态仍然是有效的，在notify()方
+      法调用之后和等待线程醒来之前这段时间它可能会改变。这就是在循环中
+      使用wait()方法效果更好的原因.
+  22. Java中的同步集合与并发集合有什么区别？
+      同步集合与并发集合都为多线程和并发提供了合适的线程安全的集合，不
+      过并发集合的可扩展性更高。在Java1.5之前程序员们只有同步集合来用
+      且在多线程并发的时候会导致争用，阻碍了系统的扩展性。Java5介绍了
+      并发集合像ConcurrentHashMap，不仅提供线程安全还用锁分离和内部分
+      区等现代技术提高了可扩展性。
+  23. Java中堆和栈有什么不同？
+      为什么把这个问题归类在多线程和并发面试题里？因为栈是一块和线程紧
+      密相关的内存区域。每个线程都有自己的栈内存，用于存储本地变量，方
+      法参数和栈调用，一个线程中存储的变量对其它线程是不可见的。而堆是
+      所有线程共享的一片公用内存区域。对象都在堆里创建，为了提升效率线
+      程会从堆中弄一个缓存到自己的栈，如果多个线程使用该变量就可能引发
+      问题，这时volatile 变量就可以发挥作用了，它要求线程从主存中读取
+      变量的值。
+  24. 什么是线程池？ 为什么要使用它？
+      创建线程要花费昂贵的资源和时间，如果任务来了才创建线程那么响应时
+      间会变长，而且一个进程能创建的线程数有限。为了避免这些问题，在程
+      序启动的时候就创建若干线程来响应处理，它们被称为线程池，里面的线
+      程叫工作线程。从JDK1.5开始，Java API提供了Executor框架让你可以创
+      建不同的线程池。比如单线程池，每次处理一个任务；数目固定的线程池
+      或者是缓存线程池（一个适合很多生存期短的任务的程序的可扩展线程
+      池）。
+  25. 如何写代码来解决生产者消费者问题？
+      在现实中你解决的许多线程问题都属于生产者消费者模型，就是一个线程
+      生产任务供其它线程进行消费，你必须知道怎么进行线程间通信来解决这
+      个问题。比较低级的办法是用wait和notify来解决这个问题，比较赞的办
+      法是用Semaphore 或者 BlockingQueue来实现生产者消费者模型
+  26. 如何避免死锁？
+      死锁是指两个或两个以上的进程在执行过程中，因争夺资源而造成的一种
+      互相等待的现象，若无外力作用，它们都将无法推进下去。这是一个严重
+      的问题，因为死锁会让你的程序挂起无法完成任务，死锁的发生必须满足
+      以下四个条件：
+      1. 互斥条件：一个资源每次只能被一个进程使用。
+      2. 请求与保持条件：一个进程因请求资源而阻塞时，对已获得的资源保持不放。
+      3. 不剥夺条件：进程已获得的资源，在末使用完之前，不能强行剥夺。
+      4. 循环等待条件：若干进程之间形成一种头尾相接的循环等待资源关系。
+
+      避免死锁最简单的方法就是阻止循环等待条件，将系统中所有的资源设置
+      标志位、排序，规定所有的进程申请资源必须以一定的顺序（升序或降序）
+      做操作来避免死锁。
+  27. Java中活锁和死锁有什么区别？
+      这是上题的扩展，活锁和死锁类似，不同之处在于处于活锁的线程或进程
+      的状态是不断改变的，活锁可以认为是一种特殊的饥饿。一个现实的活锁
+      例子是两个人在狭小的走廊碰到，两个人都试着避让对方好让彼此通过，
+      但是因为避让的方向都一样导致最后谁都不能通过走廊。简单的说就是，
+      活锁和死锁的主要区别是前者进程的状态可以改变但是却不能继续执行。
+  28. 怎么检测一个线程是否拥有锁？
+      在java.lang.Thread中有一个方法叫holdsLock()，它返回true如果当且
+      仅当当前线程拥有某个具体对象的锁。
+  29. 你如何在Java中获取线程堆栈？
+      对于不同的操作系统，有多种方法来获得Java进程的线程堆栈。当你获取
+      线程堆栈时，JVM会把所有线程的状态存到日志文件或者输出到控制台。
+      在Windows你可以使用Ctrl + Break组合键来获取线程堆栈，Linux下用
+      kill -3命令。你也可以用jstack这个工具来获取，它对线程id进行操作，
+      你可以用jps这个工具找到id。
+  30. JVM中哪个参数是用来控制线程的栈堆栈小的
+      这个问题很简单， -Xss参数用来控制线程的堆栈大小。你可以查看JVM配
+      置列表来了解这个参数的更多信息。
+  31. Java中synchronized 和 ReentrantLock 有什么不同？
+      ava在过去很长一段时间只能通过synchronized关键字来实现互斥，它有
+      一些缺点。比如你不能扩展锁之外的方法或者块边界，尝试获取锁时不能
+      中途取消等。Java 5 通过Lock接口提供了更复杂的控制来解决这些问题。
+      ReentrantLock 类实现了 Lock，它拥有与 synchronized 相同的并发性
+      和内存语义且它还具有可扩展性。
+  32. 有三个线程T1，T2，T3，怎么确保它们按顺序执行？
+      在多线程中有多种方法让线程按特定顺序执行，你可以用线程类的join()
+      方法在一个线程中启动另一个线程，另外一个线程完成该线程继续执行。
+      为了确保三个线程的顺序你应该先启动最后一个(T3调用T2，T2调用T1)，
+      这样T1就会先完成而T3最后完成。
+  33. Thread类中的yield方法有什么作用？
+      Yield方法可以暂停当前正在执行的线程对象，让其它有相同优先级的线
+      程执行。它是一个静态方法而且只保证当前线程放弃CPU占用而不能保证
+      使其它线程一定能占用CPU，执行yield()的线程有可能在进入到暂停状
+      态后马上又被执行。
+  34. Java中ConcurrentHashMap的并发度是什么？
+      ConcurrentHashMap把实际map划分成若干部分来实现它的可扩展性和线程
+      安全。这种划分是使用并发度获得的，它是ConcurrentHashMap类构造函
+      数的一个可选参数，默认值为16，这样在多线程情况下就能避免争用。
+  35. Java中Semaphore是什么？
+      Java中的Semaphore是一种新的同步类，它是一个计数信号。从概念上讲，
+      从概念上讲，信号量维护了一个许可集合。如有必要，在许可可用前会
+      阻塞每一个 acquire()，然后再获取该许可。每个 release()添加一个
+      许可，从而可能释放一个正在阻塞的获取者。但是，不使用实际的许可
+      对象，Semaphore只对可用许可的号码进行计数，并采取相应的行动。信
+      号量常常用于多线程的代码中，比如数据库连接池。
+  36. 如果你提交任务时，线程池队列已满。会时发会生什么？
+      这个问题问得很狡猾，许多程序员会认为该任务会阻塞直到线程池队列有
+      空位。事实上如果一个任务不能被调度执行那么ThreadPoolExecutor’s
+      submit()方法将会抛出一个RejectedExecutionException异常。
+  37. Java线程池中submit() 和 execute()方法有什么区别？
+      两个方法都可以向线程池提交任务，execute()方法的返回类型是void，
+      它定义在Executor接口中, 而submit()方法可以返回持有计算结果的
+      Future对象，它定义在ExecutorService接口中，它扩展了Executor接口，
+      其它线程池类像ThreadPoolExecutor和ScheduledThreadPoolExecutor都
+      有这些方法.
+  38. 什么是阻塞式方法？
+      阻塞式方法是指程序会一直等待该方法完成期间不做其他事情，
+      ServerSocket的accept()方法就是一直等待客户端连接。这里的阻塞是指
+      调用结果返回之前，当前线程会被挂起，直到得到结果之后才会返回。此
+      外，还有异步和非阻塞式方法在任务完成前就返回。
+  39. Swing是线程安全的吗？ 为什么？
+      你可以很肯定的给出回答，Swing不是线程安全的，但是你应该解释这么
+      回答的原因即便面试官没有问你为什么。当我们说swing不是线程安全的
+      常常提到它的组件，这些组件不能在多线程中进行修改，所有对GUI组件
+      的更新都要在AWT线程中完成，而Swing提供了同步和异步两种回调方法来
+      进行更新。
+  40. Java中invokeAndWait 和 invokeLater有什么区别？
+      这两个方法是Swing API 提供给Java开发者用来从当前线程而不是事件派
+      发线程更新GUI组件用的。InvokeAndWait()同步更新GUI组件，比如一个
+      进度条，一旦进度更新了，进度条也要做出相应改变。如果进度被多个线
+      程跟踪，那么就调用invokeAndWait()方法请求事件派发线程对组件进行
+      相应更新。而invokeLater()方法是异步调用更新组件的。
+  41. Swing API中那些方法是线程安全的？
+      这个问题又提到了swing和线程安全，虽然组件不是线程安全的但是有一
+      些方法是可以被多线程安全调用的，比如repaint(), revalidate()。
+      JTextComponent的setText()方法和JTextArea的insert() 和 append()
+      方法也是线程安全的。
+  42. 如何在Java中创建Immutable对象？
+      这个问题看起来和多线程没什么关系， 但不变性有助于简化已经很复杂
+      的并发程序。Immutable对象可以在没有同步的情况下共享，降低了对该
+      对象进行并发访问时的同步化开销。可是Java没有@Immutable这个注解符，
+      要创建不可变类，要实现下面几个步骤：通过构造方法初始化所有成员、
+      对变量不要提供setter方法、将所有的成员声明为私有的，这样就不允许
+      直接访问这些成员、在getter方法中，不要直接返回对象本身，而是克隆
+      对象，并返回对象的拷贝。
+  43. Java中的ReadWriteLock是什么？
+      一般而言，读写锁是用来提升并发程序性能的锁分离技术的成果。Java中
+      的ReadWriteLock是Java 5 中新增的一个接口，一个ReadWriteLock维护
+      一对关联的锁，一个用于只读操作一个用于写。在没有写线程的情况下一
+      个读锁可能会同时被多个读线程持有。写锁是独占的，你可以使用JDK中
+      的ReentrantReadWriteLock来实现这个规则，它最多支持65535个写锁和
+      65535个读锁。
+  44. 多线程中的忙循环是什么?
+      忙循环就是程序员用循环让一个线程等待，不像传统方法wait(),
+      sleep() 或 yield() 它们都放弃了CPU控制，而忙循环不会放弃CPU，它
+      就是在运行一个空循环。这么做的目的是为了保留CPU缓存，在多核系统
+      中，一个等待线程醒来的时候可能会在另一个内核运行，这样会重建缓存。
+      为了避免重建缓存和减少等待重建的时间就可以使用它了。 
+  45. volatile 变量和 atomic 变量有什么不同？
+      这是个有趣的问题。首先，volatile 变量和 atomic 变量看起来很像，
+      但功能却不一样。Volatile变量可以确保先行关系，即写操作会发生在后
+      续的读操作之前, 但它并不能保证原子性。例如用volatile修饰count变
+      量那么 count++ 操作就不是原子性的。而AtomicInteger类提供的atomic
+      方法可以让这种操作具有原子性如getAndIncrement()方法会原子性的进
+      行增量操作把当前值加一，其它数据类型和引用变量也可以进行相似操作。
+  46. 如果同步块内的线程抛出异常会发生什么？
+      这个问题坑了很多Java程序员，若你能想到锁是否释放这条线索来回答还
+      有点希望答对。无论你的同步块是正常还是异常退出的，里面的线程都会
+      释放锁，所以对比锁接口我更喜欢同步块，因为它不用我花费精力去释放
+      锁，该功能可以在finally block里释放锁实现。
+  47. 单例模式的双检锁是什么？
+      这个问题在Java面试中经常被问到，但是面试官对回答此问题的满意度仅
+      为50%。一半的人写不出双检锁还有一半的人说不出它的隐患和Java1.5是
+      如何对它修正的。它其实是一个用来创建线程安全的单例的老方法，当单
+      例实例第一次被创建时它试图用单个锁进行性能优化，但是由于太过于复
+      杂在JDK1.4中它是失败的，我个人也不喜欢它。无论如何，即便你也不喜
+      欢它但是还是要了解一下，因为它经常被问到。
+  48. 如何在Java中创建线程安全的Singleton？
+      这是上面那个问题的后续，如果你不喜欢双检锁而面试官问了创建
+      Singleton类的替代方法，你可以利用JVM的类加载和静态变量初始化特征
+      来创建Singleton实例，或者是利用枚举类型来创建Singleton，我很喜欢
+      用这种方法。你可以查看这篇文章获得更多信息。
+  49. Java中的fork join框架是什么？
+      fork join框架是JDK7中出现的一款高效的工具，Java开发人员可以通过
+      它充分利用现代服务器上的多处理器。它是专门为了那些可以递归划分成
+      许多子模块设计的，目的是将所有可用的处理能力用来提升程序的性能。
+      fork join框架一个巨大的优势是它使用了工作窃取算法，可以完成更多
+      任务的工作线程可以从其它线程中窃取任务来执行。你可以查看这篇文章
+      获得更多信息。
+  50. Java多线程中调用wait() 和 sleep()方法有什么不同？
+      Java程序中wait 和 sleep都会造成某种形式的暂停，它们可以满足不同
+      的需要。wait()方法用于线程间通信，如果等待条件为真且其它线程被唤
+      醒时它会释放锁，而sleep()方法仅仅释放CPU资源或者让当前线程停止执
+      行一段时间，但不会释放锁。

@@ -20,6 +20,7 @@
 #include <netlink/genl/ctrl.h>
 #include <netlink/route/link.h>
 #include <linux/nl80211.h>
+#include <net/if.h>
 
 static int expectedId;
 static int ifIndex;
@@ -34,7 +35,7 @@ static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *ar
 
   int *ret = arg;
   *ret = err->error;
-  printf("error!\n");
+  printf("\nError error!\n");
   return NL_SKIP;
 }
 
@@ -43,19 +44,20 @@ static int finish_handler(struct nl_msg *msg, void *arg)
 
   int *ret = arg;
   *ret = 0;
+  printf("finish_handler\n");
   return NL_SKIP;
 }
 static int ack_handler(struct nl_msg *msg, void *arg)
 {
   int *err = arg;
   *err = 0;
+  printf("ack_handler\n");
   return NL_STOP;
 }
 
 static int bss_info_handler(struct nl_msg *msg, void *arg)
 {
 
-  printf("\nFunction: %s, Line: %d\n",__FUNCTION__,__LINE__);
   struct nlattr *tb[NL80211_ATTR_MAX + 1];
   struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
   struct nlattr *bss[NL80211_BSS_MAX + 1];
@@ -74,7 +76,7 @@ static int bss_info_handler(struct nl_msg *msg, void *arg)
   };
   struct wpa_scan_res *r = NULL;
 
-  printf("Yajun: scan results\n");
+  printf("扫描结果：\n");
 
   r = (struct wpa_scan_res*)malloc(sizeof(struct wpa_scan_res));
 
@@ -86,13 +88,12 @@ static int bss_info_handler(struct nl_msg *msg, void *arg)
                        bss_policy))
     return NL_SKIP;
   if (bss[NL80211_BSS_BSSID])
-
     memcpy(r->bssid, nla_data(bss[NL80211_BSS_BSSID]),6);
   if (bss[NL80211_BSS_FREQUENCY])
     r->freq = nla_get_u32(bss[NL80211_BSS_FREQUENCY]);
 
 
-  printf("\nFrequency: %d ,BSSID: %2x:%2x:%2x:%2x:%2x:%2x",r->freq,r->bssid[0],r->bssid[1],r->bssid[2],r->bssid[3],r->bssid[4],r->bssid[5]);
+  printf("\nFrequency: %d ,BSSID: %02x:%02x:%02x:%02x:%02x:%02x\n",r->freq,r->bssid[0],r->bssid[1],r->bssid[2],r->bssid[3],r->bssid[4],r->bssid[5]);
   return NL_SKIP;
 }
 
@@ -119,15 +120,17 @@ static struct nl_msg* nl80211_scan_common(uint8_t cmd, int expectedId)
     }
   else
     {
-
       printf("\nSuccess genlMsg_put\n");
     }
 
-  ifIndex = if_nametoindex("wlan0");
+  ifIndex = if_nametoindex("wlp6s0");
+
+  printf("\n interface index: %d\n", ifIndex);
+
 
   if(nla_put_u32(msg, NL80211_ATTR_IFINDEX, ifIndex) < 0)
     {
-
+      printf("\n setting interface index failed \n");
       goto fail;
     }
 
@@ -146,7 +149,7 @@ static struct nl_msg* nl80211_scan_common(uint8_t cmd, int expectedId)
 
   struct nl_msg *freqs = nlmsg_alloc();
 
-  if( nla_put_u32(freqs,1 ,2412) < 0) //amitssid
+  if( nla_put_u32(freqs,1 ,2442) < 0) //amitssid
     {
       printf("\nnla_put_fail\n");
       goto fail;
@@ -192,24 +195,25 @@ int main(int argc, char** argv)
   int err = -ENOMEM;
   int returnvalue,getret;
   int ifIndex, callbackret=-1;
-  struct nl_sock* sk = (void*)nl_handle_alloc();
+  struct nl_sock* sk = (void*)nl_socket_alloc();
   if(sk == NULL)
     {
-      printf("\nmemory error\n");
-      return;
+      printf("\n分配netlink失败\n");
+      return -1;
     }
 
   cb = nl_cb_alloc(NL_CB_CUSTOM);
   if(cb == NULL)
     {
       printf("\nfailed to allocate netlink callback\n");
+      return -1;
     }
 
   enum nl80211_commands cmd;
   if(genl_connect((void*)sk))
     {
-      printf("\nConnected failed\n");
-      return;
+      printf("\n连接netlink失败\n");
+      return -1;
     }
 
   //find the nl80211 driverID
@@ -217,13 +221,8 @@ int main(int argc, char** argv)
 
   if(expectedId < 0)
     {
-      printf("\nnegative error code returned\n");
-      return;
-    }
-  else
-    {
-
-      printf("\ngenl_ctrl_resolve returned:%d\n",expectedId);
+      printf("\nnl80211未找到\n");
+      return -1;
     }
 
 
@@ -239,29 +238,16 @@ int main(int argc, char** argv)
     goto out;
   else
     {
-      printf("\nSent successfully\n");
-
+      printf("发送扫描");
     }
   err = 1;
   nl_cb_err(cb,NL_CB_CUSTOM,error_handler,&err);
   nl_cb_set(cb,NL_CB_FINISH,NL_CB_CUSTOM,finish_handler,&err);
   nl_cb_set(cb,NL_CB_ACK,NL_CB_CUSTOM,ack_handler,&err);
-
-
   callbackret = nl_cb_set(cb,NL_CB_VALID,NL_CB_CUSTOM,bss_info_handler,&err);
 
-  if(callbackret < 0)
-    {
-      printf("\n*************CallbackRet failed:***************** %d\n",callbackret);
-    }
-  else
-    {
-      printf("\n*************CallbackRet pass:***************** %d\n",callbackret);
-    }
-
-
-  returnvalue=nl_recvmsgs((void*)sk,cb);
-  printf("\n returnval:%d\n",returnvalue);
+   while (err > 0)
+     nl_recvmsgs((void*)sk,cb);
 
   nlmsg_free(msg);
   msg = NULL;
@@ -275,11 +261,10 @@ int main(int argc, char** argv)
     }
   else
     {
-
       printf("\nSuccess genlMsg_put\n");
     }
 
-  ifIndex = if_nametoindex("wlan1");
+  ifIndex = if_nametoindex("wlp6s0");
   printf("\nGet Scaninterface returned :%d\n",ifIndex);
 
   nla_put_u32(msg,NL80211_ATTR_IFINDEX,ifIndex);  
@@ -288,9 +273,9 @@ int main(int argc, char** argv)
   if(err < 0) goto out;
 
   err = 1;
-  getret= nl_recvmsgs((void*)sk,cb);
-
-  printf("\nGt Scan resultreturn:%d\n",getret);
+  printf("\n扫描结果: \n");
+  while (err > 0)
+    nl_recvmsgs((void*)sk,cb);
 
  out:
   nlmsg_free(msg);

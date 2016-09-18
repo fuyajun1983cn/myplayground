@@ -1,63 +1,111 @@
-#+TITLE: My GTD
-#+AUTHOR: Yajun Fu
-#+EMAIL: fuyajun1983cn AT 163 DOT com
-#+STARTUP:overview
-#+STARTUP: hidestars
+#+TITLE: Get Things Done
+#+STARTUP: overveiw
+#+STARTUP: hidestars align fold nodlcheck oddeven lognotestate
 #+STARTUP: logdone
-#+PROPERTY: Effort_ALL 0:10 0:20 0:30 1:00 2:00 4:00 6:00 8:00
+#+PROPERTY: Effort_ALL  0:10 0:20 0:30 1:00 2:00 4:00 6:00 8:00
 #+COLUMNS: %38ITEM(Details) %TAGS(Context) %7TODO(To Do) %5Effort(Time){:} %6CLOCKSUM{Total}
-#+OPTIONS: toc:t
+#+PROPERTY: Effort_ALL 0 0:10 0:20 0:30 1:00 2:00 3:00 4:00 8:00
+#+TAGS:       Study(s) Project(p) Fix(f) Check(c) 
 
 * Tasks
   :PROPERTIES:
-  :CATEGORY: Tasks
+  :CATEGORY: TASKS
   :END:
+** WiFI Driver持续学习(mt76x2)
+    SCHEDULED: <2016-08-29 周一 +1w>
+*** Power Management
+    - Next Action:
+      Linux MT7603 STA Legacy_PSP and Fast_PSP Driver Control Flow
+      V0.3
+      PS Retrieve_MT7603E
 
-** eamcs
-*** 研究emacs源码 [0/4]
-**** ☛ TODO =simple.el= 源码研究 
-     
-**** ☛ TODO =paragraphs.el= 源码研究
-     
-**** ☛ TODO =loaddefs.el= 源码研究
+*** Green AP
+    - Next Action: 
+      LinuxDriver Green AP - RLT MAC
+      MT7603_GreenAP_Unify_MAC
 
-*** 插件使用
-**** Hydra
-       NEXT：https://github.com/abo-abo/hydra
+*** TPUT_study
+*** WoW
+    - Next Action:
+      WoW_MTxxxx_Intro_20141125
+
+*** Smart Connection
+    - Next Action:
+      MT7687 - Smart Connection Introduction .pptx
+
+*** USB
+    - Next Action:
+      usb_study_report_junqi_2_USB Driver Register.pdf
+
+** mt7668驱动学习
+    SCHEDULED: <2016-08-29 周一 +1w>
+    
+*** ☛ TODO [#A] Module FSM
+    DEADLINE: <2016-09-30 周五>
+
+*** ☛ TODO [#B] DBDC
+
+*** ☛ TODO [#C] CR4 and PDMA
+
+*** ☛ TODO [#C] HIF
+
+*** ☛ TODO [#C] Security
+
+*** ☛ TODO [#B] cfg80211
+
+*** ☛ TODO [#C] Low power and WOW
+
+*** ☛ TODO [#C] BF/MU/RA/Calibration
+    
+*** ☛ TODO [#B] FW
+
+*** ☛ TODO [#B] P2P/TDLS
+
+*** ☛ TODO [#C] Roaming
+
+*** ☛ TODO [#B] SCAN
+** 阅读FreeMind代码，理清大体框架
+** 802.11ac
+   http://chimera.labs.oreilly.com/books/1234000001739/index.html
+   
+*** MAC层
+
+*** 11ac中的BF
+*** ☛ TODO 物理层                                                         :802.11ac学习:
+** emacs
 *** 工作流优化
 **** ☛ TODO 任务开始时，自动计时
      参考代码：
      #+BEGIN_SRC emacs-lisp
-          (setq org-log-done 'time)
-            (defadvice org-clock-in (after wicked activate)
-         "Mark STARTED when clocked in"
-         (save-excursion
-           (catch 'exit
-             (org-back-to-heading t)
-             (if (looking-at org-outline-regexp) (goto-char (1- (match-end 0))))
-             (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
-                 (org-todo "STARTED")))))     
+        (setq org-log-done 'time)
+          (defadvice org-clock-in (after wicked activate)
+       "Mark STARTED when clocked in"
+       (save-excursion
+         (catch 'exit
+           (org-back-to-heading t)
+           (if (looking-at org-outline-regexp) (goto-char (1- (match-end 0))))
+           (if (looking-at (concat " +" org-todo-regexp "\\( +\\|[ \t]*$\\)"))
+               (org-todo "STARTED")))))     
      #+END_SRC
 **** ☛ TODO 绽放时，显示等号的字体要同比例进行绽放
-** ArchLinux学习 [0/2]
-*** 了解systemd工作原理
-*** fbterm导致死机的原因
-** 博文 [0/1]
-** 扩展学习 [2/3]
-*** ☛ TODO Google Fruit库研究: Java Guice & C++ Fruit
-    https://github.com/google/guice.git
-    https://github.com/google/fruit.git
-** 个人杂事 [0/1]
-*** ☛ TODO 简历优化
-    NEXT: 编写一个不超过2页的精简版
 ** 技术修炼
-*** 读书计划 [1/3]
-**** ☛ TODO Learn More Study Less
-**** ☛ TODO 突破思维的障碍
+    SCHEDULED: <2016-08-29 周一 +1w>
+*** 读书计划
+**** Learn More Study Less
+**** 突破思维的障碍
 **** 专注力
 **** 一万小时天才理论
 **** 成功者的大脑
 **** Break-Throuhgh Rapid Reading
+**** ☛ TODO The Art of Learning
+     SCHEDULED: <2016-08-27 周六>
+**** 提早六小时下班的高效工作术
+*** 技术书箱
+**** Digital Communication Systems
+     http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/index.htm
+**** ☛ TODO 计算机语言的构造与解释
+     SCHEDULED: <2016-08-27 周六>
+**** 编译原理（龙书）
 ** 编程语言捂热计划
 *** 网络编程
 *** C++
@@ -81,7 +129,7 @@
      http://www.i-programmer.info/programming/javascript/1674-javascript-data-structures-stacks-queues-and-deques.html
 *** Python
 **** 学习Python基本的网络编程方法
-*** zsh
+**** https://automatetheboringstuff.com/
 ** 个人开发需求
 *** 编写一个Chrome Plugin，记录自己收藏的网址
 *** Wifi Debug Program                                               :PROJECT:
@@ -97,48 +145,436 @@
    1. simple screen recoder
    2. Dia
    3. Childsplay
-* My Daily GTD 
-** ☛ TODO =org.el= 源码研究
-   SCHEDULED: <2016-04-30 六>
-     
-  NEXT： 研究defcustom常见函数的用法
+** 802.11常见帧格式深入研究
+*** Beacon帧
+    CHANNEL_SWITCH_ANNOUNCEMENT
+*** CSA(Channel Switch Announcement
+    eCSA
+** ☛ TODO WireShark学习目标
+*** Wireshark分析数据包 [0/9]
+    - [ ] TCP/IP数据包
+    - [ ] DNS
+    - [ ] DHCP
+    - [ ] WLAN 802.11
+    - [ ] Chapter 29
+    - [ ] Chapter 30
+    - [ ] Chapter 31
+    - [ ] Chapter 32
+    - [ ] Chapter 33 (command tools)
+** mac80211学习
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一>
+*** ☛ TODO mac80211源码分析
+    - Action: 制定研究计划
+    - [ ] 研究hwsim源码，编写一个基于mac80211的网络驱动程序
+    - [ ] 研究mac80211的源码，整理出学习笔记
 
-** ☛ TODO Linux kernel小程序快速参考
-   - NEXT: 准备第一版
-   - 收集其他的小程序
-* Finished Tasks
-** 2016
-*** 3月[4/4]
-**** ✔ DONE Tool研究
-     CLOSED: [2016-03-23 三 09:10]
-     - zsh
-     - less
-     - tmux
-     - web幻灯片 Cleaver
-**** ✔ DONE Notepad++插件研究 [3/3]
-     CLOSED: [2016-03-23 三 09:10]
-***** ✘ CANCELED 编写显示emacs org文件插件
-      CLOSED: [2016-03-20 周日 21:45]
-***** ✔ DONE 编译环境
-      CLOSED: [2016-02-28 日 12:55]
-***** ✔ DONE 示例插件研究
-      CLOSED: [2016-03-20 周日 21:45]
-      https://github.com/mpcabd/PyNPP.git
-      - NEXT: 完成一个可用的模块上传
-        
-**** ✔ DONE 简历制作     CLOSED: [2016-02-16 二 10:05]
-**** ✔ DONE 英文简历制作
-     CLOSED: [2016-03-07 一 16:15]
-*** 4月 [1/1]
-**** ✔ DONE 字符终端中文显示问题
-     CLOSED: [2016-04-06 三 09:30]
-     - 编译Linux内核，打开frame buffer的支持
-     - NEXT: 在工作电脑中安装ArchLinux
-**** ✔ DONE 尽管去做——无压的工作艺术
-     CLOSED: [2016-04-06 三 09:30]
-       NEXT: 下次阅读最后三章
-**** ✔ DONE Understanding Linux Network Internals
-     CLOSED: [2016-04-25 一 21:00]
-     下次从第11章开始
-**** ✔ DONE 大脑使用说明书
-     CLOSED: [2016-04-26 二 10:20]
+** 在发送Association Request之前禁用一些HT/VHT的速率
+    SCHEDULED: <2016-09-19 周一>
+    http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
+
+** ☛ TODO CWTS学习                                                    :Study:
+CWTS学习， 内容属性简单级别
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO  CWSP学习                                               :Study:
+    SCHEDULED: <2016-09-19 周一>
+808.11 Security相关的知识学习
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO  吞吐量问题分析SOP学习                                  :Study:
+    SCHEDULED: <2016-10-10 周一>
+TPUT_study
+Added: [2016-08-10 周三 13:45]
+** ☛ TODO [#C] TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
+    SCHEDULED: <2016-08-19 周五>
+    CLOCK: [2016-08-16 周二 19:06]--[2016-08-16 周二 20:06] =>  1:00
+    - [X] 第一章
+    - [X] Netlink
+** ☛ TODO [#C] 整理以前的学习笔记 [4/8]
+   SCHEDULED: <2016-08-29 周一 +1w>
+   CLOCK: [2016-08-16 周二 11:35]--[2016-08-16 周二 11:50] =>  0:15
+   CLOCK: [2016-08-16 周二 11:05]--[2016-08-16 周二 11:31] =>  0:26
+   CLOCK: [2016-08-13 六 15:11]--[2016-08-13 六 15:22] =>  0:11
+   :PROPERTIES:
+   :Effort:   8:00
+   :END:
+   - [ ] Android研究文章整理
+   - [X] Android学习笔记
+   - [X] Android研究记录
+   - [ ] CMake笔记
+   - [X] C++学习笔记
+   - [ ] Java编程笔记
+   - [ ] Unix下C编程学习笔记
+   - [X] 内核编程笔记
+** ☛ TODO [#C] 处理云笔记                                             :Study:
+    SCHEDULED: <2016-08-29 周一 +1w>
+    CLOCK: [2016-08-18 周四 18:02]--[2016-08-18 周四 18:23] =>  0:21
+    CLOCK: [2016-08-18 周四 09:12]--[2016-08-18 周四 09:19] =>  0:07
+    CLOCK: [2016-08-17 周三 19:25]--[2016-08-17 周三 19:40] =>  0:15
+
+    Added: [2016-08-15 周一 13:15]
+
+** ☛ TODO 阅读数据通信与网络                                           :Study:
+    SCHEDULED: <2016-08-31 周三>
+    CLOCK: [2016-09-06 周二 09:32]--[2016-09-06 周二 10:10] =>  0:38
+    CLOCK: [2016-08-31 周三 17:20]--[2016-08-31 周三 18:06] =>  0:46
+    - 第二部分 物理层
+      下次读第五章
+    - 第三部分 数据链路层
+Added: [2016-08-31 周三 17:20]
+** ☛ TODO 编写网络驱动示例程序                                        :Study:
+    DEADLINE: <2016-09-23 周五> SCHEDULED: <2016-09-19 周一>
+    - 普通网络驱动
+    - 基于mac80211的网络驱动
+Added: [2016-08-31 周三 20:25]
+** ☛ TODO 深入理解Android：Wi-Fi、NFC和GPS卷阅读计划                   :Study:
+    SCHEDULED: <2016-10-10 周一>
+     1. 第二章  深入理解Netd
+     2. 第三章  WiFi基础知识
+     3. 第四章 深入理解wpa_supplicant
+     4. 第五章 深入理解WifiService
+     5. 第6章 深入理解Wi-Fi Simple Configuration
+     6. 第7章 深入理解Wi-Fi P2P
+Added: [2016-09-02 周五 14:15]
+** ☛ TODO 网络课程——通信原理学习                                       :
+    SCHEDULED: <2016-09-19 周一>
+    - [X] 第一部分——导论
+Added: [2016-09-04 周日 21:35]
+** ☛ TODO 网络课程——计算机原理                                        :Study:
+    SCHEDULED: <2016-09-19 周一>
+
+Added: [2016-09-04 周日 21:35]
+** ☛ TODO 健身计划                                                    :Check:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:35]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 00:02]
+   :END:
+    - 每周至少两次健身
+Added: [2016-09-05 周一 19:25]
+** ☛ TODO Linux IPC机制研究                                            :Study:
+    1. [[https://lwn.net/Articles/466304/][Fast interprocess communication revisited]]
+    2. [[https://lwn.net/Articles/697191/][Bus1: a new Linux interprocess communication proposal]]
+Added: [2016-09-07 周三 09:50]
+** ☛ TODO [#B] 查看公版分支上的修改                                   :Study:
+    SCHEDULED: <2016-09-26 周一 +2w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-07 周三 11:50]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:10]
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-18 周日 00:02]
+   :END:
+*** Next Action: 153502 158500
+*** 待深入了解的修改：
+      1. 155501   add p2p VHT 80 Draft Support
+      2. 159623
+         driver didn't try to associate with GO until timeout in
+         invitation to join case. 
+
+** ☛ TODO 深入分析WPA状态机实现源码                                    :Study:
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一>
+    - 目录
+      弄清状态机实现的细节，产生详细文档。
+    - EAP框架源码
+    - EAP Authenticator/Supplicant代码分析
+Added: [2016-09-08 周四 17:25]
+** ☛ TODO 学习DBUS                                                     :Study:
+    了解Python下使用DBUS通信，能够编写基本的程序
+Added: [2016-09-09 周五 11:45]
+** ☛ TODO Linux Trace API研究                                          :Study:
+    
+Added: [2016-09-09 周五 13:45]
+** ☛ TODO 出租房6S整理                                                 :Check:
+   SCHEDULED: <2016-09-17 六 +1w>
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-09 五 20:35]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-09 五 20:37]
+   :END:
+   
+Added: [2016-09-09 五 20:35]
+** ☛ TODO [#A] 办公桌6S整理                                           :Check:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-12 周一 09:30]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-05 周一 09:55]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 00:05]
+   :END:
+    - 整理
+      内容： 将工作现场的所有物品区分为有用品和无用品，除了有用的留下
+      来，其它的都清理掉。
+
+      目的：腾出空间，空间活用，防止误用，保持清爽的工作环境。
+
+    - 整顿
+      内容：把留下来的必要用的物品依规定位置摆放，并放置整齐加以标识。
+
+      目的：工作场所一目了然，消除寻找物品的时间，整整齐齐的工作环境，
+      消除过多的积压物品。
+
+    - 清扫
+      内容：将工作场所内看得见与看不见的地方清扫干净，保持工作场所干净、
+      亮丽，创造良好的工作环境。 
+
+      目的： 稳定品质，减少工业伤害。
+
+    - 清洁
+      内容：将整理、整顿、清扫进行到底，并且制度化，经常保持环境处在整
+      洁美观的状态。
+
+      目的：创造明朗现场，维持上述3S推行成果。
+
+    - 素养
+      内容：每位成员养成良好的习惯，并遵守规则做事，培养积极主动的精神
+      （也称习惯性）。
+
+      目的： 促进良好行为习惯的形成，培养遵守规则的员工，发扬团队精神。
+
+    - 安全
+      内容：重视成员安全教育，每时每刻都有安全第一观念，防范于未然。
+
+      目的： 建立及维护安全生产的环境，所有的工作应建立在安全的前提下。 
+Added: [2016-09-05 周一 09:50]
+** ☛ TODO [#B] CWAP学习                                               :Study:
+    DEADLINE: <2016-11-30 周三> SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:05]
+    CLOCK: [2016-09-12 周一 19:09]--[2016-09-12 周一 20:15] =>  1:06
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 09:25]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-06 周二 20:40]
+    CLOCK: [2016-09-01 周四 16:56]--[2016-09-01 周四 18:02] =>  1:06
+    CLOCK: [2016-09-01 周四 16:04]--[2016-09-01 周四 16:25] =>  0:21
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 00:06]
+   :END:
+内容属性较难级别
+     - [X] 第一章
+     - [ ] 第二章
+     - [ ] 第三章
+     - [ ] 第四章
+     - [ ] 第五章
+     - [ ] 第六章
+     - [ ] 第七章
+     - [ ] 第八章
+     - [ ] 第九章
+     - [ ] 第十章
+     - [ ] 第十一章
+     - [ ] 第十二章
+
+Added: [2016-08-10 周三 13:40]
+** ☛ TODO [#B] 研究wpa_supplicant上的修改记录                         :Study:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 17:05]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 17:45]
+    CLOCK: [2016-09-09 周五 17:08]--[2016-09-09 周五 17:43] =>  0:35
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-31 周三 11:50]
+    CLOCK: [2016-08-31 周三 09:45]--[2016-08-31 周三 11:50] =>  2:05
+    CLOCK: [2016-08-30 周二 19:01]--[2016-08-30 周二 20:03] =>  1:02
+    CLOCK: [2016-08-30 周二 17:47]--[2016-08-30 周二 18:08] =>  0:21
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 17:35]
+    CLOCK: [2016-08-25 周四 16:50]--[2016-08-25 周四 17:34] =>  0:44
+    CLOCK: [2016-08-15 周一 17:25]--[2016-08-15 周一 18:07] =>  0:42
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-14 周三 17:03]
+   :END:
+     - 2015-October
+     - Next Action: May 2009
+** ☛ TODO USB规范阅读                                                  :Study:
+
+Added: [2016-09-18 周日 00:15]
+** ☛ TODO SDIO规范阅读                                                 :Study:
+
+Added: [2016-09-18 周日 00:15]
+** ☛ TODO [#C] =org.el= 
+    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:20]
+   - State "✘ CANCELED" from "☛ TODO"     [2016-09-10 六 13:40]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-01 周四 20:55]
+   CLOCK: [2016-09-01 周四 18:46]--[2016-09-01 周四 20:56] =>  2:10
+   CLOCK: [2016-08-11 周四 19:32]--[2016-08-11 周四 20:36] =>  1:04
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-18 周日 00:18]
+   :END:
+   - 406行
+** ☛ TODO [#B] 数据结构与算法设计学习                                 :Study:
+    SCHEDULED: <2016-09-19 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:20]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 16:10]
+    CLOCK: [2016-09-10 六 14:31]--[2016-09-10 六 16:11] =>  1:40
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
+    CLOCK: [2016-08-13 六 15:24]--[2016-08-13 六 16:04] =>  0:40
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-18 周日 00:20]
+   :END:
+    数据结构与常见算法思想学习
+*** 数据 结构与习题与解答——Java语言描述
+**** ☛ TODO 第一章 & 第二章—— 数组
+     DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-09-17 周六>
+     CLOCK: [2016-09-17 周六 10:25]--[2016-09-17 周六 12:02] =>  1:37
+         Next Action: Ex14
+**** 第三章 & 第四章 ——递归
+     DEADLINE: <2016-10-09 周日> SCHEDULED: <2016-09-26 周一>
+**** 第五章 & 第六章 —— 栈
+**** 第七章  —— 队列
+**** 第八章 —— 线性表
+**** 第九章 —— 树
+**** 第十章 —— 二叉树
+**** 第十一章 —— 搜索树
+**** 第十二章 —— 堆和优先队列
+**** 第十三章 —— 排序
+**** 第十四章 —— 表
+**** 第十五章 —— 集合
+**** 第十六章 —— 图
+Added: [2016-08-11 周四 13:25]
+
+** ☛ TODO Miracast测试过程中搜索不到手机设备                        :Project:
+    SCHEDULED: <2016-09-14 周三>
+    在某次连接失败后，出现TV搜索不到手机设备。
+Added: [2016-09-14 周三 13:20]
+* Calendar
+  :PROPERTIES:
+  :CATEGORY: CALENDAR
+  :END:
+* Financial
+  :PROPERTIES:
+  :CATEGORY: FINANCIAL
+  :END:
+** ☛ TODO 招商银行信用卡还款提醒
+    SCHEDULED: <2016-09-27 周二 +1m>
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
+    - State "✔ DONE"     from ""           [2016-08-25 周四 13:35]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-08-26 周五 19:23]
+   :END:
+
+** ☛ TODO 浦发银行信用卡还款提醒
+    SCHEDULED: <2016-09-30 周五 +1m>
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-08-26 周五 19:23]
+   :END:
+
+** ☛ TODO 广发银行信用卡还款提醒
+    SCHEDULED: <2016-10-03 周一 +1m>
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-08-26 周五 19:23]
+   :END:
+
+** ☛ TODO 还贷提醒
+    SCHEDULED: <2016-09-29 周四 +1m +2d>
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-08-26 周五 19:23]
+   :END:
+* Projects
+  :PROPERTIES:
+  :CATEGORY: PROJECTS
+  :END:
+** Hisense
+** Skyworth    
+**** KO路径
+     ./system/rtk_rootfs/lib/modules/kernel/wifi/mt7662u_sta.ko
+ Neil Wu (吳宗軒)
+ 
+** 微鲸
+*** 项目信息
+
+    | 项目                          | 说明                                  |
+    |-------------------------------+---------------------------------------|
+    | 智能电视平台                  | Mstar 6A828/6A938，海思 Kirin 310/510 |
+    | 项目规划                      | 2016/Q4 Sample-run                    |
+    | 利尔达 的微鯨PM               | 焦绍华  ( jsh@lierda.com )            |
+    | 利尔达H/W &生产               | 淡江( danjiang@lierda.com )           |
+    | 利尔达S/W                     | 刘新鹏 ( liuxp@lierda.com )           |
+    | 微鲸商务                      | 袁寅（yuan.yin@whaley.cn）            |
+    | 微鲸硬件                      | 刘立峰（liu.lifeng@whaley.cn）        |
+    | 微鲸项目/软件                 | 袁磊（yuan.lei@whaley.cn）            |
+    | MTK support Window for Lierda | H/W: Frank                            |
+    |-------------------------------+---------------------------------------|
+    
+** 案例
+*** p2p go dhcp failed after wlan0 linkdown
+    WCNCR00082921
+*** gpiolib
+*** kallsyms_lookup_name() //查找对应symbol然后调用
+* 今天必须做的事情
+  :PROPERTIES:
+  :CATEGORY: 重要且紧急（计划内）
+  :END:
+** ☛ TODO 编程每日一练                                                :Study:
+    SCHEDULED: <2016-09-19 周一 +1d>
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 08:45]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-17 周六 18:00]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 13:20]
+   :PROPERTIES:
+   :LAST_REPEAT: [2016-09-18 周日 08:47]
+   :END:      
+*** C语言程序设计
+**** 高级特性 —— 11 ~ 20章
+     DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-09-19 周一>
+**** 标准库 —— 21 ~ 26章
+**** 参考资料
+    
+Added: [2016-09-14 周三 09:10]
+** ☛ TODO [#B] 设计模式学习                                           :Study:
+    DEADLINE: <2016-10-10 周一> SCHEDULED: <2016-09-12 一 +1w>
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:30]
+    CLOCK: [2016-09-10 六 12:46]--[2016-09-10 六 13:30] =>  0:44
+    CLOCK: [2016-09-10 六 12:10]--[2016-09-10 六 12:39] =>  0:29
+    CLOCK: [2016-09-10 六 10:49]--[2016-09-10 六 11:05] =>  0:16
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-29 周一 20:20]
+    CLOCK: [2016-08-29 周一 19:28]--[2016-08-29 周一 20:21] =>  0:53
+    CLOCK: [2016-08-15 周一 20:40]--[2016-08-15 周一 21:11] =>  0:31
+    CLOCK: [2016-08-13 六 17:01]--[2016-08-13 六 17:24] =>  0:23
+    CLOCK: [2016-08-13 六 16:30]--[2016-08-13 六 16:41] =>  0:11
+    CLOCK: [2016-08-13 六 16:05]--[2016-08-13 六 16:30] =>  0:25
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-09-10 六 13:30]
+   :END:
+    设计模式学习
+    Added: [2016-08-11 周四 19:15]
+** ☛ TODO WIFI MAC TXRX
+    SCHEDULED: <2016-08-31 周三> DEADLINE: <2016-09-16 周五>
+    CLOCK: [2016-09-08 周四 15:14]--[2016-09-08 周四 16:43] =>  1:29
+    - Next Action:
+      阅读代码，把TX/RX的调用流程记录下来
+* 今天应该做的事情
+  :PROPERTIES:
+  :CATEGORY: 重要不紧急(计划内）)
+  :END:
+** ☛ TODO [#B] 深入了解TxRx原理
+   SCHEDULED: <2016-08-27 周六>
+   CLOCK: [2016-09-13 周二 11:09]--[2016-09-13 周二 14:23] =>  3:14
+   - [ ] 帧聚合
+   - [ ] 重点研究TX流程，特别是VLAN的支持
+   - [ ] TX/RX FIFO Status, TX/RX Queue Operation
+     Tx queue parameter
+   - [ ] 驱动Scan的一些行为分析
+** ☛ TODO [#C] IW源码学习
+    SCHEDULED: <2016-09-19 周一>
+   - Action: 熟悉iw命令的使用
+** ☛ TODO 解决LDD在Linux4.7上的编译错误                               :Study:
+    DEADLINE: <2016-09-24 周六> SCHEDULED: <2016-08-31 周三>
+    - scullc
+      AIO changed to read/write-iter
+      https://lwn.net/Articles/625077/  The iov_iter interface
+    - scullp
+    - snull
+    - sysfs
+    - sbull
+    - sculld
+    - short
+
+Added: [2016-08-31 周三 20:20]
+* 今天可以做的事情
+  :PROPERTIES:
+  :CATEGORY: 紧急不重要(计划外))
+  :END:

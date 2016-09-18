@@ -6,36 +6,1336 @@
 
 
 * 构造模式
+
+  http://www.java2s.com/Tutorials/Java/Java_Design_Patterns/index.htm
   主要描述如何更好地表述一个对象。主要有如下一些具体模式：
 
 ** 抽象工厂(Abstract Factory)
+   抽象工厂也称为工厂的工厂，它创建其他的工厂。使用抽象工厂时，先创建
+   一个超级工厂，通过这个超级工厂，创建其他的工厂类，利用这些工厂类创
+   建对象。
+   
+*** 情景示例
+    假设创建一些形状和打印机两类对象，对于形状类型，我们有圆，长方形和正
+    方形，对于打印机类型，我们有纸质打印机，网络打印机以及屏幕打印机。
+    对于形状类型，接口定义如下：
+    #+BEGIN_SRC java
+      interface Shape {
+          void draw();
+      }    
+    #+END_SRC
+
+    接下来创建一些具体的形状类：
+    #+BEGIN_SRC java
+      class Rectangle implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Rectangle::draw() method.");
+          }
+      }
+      class Square implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Square::draw() method.");
+          }
+      }
+      class Circle implements Shape {
+
+          @Override
+          public void draw() {
+              System.out.println("Inside Circle::draw() method.");
+          }
+      }    
+    #+END_SRC
+
+    然后创建打印机接口
+    #+BEGIN_SRC java
+      interface Printer{
+         void print();
+      }    
+    #+END_SRC
+
+    接着创建一些具体的打印机类
+    #+BEGIN_SRC java
+      class PaperPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Papter");
+          }
+      }
+
+      class WebPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Web");
+          }
+      }
+
+      class ScreenPrinter implements Printer {
+          @Override
+          public void print() {
+              System.out.println("Screen");
+          }
+      }
+    #+END_SRC
+
+    最后创建一个抽象类来获取创建形状和打印机对象的工厂类
+    #+BEGIN_SRC java
+      abstract class AbstractFactory {
+         abstract Printer getPrinter(String type);
+         abstract Shape getShape(String shape) ;
+      }    
+    #+END_SRC
+
+    最后，我们创建一些具体的工厂类来创建对应的对象
+    #+BEGIN_SRC java
+      class ShapeFactory extends AbstractFactory {
+        
+          @Override
+          public Shape getShape(String shapeType){
+              if(shapeType == null){
+                  return null;
+              }    
+              if(shapeType.equalsIgnoreCase("CIRCLE")){
+                  return new Circle();
+              } else if(shapeType.equalsIgnoreCase("RECTANGLE")){
+                  return new Rectangle();
+              } else if(shapeType.equalsIgnoreCase("SQUARE")){
+                  return new Square();
+              }
+              return null;
+          }
+         
+          @Override
+          Printer getPrinter(String type) {
+              return null;
+          }
+      }
+      class PrinterFactory extends AbstractFactory {
+        
+          @Override
+          public Shape getShape(String shapeType){
+              return null;
+          }
+         
+          @Override
+          Printer getPrinter(String type) {
+              if(type == null){
+                  return null;
+              }    
+              if(type.equalsIgnoreCase("paper")){
+                  return new PaperPrinter();
+              } else if(type.equalsIgnoreCase("web")){
+                  return new WebPrinter();
+              } else if(type.equalsIgnoreCase("Screen")){
+                  return new ScreenPrinter();
+              }
+              return null;
+          }
+      }    
+    #+END_SRC
+
+    最后，创建一个工厂的产生类，通过不同的参数返回不同的工厂类：
+    #+BEGIN_SRC java
+      class FactoryProducer {
+          public static AbstractFactory getFactory(String choice){
+              if(choice.equalsIgnoreCase("SHAPE")){
+                  return new ShapeFactory();
+              } else if(choice.equalsIgnoreCase("Printer")){
+                  return new PrinterFactory();
+              }
+              return null;
+          }
+      }    
+    #+END_SRC
+
+    下面代码显示的如何使用抽象工厂类来创建不同的对象：
+    #+BEGIN_SRC java
+      public class Main {
+          public static void main(String[] args) {
+
+              //get shape factory
+              AbstractFactory shapeFactory = FactoryProducer.getFactory("SHAPE");
+
+              //get an object of Shape Circle
+              Shape shape1 = shapeFactory.getShape("CIRCLE");
+
+              //call draw method of Shape Circle
+              shape1.draw();
+
+              //get an object of Shape Rectangle
+              Shape shape2 = shapeFactory.getShape("RECTANGLE");
+
+              //call draw method of Shape Rectangle
+              shape2.draw();
+            
+              //get an object of Shape Square 
+              Shape shape3 = shapeFactory.getShape("SQUARE");
+
+              //call draw method of Shape Square
+              shape3.draw();
+
+              //get printer factory
+              AbstractFactory printerFactory = FactoryProducer.getFactory("printer");
+
+              Printer printer1 = printerFactory.getPrinter("Paper");
+              printer1.print();
+              Printer printer2 = printerFactory.getPrinter("Web");
+              printer2.print();
+              Printer printer3 = printerFactory.getPrinter("Screen");
+              printer3.print();
+          }
+      }
+    #+END_SRC
+
+    总体的类结果如下：
+    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081330.png :cmdline -charset UTF-8
+      @startuml
+      title <b>抽象工厂模式</b>
+      package "Shape产品类" {
+      interface Shape {
+      +void draw()
+      }
+
+      class Rectangle {
+      +void draw()
+      }
+      class Square {
+      +void draw()
+      }
+      class Circle {
+      +void draw()
+      }
+      Shape <|.. Rectangle
+      Shape <|.. Square
+      Shape <|.. Circle
+      }
+
+      package "Printer产品类" {
+      interface Printer {
+      +void print()
+      }
+
+      class PaperPrinter {
+      +void print()
+      }
+
+      class WebPrinter {
+      +void print()
+      }
+
+      class ScreenPrinter {
+      +void print()
+      }
+      Printer <|.. PaperPrinter
+      Printer <|.. WebPrinter
+      Printer <|.. ScreenPrinter
+      }
+
+
+
+      package "工厂类"  {
+      abstract class AbstractFactory {
+      +abstract Printer getPrinter(String type);
+      +abstract Shape getShape(String shape) ;
+      }
+      class ShapeFactory {
+      +Shape getShape(String shape)
+      }
+      class PrinterFactory {
+      +Printer getPrinter(String type)
+      }
+
+      AbstractFactory <|-- ShapeFactory
+      AbstractFactory <|-- PrinterFactory
+
+      AbstractFactory .. Shape
+      AbstractFactory .. Printer
+
+      }
+
+      class FactoryProducer {
+      +static AbstractFactory getFactory(String choice)
+      }
+
+      class Main
+
+      FactoryProducer .. AbstractFactory
+
+      Main  -->  FactoryProducer: <<use>>
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016081330.png]]
 
 ** 构造器(Builder)
+      构造器模式是使用一些简单的对象去创建一个更复杂的对象。它一步步地
+      从小而简单的对象中创建更大的对象。
 
+*** 情景分析
+        例如，当我们创建一个应用程序的主窗体时，我们需要创建一个菜单，
+        一个工具栏，然后将它们加入到主窗体中。
+
+        对于每个窗体，我们需要创建一个空的窗体，创建一个菜单，工具栏，
+        并将菜单、工具栏安装到窗体中。
+
+        #+BEGIN_SRC java
+          class Menu {
+          }
+          class ToolBar {
+          }
+          class MainWindow {
+              Menu menu;
+              ToolBar toolBar;
+              public Menu getMenu() {
+                  return menu;
+              }
+              public void setMenu(Menu menu) {
+                  this.menu = menu;
+              }
+              public ToolBar getToolBar() {
+                  return toolBar;
+              }
+              public void setToolBar(ToolBar toolBar) {
+                  this.toolBar = toolBar;
+              }
+          }
+          class WindowBuilder{
+              public static MainWindow createWindow(){
+                  MainWindow window = new MainWindow();
+                  Menu menu = new Menu();
+                  ToolBar toolBar = new ToolBar();
+                  window.setMenu(menu);
+                  window.setToolBar(toolBar);
+                  return window;
+              }
+          }
+          public class Main {
+              public static void main(String[] args) {
+                  MainWindow object = WindowBuilder.createWindow();
+
+              }
+          }        
+        #+END_SRC
+    
+        类关系图如下：
+        #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082901.png :cmdline -charset UTF-8
+          @startuml
+          package "Component Objects" {
+                  class Menu
+                  class ToolBar
+          }
+
+          class MainWindow {
+                Menu menu
+               ToolBar toolBar
+
+               +Menu getMenu()
+               +void setMenu(Menu menu)
+               +ToolBar getToolBar()
+               +void setToolBar(ToolBar toolBar)
+          }
+
+          MainWindow o-- Menu
+          MainWindow o-- ToolBar
+
+          class WindowBuilder {
+                static MainWindow createWindow()
+          }
+
+          WindowBuilder -- MainWindow
+
+          class Main
+
+          Main --> WindowBuilder: <<use>>
+
+          @enduml
+        #+END_SRC
+
+        #+RESULTS:
+        [[file:./images/2016/2016082901.png]]
+       
 ** 工厂方法(Factory Method)
+   defines an abstract class that creates objects but lets each
+   subclass decide which object to create. 
+
+   定义一个用于创建对象的接口，让子类决定实例化哪一个类，工厂方法使一
+   个类的实例化延迟到其子类。
+
+   工厂方法将使用者隐藏了对象创建的逻辑。
+
+   
+*** 情景分析
+
+       定义Shape接口：
+       #+BEGIN_SRC java
+         public interface Shape {
+            void draw();
+         }       
+       #+END_SRC
+
+       定义Rectangle类：
+       #+BEGIN_SRC java
+         public class Rectangle implements Shape {
+            @Override
+            public void draw() {
+               System.out.println("Inside Rectangle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义Square类：
+       #+BEGIN_SRC java
+         public class Square implements Shape {
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Square::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义Circle类：
+       #+BEGIN_SRC java
+         public class Circle implements Shape {
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Circle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       定义ShapeFactory类：
+       #+BEGIN_SRC java
+         public class ShapeFactory {
+           
+            //use getShape method to get object of type shape 
+            public Shape getShape(String shapeType){
+               if(shapeType == null){
+                  return null;
+               }    
+               if(shapeType.equalsIgnoreCase("CIRCLE")){
+                  return new Circle();
+               } else if(shapeType.equalsIgnoreCase("RECTANGLE")){
+                  return new Rectangle();
+               } else if(shapeType.equalsIgnoreCase("SQUARE")){
+                  return new Square();
+               }
+               return null;
+            }
+         }       
+       #+END_SRC
+
+       下面是使用工厂类的示例：
+       #+BEGIN_SRC java
+         public class Main {
+
+            public static void main(String[] args) {
+               ShapeFactory shapeFactory = new ShapeFactory();
+
+               //get an object of Circle and call its draw method.
+               Shape shape1 = shapeFactory.getShape("CIRCLE");
+
+               //call draw method of Circle
+               shape1.draw();
+
+               //get an object of Rectangle and call its draw method.
+               Shape shape2 = shapeFactory.getShape("RECTANGLE");
+
+               //call draw method of Rectangle
+               shape2.draw();
+
+               //get an object of Square and call its draw method.
+               Shape shape3 = shapeFactory.getShape("SQUARE");
+
+               //call draw method of circle
+               shape3.draw();
+            }
+         }       
+       #+END_SRC
+
+       类图
+
+       #+BEGIN_SRC plantuml :file ./images/2016/2016051801.png :cmdline -charset UTF-8
+         @startuml
+
+         class Shape
+         class Main
+
+         package "对象类" {
+                 class Rectangle
+                 class Square
+                 class Circle
+
+                 Shape <|-- Rectangle
+                 Shape <|-- Square
+                 Shape <|-- Circle
+         }
+
+         class ShapeFactory  {
+               +Shape getShape(String shapeType)
+         }
+         ShapeFactory -->Shape
+         Main --> ShapeFactory : <<use>>
+         @enduml
+       #+END_SRC
+       
+       #+RESULTS:
+       [[file:./images/2016/2016051801.png]]
 
 ** 原型(Prototype)
+     原型模式拥有较好的性能去复制对象。
+     
+     在原型模式中，一般返回对象的拷贝而不是重新创建一个新的对象。
+
+     如果创建一个新的对象代价很多，特别是涉及到递归时，会考虑使用原型
+     模式。
+
+     
+*** 情景分析
+
+       创建抽象类：
+       #+BEGIN_SRC java
+         abstract class Shape implements Cloneable {
+            
+            private String id;
+            protected String type;
+            
+            abstract void draw();
+            
+            public String getType(){
+               return type;
+            }
+            
+            public String getId() {
+               return id;
+            }
+            
+            public void setId(String id) {
+               this.id = id;
+            }
+            
+            public Object clone() {
+               Object clone = null;
+               try {
+                  clone = super.clone();
+               } catch (CloneNotSupportedException e) {
+                  e.printStackTrace();
+               }
+               return clone;
+            }
+         }       
+       #+END_SRC
+
+       创建三个具体子类：
+       #+BEGIN_SRC java
+         class Rectangle extends Shape {
+
+            public Rectangle(){
+              type = "Rectangle";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Rectangle::draw() method.");
+            }
+         }
+         class Square extends Shape {
+
+            public Square(){
+              type = "Square";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Square::draw() method.");
+            }
+         }
+         class Circle extends Shape {
+
+            public Circle(){
+              type = "Circle";
+            }
+
+            @Override
+            public void draw() {
+               System.out.println("Inside Circle::draw() method.");
+            }
+         }       
+       #+END_SRC
+
+       创建ShapeProtoType ，它返回不同shape子类的原型：
+       #+BEGIN_SRC java
+         class ShapeProtoType{
+           /*w w w .  j a va  2  s. co  m*/
+            private static Hashtable<String, Shape> shapeMap 
+               = new Hashtable<String, Shape>();
+
+            public static Shape getShape(String shapeId) {
+               Shape cachedShape = shapeMap.get(shapeId);
+               return (Shape) cachedShape.clone();
+            }
+            public static void loadCache() {
+               Circle circle = new Circle();
+               circle.setId("1");
+               shapeMap.put(circle.getId(),circle);
+
+               Square square = new Square();
+               square.setId("2");
+               shapeMap.put(square.getId(),square);
+
+               Rectangle rectangle = new Rectangle();
+               rectangle.setId("3");
+               shapeMap.put(rectangle.getId(),rectangle);
+            }
+         }
+         public class Main{
+            public static void main(String[] args) {
+               ShapeProtoType.loadCache();
+
+               Shape clonedShape = (Shape) ShapeProtoType.getShape("1");
+               System.out.println("Shape : " + clonedShape.getType());    
+
+               Shape clonedShape2 = (Shape) ShapeProtoType.getShape("2");
+               System.out.println("Shape : " + clonedShape2.getType());    
+
+               Shape clonedShape3 = (Shape) ShapeProtoType.getShape("3");
+               System.out.println("Shape : " + clonedShape3.getType());    
+            }
+         }       
+       #+END_SRC
+      
+       类关系图：
+       #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082902.png :cmdline -charset UTF-8
+         @startuml
+         interface Cloneable
+
+         class Shape {
+               +Object clone()
+         }
+
+         Cloneable <|.. Shape
+         class Rectangle
+         class Circle
+         class Square
+
+         Shape <|-- Rectangle
+         Shape <|-- Circle
+         Shape <|-- Square
+
+         class ShapeProtoType
+
+         ShapeProtoType -- Shape
+         class Main
+         Main --> ShapeProtoType: <<use>>
+
+         @enduml
+       #+END_SRC
+
+       #+RESULTS:
+       [[file:./images/2016/2016082902.png]]
 
 ** 单例(Singleton)
+     
+      单例 模式涉及一个类，主要是为了保持这个类的对象任何时候只能有一
+      个实例存在。
+
+      
+*** 情景分析 
+
+        #+BEGIN_SRC java
+          class MainWindow {
+             //create an object of MainWindow
+             private static MainWindow instance = new MainWindow();
+
+             //make the constructor private so that this class cannot be
+             //instantiated by other class
+             private MainWindow(){}
+
+             //Get the only object available
+             public static MainWindow getInstance(){
+                return instance;
+             }
+
+             public void showMessage(){
+                System.out.println("Hello World!");
+             }
+          }
+
+          public class Main {
+             public static void main(String[] args) {
+                //Get the only object available
+                MainWindow object = MainWindow.getInstance();
+
+                //show the message
+                object.showMessage();
+             }
+          }        
+        #+END_SRC
+
+      示例图：
+      #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016082903.png :cmdline -charset UTF-8
+        @startuml
+        class MainWindow {
+            +static MainWindow getInstance()
+        }
+
+        class Main
+
+        Main  --> MainWindow : getInstance
+        @enduml
+      #+END_SRC
+
+      #+RESULTS:
+      [[file:./images/2016/2016082903.png]]
 
 * 结构模式
   主要描述组织对象和类以完成更大的目标。主要有如下一些具体模式：
 
 ** 适配器(Adapter)
+   适配器是两个不兼容的实体之间的转换器，适配器模式是一种结构型模式，
+   它做为两个不兼容的接口之间的桥梁。通过适配器，我们可以将两个不兼容
+   的接口统一起来。
+
+   
+*** 情景分析
+
+    创建一个播放任何媒体文件的Player接口， MyPlayer是适配器，它统一了
+    播放媒体文件的各种接口。
+    
+    #+BEGIN_SRC java
+      interface Player {
+          public void play(String type, String fileName);
+      }/*from  w  w  w .j a v  a2s .  c o m*/
+      interface AudioPlayer {  
+          public void playAudio(String fileName);
+      }
+      interface VideoPlayer {  
+          public void playVideo(String fileName);
+      }
+      class MyAudioPlayer implements AudioPlayer {
+          @Override
+          public void playAudio(String fileName) {
+              System.out.println("Playing. Name: "+ fileName);    
+          }
+      }
+      class MyVideoPlayer implements VideoPlayer {
+          @Override
+          public void playVideo(String fileName) {
+              System.out.println("Playing. Name: "+ fileName);    
+          }
+      }
+
+      class MyPlayer implements Player {
+
+          AudioPlayer audioPlayer = new MyAudioPlayer();
+          VideoPlayer videoPlayer = new MyVideoPlayer();
+         
+          public MyPlayer(){      
+          }
+          @Override
+          public void play(String audioType, String fileName) {
+              if(audioType.equalsIgnoreCase("avi")){
+                  videoPlayer.playVideo(fileName);
+              }else if(audioType.equalsIgnoreCase("mp3")){
+                  audioPlayer.playAudio(fileName);
+              }
+          }
+      }
+      public class Main{
+          public static void main(String[] args) {
+              MyPlayer myPlayer = new MyPlayer();
+
+              myPlayer.play("mp3", "h.mp3");
+              myPlayer.play("avi", "me.avi");
+          }
+      }    
+    #+END_SRC
+
+    示例图：
+
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091001.png :cmdline -charset UTF-8
+      @startuml
+      interface Player {
+          +void play(String type, String filename)
+      }
+
+      interface AudioPlayer {  
+         +void playAudio(String fileName)
+      }
+
+      interface VideoPlayer {  
+         +void playVideo(String fileName)
+      }
+
+      class MyAudioPlayer {
+         +void playAudio(String fileName)
+      }
+
+      AudioPlayer <|.. MyAudioPlayer
+
+      class MyVideoPlayer {
+         +void playVideo(String fileName)
+      }
+
+      VideoPlayer <|.. MyVideoPlayer
+
+      class MyPlayer {
+       AudioPlayer audioPlayer
+       VideoPlayer videoPlayer
+
+      +void play(String audioType, String fileName)
+      }
+
+      Player <|.. MyPlayer
+
+      MyPlayer *-- MyAudioPlayer
+      MyPlayer *-- MyVideoPlayer
+
+      class Main
+
+      Main --> MyPlayer
+
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091001.png]]
 
 ** 桥接(Bridge)
+   桥接模式将定义与其实现分开，在该模式中，有一个接口充当桥接的角色，
+   桥接使得具体类与接口实现类之间相互独立。
+   
+*** 情景分析
+    #+BEGIN_SRC java
+      interface Printer {
+         public void print(int radius, int x, int y);
+      }/*www  .ja v  a  2s  . com*/
+      class ColorPrinter implements Printer {
+         @Override
+         public void print(int radius, int x, int y) {
+            System.out.println("Color: " + radius +", x: " +x+", "+ y +"]");
+         }
+      }
+      class BlackPrinter implements Printer {
+         @Override
+         public void print(int radius, int x, int y) {
+            System.out.println("Black: " + radius +", x: " +x+", "+ y +"]");
+         }
+      }
+      abstract class Shape {
+         protected Printer print;
+         protected Shape(Printer p){
+            this.print = p;
+         }
+         public abstract void draw();  
+      }
+      class Circle extends Shape {
+         private int x, y, radius;
+
+         public Circle(int x, int y, int radius, Printer draw) {
+            super(draw);
+            this.x = x;  
+            this.y = y;  
+            this.radius = radius;
+         }
+
+         public void draw() {
+            print.print(radius,x,y);
+         }
+      }
+      public class Main {
+         public static void main(String[] args) {
+            Shape redCircle = new Circle(100,100, 10, new ColorPrinter());
+            Shape blackCircle = new Circle(100,100, 10, new BlackPrinter());
+
+            redCircle.draw();
+            blackCircle.draw();
+         }
+      }    
+    #+END_SRC
+
+    示例图：
+
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091002.png :cmdline -charset UTF-8
+      @startuml
+      interface Printer {
+        +void print(int radius, int x, int y)
+      }
+
+      class ColorPrinter{
+        +void print(int radius, int x, int y)
+      }
+
+      class BlackPrinter{
+        +void print(int radius, int x, int y)
+      }
+
+      ColorPrinter ..|> Printer
+      BlackPrinter ..|> Printer
+
+      class Shape {
+       #Printer print
+       +void draw()
+      }
+
+      class Circle {
+       +void draw()
+      }
+
+      Circle -|> Shape
+      Shape *-- Printer
+
+      class Main
+
+      Main --> Shape
+        
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091002.png]]
 
 ** 组合(Composite)
+   组合模式会创建一种树型结构来代表一组对象，并对一组对象视为单个对象，
+   使用一个类来代表一个树型结构。
 
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      import java.util.ArrayList;
+      import java.util.List;
+      //from w w w .j  av  a  2 s  .  com
+      class Employee {
+         private String name;
+         private String title;
+         private List<Employee> subordinates;
+
+         public Employee(String name,String title) {
+            this.name = name;
+            this.title = title;
+            subordinates = new ArrayList<Employee>();
+         }
+
+         public void add(Employee e) {
+            subordinates.add(e);
+         }
+
+         public void remove(Employee e) {
+            subordinates.remove(e);
+         }
+
+         public List<Employee> getSubordinates(){
+           return subordinates;
+         }
+
+         public String toString(){
+            return "Employee :[ Name : "+ name 
+            +", dept : "+ title +subordinates +" ]";
+         }   
+      }
+
+      public class Main {
+         public static void main(String[] args) {
+            Employee CEO = new Employee("John","CEO");
+
+            Employee headSales = new Employee("Rob","Sales");
+
+            Employee headMarketing = new Employee("Mike","Marketing");
+
+            Employee programmer1 = new Employee("Lili","Programmer");
+            Employee programmer2 = new Employee("Bob","Programmer");
+
+            Employee tester1 = new Employee("Jack","Tester");
+            Employee tester2 = new Employee("Tom","Tester");
+
+            CEO.add(headSales);
+            CEO.add(headMarketing);
+
+            headSales.add(tester1);
+            headSales.add(tester2);
+
+            headMarketing.add(programmer1);
+            headMarketing.add(programmer2);
+
+            //print all employees of the organization
+            System.out.println(CEO); 
+            for (Employee headEmployee : CEO.getSubordinates()) {
+               System.out.println(headEmployee);
+               for (Employee employee : headEmployee.getSubordinates()) {
+                  System.out.println(employee);
+               }
+            }    
+         }
+      }    
+    #+END_SRC
+    
 ** 修饰器(Decorator)
+   修饰器模式在不改变原有类型的基础上增加新的功能，它充当一种包装器，
+   对现有的类进行功能扩展。
+
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      interface Printer {
+         void print();//from w  w  w  .j  a  v a2 s .  co  m
+      }
+      class PaperPrinter implements Printer {
+         @Override
+         public void print() {
+            System.out.println("Paper Printer");
+         }
+      }
+      class PlasticPrinter implements Printer {
+         @Override
+         public void print() {
+            System.out.println("Plastic Printer");
+         }
+      }
+      abstract class PrinterDecorator implements Printer {
+         protected Printer decoratedPrinter;
+         public PrinterDecorator(Printer d){
+            this.decoratedPrinter = d;
+         }
+         public void print(){
+            decoratedPrinter.print();
+         }  
+      }
+      class Printer3D extends PrinterDecorator {
+         public Printer3D(Printer decoratedShape) {
+            super(decoratedShape);    
+         }
+         @Override
+         public void print() {
+           System.out.println("3D.");
+           decoratedPrinter.print();         
+         }
+      }
+      public class Main {
+         public static void main(String[] args) {
+            Printer plasticPrinter = new PlasticPrinter();
+            Printer plastic3DPrinter = new Printer3D(new PlasticPrinter());
+            Printer paper3DPrinter = new Printer3D(new PaperPrinter());
+            plasticPrinter.print();
+            plastic3DPrinter.print();
+            paper3DPrinter.print();
+         }
+      }    
+    #+END_SRC
+
+    示例图：
+    
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016091003.png :cmdline -charset UTF-8
+      @startuml
+      interface Printer {
+        +void print()
+      }
+
+      class PaperPrinter {
+        +void print()
+      }
+
+      class PlasticPrinter {
+        +void print()
+      }
+
+      PaperPrinter ..|> Printer
+      PlasticPrinter ..|> Printer
+
+      class PrinterDecorator {
+        #Printer decoratedPrinter
+        +void print()
+      }
+
+      PrinterDecorator ..|> Printer
+      PrinterDecorator *-- Printer
+
+      class Printer3D {
+        +void print()
+      }
+
+      Printer3D --|> PrinterDecorator
+
+      @enduml
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016091003.png]]
 
 ** 门面(Facade)
+   门面模式隐藏了一个系统的复杂性，为使用者提供了一个简单的接口来与系
+   统交互。
 
+*** 情景分析
+
+    #+BEGIN_SRC java
+      class ShapeFacade {
+        interface Shape {
+          void draw();//from   ww  w .  ja  v a  2s .co  m
+        }
+        class Rectangle implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Rectangle::draw()");
+          }
+        }
+        class Square implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Square::draw()");
+          }
+        }
+        class Circle implements Shape {
+          @Override
+          public void draw() {
+            System.out.println("Circle::draw()");
+          }
+        }
+        private Shape circle = new Circle();
+        private Shape rectangle = new Rectangle();
+        private Shape square = new Square();
+
+        public ShapeFacade() {
+        }
+        public void drawCircle() {
+          circle.draw();
+        }
+        public void drawRectangle() {
+          rectangle.draw();
+        }
+        public void drawSquare() {
+          square.draw();
+        }
+      }
+      public class Main {
+        public static void main(String[] args) {
+          ShapeFacade shapeFacade = new ShapeFacade();
+          shapeFacade.drawCircle();
+          shapeFacade.drawRectangle();
+          shapeFacade.drawSquare();
+        }
+      }    
+    #+END_SRC
 ** 享元(Flyweight)
-
+   使用共享来支持有效地支持大量细粒度的对象。
 ** 代理(Proxy)
+   在代理模式中，一个类代表另一个类的功能。在代理模式中，我们使用原始
+   的接口创建一个对象将功能暴露给外面世界。
+   
+*** 情景分析
 
+    #+BEGIN_SRC java
+      interface Printer {
+         void print();/*ww  w  .  ja  v a 2  s  .  c  o  m*/
+      }
+      class ConsolePrinter implements Printer {
+         private String fileName;
 
+         public ConsolePrinter(String fileName){
+            this.fileName = fileName;
+         }
+         @Override
+         public void print() {
+            System.out.println("Displaying " + fileName);
+         }
+      }
+      class ProxyPrinter implements Printer{
+         private ConsolePrinter consolePrinter;
+         private String fileName;
+
+         public ProxyPrinter(String fileName){
+            this.fileName = fileName;
+         }
+
+         @Override
+         public void print() {
+            if(consolePrinter == null){
+               consolePrinter = new ConsolePrinter(fileName);
+            }
+            consolePrinter.print();
+         }
+      }
+      public class Main {
+        
+         public static void main(String[] args) {
+            Printer image = new ProxyPrinter("test");
+            image.print();   
+         }
+      }    
+    #+END_SRC
+
+** 过滤器(Filter/Criteria Pattern)
+   Filter pattern filters objects using different criteria.
+   The criteria can be chained together through logical operations.
+   
+*** 情景分析
+
+    #+BEGIN_SRC java
+      import java.util.List;
+      import java.util.ArrayList;
+      /*  w w  w.  j  a v  a2  s  .c  om*/
+      class Employee {
+        private String name;
+        private String gender;
+        private String retireStatus;
+
+        public Employee(String name, String gender, String r) {
+          this.name = name;
+          this.gender = gender;
+          this.retireStatus = r;
+        }
+
+        public String getName() {
+          return name;
+        }
+
+        public String getGender() {
+          return gender;
+        }
+
+        public String getRetireStatus() {
+          return retireStatus;
+        }
+
+        @Override
+        public String toString() {
+          return "Employee [name=" + name + ", gender=" + gender
+              + ", retireStatus=" + retireStatus + "]";
+        }
+      }
+
+      interface Criteria {
+        public List<Employee> meetCriteria(List<Employee> persons);
+      }
+
+      class CriteriaMale implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> malePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getGender().equalsIgnoreCase("MALE")) {
+              malePersons.add(person);
+            }
+          }
+          return malePersons;
+        }
+      }
+
+      class CriteriaFemale implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> femalePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getGender().equalsIgnoreCase("FEMALE")) {
+              femalePersons.add(person);
+            }
+          }
+          return femalePersons;
+        }
+      }
+
+      class CriteriaRetire implements Criteria {
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> singlePersons = new ArrayList<Employee>();
+          for (Employee person : persons) {
+            if (person.getRetireStatus().equalsIgnoreCase("YES")) {
+              singlePersons.add(person);
+            }
+          }
+          return singlePersons;
+        }
+      }
+
+      class AndCriteria implements Criteria {
+
+        private Criteria criteria;
+        private Criteria otherCriteria;
+
+        public AndCriteria(Criteria criteria, Criteria otherCriteria) {
+          this.criteria = criteria;
+          this.otherCriteria = otherCriteria;
+        }
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> firstCriteriaPersons = criteria.meetCriteria(persons);
+          return otherCriteria.meetCriteria(firstCriteriaPersons);
+        }
+      }
+
+      class OrCriteria implements Criteria {
+
+        private Criteria criteria;
+        private Criteria otherCriteria;
+
+        public OrCriteria(Criteria criteria, Criteria otherCriteria) {
+          this.criteria = criteria;
+          this.otherCriteria = otherCriteria;
+        }
+
+        @Override
+        public List<Employee> meetCriteria(List<Employee> persons) {
+          List<Employee> firstCriteriaItems = criteria.meetCriteria(persons);
+          List<Employee> otherCriteriaItems = otherCriteria.meetCriteria(persons);
+
+          for (Employee person : otherCriteriaItems) {
+            if (!firstCriteriaItems.contains(person)) {
+              firstCriteriaItems.add(person);
+            }
+          }
+          return firstCriteriaItems;
+        }
+      }
+
+      public class Main {
+        public static void main(String[] args) {
+          List<Employee> persons = new ArrayList<Employee>();
+
+          persons.add(new Employee("Tom", "Male", "YES"));
+          persons.add(new Employee("Jack", "Male", "NO"));
+          persons.add(new Employee("Jane", "Female", "NO"));
+          persons.add(new Employee("Diana", "Female", "YES"));
+          persons.add(new Employee("Mike", "Male", "NO"));
+          persons.add(new Employee("Bob", "Male", "YES"));
+
+          Criteria male = new CriteriaMale();
+          Criteria female = new CriteriaFemale();
+          Criteria retire = new CriteriaRetire();
+          Criteria retireMale = new AndCriteria(retire, male);
+          Criteria retireOrFemale = new OrCriteria(retire, female);
+
+          System.out.println("Males: ");
+          printPersons(male.meetCriteria(persons));
+
+          System.out.println("Females: ");
+          printPersons(female.meetCriteria(persons));
+
+          System.out.println("Retire Males: ");
+          printPersons(retireMale.meetCriteria(persons));
+
+          System.out.println("Retire Or Females: ");
+          printPersons(retireOrFemale.meetCriteria(persons));
+        }
+
+        public static void printPersons(List<Employee> persons) {
+          for (Employee person : persons) {
+            System.out.println(person);
+          }
+        }
+      }    
+    #+END_SRC
 * 行为模式
   主要关注对象之间的交互。主要有如下一些具体模式：
 
@@ -65,3 +1365,12 @@
 
 ** MVC(Model-View-Controller)
 
+* 扩展
+
+** Service Provider
+    研究类ImageIO
+
+** Reactor pattern
+    Java Selector   no blocking I/O
+** Proactor pattern
+    Java Asynchronous I/O
