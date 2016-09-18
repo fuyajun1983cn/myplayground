@@ -17,6 +17,8 @@
 #include <linux/fs.h>             // Header for the Linux file system support
 #include <asm/uaccess.h>          // Required for the copy to user function
 #include <linux/mutex.h>          // Required for the mutex functionality
+#include <linux/cdev.h>
+#include <linux/kdev_t.h>
 #define  DEVICE_NAME "ebbchar"    ///< The device will appear at /dev/ebbchar using this value
 #define  CLASS_NAME  "ebb"        ///< The device class -- this is a character device driver
 
@@ -25,10 +27,11 @@ MODULE_AUTHOR("Derek Molloy");    ///< The author -- visible when you use modinf
 MODULE_DESCRIPTION("A simple Linux char driver for the BBB");  ///< The description -- see modinfo
 MODULE_VERSION("0.1");            ///< A version number to inform users
 
-static int    majorNumber;                  ///< Stores the device number -- determined automatically
+static int    majorNumber = 0;                  ///< Stores the device number -- determined automatically
 static char   message[256] = {0};           ///< Memory for the string that is passed from userspace
 static short  size_of_message;              ///< Used to remember the size of the string stored
 static int    numberOpens = 0;              ///< Counts the number of times the device is opened
+static struct cdev *ebb_cdev = NULL;
 static struct class*  ebbcharClass  = NULL; ///< The device-driver class struct pointer
 static struct device* ebbcharDevice = NULL; ///< The device-driver device struct pointer
 
@@ -62,15 +65,31 @@ static struct file_operations fops =
  *  @return returns 0 if successful
  */
 static int __init ebbchar_init(void){
+   int result;
+   dev_t dev = MKDEV(majorNumber, 0);
    printk(KERN_INFO "EBBChar: Initializing the EBBChar LKM\n");
-
-   // Try to dynamically allocate a major number for the device -- more difficult but worth it
-   majorNumber = register_chrdev(0, DEVICE_NAME, &fops);
+   /* Figure out our device number. */
+	if (majorNumber)
+		result = register_chrdev_region(dev, 1, DEVICE_NAME);
+	else {
+		result = alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME);
+		majorNumber = MAJOR(dev);
+	}
    if (majorNumber<0){
       printk(KERN_ALERT "EBBChar failed to register a major number\n");
       return majorNumber;
    }
    printk(KERN_INFO "EBBChar: registered correctly with major number %d\n", majorNumber);
+
+   ebb_cdev = cdev_alloc();
+   cdev_init(ebb_cdev, &fops);
+   ebb_cdev->owner = THIS_MODULE;
+//   ebb_cdev->ops = &fops;
+   result = cdev_add(ebb_cdev, dev, 1);
+   if (result)  {
+  	printk(KERN_NOTICE "Error %d add char device.\n", result);
+	return -1;
+   }
 
    // Register the device class
    ebbcharClass = class_create(THIS_MODULE, CLASS_NAME);
@@ -104,7 +123,8 @@ static void __exit ebbchar_exit(void){
    device_destroy(ebbcharClass, MKDEV(majorNumber, 0));     // remove the device
    class_unregister(ebbcharClass);                          // unregister the device class
    class_destroy(ebbcharClass);                             // remove the device class
-   unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
+//   unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
+   unregister_chrdev_region(majorNumber, 1);
    mutex_destroy(&ebbchar_mutex);        /// destroy the dynamically-allocated mutex
    printk(KERN_INFO "EBBChar: Goodbye from the LKM!\n");
 }
