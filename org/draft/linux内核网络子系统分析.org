@@ -1,4 +1,5 @@
 #+STARTUP: overview
+#+TITLE: LINUX网络子系统学习笔记
 #+STARTUP: hidestars
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
@@ -127,7 +128,7 @@
     2. 调用帧的接口
        #+BEGIN_SRC c
          //直接调用此接口通知内核收到数据帧
-         netif_rx_schedule(...);
+         napi_schedule(...); // obsolete: netif_rx_schedule(...);
 
          //或通过分为如下两个调用
          netif_rx_schedule_prep(...)

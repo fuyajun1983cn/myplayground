@@ -1772,189 +1772,6 @@
           D/wpa_supplicant(  722): RTM_NEWLINK: ifi_index=11 ifname=p2p-p2p0-1 operstate=5 linkmode=0 ifi_family=0 ifi_flags=0x11003 ([UP][LOWER_UP])        
         #+END_SRC
 
-**** Driver 当GC时的交互过程：
-
-     #+BEGIN_EXAMPLE
-       1. CFG80211_PKT: RX P2P_PROVISION_REQ 11
-       2. CFG80211_PKT: TX P2P_PROVISION_RSP 11
-       3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
-       4. CFG80211_PKT: TX GO_NEGOCIACTION_RSP 11
-          这时，会启动Virutal Inferace： RTMP_CFG80211_VirtualIF_Init
-          
-       5. CFG80211_OpsRemainOnChannel   listen
-       6. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 11
-       7. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 11
-       8. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 11
-          CFG80211_VirtualIF_Open, 会出现："(ApCliIfUp) ApCli can't startup Due to CFG80211 No connect yet."
-       9. CFG80211_OpsConnect
-          80211> Connect bssid 16:f6:5a:ac:92:0e
-          APCLI Connection onGoing.....
-          AP_CLI WPS Connection onGoing.....
-          80211> APCLI CONNECTING SSID = DIRECT-si-
-          Set_ApCli_Enable_Proc::(enable = 1)
-          (ApCliIfDown) ApCli interface[0] startdown.
-          80211> APCLI CONNECTING SSID = DIRECT-si-
-          80211> CFG80211_OpsStaChg ==>
-          80211> Change STA(00:00:00:00:00:00) ==>
-          80211> CFG80211_OpsStaChg ==>
-          80211> Change STA(00:00:00:00:00:00) ==>
-          80211> CFG80211_OpsStaChg ==>
-          80211> Change STA(00:00:00:00:00:00) ==>
-          80211> CFG80211_OpsStaChg ==>
-          80211> Change STA(00:00:00:00:00:00) ==>
-          (ApCliIfUp) ApCli interface[0] startup.
-          (ApCliCtrlJoinReqAction) Start Probe Req.
-          ApCli SYNC - Start Probe the SSID  on channel =1
-          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-          = 1
-          PeerBeaconAtJoinAction HT===>Central Channel = 1, Control
-          Channel = 1,  .
-          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-          APCLI_ASSOC - Send ASSOC request...
-          ApCliPeerAssocRspSanity() found wfd ie in assoc response frame,
-          it's wfd connect.
-          APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
-          ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
-          16:f6:5a:ac:92:0e.    bP2pClient = 1
-          ApCliAssocPostProc===> 11n HT STA
-          !!! APCLI LINK UP - IF(apcli0) AuthMode(0)=OPEN,
-          WepStatus(1)=NONE !!!
-          MacTableInsertEntry - allocate entry #2, Total= 1
-          80211> CFG80211_OpsStaChg ==>
-          80211> Change STA(16:F6:5A:AC:92:0E) ==>
-          =WPS-Start=
-          Receive EAP-Packet frame, TYPE = 0, Length = 5
-          CFG80211 EAPOL Indicate_Legacy_Packet
-          CFG80211_PKT: RX ACTION Frame 1
-          CFG80211_PKT: P2P_CHECK ACTION Frame 1
-          80211> CFG80211_OpsDisconnect ==>
-          80211> ReasonCode = 3
-          AUTH - Send DE-AUTH request (Reason=3)..
-          !!! APCLI LINK DOWN - IF(apcli0)!!!   
-          =WPS-End=
-          ++++++++ ApCliLinkDown::  Keep BssTable on Channel
-          = 1. ++++++++      BSSID = [16:f6:5a:ac:92:0e].  p2p_bssid =
-          [16:f6:5a:ac:92:0e].
-          80211> CFG80211_LostGoInform ==> 
-          (ApCliIfDown) ApCli interface[0] startdown.
-
-          80211> CFG80211_OpsConnect ==>
-
-          =4-way-handshake=
-          80211> Connect bssid 16:f6:5a:ac:92:0e
-          (ApCliIfUp) ApCli interface[0] startup.
-          (ApCliCtrlJoinReqAction) Start Probe Req.
-          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-          = 1
-          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-          Scanning!!
-          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-          APCLI_ASSOC - Send ASSOC request...
-          ApCliMlmeAssocReqAction:: APCLI WPA_ASSOC_IE FROM SUPPLICANT
-          (ApCliCtrlAssocReqTimeoutAction) Assoc Req Timeout.
-
-          (ApCliIfUp) ApCli interface[0] startup.
-
-          (ApCliCtrlJoinReqAction) Start Probe Req.
-          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-          = 1
-          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-          Scanning!!
-          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-          Deauth: 7e:b2:32:e7:7c:25, 16:f6:5a:ac:92:0e
-          APCLI AUTH_RSP - receive DE-AUTH from our AP
-          APCLI AUTH - AuthTimeout
-          (ApCliIfUp) ApCli interface[0] startup.
-          (ApCliCtrlJoinReqAction) Start Probe Req.
-          SYNC - receive desired PROBE_RSP at JoinWaitProbeRsp... Channel
-          = 1
-          ApCliPeerProbeRspAtJoinAction::  Swich Channel = 1. and STOP
-          Scanning!!
-
-          APCLI AUTH - Send AUTH request seq#1 (Alg=0)...
-          APCLI AUTH - Receive AUTH_RSP seq#2 to me (Alg=0, Status=0)
-          (ApCliCtrlAuthRspAction) Auth Rsp Success.
-          APCLI_ASSOC - Send ASSOC request...
-          APCLI_ASSOC - receive ASSOC_RSP to me (status=0)
-          ApCliPeerAssocRspAction:: recv peer ASSOC RSP from
-          16:f6:5a:ac:92:0e.    bP2pClient = 1
-
-          !!! APCLI LINK UP - IF(apcli0) AuthMode(7)=WPA2PSK,
-          WepStatus(6)=AES !!!
-
-          MacTableInsertEntry - allocate entry #2, Total= 1
-
-          Receive EAPOL-Key frame, TYPE = 3, Length = 95
-          CFG80211 EAPOL Indicate_Legacy_Packet
-          80211> CFG80211_OpsKeyAdd ==>
-          AsicAddSharedKeyEntry BssIndex=8, KeyIdx=1
-
-          !!!P2P Group STARTED
-
-          DHCP
-          DHCP_DISCOVER
-          DHCP_OFFER
-          DHCP_REQUEST
-          DHCP_ACK
-     #+END_EXAMPLE
-    
-**** Driver当GO时的交互过程：
-     #+BEGIN_EXAMPLE
-                  
-       1. P2P Listen  
-          CFG80211_PKT: ROC CHANNEL_LOCK 11
-          CFG80211_PKT: TX ProbeRsp Frame 11
-          CFG80211_PKT: TX ProbeRsp Frame 11
-
-       2. Receive P2P Invite
-          CFG80211_PKT: RX P2P_INVITE_REQ 11
-          CFG80211_PKT: TX P2P_INVITE_RSP 11
-
-       3. CFG80211_PKT: RX GO_NEGOCIACTION_REQ 11
-
-       4. CFG80211_PKT: TX GO_NEGOCIACTION_REQ 1
-
-       5. CFG80211_PKT: RX GO_NEGOCIACTION_RSP 1
-
-       6. CFG80211_PKT: TX GO_NEGOCIACTION_CONFIRM 1
-
-       7. GroupNegotiatioCFG80211_VirtualIF_Open: ===> 8,p2p-p2p0-2
-          rocessMessage   (ApCliIfUp) ApCli can't startup Due to
-          CFG80211 No connect yet.
-          ==> RTMP_CFG80211_VirtualIF_CancelP2pClient.
-          ==> RTMP_CFG80211_VirtualIF_CancelP2pClient HIT.
-          80211> Change to IFTYPE_AP 3!
-          80211> Change the Interface to AP Mode
-          80211> CFG80211_OpsStaDel ==>
-          Deauthenticate all stations!
-
-       8. 80211> Set the channel in AP Mode
-          80211> CFG80211DRV_OpsBeaconSet ==> 1
-          New AP BSSID 7e:b2:32:e7:7c:25
-          CFG80211_PKT: TX ProbeRsp Frame 11
-          AUTH - MBSS(0), Rcv AUTH seq#1, Alg=0, Status=0 from
-          [wcid=255]86:38:38:b0:7f:ee
-          AUTH_RSP - Send AUTH response (SUCCESS)...
-          ASSOC - MBSS(0), receive ASSOC request from
-          86:38:38:b0:7f:ee
-          SSOC - Send ASSOC response (Status=0)...
-          =WPS=
-          ####### Send L2 Frame Mac=86:38:38:b0:7f:ee
-          CFG80211_PKT: RX ACTION Frame 11
-          CFG80211 EAPOL Indicate_Legacy_Packet
-
-       9. P2P_GROUP_STARTED_STR
-          ASSOC - receive DIS-ASSOC(seq-1765) request from
-          86:38:38:b0:7f:ee, reason=8
-          
-          AUTH_RSP - Send AUTH response (SUCCESS)...
-          ASSOC - Send ASSOC response (Status=0)...
-          =4-way handshake=
-          ####### Send L2 Frame Mac=86:38:38:b0:7f:ee
-     #+END_EXAMPLE
-
 **** Action帧的接收
          
          #+CAPTION: 接收Action帧的流程
@@ -2001,6 +1818,7 @@
 
         通过 =struct p2p_cfg= 的回调接口： =send_action= ， 实际注册的
         函数为： =wpas_send_action= , 该函数会调用
+        =wpas_send_action_work= 或
         =offchannel_send_action= ，并注册了回调函数 :
         =wpas_p2p_send_action_tx_status= ， 通过该接口，将发送Action帧
         的结果反馈上来。底层是通过  =EVENT_TX_STATUS= 消息来通知的，通
@@ -2012,10 +1830,10 @@
           :wpa_supplicant_event;
           note right: 收到EVENT_TX_STATUS事件
           :offchannel_send_action_tx_status;
-          :wpas_p2p_send_action_tx_status
-          note right: 注册的pending_action_tx_status_cb
+          :wpas_p2p_send_action_tx_status;
+          note right : 注册的pending_action_tx_status_cb
           :p2p_send_action_cb;
-          note right: 在这个函数中，会调用不同的状态注册的回调函数
+          note right: 在这个函数中，会调用不同的状态下注册的回调函数
           stop
           @enduml
         #+END_SRC
@@ -2409,7 +2227,10 @@
     https://android.googlesource.com/platform/external/wpa_supplicant_8/+/ics-plus-aosp/wpa_supplicant/bgscan_simple.c
 
 ** WPS
-   在P2P GO与GC关联后，会进行WPS交互过程。交互时的一些信息会透过
+   在P2P GO与GC第一次关联后，会进行WPS交互过程，成功后，会打印
+   "WPS-REG-SUCCESS", 之后才会有"P2P-GROUP-FORMATION-SUCCESS",
+   "P2P-GROUP-STARTED"消息，产生的passphrase或psk作为后面的4步握手过程密
+   钥产生时所需要的PMK. 交互时的一些信息会透过
    Association Request携带的IE信息来提供，如果底层驱动上报的
    Association Request中相关的IE信息为空，则WPS过程将会终止。
    在GO协议完成后，会开始WPS协商的过程。

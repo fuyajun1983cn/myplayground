@@ -4808,8 +4808,6 @@ Vmalloc映射分三步：
      MODULE_DESCRIPTION("Module to read a file from kernel space");      
   #+END_SRC
 
-
-
 * 知识点44 poll 和select
   非阻塞I/O的应用程序通过会调用poll,select和epoll等系统调用，这些系统
   调用实际上实现的是同一个功能：允许每个进程判断在不阻塞进程的情况下，
@@ -4882,13 +4880,6 @@ Vmalloc映射分三步：
         return mask;
       }    
     #+END_SRC
-    
-
-
-
-
-
-https://kernelnewbies.org/KernelMemoryAllocation
 
 * 知识点45 iotcl函数
   Linux系统建议以如下方式定义ioctl()的命令码。
@@ -4926,3 +4917,42 @@ https://kernelnewbies.org/KernelMemoryAllocation
       
     ((size) << _IOC_SIZESHIFT))    
   #+END_SRC
+
+* 知识点46 configfs
+   一种用户空间驱动的内核对象配置。它与sysfs类似。 configfs是一种基于
+   Ram的文件系统， 从用户空间创建和销毁内核对象。而sysfs则是用于从用户
+   空间查看和操纵内核空间创建的对象。通常挂载在  =/sys/kernel/config=
+   下。
+
+   在什么情况下用：
+   - 当模块有很多参数需要配置时
+   - 当需要动态创建内核对象并且内核对象需要修改配置时
+
+   顶层结构是 =struct configfs_subsystem= ，为configfs子系统结构，接着是
+   =struct config_group= ，是configfs目录和属性的容器， =struct config_item=
+   是configfs目录，代表可配置的内核对象， =struct configfs_attribute= 是目
+   录下面的属性。
+
+   
+
+   
+* ＝iov_iter= interface
+      AIO changed to read/write-iter
+      https://lwn.net/Articles/625077/  The iov_iter interface
+
+* 内核调试
+  
+  http://opensourceforu.com/2011/01/understanding-a-kernel-oops/
+
+  http://www.kerneloops.org/
+
+  https://www.freebsd.org/doc/en/books/developers-handbook/kerneldebug.html
+
+  https://wiki.ubuntu.com/Kernel/KernelDebuggingTricks
+
+  
+    
+
+
+
+https://kernelnewbies.org/KernelMemoryAllocation

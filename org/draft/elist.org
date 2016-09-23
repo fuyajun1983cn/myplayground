@@ -509,3 +509,5 @@ body...)
 ** sit-for
     重新显示，并等待几秒钟
     : (sit-for 3)
+
+https://www.emacswiki.org/emacs/ElispCookbook

@@ -151,13 +151,23 @@
     - CNM
       Concurrent Network Management
 
-** 命令的基本流程
-    
+** 命令数据发送的基本流程
+   
+   主极有三个线程：
+   1. =main_thread=
+      Manage Tx Queue for data/cmd/mgmt, ioctl, interrupt.
+   2. =hif_thread=
+      tx send function to HIF related request
+   3. =rx_thread=
+      rx data/event. 
+
+   [[./images/2016/2016091901.png]]
+
 *** TX
 
         入口函数： =main_thread= , 主要处理TX请求以及中断事件。
 
-        kalProcessTxReq
+        =main_thread= 通过该函数: kalProcessTxReq 处理TX请求。
 
         上层下命令经过的流程：
         1. 通过nl80211回调注册的cfg80211的接口。
@@ -188,9 +198,9 @@
         #+END_SRC
 
         #+RESULTS:
+
         [[file:./images/2016/2016083001.png]]
 
-        
 *** RX
 
          #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016083002.png :cmdline -charset UTF-8
@@ -218,6 +228,21 @@
          #+RESULTS:
          [[file:./images/2016/2016083002.png]]
 
+         SDIO RX can only go to CR4 (PP->CR4->HIF)
+         USB RX can use either CR4 (PP->CR4->HIF) or directly to HIF (PP->HIF)
+
+*** FW download
+       
+        函数调用流程：
+        1. wlanProbe
+        2. wlanAdapterStart
+        3. wlanDownloadFW
+           - Download Patch
+           - Download N9
+           - Download CR4 FW
+        4. Bulk out to USB
+
+
 *** Reference Charts
      
         [[./images/2016/2016083003.png]]
@@ -225,3 +250,96 @@
 ** 编译
     因為當初SDIO開發時候只有x86 PC跟HE兩種平台 
     这个宏 =MTK_WCN_HIF_SDIO= 要定义为0。
+
+* 调试
+
+** FixedRate Iwpriv CMD
+   有兩種方法,  建議用第一種：
+   1. 命令格式
+      : iwpriv wlanXX driver fixedrate=[WCID]-[Mode]-[BW]-[MCS]-[VhtNss]-[SGI]-[Preamble]-[STBC]-[LDPC]-[SPE_EN]
+      其中，WCID未support， 使用示例：
+      : iwpriv wlan0 driver fixedrate=1-2-1-7-0-0-0-0-0-0
+
+      相关说明：
+      - WCID
+        WTBL Index, meaningless in FW now, and will take effect on all connected peer
+
+      - Mode
+        0: CCK   1: Legacy OFDM   2: HT   3: GF   4: VHT
+
+      - BW
+        0: BW20   1: BW40   2: BW80   3: BW160
+
+      - MCS
+        CCK: 0-3   OFDM: 0-7    HT: 0-32   VHT: 0-9
+
+      - VhtNss
+        1-2 for VHT only
+
+      - SGI
+        0: Disable all BW SGI   1: Enable all BW SGI
+
+      - Preamble    
+        0: Long   1: Short
+
+      - STBC
+        0: Disable   1: Enable
+
+      - LDPC
+        0: Disable   1: Enable
+
+      - SPE_EN
+        0: Disable   1: Enable
+      
+   2. 命令格式
+       : iwpriv wlanXX driver “set_sw_ctrl 0xa0620000 <ratecode>”
+      使用示例：
+      : iwpriv wlanXX driver “set_sw_ctrl 0xa0620001 0x1”
+
+      
+   相关说明：
+   <Ratecode> rule
+   bit[31]: 0x1  -> fix rate
+   bit[30]: SGI enable
+   bit[29]: LDPC enable
+   bit[11]: STBC enable
+   bit[10:9]: Nsts (0x00 means 1 Nsts)
+   bit[8:0]: TX mode and rate (請參考以下coding)
+   
+   bit[8:0]: TX mode and rate
+
+    "VHT_MCS0"=>0x100,                 
+    "VHT_MCS1"=>0x101,                 
+    "VHT_MCS2"=>0x102,                    
+    "VHT_MCS3"=>0x103,
+    "VHT_MCS4"=>0x104,
+    "VHT_MCS5"=>0x105,
+    "VHT_MCS6"=>0x106,
+   "VHT_MCS7"=>0x107,
+    "VHT_MCS8"=>0x108,
+    "VHT_MCS9"=>0x109,
+
+    "HT_MCS0"=>0x80,
+    "HT_MCS1"=>0x81,
+    "HT_MCS2"=>0x82,
+    "HT_MCS3"=>0x83,
+    "HT_MCS4"=>0x84,
+    "HT_MCS5"=>0x85,
+    "HT_MCS6"=>0x86,
+    "HT_MCS7"=>0x87,
+    
+    "54M"=>0x4C,
+    "48M"=>0x48,
+    "36M"=>0x4D,
+   "24M"=>0x49,
+    "18M"=>0x4E,
+    "12M"=>0x4A,
+   "9M"=>0x4F,
+    "6M"=>0x4B,
+    
+    "11M"=>0x7,           
+    "5.5M"=>0x06,
+    "2M"=>0x05,
+    "1M"=>0x00,
+
+
