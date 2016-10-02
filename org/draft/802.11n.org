@@ -128,6 +128,122 @@
 
       - 省电
 
+   2. 专题讨论
+
+      - Aggregation
+        802.11n使用了两步聚合来增加数据帧的大小。第一步，是在MAC上面，
+        聚合MAC service data units(MSDU)，称为A-MSDU。第二步，是在MAC
+        下面，聚合MAC protocol data units(MPDU)，称为A-MPDU。
+        [[./images/2016/2016092702.gif]]
+
+        1) =A-MSDU=
+           将属于相同的服务类型的MSDU，目标地址一致的聚合成A-MSDU。每个
+           MSDU都添加了一个头部信息：目标地址，源地址以及负载长度。但
+           是不拥有独立的MAC头部信息。A-MSDU聚合帧的长度受接收方的能力
+           限制，一般为3839 或7935字节。每个STA通过HT能力信息声明这些
+           能力。
+           [[./images/2016/2016092703.gif]]
+
+        2) =A-MPDU=
+           每个MPDU之间有一个MPDU Delimiter。The delimiter contains
+           the MPDU length, 11-n signature (which is the ASCII
+           character 'n'), and a CRC byte.  
+           
+           The purpose of the delimiter is to allow the receiver to
+           delineate later MPDUs in the aggregate even if one of the
+           preceding delimiers is corrupted. 
+
+           All MPDUs in the aggregate must belong to the same service
+           category and be addressed to the same receiver. The total
+           length of the aggregate is limited to 8K, 16K, 32K or 64K
+           depending on the capability of the receiver.  
+
+           Since the aggregate is transmitted in one PHY frame, the
+           receiver is trained only once at the beginning of the
+           frame. The channel conditions may change significantly
+           during a long frame, causing errors in reception. Hence the
+           length must also be limited by the /channel coherence
+           duration./  
+           
+           Further, a maximum of 64 MPDUs may be aggregated due to the
+           limitation of the block aknowledgement response frame.  
+
+           Since MPDU encapsulation, and A-MPDU aggregation happen in
+           the network interface, the amount of aggregation is also
+           limited by the number of frames  available in the
+           /transmitter queue./
+
+           [[./images/2016/2016092704.gif]]
+
+        3) Two level aggregation
+           Two level aggregation involves both A-MSDU and A-MPDU
+           accumulation processes.  
+
+           [[./images/2016/2016092705.gif]]
+
+      - Block Acknowledgment Mechanism
+
+        1) Implicit Block Acknowledgment
+           The first improvement is to remove the requirement of a BA
+           request (BAR) to solicit a BA response. 
+
+           [[./images/2016/2016092706.gif]]
+
+        2) Compressed Block Acknowledgment
+           802.11n does not allow fragmented MSDUs to be part of an
+           A-MPDU. The BA response now requires only 1 bit per
+           MSDU. Thus the compressed BA payload is only 64-bits long,
+           compared to the 1024 bits for the full BA.
+
+        3) Partial State Block Acknowledgment
+           The 802.11e block acknowledgment system requires the
+           recipient to maintain a MPDU reception scoreboard for all
+           block acknowledge sessions in progress.  
+
+           Since the BA response must be produced on demand and
+           transmitted immediately, this presents an implementation
+           challenge in terms of memory requirement, and speed of
+           access of such data structures. 
+
+           802.11n relieves the recipient of this requirement, by
+           allowing it to store the reception scorecard of a few most
+           recent sessions. It is the burden of the transmitter to
+           retrieve the BA response prior to it being discarded (and
+           overwritten) at the receiver.  
+
+           If the scoreboard entry at the receiver has been discarded
+           at the time a request is received, it must return a BA
+           response with all bits set to zero. This will cause a
+           retransmission of all MPDUs. 
+
+           The typical usage scenario is where the transmitter sends
+           one or more A-MPDUs to a receiver, and retrieves the BA
+           response within the same TxOP as shown in Figure (8).
+
+      - Reverse Direction Protocol
+        有些应用，如FTP和HTTP，上行（发送者向外传输数据）和下行（接收
+        者接收对方回应）的数据传输量不对等，即上行的数据远远多于下行数据传输量。然
+        而，应用程序数据传输率却仍然依赖于下行数据传输的延迟。
+
+        按照一般的媒介访问规则，接收者必须获取一个TXOP，然后才能传输响
+        应帧，但这会导致两个问题：
+        1. there is a delay in transmission of the responses
+
+        2. the TxOP in the reverse direction is not used fully.
+
+        802.11n针对这两个问题都给出了改进措施，它引入了Reverse
+        Direction Protocol (RDP)。这个协议允许实现“双向TXOP”，就是说一
+        个TXOP的拥有者可以将它获得的TXOP部分转租给另一个STA。有两种使
+        用方式：
+        1. 传输方在它的TXOP临近结束期，将其转租给另一个STA用于发送响应
+           给它的接收方。
+
+        2. 接收方申请一个TXOP后，发送完响应后，将它的TXOP转交给另一个
+           STA。
+
+        这个改进对TCP的吞吐量有大约多达40%的提升。
+
+
 ** 频道，成帧和编码
 
    1. 频道结构和布局
@@ -191,7 +307,6 @@
 
       #+CAPTION: Feature classification of PHY features
       [[./images/2016/2016042703.png]]
-
 
 ** 与互操作性相关的高级物理层特性
    
@@ -356,6 +471,38 @@
    four. This allows four simultaneous 72.2 Mbps streams, yielding a
    total throughput of 288.9 Mbps.
 
+*** SDM[fn:2]
+       802.11n makes provision for up to a 4x4 system, i.e. a wireless
+       link with 4 transmit and 4 receive antennas. With
+       well-separated antennas, and a multipath propagation
+       environment, the multiple-input-multiple-output (MIMO) system
+       provides spatial diversity to the wireless link. To improve the
+       data rate, the data bits are split into multiple streams and
+       transmitted simultaneously over the antennas. The increase in
+       data rate is proportional to the number of parallel
+       streams. This technique is called space division multiplexing
+       (SDM).
+*** TxBF 
+       The maximum number of simultaneous data streams is limited by
+       the lesser of the antennas at either end of the link. In a case
+       where the receiver has fewer antennas than the transmitter
+       (such as the downlink from AP to STA), the number of
+       independent data streams is limited by the receiver. The
+       transmitter may then use the extra antennas to steer the
+       streams to the receiver. This technique, called transmit
+       beamforming (TxBF), requires the transmitter to have knowledge
+       of the relative location of the receiver, or more accurately of
+       the channel between it and the receiver. With this knowledge
+       the transmitter may apply pre-coding to the data streams to
+       focus them on to the receiver. 
+*** MRC
+       In the case that the transmitter has fewer antennas than the
+       receiver (such as in the uplink from the STA to AP), the extra
+       antennas may be used for better reception by optimally
+       combining the received signals from the different
+       antennas. This technique is called Maximal-Ratio-Combining
+       (MRC).  
+
 ** 40 MHz channels
 
    all previous versions of 802.11 have a channel bandwidth of
@@ -384,60 +531,79 @@
    under all circumstances. These improvements are described in the following
    paragraphs.
 
-** Fast MCS feedback – rate selection
+*** Fast MCS feedback – rate selection
 
-   Existing equipment finds it hard to track rapid changes in the
-   channel. Say you walk through the shadow of a pole in the
-   building. The rate may go from 50 to 6 to 50 mbps in one
-   step. It’s hard for conventional systems to track this, because
-   they adapt based on transmit errors. With delay sensitive data like
-   voice you have to be very conservative, so adapting up is much
-   slower than down. 11n adds explicit per-packet feedback,
-   recommending the transmission speed for the next packet. This is
-   called Fast MCS (Modulation and Coding Scheme) Feedback.
+    Existing equipment finds it hard to track rapid changes in the
+    channel. Say you walk through the shadow of a pole in the
+    building. The rate may go from 50 to 6 to 50 mbps in one
+    step. It’s hard for conventional systems to track this, because
+    they adapt based on transmit errors. With delay sensitive data like
+    voice you have to be very conservative, so adapting up is much
+    slower than down. 11n adds explicit per-packet feedback,
+    recommending the transmission speed for the next packet. This is
+    called Fast MCS (Modulation and Coding Scheme) Feedback.
 
-** LDPC (Low Density Partity Check) coding
+*** LDPC (Low Density Partity Check) coding
 
-   LDPC is a super duper Forward Error Correction mechanism. Although
-   it is almost 50 years old, it is the most effective error
-   correcting code developed to date; it nears the theoretical limit
-   of efficiency. It was little used until recently because of its
-   high compute requirement. An interesting by-product of its
-   antiquity is that it is relatively free of patent issues.
+    LDPC is a super duper Forward Error Correction mechanism. Although
+    it is almost 50 years old, it is the most effective error
+    correcting code developed to date; it nears the theoretical limit
+    of efficiency. It was little used until recently because of its
+    high compute requirement. An interesting by-product of its
+    antiquity is that it is relatively free of patent issues.
 
-** Transmit beam-forming
+*** Transmit beam-forming
 
-   The term beam-forming conjures up images of a laser-like beam of
-   radio waves pointing exactly at the client device, but it doesn’t
-   really work like that. If you look at a fine-resolution map of
-   signal intensity in a room covered by a Wi-Fi access point, it
-   looks like the surface of a pond disturbed by a gust of wind – it
-   is a patchwork of bumps and dips in signal intensity, some as small
-   as a few cubic inches in volume. Transmit beam-forming adjusts the
-   phase and transmit power at the various antennas to move one of the
-   maxima of signal intensity to where the client device is.
+    The term beam-forming conjures up images of a laser-like beam of
+    radio waves pointing exactly at the client device, but it doesn’t
+    really work like that. If you look at a fine-resolution map of
+    signal intensity in a room covered by a Wi-Fi access point, it
+    looks like the surface of a pond disturbed by a gust of wind – it
+    is a patchwork of bumps and dips in signal intensity, some as small
+    as a few cubic inches in volume. Transmit beam-forming adjusts the
+    phase and transmit power at the various antennas to move one of the
+    maxima of signal intensity to where the client device is.
 
-** STBC
+*** STBC
 
-   In a phone the chances are that there will only be one Wi-Fi
-   antenna, so there will be only one spatial channel. Even so, the
-   MIMO technique of STBC (Space-Time Block Coding) enables the
-   handset to take advantage of the multiple antennas on the Access
-   Point to improve range, both rate-at-range and limiting range.
+    In a phone the chances are that there will only be one Wi-Fi
+    antenna, so there will be only one spatial channel. Even so, the
+    MIMO technique of STBC (Space-Time Block Coding) enables the
+    handset to take advantage of the multiple antennas on the Access
+    Point to improve range, both rate-at-range and limiting range.
 
-   Incidentally, to receive 802.11n certification by the Wi-Fi
-   Alliance, all devices must have two or more antennas except
-   handsets which can optionally have a single antenna. Several
-   considerations went into allowing this concession to handsets,
-   mainly size and power constraints. STBC is particularly useful to
-   handsets. It yields the robustness of MIMO without a second radio,
-   which saves all the power the second radio would burn. This power
-   saving is compounded with another: because of the greater
-   rate-at-range the radio is on for less time while transmitting a
-   given quantity of data. STBC is optional in 802.11n, though it
-   should always be implemented for systems that support 802.11n
-   handsets.
-   
+    Incidentally, to receive 802.11n certification by the Wi-Fi
+    Alliance, all devices must have two or more antennas except
+    handsets which can optionally have a single antenna. Several
+    considerations went into allowing this concession to handsets,
+    mainly size and power constraints. STBC is particularly useful to
+    handsets. It yields the robustness of MIMO without a second radio,
+    which saves all the power the second radio would burn. This power
+    saving is compounded with another: because of the greater
+    rate-at-range the radio is on for less time while transmitting a
+    given quantity of data. STBC is optional in 802.11n, though it
+    should always be implemented for systems that support 802.11n
+    handsets.
+
+*** Further Improvement
+       The first improvement is to reduce the interframe space between
+       succesive transmissions. SIFS was designed to allow for a
+       station to turn from receive mode to transmit mode. Since the
+       station remains in transmit mode for the duration of TxOP, when
+       using the BA scheme, the interframe gap between these
+       transmissions may be reduced. The reduced interframe space
+       (RIFS) is designed to allow a receiver to get ready for frame
+       reception.
+
+       The next improvement is to concatenate the data frames in the
+       burst, so as to do away with the interframe space and PHY
+       headers. This process is called Frame Aggregation, and is the
+       major throughput enhancing mechanism introduced in 802.11n.  
+
+       Finally, a separate BA Request was deemed redundant for the
+       purpose of soliciting a BA. In 802.11n, the BA request is
+       implicit for aggregated frame. 
+    
 ** Hardware assistance
 
    Many of these features impose a considerable compute load. LDPC and
@@ -531,6 +697,8 @@
 * Footnotes
 
 [fn:1] http://www.wirevolution.com/2007/09/07/how-does-80211n-get-to-600mbps/
+
+[fn:2] http://www.eetimes.com/document.asp?doc_id=1278221
 
 
 

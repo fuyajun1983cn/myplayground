@@ -52,6 +52,12 @@
    
    socket send  --> inet_sendmsg() --> tcp_sendmsg()
    mainly used for streaming media, 
+
+*** How TCP establishes the connection
+      [[./images/2016/2016092701.jpg]]
+
+*** How TCP closes the connection
+     [[./images/2016/2016092702.jpg]]
 ** RTP [fn:1]
     
 *** wrong sequence

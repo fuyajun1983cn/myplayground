@@ -564,7 +564,12 @@ IE_EXT_CAPABILITY
 * 与FW(MCU)交互的接口(mcu_and.c)
   函数 =andes_ctrl_usb_init= 初始化一些MCU控制相关的一些参数。
   andes_send_cmd_msg
-  
+* Scan
+   上层通过 =NL80211_TRIGGER_SCAN= 将扫描命令传递给驱动。 
+   扫描结束后，驱动会调用 =cfg80211_scan_done= 通过命令
+   =NL80211_CMD_NEW_SCAN_RESULTS= 通知上层扫描已经结束，在扫描期间，每
+   发现一个bss信息，都会通过 =cfg80211_inform_bss= 将bss信息更新到内核。
+   上层通过 =NL80211_CMD_GET_SCAN= 获取扫描结果信息。
 * Rate Control
    MlmePeriodicExec --> ...
 

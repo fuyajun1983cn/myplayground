@@ -7,7 +7,6 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
  
 * CH01 802.11 Overview
-
 ** OSI model
     OSI模型是数据通信的基石，它包含如下几层：
     + Layer 7: Application
@@ -666,6 +665,651 @@
         frames may not contain some of the address fields. 
 
 * CH02 802.11 Physical (PHY) Layer Frame Format
+** Physical L ayer Operations
+     不管无线工作站使用的什么物理层实现数据的传输与接收，都有一个共同
+     点：每个工作站必须等待并监听是否有数据必须接收和处理，或者必须等
+     待当前信道空闲后再传输数据。
+*** Carrier Sense/Clear Channel Assessment(CS/CCA)
+        如果当前工作站没有进行数据传输或接收数据，则它一定是在监听和侦
+        测一个可接收的网络信号的开始部分或是分辩当前信道是否未被占用。
+
+        总之，一个工作站有两种状态：空闲或传输数据。空闲的时候，它可以
+        是在等待信道空闲以便进行数据传输，或是监听并等待接收另一个工作站传
+        输过来的帧。
+*** Tx
+        当工作站准备传输一个帧时，它会利用CS/CCA来检测当前信道是否空闲，
+        只有当信道可用时，才会进行数据传输。
+
+        当工作站获得传输机会后，它会立即传输，并进入等待接收状态。当接
+        收方接收到传输的帧后，会发送一个确认帖（ACK）或者Block ACK确认
+        多个帧。
+*** Rx
+        如果CS/CCA判断当前媒介处于忙碌状态，则工作站需要能够判断当前信道忙
+        碌是否由于其他的工作站在传输数据的缘故。传输帧的工作站会在数据
+        前面添加一段前导码，这个前导码包含0和1的字符串，接收工作站根据
+        前导码来辨识和同步，实际上就是通知接收工作站当前l传输的数据已
+        经到达，请准备接收。前导码也包含起始帧分隔符，接收工作站用于判
+        断一个帧的开始部分。紧接着前导码是帧头部的长度域，它告诉接收工
+        作站帧的多长。当整个帧接收完，如果工作站判断当前接收的帧是完整
+        的，则会回一个Ack。
+** Physical Layer
+     物理层被划分为两个子层。位于上半部分的是叫Physical Layer
+     Convergence Procedure(PLCP)，下半部分叫做Physical Medium
+     Dependent(PMD)子层。PLCP从MAC层拿到帧，并创建PLCP协议数据单元
+     （PPDU）。PMD子层然后将数据进行调制并将数据按比特流进行传输。当
+     MPDU传递到物理层时，它被称为PSDU，PSDU然后被做为PPDU的一部分进行
+     传输。
+*** PLCP Service Data Unit
+        PSDU就是物理层进行传输的数据，它与MPDU其实是等价的，只不过是物
+        理层的称呼。
+*** PLCP Protocol Data Unit
+        PLCP在PSDU的基础上添加了一个前导码和物理层头部信息。前导码用于
+        双方之间的同步。
+
+        #+CAPTION: Data-Link and Physical layers
+        [[./images/2016/2016092601.png]]
+*** Physical Medium Dependent
+        传输时，当PMD从PCLP子层接收到PPDU后，PMD就会负责传输PPDU。 当
+        接收时，PMD监听RF，将调制过的RF信号解释为1或0信号，然后将接收
+        到的数据传输到PLCP子层。
+** PLCP Protocol Data Unit
+*** PLCP Preamble
+        当传输数据时，工作站通过发送前导码来通知接收的工作站数据传输已
+        经开始。
+
+        IEEE 802.11标准中定义了三种不同的前导码：Long PPDU, short PPDU
+        以及OFDM PLCP前导码。802.11n定义了另外三种前导码：non-HT
+        legacy PPDU, HT-mixed PPDU, and HT-Greenfi eld PPDU.
+**** Long PLCP Preamble
+         #+CAPTION: Long PPDU format
+         [[./images/2016/2016092602.png]]
+
+         Tx和Rx之间的同步必须发生在SFD(Start of Frame Delimiter)之间。
+         长前导码使用Differential Binary Phase Shift Keying (DBPSK)来传
+         输，速率固定为1 Mbps。接收方不一定要接收到整个Sync域，只要接收
+         到整个SFD就可以了。
+**** Short PLCP Preamble
+         #+CAPTION: Short PPDU format
+         [[./images/2016/2016092603.png]]
+**** OFDM PLCP Preamble
+         包含10个short symbols和2个long symbols。In the figure, t1 to
+         t10 identify the short training symbols, GI2 is a long guard
+         interval,and T1 and T2 identify the long training symbols. Following
+         the PLCP preamble is the SIGNAL field and the DATA fields, each with a
+         guard interval preceding them. The total training length is 16 μs. A
+         short OFDM training symbol consists of 12 subcarriers while a long
+         OFDM training symbolconsists of 53 subcarriers. 
+         #+CAPTION: The OFDM training structure (PLCP Preamble)
+         [[./images/2016/2016092801.png]]
+*** PLCP Header
+        Long and Short PLCP Headers are both 48 bits long and contain
+        the following four fields:
+        1. Signal(8 bits)
+           该域的作用是显示传输PSDU使用的调制方法，也即传输MAC帧使用的
+           调制方法。
+
+           当使用长的PLCP头时，PSDU可以使用如下4种传输速率：1,2,5.5,11
+           Mbps。 当使用短的PLCP头时，只能使用使用3种速率：2, 5.5, 11 Mbps。
+        2. Service(8 bits)
+           - 5 out of 8 bits are used
+           - Bit 3 to indication modulation method (0  CCK:
+             Complementary Code Keying, 1- PBCC: Packet Binary
+             Convolution Code)  
+           - Bit 2 to indicate Transmit Frequency & Symbol clock
+             dreived from same clock. 
+           - Bit 5-7 to resolve data length field ambiguities for
+             ERP-PBCC-11 to ERP-PBCC-33  
+           - Bit 7 also used to supplement Length field for CCK 11Mpbs.
+        3. Length(16 bits)
+            Indicate number of microseconds (μS) that are required to transmit the PSDU.
+        4. CRC(16 bits)
+           Provide Protection for other 3 fields (signal, service & length)
+*** 802.11n PPDUs
+         #+CAPTION: 802.11n PPDU formats
+          [[./images/2016/2016092802.png]]
+        802.11n引入了三种新的PPDU：
+        1. non-HT legacy PPDU
+           - Consist of preamble that uses short & long training symbols (10 STF & 2 LTF).
+           - Support for non-HT legacy format is mandatory for 802.11n radios.
+           - non-HT transmit only in 20MHz channels.(same format used by 802.11a & 802.11g)
+        2. HT-mixed PPDU
+           - Preamble contain the non-HT short & long training symbol
+             that can be decoded by legacy 802.11a (clause 17) or
+             802.11g (clause 19)
+           - Rest of the HT-mixed preamble & header cannot be decoded by legacy clients.
+           - Tranmission can occur both 20MHz & 40MHz.
+           - When 40MHz channel is used all broadcast traffic must be
+             sent on legacy 20MHz (for legacy clients) 
+        3. HT-greenfield PPDU
+           - Preamble not compatible with legacy clients.
+** 2.4 Ghz Communications
+      The 2.4 GHz ISM band is 83.5 MHz wide and spans from 2.4000 GHz
+      to 2.4835 GHz.
+
+      每个国家根据自己的管制要求，会制定允许在2.4G中的哪些信道是进行数
+      据传输。
+*** 2.4 GHz Channels
+        2.4G 各信道的中心频率之间的差值为 5 MHz，如果两个信道之间不重
+        叠的话，中必频率的差值必须达到 25 MHz。 
+
+        在2.4频谱中，除了主载波频率，还有边带载波频率，这两种频率信号
+        强度差值必须达到一定值才不会影响主载波频率信号的传输。
+
+        #+CAPTION: IEEE 802.11b transmit spectrum mask
+        [[./images/2016/2016092604.png]]
+        
+** 5 GHz Communications
+     #+CAPTION: The 5 GHz UNII bands
+     | Band            | Name     | Frequency range    | Channels    |
+     |-----------------+----------+--------------------+-------------|
+     | UNII-1          | Lower    | 5.15 to 5.25 GHz   | 4 channels  |
+     | UNII-2          | Middle   | 5.25 to 5.35 GHz   | 4 channels  |
+     | UNII-2 Extended | Extended | 5.47 to 5.725 GHz  | 11 channels |
+     | UNII-3          | Upper    | 5.725 to 5.825 GHz | 4 channels            |
+     |-----------------+----------+--------------------+-----------------------|
+
+     
+*** 5 GHz Channels
+    
+       5G频率计算公式：
+       5,000 + 5 × n_ch (MHz), 其中n_ch 的值为0到200.
+** Adjacent, Nonadjacent, and Overlapping Channels
+     #+CAPTION: Adjacent vs. nonadjacent
+     |                | DSSS clause 15                                                | HR-DSSS clause 18 | ERP clause 19 | OFDM clause 17 |
+     |                | --------------+-----------------+-------------+-------------- |                   |               |                |
+     | Frequency band | 2.4 GHz ISM                                                   | 2.4 GHz ISM       | 2.4 GHz ISM   | UNII bands     |
+     | Adjacent       | ≥ 30 MHz                                                      | ≥ 25 Mhz          | 等于25 MHz      | 等于20 MHz       |
+     | Nonadjacent    | N/A                                                           | N/A               | > 25 MHz      | > 20 MHz       |
+     | Overlapping    | < 30MHz                                                       | < 25 MHz          | <25 MHz       | N/A               |
+     |----------------+---------------------------------------------------------------+-------------------+---------------+-------------------|
+** Clause 14 FHSS PHY
+     FHSS means Frequency Hopping spread sepcturm. 提供1,2Mbps RF传输
+     速率，工作在2.4GHz， 使用79MHz范围内的频率，从2.402GHz到2.480GHz。
+     1. Hopping Sequence
+        以固定的跳跃序列去跳频。
+     2. Dwell Time
+        驻留在某个频率传输数据的时间，时间到了后，会跳到下一个频率去。
+     3. Hop Time
+        从一个频率跳到另一个频率所需要的时间。
+     4. Modulation
+        使用Gaussian Frequency Shift Keying (GFSK)对数据进行编码。
+** Clause 15 DSSS PHY
+      HR/DSSS定义在802.11b中，提供了2.4G下5.5, 11 Mbps传输速率。数据传
+      输固定在某一个信道，数据扩展到构造信道的整个频率范围内传输。编码
+      过程也就是将数据扩展到整个信道的过程。
+      1. DSSS Data Encoding
+         在数据传输过程中，为了应对干扰，数据中的每个比特位，都被传输
+         为多个比特位的数据。系统将一个比特位转换成称为chips的一组比特
+         位。例如：
+         Binary data 1 = 1 0 1 1 0 1 1 1 0 0 0
+         Binary data 0 = 0 1 0 0 1 0 0 0 1 1 1
+      2. Modulation
+         Differential Binary Phase Shift Keying (DBPSK) utilizes two
+         phase shifts, one that represents a 0 chip and another that
+         represents a 1 chip. 
+
+         Differential Quadrature Phase Shift Keying (DQPSK)is an
+         enhancement to DBPSK
+         
+         #+CAPTION: DSSS encoding and modulation overview
+         | Data rate (Mbps) | Encoding      | Chip length | Bits encoded | Modulation |
+         |------------------+---------------+-------------+--------------+------------|
+         |                1 | Barker coding |          11 |            1 | DBPSK      |
+         |                2 | Barker coding |          11 |            1 | DQPSK      |
+         |------------------+---------------+-------------+--------------+------------|
+** Clause 17 OFDM PHY
+     802.11a, 包含52个子载波，其中48个用于数据传输，其余4个被解调器用于参考相位
+     和振幅，对扭曲的OFDM信号进行补偿。
+     #+CAPTION: 802.11 channels and OFDM subcarriers
+     [[./images/2016/2016092803.png]]
+
+     1. Convolutional Coding
+        使用卷积编码来应对窄波干扰。使用FEC(Forward error correction)
+        来侦测和修复破坏的比特位。
+        
+        #+CAPTION: 802.11a and 802.11g data rate and modulation comparison chart
+        | Data rates(Mbps) | Modulation method | Coded bits per subcarrier | Data bits per OFDM symbol | Coded bits per OFDM symbol | Coding rate(data bits/coded bits) |
+        |------------------+-------------------+---------------------------+---------------------------+----------------------------+-----------------------------------|
+        | 6                | BPSK              | 1                         | 24                        | 48                         | 1/2                               |
+        | 9                | BPSK              | 1                         | 36                        | 48                         | 3/4                               |
+        | 12               | QPSK              | 2                         | 48                        | 96                         | 1/2                               |
+        | 18               | QPSK              | 2                         | 72                        | 96                         | 3/4                               |
+        | 24               | 16-QAM            | 4                         | 96                        | 192                        | 1/2                               |
+        | 36               | 16-QAM            | 4                         | 144                       | 192                        | 3/4                               |
+        | 48               | 64-QAM            | 6                         | 192                       | 288                        | 2/3                               |
+        | 54               | 64-QAM            | 6                         | 216                       | 288                        | 3/4                               |
+        |------------------+-------------------+---------------------------+---------------------------+----------------------------+-----------------------------------|
+
+     2. Modulation
+        OFDM使用Binary Phase Shift Keying(BPSK)以及Quadrature Phase
+        Shift Keying(QPSK) 针对低速率的数据调制。针对高速率的整数调制，
+        使用Quadrature amplitude modulation(QAM)。
+        
+** Clause 18 HR-DSSS PHY
+     当802.11设备需要使用传输速率5.5,11Mbps进行传输时，需要使用
+     High-Rate DSSS(HR-DSSS)。
+     1. Modulation
+        使用Complimentary Code Keying(CCK)来对数据进行编码和调制。
+        #+CAPTION: HR-DSSS encoding and modulation overview
+        | Data rate (Mbps) | Encoding   | Chip length | Bits encoded | Modulation |
+        |------------------+------------+-------------+--------------+------------|
+        |              5.5 | CCK coding |           8 |            4 | CCK        |
+        |               11 | CCK Coding |           8 |            8 | CCK        |
+        |------------------+------------+-------------+--------------+------------|
+** Clause 19 ERP PHY
+     802.11g 物理层必须是ERP-OFDM and ERP-DSSS/CCK. 为了取得更高的数据
+     传输率，使用了Extended Rate Physical OFDM (ERP-OFDM)。 支持的速率
+     有：6, 9, 12, 18, 24, 36, 48, and 54 Mbps。为了保持向后兼容，也使
+     用Extended Rate Physical DSSS来提供较低的传输速率： 1, 2, 5.5,
+     and 11 Mbps.
+
+     #+CAPTION: 802.11 amendment comparison
+     |                            | 802.11 Legacy    | 802.11b                                  | 802.11g                                                                                                                                                 | 802.11a                                                                          |
+     |----------------------------+------------------+------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------|
+     | Frequency                  | 2.4 GHz ISM Band | 2.4 GHz ISM band                         | 2.4 GHz ISM Band                                                                                                                                        | 5 GHz UNII-1, UNII-2, UNII-2 Extended, and UNII-3 bands.                         |
+     | Spread spectrum technology | FHSS or DSSS     | HR-DSSS, PBCC is optional.               | ERP: ERP-OFDM and ERP-DSSS/CCK are mandatory ERP-PBCC and DSSS-OFDM are optional.                                                                       | OFDM.                                                                            |
+     | Data rates                 | 1, 2 Mbps        | DSSS: 1, 2 Mbps HR-DSSS: 5.5 and 11 Mbps | ERP-DSSS/CCK: 1, 2, 5.5, and 11 Mbps ERP-OFDM: 6, 12 and 24 Mbps are mandatory. Also supported are 9, 18, 36, 48, and 54 Mbps. ERP-PBCC: 22 and 33 Mbps | 6, 12, and 24 Mbps are mandatory. Also supported are 9, 18, 36, 48, and 54 Mbps. |
+     | Backward compatibility     | N/A              | 802.11 DSSS only                         | 802.11b HRDSSS and 802.11 DSSS                                                                                                                          | None.                                                                            |
+     | Ratified                   | 1997             | 1999                                     | 2003                                                                                                                                                    | 1999                                                                             |
+     |----------------------------+------------------+------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------|
+** Clause 20 HT PHY
+     802.11n 
+** Review Questions
+   
+     1. The 802.11-2007 standard requires how much separation between
+        center frequencies for HR-DSSS (clause 18) channels to be
+        considered nonoverlapping? 
+
+        A. 22 MHz
+
+        B. 25 MHz
+
+        C. 30 MHz
+
+        D. 35 MHz
+
+        E. 40 MHz
+
+        *答案解析*
+
+        B. HR-DSSS (clause 18) was introduced under the 802.11b
+        amendment, which states that channels need a minimum of 25 MHz
+        of separation between the center frequencies to be considered
+        nonoverlapping. 
+
+     2. The upper portion of the Physical layer is known as the __  ,
+        and the lower portion is known as the __ .
+        
+        A. PPDU
+
+        B. PMD
+
+        C. PSDU
+
+        D. PLCP
+
+        E. MSDU
+
+        *答案解析*
+
+        D, B. The upper portion of the Physical layer is known as the
+        Physical Layer Convergence Procedure (PLCP) sublayer, and the
+        lower portion is known as the Physical Medium Dependent (PMD)
+        sublayer. 
+
+     3. What three parts make up the PPDU? (Choose all that apply.)
+
+        A. PMD
+
+        B. PLCP Preamble
+
+        C. PLCP Header
+
+        D. PSP
+
+        E. PLCP Service Data Unit (PSDU)
+
+        *答案解析*
+
+        B, C, E. The PLCP Protocol Data Unit (PPDU) consists of three
+        parts: PLCP Preamble, PLCP Header, and PLCP Service Data Unit
+        (PSDU). When the PLCP layer receives the PSDU from the MAC
+        layer, the appropriate PLCP Preamble and PLCP header are added
+        to the PSDU to create the PPDU.
+
+     4. The Long PPDU includes a __ -bit PLCP Preamble, which consists
+        of a __ -bit Sync field.
+
+        A. 144, 128
+
+        B. 72, 56
+
+        C. 256, 212
+        
+        D. 144, 72
+
+        E. 128, 72
+
+        *答案解析*
+
+        A. The Long PPDU includes a 144-bit PLCP Preamble, which
+        consists of a 128-bit Sync field and a 16-bit Start of Frame
+        Delimiter (SFD). 
+
+     5. Both the Long and Short Preambles are transmitted using which
+        modulation technique?
+
+        A. DBPSK
+
+        B. DQPSK
+
+        C. 2GFSK
+
+        D. 4GFSK
+
+        E. 16-QAM
+
+        *答案解析*
+
+        A. The Long Preamble is transmitted using Differential Binary
+        Phase Shift Keying (DBPSK) at the rate of 1 Mbps. Like the
+        Long PLCP Preamble, the Short PLCP Preamble is also
+        transmitted using DBPSK. 
+
+     6. Which of the following fields are contained in the Long and
+        Short PLCP Headers? (Choose all that apply.)
+
+        A. Service
+
+        B. Length
+
+        C. Signal
+
+        D. Preamble
+
+        E. CRC
+
+        *答案解析*
+
+        A, B, C, E. Long and Short PLCP Headers are both 48 bits long
+        and contain the following four fields: Signal (8 bits),
+        Service (8 bits), Length (16 bits), and CRC (16 bits). 
+
+     7. Which PPDUs were defined by the 802.11n amendment? (Choose all
+        that apply.)
+
+        A. Non-HT legacy PPDU
+
+        B. HT PPDU
+
+        C. HT-mixed PPDU
+
+        D. Combined HT Legacy PPDU
+
+        E. HT-greenfield PPDU
+
+        *答案解析*
+        
+        A, D, E. When the 802.11n amendment was ratified, three new
+        PPDUs were defined: non-HT legacy PPDU, HT-mixed PPDU, and
+        HT-greenfield PPDU. 
+
+     8. Which of the following define radios that can transmit in the
+        2.4 GHz ISM band? (Choose all that apply.)
+
+        A. Clause 14
+
+        B. Clause 15
+
+        C. Clause 18
+
+        D. Clause 19
+
+        E. Clause 20
+
+        *答案解析*
+
+        A, B, C, D, E. The bulk of Wi-Fi radios currently transmit in
+        the 2.4 GHz ISM band, including radios that use the following
+        technologies: 
+        - 802.11 (FHSS clause 14 radios or DSSS clause 15 radios)
+
+        - 802.11b (HR-DSSS clause 18 radios)
+
+        - 802.11g (ERP clause 19 radios)
+
+        - 802.11n (HT clause 20 radios)
+
+     9. Clause 17 defines communications using which of the following
+        modulation methods? (Choose all that apply.)
+
+        A. DBPSK
+
+        B. BPSK
+
+        C. QPSK
+
+        D. 16-QAM
+
+        E. 64-QAM
+
+        *答案解析*
+
+        B, C, D, E. Clause 17 (802.11a) defines BPSK for 6 and 9 Mbps
+        transmissions, QPSK for 12 and 18 Mbps transmissions, 16-QAM
+        for 24 and 36 Mbps transmissions, and 64-QAM for 48 and 54
+        Mbps transmissions. 
+
+     10. According to the IEEE, clause 17 and clause 19 require which
+         of the following data rates? (Choose all that apply.)
+
+         A. 6
+
+         B. 9
+
+         C. 12
+
+         D. 18
+
+         E. 24
+
+         F. 54
+
+         *答案解析*
+
+         A, C, E. Data rates of 6, 9, 12, 18, 24, 36, 48, and 54 Mbps
+         are possible using 802.11a and 802.11g technology, although
+         the IEEE requires only the data rates of 6, 12, and 24 Mbps. 
+
+     11. In descending order (moving from the Application layer toward
+         the Physical), list the 4 sublayers that make up the
+         Data-Link and Physical layers.
+
+         A. LLC, MAC, PSDU, PLCP
+
+         B. MAC, LLC, PSDU, PLCP
+
+         C. PMD, PLCP, MAC, LLC
+
+         D. LLC, MAC, PLCP, PMD
+
+         E. MAC, LLC, PLCP, PMD
+
+         *答案解析*
+
+         D. The Data-Link layer is divided into the upper LLC sublayer
+         and the lower MAC sublayer. The Physical layer is divided
+         into the upper Physical Layer Convergence Procedure (PLCP)
+         sublayer and the lower Physical Medium Dependent (PMD)
+         sublayer. 
+
+     12. When a Long PLCP Header is used, what speeds can be used for
+         transmitting the PSDU? (Choose all that apply.)
+
+         A. 1 Mbps
+
+         B. 2 Mbps
+
+         C. 5.5 Mbps
+
+         D. 11 Mbps
+
+         E. 54 mbps
+
+         *答案解析*
+
+         A, B, C, D. When a Long PLCP Header is used, the PSDU can be
+         transmitted at one of four transmission rates; 1 Mbps, 2
+         Mbps, 5.5 Mbps, and 11 Mbps. 
+
+     13. According to the 802.11n amendment, which of the following
+         PPDU formats is optional?
+
+         A. Long PPDU
+
+         B. Short PPDU
+
+         C. Non-HT legacy PPDU
+
+         D. HT-mixed PPDU
+
+         E. HT-greenfield PPDU
+
+         *答案解析*
+
+         E. Support for the HT-greenfield format is optional, and the
+         HT radios can transmit by using both 20 MHz and 40 MHz
+         channels. 
+
+     14. How wide are the UNII-1, UNII-2, and UNII-3 bands?
+
+         A. 20 MHz
+
+         B. 22 MHz
+
+         C. 11 MHz
+
+         D. 100 MHz
+
+         E. It varies depending upon the specific band.
+
+         *答案解析*
+
+         D. These 3 UNII bands are 100 MHz wide, and UNII-2 extended is 255 MHz wide.
+
+     15. What are the boundaries of the UNII-2 Extended bands?
+
+         A. 5.470 GHz to 5.725 GHz
+
+         B. 5.5 GHz to 5.75 GHz
+
+         C. 2.4 GHz to 2.4835 GHz
+
+         D. 902 MHz to 928 MHz
+
+         *答案解析*
+
+         A. The UNII-2 Extended band is 255 MHz wide and spans from 5.470 GHz to 5.725 GHz.
+
+     16. What is the frequency width of each clause 17 subcarrier?
+
+         A. 20 KHz
+
+         B. 22 KHz
+
+         C. 100 KHz
+
+         D. 312.5 KHz
+
+         E. 350 KHz
+
+         *答案解析*
+
+         D. The frequency width of each OFDM subcarrier is 312.5
+         KHz. The subcarriers are also transmitted at lower data
+         rates, but because there are so many subcarriers, overall
+         data rates are higher. 
+
+     17. Which terms are used to describe the error correction method
+         used by clause 17 devices? (Choose all that apply.)
+
+         A. Cyclic Redundancy Check
+
+         B. Forward error correction
+
+         C. Frame Check Sequence
+
+         D. Convolutional coding
+
+         E. Parity
+
+         *答案解析*
+
+         B, D. To make OFDM more resistant to narrowband interference,
+         a form of error correction known as convolutional coding is
+         performed. The 802.11-2007 standard defines the use of
+         convolutional coding as the error correction method to be
+         used with OFDM technology. It is a forward error correction
+         (FEC) that allows the receiving system to detect and repair
+         corrupted bits. 
+
+     18. Select the coding methods that are used by DSSS devices,
+         along with the coding methods used by HR-DSSS
+         devices. (Choose all that apply.)
+
+         A. Barker code
+
+         B. Convolutional coding
+
+         C. Complementary Code Keying (CCK)
+
+         D. Bitwise coding
+
+         *答案解析*
+
+         A, C. To help provide the faster speeds of HR-DSSS, a more
+         complex code, Complementary Code Keying (CCK), is utilized
+         instead of the Barker code that is used with DSSS
+         transmissions. 
+
+     19. From the perspective of the Physical layer, what are two
+         terms that define the data portion of an 802.11 transmission?
+         (Choose two.) 
+
+         A. PSDU
+
+         B. PLCP
+
+         C. MSDU
+
+         D. MPDU
+
+         E. PMD
+
+         *答案解析*
+
+         A, D. The PLCP Service Data Unit (PSDU) is the data that the
+         PHY transmits. The PSDU is equivalent to the MAC Protocol
+         Data Unit (MPDU) that is passed down from the Data-Link
+         layer. 
+
+     20. When a Short PLCP Header is used, what speeds can be used for
+         transmitting the PSDU? (Choose all that apply.)
+
+         A. 1 Mbps
+
+         B. 2 Mbps
+
+         C. 5.5 Mbps
+
+         D. 11 Mbps
+
+         E. 54 Mbps
+
+         *答案解析*
+
+         B, C, D. When a Short PLCP Header is used, only three data
+         rates are supported: 2 Mbps, 5.5 Mbps, and 11 Mbps.
 
 * CH03 802.11 MAC Sublayer Frame Format
 

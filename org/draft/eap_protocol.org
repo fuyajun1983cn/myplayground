@@ -1039,4 +1039,39 @@
       received. Because no response was received, no new message
       (including failure) should be sent to the peer. Note that this is
       different from the FAILURE state, in which a message indicating
-      failure is sent to the peer. 
+      failure is sent to the peer.
+
+** EAP与802.1X， WPA/WPA2
+   802.1X is NOT an encryption type. It is basically just a per-user
+   (e.g. username and password) authentication mechanism. 
+
+   WPA2 is a security scheme that specifies two main aspects of your
+   wireless security: 
+   - Authentication: Your choice of PSK ("Personal") or 802.1X ("Enterprise").
+   - Encryption: Always AES-CCMP.
+
+    If you're using WPA2 security on your network, you have two
+     authentication choices: You either have to use a single password
+     for the whole network that everyone knows (this is called a
+     Pre-Shared Key or PSK), or you use 802.1X to force each user to
+     use his own unique login credentials (e.g. username and
+     password). 
+
+     Regardless of which authentication type you've set up your
+     network to use, WPA2 always uses a scheme called AES-CCMP to
+     encrypt your data over the air for the sake of confidentiality,
+     and to thwart various other kinds of attacks. 
+
+     802.1X is "EAP over LANs" or EAPoL. EAP stands for "Extensible
+     Authentication Protocol", which means it's kind of a plug-in
+     scheme for various authentication methods. Some examples: 
+     - Do you want to authenticate your users with usernames and passwords? Then "PEAP" is a good EAP type to use.
+
+     - Do you want to authenticate your users via certificates? Then "EAP-TLS" is a good EAP type to use.
+
+     - Are the devices on your network all GSM smartphones with SIM
+       cards? Then you can use "EAP-SIM" to do GSM SIM-card style
+       authentication to get on your network. etc. etc.
+
+     
+     

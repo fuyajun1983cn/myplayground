@@ -31,3 +31,45 @@ http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-b
          trigger frame: QoS data or QoS Null frame associated with an
          AC the STA has configured to be trigger-enabled.
 ** 数据帧
+* 理论基础
+** QAM
+    http://community.arubanetworks.com/t5/Technology-Blog/What-is-QAM/ba-p/114747
+** 802.11 State Machine
+   It consists of the four states of client connectivity during a
+   session.
+   - State 1
+    In State 1 the client is Unauthenticated and
+    Unassociated. Clients in this state are passing Class 1 frames
+    and contain the following frames:
+     * Control frames
+     * Management frames
+     * Data frames
+       + Data frames between STAs and IBSS
+       + Data frames between peers using DLS
+   要想离开状态1,需要执行一次成功的论证。
+
+   - State 2
+     In State 2 the client is Authenticated but Unassociated. 802.11
+     Authentication是指Open or Shared Key， 而不是执行802.1X or PSK
+     authentication。
+     如果论证成功，则进入State 3,否则退回到State 1. 这阶段论证通过只代
+     表双方同意进一步交流。
+   - State 3
+     In State 3 the client is Authenticated and Associated.  我们已经
+     成功关联到AP，但是RSN论证还会进行（802.1X）。此时，允许如下帧通过：
+     + Data frames (all)
+     + Management frames
+     + Control frames
+       在此状态中，有三种方式离开：disassociation, deauthentication,
+       and 802.1X port control unblocked. 
+       If the client disassociates they will drop to State 2,
+       deauthentication will drop to State 1. Having a successful
+       802.1X authorization moves to State 4.
+   - State 4
+     在此状态，完成了4步握手，所有的数据都能够通过。
+
+    [[./images/2016/2016093001.png]]
+
+     
+
+     

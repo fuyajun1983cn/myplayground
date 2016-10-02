@@ -40,7 +40,6 @@
      hasattr(object, name)
 
      确定对象是否有name属性，返回一个boolean值。 
-    
 
 * 标准库
 
@@ -944,3 +943,5 @@
              print(modifiedMessage.decode())
              clientSocket.close()
            #+END_SRC
+
+https://pythonprogramming.net/

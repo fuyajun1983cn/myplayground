@@ -1078,6 +1078,197 @@
         #+BEGIN_SRC c
           #define SM_STEP_RUN(machine) sm_ ## machine ## _Step(sm)        
         #+END_SRC
+**** 程序示例
+       #+BEGIN_SRC c
+         /**
+          ,* Copyright (c)  2016     Yajun Fu (fuyajun1983cn@163.com)
+          ,* 
+          ,* Permission to use, copy, modify, and/or distribute this software for any
+          ,* purpose with or without fee is hereby granted, provided that the above
+          ,* copyright notice and this permission notice appear in all copies.
+          ,* 
+          ,* THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+          ,* WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+          ,* MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+          ,* ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+          ,* WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+          ,* ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+          ,* OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+          ,*/
+
+         #include "includes.h"
+
+         #include "common.h"
+         #include "wpa_debug.h"
+         #include "state_machine.h"
+
+         /**
+          ,* 每个实现状态机的文件都必须定义
+          ,* STATE_MACHINE_DATA:
+          ,* 它包含了一些状态变量。
+          ,* STATE_MACHINE_DEBUG_PREFIX:
+          ,* 打印信息的前缀
+          ,*/
+
+         /**
+          ,* 状态机API测试
+          ,*/
+
+         #ifdef FALSE
+         #undef FALSE
+         #endif
+         #ifdef TRUE
+         #undef TRUE
+         #endif
+         typedef enum { FALSE = 0, TRUE = 1 } Boolean;
+
+         static int global = 0;
+
+         struct fyj_sm
+         {
+           enum {
+             FYJ_INITIALIZE,  FYJ_REQUEST, FYJ_RESPONSE, FYJ_FAILURE, FYJ_SUCCESS
+           }FYJ_state;
+           int val;
+           Boolean changed;//必须定义这个域
+         };
+
+         #define STATE_MACHINE_DATA struct fyj_sm
+         #define STATE_MACHINE_DEBUG_PREFIX "FYJ"
+
+
+         SM_STATE(FYJ, INITIALIZE)
+         {
+           SM_ENTRY(FYJ, INITIALIZE);
+           sm->val++;
+         }
+
+         SM_STATE(FYJ, REQUEST)
+         {
+           SM_ENTRY(FYJ, REQUEST);
+           sm->val++;
+         }
+
+         SM_STATE(FYJ, RESPONSE)
+         {
+           SM_ENTRY(FYJ, RESPONSE);
+           sm->val++;
+         }
+
+         SM_STATE(FYJ, FAILURE)
+         {
+           SM_ENTRY(FYJ, FAILURE);
+           sm->val++;
+         }
+
+         SM_STATE(FYJ, SUCCESS)
+         {
+           SM_ENTRY(FYJ, SUCCESS);
+           sm->val++;
+         }
+
+         /**
+          ,* 状态机循环中心
+          ,*/
+         SM_STEP(FYJ)
+         {
+           switch (sm->FYJ_state) {
+           case FYJ_INITIALIZE: {
+             printf("INITIALIE --> REQUEST\n");
+             SM_ENTER(FYJ, REQUEST);
+             break;
+             case FYJ_REQUEST:
+               printf("REQUEST --> RESPONSE\n");
+               SM_ENTER(FYJ, RESPONSE);
+               break;
+             case FYJ_RESPONSE:
+               printf("RESPONSE --> SUCCESS\n");
+               SM_ENTER(FYJ,SUCCESS);
+               break;
+             case FYJ_SUCCESS:
+               printf("SUCCESS --> FAILURE\n");
+               SM_ENTER(FYJ, FAILURE);
+             case FYJ_FAILURE:
+               printf("FAILURE --> INITIALIZE\n");
+               SM_ENTER(FYJ, INITIALIZE);
+           default:
+             break;
+           }
+         }
+         }
+
+         static int fyj_sm_step(struct fyj_sm *sm)
+         {
+           int res = 0;
+             SM_STEP_RUN(FYJ);
+             if (sm->val >  15) {//after 15 times state transition, stop.
+               res = -1;
+             }
+           return res;
+         }
+
+         static void fyj_sm_set_state(struct fyj_sm *sm,  int state)
+         {
+           sm->FYJ_state = state;
+         }
+
+         static void fyj_sm_init(struct fyj_sm *sm)
+         {
+           fyj_sm_set_state(sm, FYJ_FAILURE);
+           sm->val = 0;
+         }
+
+         int main(int argc, char *argv[])
+         {
+           int res;
+           int select;
+           struct fyj_sm sm;
+           fyj_sm_init(&sm);
+
+           do {
+             res = fyj_sm_step(&sm);
+             sleep(1);
+           } while (res != -1);
+           
+           return 0;
+         }
+
+                
+       #+END_SRC
+*** EAP
+    EAP Peer State Machine & EAP Server State Machine, RFC4137 & RFC3748
+
+**** EAP peer
+      这个模块是个相对独立的模块，可单独使用。
+      相关文件说明如下：
+      - =eap.c and eap.h= EAP状态机和方法接口。
+      - =eap_defs.h= 通用的EAP定义
+      - =eap_i.h= EAP状态机和EAP方法的内部定义。
+      - =eap_sim_common.c and eap_sim_common.h= =EAP-SIM= 和 =EAP-AKA= 的公用代
+        码。
+      - =eap_tls_common.c and eap_tls_common.h= =EAP-PEAP, EAP-TTLS, and
+        EAP-FAST= 公用代码
+      - =eap_tlv.c and eap_tlv.h= =EAP-PEAP= 和 =EAP-FAST= 的 =EAP-TLV=
+        代码。
+      - =eap_ttls.c and eap_ttls.h= EAP-TTLS代码。
+      - =eap_pax.c, eap_pax_common.h, eap_pax_common.c=  =EAP-PAX= 代码
+      - =eap_psk.c, eap_psk_common.h, eap_psk_common.c= =EAP-PSK= 代码
+      - =eap_sake.c, eap_sake_common.h, eap_sake_common.c= =EAP-SAKE= 代
+        码
+      - =eap_gpsk.c, eap_gpsk_common.h, eap_gpsk_common.c= =EAP-GPSK= 代
+        码
+      - =eap_aka.c, eap_fast.c, eap_gtc.c, eap_leap.c, eap_md5.c,
+        eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
+        其他EAP方法实现
+
+**** EAP Server
+*** EAPOL
+        IEEE 802.1X-2004 - Supplicant - EAPOL state machines, 处理
+        EAPOL包的函数： =wpa_supplicant_rx_eapol= 。
+**** EAPOL supplicant
+     =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
+**** EAPOL Authenticator
+     在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
 *** WPA/WPA2 
         WPA needs to have Supplicant and Authenticator
         implementations. In case of infrastructure/managed mode, the
@@ -1100,6 +1291,10 @@
                   group=CCMP
           }        
         #+END_SRC
+        
+        当关联成功后，会通过 =wpa_sm_notify_assoc=  来告知WPA
+        State machine。这个函数会进行一些变量重置。
+
 **** wpa state machine初始化
 ***** L2 Packet (EAPOL包)处理
         创建了一个链路层的套接字(=driver_nl802.11.c=)：
@@ -1156,46 +1351,11 @@
        (RSN/WPA2)
      - =wpa_i.h= Internal definitions for WPA code; not to be included
        to other modules.
-*** EAPOL
-    IEEE 802.1X-2004 - Supplicant - EAPOL state machines
-**** EAPOL supplicant
-     =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
-**** EAPOL Authenticator
-     在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
-
-*** EAP
-    EAP Peer State Machine & EAP Server State Machine, RFC4137 & RFC3748
-
-**** EAP peer
-      这个模块是个相对独立的模块，可单独使用。
-      相关文件说明如下：
-      - =eap.c and eap.h= EAP状态机和方法接口。
-      - =eap_defs.h= 通用的EAP定义
-      - =eap_i.h= EAP状态机和EAP方法的内部定义。
-      - =eap_sim_common.c and eap_sim_common.h= =EAP-SIM= 和 =EAP-AKA= 的公用代
-        码。
-      - =eap_tls_common.c and eap_tls_common.h= =EAP-PEAP, EAP-TTLS, and
-        EAP-FAST= 公用代码
-      - =eap_tlv.c and eap_tlv.h= =EAP-PEAP= 和 =EAP-FAST= 的 =EAP-TLV=
-        代码。
-      - =eap_ttls.c and eap_ttls.h= EAP-TTLS代码。
-      - =eap_pax.c, eap_pax_common.h, eap_pax_common.c=  =EAP-PAX= 代码
-      - =eap_psk.c, eap_psk_common.h, eap_psk_common.c= =EAP-PSK= 代码
-      - =eap_sake.c, eap_sake_common.h, eap_sake_common.c= =EAP-SAKE= 代
-        码
-      - =eap_gpsk.c, eap_gpsk_common.h, eap_gpsk_common.c= =EAP-GPSK= 代
-        码
-      - =eap_aka.c, eap_fast.c, eap_gtc.c, eap_leap.c, eap_md5.c,
-        eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
-        其他EAP方法实现
-
-**** EAP Server
-
 *** wpa statemachine状态变化
      设置当前状态： =wpa_supplicant_set_state=
      获取当前状态： =wpa_supplicant_get_state=
 
-     访问当前状态机的状态(公供wpa状态机内部调用)： 
+     访问当前状态机的状态(仅供wpa状态机内部调用)： 
      1. 获取当前状态机的状态：  =wpa_sm_get_state=
      2. 设置当前状态机的状态:  =wpa_sm_set_state= 
         
@@ -2234,6 +2394,8 @@
    Association Request携带的IE信息来提供，如果底层驱动上报的
    Association Request中相关的IE信息为空，则WPS过程将会终止。
    在GO协议完成后，会开始WPS协商的过程。
+
+   WPS过程结束后，会调用 =wpa_supplicant_eapol_cb= 。
 
    配置项 =wps_strict_check= 选项开启后，会严格按照WPS规范检查WPS数据
    格式。

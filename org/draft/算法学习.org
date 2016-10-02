@@ -368,6 +368,119 @@ structure your answer with S(Situation), A(Action), R(Response)
      s1的旋转字符串， 请写出代码。旋转字符
      串：”waterbottle”是”erbottlewat”的旋转字符串。 
 
+*** 两个数组的交集
+
+**** 题目
+         Given two arrays, write a function to compute their
+         intersection. The resulting array needs to contain unique
+         integers.
+
+**** 解答
+         使用数据结构Set，创建两个Set，一个存储去除所有数组1中重复元素
+         后的值，另一个存储两个数组相交的元素。
+         #+BEGIN_SRC java
+           /**
+            ,,* 程序
+            ,,*/
+
+           import java.util.HashSet;
+           import java.util.Set;
+
+           public class Solution {
+               public int[] intersection(int[] nums1, int[] nums2) {
+                   
+                   if(nums1==null || nums2==null || nums1.length==0 || nums2.length==0) return new int[0];
+                   
+                   Set<int> set = new HashSet<>();
+                   Set<int> intersect = new HashSet<>();
+                   
+                   // Iterate through the first array and add the elements to the first set.
+                   for (int i = 0; i < nums1.length; i++) {
+                       set.add(nums1[i]);
+                   }
+                   
+                   // Iterate through the second array and whenever there is a match add those numbers to the intersect set.
+                   for (int i = 0; i < nums2.length; i++) {
+                       if (set.contains(nums2[i])) {
+                           intersect.add(nums2[i]);
+                       }
+                   }
+                   // Create and populate the result array
+                   int[] result = new int[intersect.size()];
+                   int i = 0;
+                   for (Integer num : intersect) {
+                       result[i++] = num;
+                   }
+                   return result;
+               }
+           }
+
+           /**
+            ,,* 测试程序
+            ,,*/
+           import static org.junit.Assert.*;
+
+           import org.junit.BeforeClass;
+           import org.junit.Test;
+
+           public class TestSolution {
+            private static Solution s; 
+            
+            @BeforeClass
+            public static void setUpBeforeClass() throws Exception{
+             s = new Solution();
+             
+            }
+            @Test
+            public void testIntersection1() {
+             int[] nums1 = {4,8,1,2,5,12,15,3,8,121};
+             int[] nums2 = {123,456,678,78,15,99,12};
+             int[] result =  {12,15};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+            // second array is empty
+            @Test
+            public void testIntersection2() {
+             int[] nums1 = {4,8,1,2,5,12,15,3,99,121};
+             int[] nums2 = {};
+             int[] result =  {};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+            // Empty arrays
+            @Test
+            public void testIntersection3() {
+             int[] nums1 = {};
+             int[] nums2 = {};
+             int[] result =  {};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+            
+            //first array is empty
+            @Test
+            public void testIntersection4() {
+             int[] nums1 = {};
+             int[] nums2 = {123,456,678,78,15,99,12};
+             int[] result =  {};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+            //first array is null
+            @Test
+            public void testIntersection5() {
+             int[] nums1 = null;
+             int[] nums2 = {123,456,678,78,15,99,12};
+             int[] result =  {};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+            //arrays are null
+            @Test
+            public void testIntersection6() {
+             int[] nums1 = null;
+             int[] nums2 = null;
+             int[] result =  {};
+             assertArrayEquals(result,s.intersection(nums1, nums2));
+            }
+           }
+         #+END_SRC
 ** 链表
 
 *** 链表去重

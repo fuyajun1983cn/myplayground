@@ -191,7 +191,7 @@
     #+END_SRC
 
     总体的类结果如下：
-    #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016081330.png :cmdline -charset UTF-8
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016081330.png :cmdline -charset UTF-8
       @startuml
       title <b>抽象工厂模式</b>
       package "Shape产品类" {
@@ -611,7 +611,7 @@
        #+END_SRC
       
        类关系图：
-       #+BEGIN_SRC plantuml :exports both :file ./images/2016/2016082902.png :cmdline -charset UTF-8
+       #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016082902.png :cmdline -charset UTF-8
          @startuml
          interface Cloneable
 
@@ -1340,33 +1340,740 @@
   主要关注对象之间的交互。主要有如下一些具体模式：
 
 ** 责任链(Chain of Responsibility)
+    责任链模式为一个请求创建了一系列的接收者对象。通常在使用这种模式时，
+    每个接收者包含对另一个接收者的引用，形成一个引用链。 如果某个对象
+    不能使用当前请求，它可以交给下一个接收者去使用。 
+    
+*** 情景分析
+     #+BEGIN_SRC java
+       abstract class Logger {
+          protected Logger nextLogger;
+       /* w w w.  j  av  a2 s .  c  om*/
+          public void setNextLogger(Logger nextLogger){
+             this.nextLogger = nextLogger;
+          }
+
+          public void logMessage(String message){
+             log(message);
+             if(nextLogger !=null){
+                nextLogger.logMessage(message);
+             }
+          }
+          abstract protected void log(String message);  
+       }
+
+       class ConsoleLogger extends Logger {
+          public ConsoleLogger(){
+          }
+          @Override
+          protected void log(String message) {    
+             System.out.println("Console::Logger: " + message);
+          }
+       }
+       class EMailLogger extends Logger {
+          public EMailLogger(){
+          }
+          @Override
+          protected void log(String message) {    
+             System.out.println("EMail::Logger: " + message);
+          }
+       }
+       class FileLogger extends Logger {
+          public FileLogger(){
+          }
+          @Override
+          protected void log(String message) {    
+             System.out.println("File::Logger: " + message);
+          }
+       }
+       public class Main {  
+          private static Logger getChainOfLoggers(){
+             Logger emailLogger = new EMailLogger();
+             Logger fileLogger = new FileLogger();
+             Logger consoleLogger = new ConsoleLogger();
+             emailLogger.setNextLogger(fileLogger);
+             fileLogger.setNextLogger(consoleLogger);
+             return emailLogger;  
+          }
+          public static void main(String[] args) {
+             Logger loggerChain = getChainOfLoggers();
+             loggerChain.logMessage("Null pointer");
+             loggerChain.logMessage("Array Index Out of Bound");
+             loggerChain.logMessage("Illegal Parameters");
+          }
+       }
+     #+END_SRC
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016092710.png :cmdline -charset UTF-8
+      @startuml
+      class Logger {
+            #Logger nextLogger
+            +void setNextLogger(Logger nextLogger)
+            +void logMessage(String message)
+            #void log(String message)
+      }
+
+      class ConsoleLogger {
+            #void log(String message)
+      }
+
+      class EMailLogger {
+            #void log(String message)
+      }
+
+      class FileLogger {
+            #void log(String message)
+      }
+
+      ConsoleLogger --|> Logger
+      EMailLogger --|> Logger
+      FileLogger --|> Logger
+
+      class Main
+
+      Main ..> EMailLogger
+      EMailLogger ..> FileLogger
+      FileLogger ..> ConsoleLogger
+      @enduml
+    #+END_SRC
 
 ** 命令(Command)
+     命令模式是一种数据驱动的模式，请求被封装成一个命令对象，传递给调
+     用者，调用者将相应的命令传递给相应的对象去执行。
+     
+*** 情景分析
+       #+BEGIN_SRC java
+         import java.util.ArrayList;
+         import java.util.List;
+         //ww w . j av  a2  s .  c o  m
+         interface Command {
+           void execute();
+         }
 
+         class MouseCursor {
+           private int x = 10;
+           private int y = 10;
+           public void move() {
+             System.out.println("Old Position:"+x +":"+y);
+             x++;
+             y++;
+             System.out.println("New Position:"+x +":"+y);
+             
+           }
+
+           public void reset() {
+             System.out.println("reset");
+             x = 10;
+             y = 10;
+           }
+         }
+
+         class MoveCursor implements Command {
+           private MouseCursor abcStock;
+
+           public MoveCursor(MouseCursor abcStock) {
+             this.abcStock = abcStock;
+           }
+
+           public void execute() {
+             abcStock.move();
+           }
+         }
+
+         class ResetCursor implements Command {
+           private MouseCursor abcStock;
+
+           public ResetCursor(MouseCursor abcStock) {
+             this.abcStock = abcStock;
+           }
+
+           public void execute() {
+             abcStock.reset();
+           }
+         }
+
+         class MouseCommands {
+           private List<Command> orderList = new ArrayList<Command>();
+
+           public void takeOrder(Command order) {
+             orderList.add(order);
+           }
+
+           public void placeOrders() {
+             for (Command order : orderList) {
+               order.execute();
+             }
+             orderList.clear();
+           }
+         }
+
+         public class Main {
+           public static void main(String[] args) {
+             MouseCursor cursor = new MouseCursor();
+
+             MoveCursor moveCursor = new MoveCursor(cursor);
+             ResetCursor resetCursor = new ResetCursor(cursor);
+
+             MouseCommands commands= new MouseCommands();
+             commands.takeOrder(moveCursor);
+             commands.takeOrder(resetCursor);
+
+             commands.placeOrders();
+           }
+         }       
+       #+END_SRC
 ** 解释器(Interpreter)
+     通常解析器模式用于解析语言或表达式。
+     #+BEGIN_SRC java
+       interface Expression {
+         public boolean evaluate(String context);
+       }/*from  ww w  .ja v  a  2 s  .  com*/
+
+       class IsInExpression implements Expression {
+         private String data;
+
+         public IsInExpression(String data) {
+           this.data = data;
+         }
+
+         @Override
+         public boolean evaluate(String context) {
+           if (context.contains(data)) {
+             return true;
+           }
+           return false;
+         }
+       }
+
+       class OrExpression implements Expression {
+
+         private Expression expr1 = null;
+         private Expression expr2 = null;
+
+         public OrExpression(Expression expr1, Expression expr2) {
+           this.expr1 = expr1;
+           this.expr2 = expr2;
+         }
+
+         @Override
+         public boolean evaluate(String context) {
+           return expr1.evaluate(context) || expr2.evaluate(context);
+         }
+       }
+
+       class AndExpression implements Expression {
+
+         private Expression expr1 = null;
+         private Expression expr2 = null;
+
+         public AndExpression(Expression expr1, Expression expr2) {
+           this.expr1 = expr1;
+           this.expr2 = expr2;
+         }
+
+         @Override
+         public boolean evaluate(String context) {
+           return expr1.evaluate(context) && expr2.evaluate(context);
+         }
+       }
+
+       public class Main {
+
+         public static void main(String[] args) {
+           Expression select = new IsInExpression("Select");
+           Expression from = new IsInExpression("From");
+           Expression isSelectFrom = new AndExpression(select, from);
+
+           Expression insert = new IsInExpression("Insert");
+           Expression update = new IsInExpression("Update");
+           Expression isInsertOrUpdate = new OrExpression(insert, update);
+
+           System.out.println(isSelectFrom.evaluate("Select"));
+           System.out.println(isInsertOrUpdate.evaluate("Insert"));
+
+           System.out.println(isSelectFrom.evaluate("Select From"));
+           System.out.println(isInsertOrUpdate.evaluate("Update"));
+         }
+       }     
+     #+END_SRC
 
 ** 迭代器(Iterator)
-
+     在不了解对象底层细节的情况下，按顺序访问一组对象。
+     #+BEGIN_SRC java
+       interface Iterator {
+          public boolean hasNext();
+          public Object next();
+       }/*  www  . ja v  a 2 s . c  o  m*/
+       class LetterBag {
+          public String names[] = {"R" , "J" ,"A" , "L"};
+          public Iterator getIterator() {
+             return new NameIterator();
+          }
+          class NameIterator implements Iterator {
+             int index;
+             @Override
+             public boolean hasNext() {
+                if(index < names.length){
+                   return true;
+                }
+                return false;
+             }
+             @Override
+             public Object next() {
+                if(this.hasNext()){
+                   return names[index++];
+                }
+                return null;
+             }    
+          }
+       }
+       public class Main {
+          public static void main(String[] args) {
+             LetterBag bag = new LetterBag();
+             for(Iterator iter = bag.getIterator(); iter.hasNext();){
+                String name = (String)iter.next();
+                System.out.println("Name : " + name);
+             }   
+          }
+       }     
+     #+END_SRC
 ** 仲裁者(Mediator)
+     这个模式降低了多个对象间的通信。该模式提供了一个仲裁类处理不同对
+     象间的所有通信。
+*** 情景分析
+      #+BEGIN_SRC java
+        class Printer {/*w w  w  .jav a2  s  . c  om*/
+           public static void showMessage(Machine user, String message){
+              System.out.println(new java.util.Date().toString()
+                 + " [" + user.getName() +"] : " + message);
+           }
+        }
+        class Machine {
+           private String name;
 
+           public Machine(String name){
+              this.name  = name;
+           }
+           public String getName() {
+              return name;
+           }
+           public void setName(String name) {
+              this.name = name;
+           }
+           public void sendMessage(String message){
+              Printer.showMessage(this,message);
+           }
+        }
+        class Main {
+           public static void main(String[] args) {
+              Machine m1= new Machine("M1");
+              Machine m2 = new Machine("M2");
+
+              m1.sendMessage("Rebooting");
+              m2.sendMessage("Computing");
+           }
+        }      
+      #+END_SRC
 ** 备忘录(Memento)
+     The memento pattern is a software design pattern that provides
+     the ability to restore an object to its previous state (undo via
+     rollback). 
+     
+     备忘录模式有三个对象： Originator, Caretaker, memento。
+     Originator是拥有内部状态的一些对象， Caretaker首先向Originator要
+     一个memento对象，然后执行一系列它想执行的对象。为了回退到执行操作
+     之前的状态，它返回一个memento对象。
+*** 情景分析
+       #+BEGIN_SRC java
+         import java.util.List;
+         import java.util.ArrayList;
+         class Originator {
+             private String state;
+             // The class could also contain additional data that is not part of the
+             // state saved in the memento..
+          
+             public void set(String state) {
+                 System.out.println("Originator: Setting state to " + state);
+                 this.state = state;
+             }
+          
+             public Memento saveToMemento() {
+                 System.out.println("Originator: Saving to Memento.");
+                 return new Memento(this.state);
+             }
+          
+             public void restoreFromMemento(Memento memento) {
+                 this.state = memento.getSavedState();
+                 System.out.println("Originator: State after restoring from Memento: " + state);
+             }
+          
+             public static class Memento {
+                 private final String state;
 
+                 public Memento(String stateToSave) {
+                     state = stateToSave;
+                 }
+          
+                 private String getSavedState() {
+                     return state;
+                 }
+             }
+         }
+          
+         class Caretaker {
+             public static void main(String[] args) {
+                 List<Originator.Memento> savedStates = new ArrayList<Originator.Memento>();
+          
+                 Originator originator = new Originator();
+                 originator.set("State1");
+                 originator.set("State2");
+                 savedStates.add(originator.saveToMemento());
+                 originator.set("State3");
+                 // We can request multiple mementos, and choose which one to roll back to.
+                 savedStates.add(originator.saveToMemento());
+                 originator.set("State4");
+          
+                 originator.restoreFromMemento(savedStates.get(1));   
+             }
+         }       
+       #+END_SRC
 ** 观察者(Observer)
+     当一个对象发生变化时，该模式用于通知所有这个对象依赖的对象。
+     #+BEGIN_SRC java
+       import java.util.ArrayList;
+       import java.util.List;
+       /*from   w  ww .j  ava2  s  .  co m*/
+       class MyValue {
+          private List<Observer> observers 
+             = new ArrayList<Observer>();
+          private int state;
 
+          public int getState() {
+             return state;
+          }
+
+          public void setState(int state) {
+             this.state = state;
+             notifyAllObservers();
+          }
+
+          public void attach(Observer observer){
+             observers.add(observer);    
+          }
+
+          public void notifyAllObservers(){
+             for (Observer observer : observers) {
+                observer.update();
+             }
+          }   
+       }
+       abstract class Observer {
+          protected MyValue subject;
+          public abstract void update();
+       }
+       class PrinterObserver extends Observer{
+          public PrinterObserver(MyValue subject){
+             this.subject = subject;
+             this.subject.attach(this);
+          }
+
+          @Override
+          public void update() {
+             System.out.println("Printer: " + subject.getState() ); 
+          }
+       }
+       class EmailObserver extends Observer{
+
+          public EmailObserver(MyValue subject){
+             this.subject = subject;
+             this.subject.attach(this);
+          }
+
+          @Override
+          public void update() {
+            System.out.println("Email: "+ subject.getState() ); 
+          }
+       }
+       class FileObserver extends Observer{
+
+          public FileObserver(MyValue subject){
+             this.subject = subject;
+             this.subject.attach(this);
+          }
+
+          @Override
+          public void update() {
+             System.out.println("File: " + subject.getState()); 
+          }
+       }
+
+       public class Main {
+          public static void main(String[] args) {
+             MyValue subject = new MyValue();
+
+             new FileObserver(subject);
+             new EmailObserver(subject);
+             new PrinterObserver(subject);
+
+             subject.setState(15);
+         
+             subject.setState(10);
+          }
+       }     
+     #+END_SRC
 ** 状态(State)
+     在该模式下，一个类的行为会随状态的变化而改变。当使用状态模式时，
+     会创建各种状态下的对象以及一个上下文对象，它的行为随着状态对象的
+     变化而变化。
+     #+BEGIN_SRC java
+       interface State {
+         public void doAction(Context context);
+       }// w  w w .  java 2s  .  co m
 
+       class StartState implements State {
+         public void doAction(Context context) {
+           System.out.println("In start state");
+           context.setState(this);
+         }
+
+         public String toString() {
+           return "Start State";
+         }
+       }
+
+       class StopState implements State {
+
+         public void doAction(Context context) {
+           System.out.println("In stop state");
+           context.setState(this);
+         }
+
+         public String toString() {
+           return "Stop State";
+         }
+       }
+
+       class PlayState implements State {
+         public void doAction(Context context) {
+           System.out.println("In play state");
+           context.setState(this);  
+         }
+         public String toString() {
+           return "Play State";
+         }
+       }
+
+       class Context {
+         private State state;
+
+         public Context() {
+           state = null;
+         }
+
+         public void setState(State state) {
+           this.state = state;
+         }
+
+         public State getState() {
+           return state;
+         }
+       }
+
+       public class Main {
+         public static void main(String[] args) {
+           Context context = new Context();
+
+           StartState startState = new StartState();
+           startState.doAction(context);
+
+           System.out.println(context.getState().toString());
+
+           PlayState playState = new PlayState();
+           playState.doAction(context);
+           
+           StopState stopState = new StopState();
+           stopState.doAction(context);
+
+           System.out.println(context.getState().toString());
+         }
+       }     
+     #+END_SRC
 ** 策略(Strategy)
+     在策略模式下，我们会创建代表不同算法的对象，以及另一个上下文对象
+     来运行不同的算法。
+     #+BEGIN_SRC java
+       interface MathAlgorithm {
+          public int calculate(int num1, int num2);
+       }//from   w w w  . jav  a  2s .  c  om
+       class MathAdd implements MathAlgorithm{
+          @Override
+          public int calculate(int num1, int num2) {
+             return num1 + num2;
+          }
+       }
+       class MathSubstract implements MathAlgorithm{
+          @Override
+          public int calculate(int num1, int num2) {
+             return num1 - num2;
+          }
+       }
+       class MathMultiply implements MathAlgorithm{
+          @Override
+          public int calculate(int num1, int num2) {
+             return num1 * num2;
+          }
+       }
+       class MathContext {
+          private MathAlgorithm algorithm;
 
+          public MathContext(MathAlgorithm strategy){
+             this.algorithm = strategy;
+          }
+
+          public int execute(int num1, int num2){
+             return algorithm.calculate(num1, num2);
+          }
+       }
+       public class Main {
+          public static void main(String[] args) {
+             MathContext context = new MathContext(new MathAdd());    
+             System.out.println("10 + 5 = " + context.execute(10, 5));
+
+             context = new MathContext(new MathSubstract());    
+             System.out.println("10 - 5 = " + context.execute(10, 5));
+
+             context = new MathContext(new MathMultiply());    
+             System.out.println("10 * 5 = " + context.execute(10, 5));
+          }
+       }     
+     #+END_SRC
 ** 模板方法(Template Method) 
+     在模板方法中，父类定义了一些提供给子类继承的抽象方法，另外，定义
+     了一个公共方法利用上述的抽象方法来实现一个业务逻辑。子类只需要关
+     注实现不同的业务逻辑步骤。
+     #+BEGIN_SRC java
+       abstract class UseSoftware{
+          abstract void download();
+          abstract void install();
+          abstract void configuration();
+          abstract void run();
+          
+          public void useNewSoftware(){
+            download();
+            install();
+            configuration();
+            run();   
+          }
+       }     
+     #+END_SRC
 
 ** 访问者(Visitor Method)
+     在访问者模式中，元素对象接受一个访问者对象，访问者对象自理针对元
+     素对象的一些操作。
+     不同的访问者，可以针对元素对象采用不同的算法。
+     #+BEGIN_SRC java
+       class TreeNode {/* w  ww  . j a  v a 2s  .  c  om*/
+         private String name;
+         public TreeNode(String name) {
+           this.name = name;
+         }
+         public String getName() {
+           return name;
+         }
+         public void accept(NodeVisitor v) {
+           v.visit(this);
+         }
+       }
+       interface NodeVisitor {
+         public void visit(TreeNode n);
+       }
+       class ConsoleVisitor implements NodeVisitor {
+         @Override
+         public void visit(TreeNode n) {
+           System.out.println("console:" + n.getName());
+         }
+       }
 
+       class EmailVisitor implements NodeVisitor {
+         @Override
+         public void visit(TreeNode n) {
+           System.out.println("email:" + n.getName());
+         }
+       }
+
+       public class Main {
+         public static void main(String[] args) {
+
+           TreeNode computer = new TreeNode("Java2s.com");
+           computer.accept(new ConsoleVisitor());
+           computer.accept(new EmailVisitor());
+         }
+       }     
+     #+END_SRC
 * 体系结构模式
 
 ** MVC(Model-View-Controller)
 
 * 扩展
 
+** Null Object pattern
+    在空对象模式中，创建一个无任何业务逻辑意义的对象来代替真正的空对象。
+    使用这个空业务逻辑对象来代表空指针检查。
+    #+BEGIN_SRC java
+      abstract class AbstractEmployee {
+         protected String name;
+         public abstract boolean isNull();
+         public abstract String getName();
+      }/*w  ww. j  a  v a2  s.c o m*/
+      class Programmer extends AbstractEmployee {
+         public Programmer(String name) {
+            this.name = name;    
+         }
+         @Override
+         public String getName() {
+            return name;
+         }
+         @Override
+         public boolean isNull() {
+            return false;
+         }
+      }
+      class NullCustomer extends AbstractEmployee {
+         @Override
+         public String getName() {
+            return "Not Available";
+         }
+
+         @Override
+         public boolean isNull() {
+            return true;
+         }
+      }
+      class EmployeeFactory {
+         public static final String[] names = {"Rob", "Joe", "Jack"};
+         public static AbstractEmployee getCustomer(String name){
+            for (int i = 0; i < names.length; i++) {
+               if (names[i].equalsIgnoreCase(name)){
+                  return new Programmer(name);
+               }
+            }
+            return new NullCustomer();
+         }
+      }
+      public class Main {
+         public static void main(String[] args) {
+
+            AbstractEmployee emp = EmployeeFactory.getCustomer("Rob");
+            AbstractEmployee emp2 = EmployeeFactory.getCustomer("Bob");
+            AbstractEmployee emp3 = EmployeeFactory.getCustomer("Jack");
+            AbstractEmployee emp4 = EmployeeFactory.getCustomer("Tom");
+
+            System.out.println(emp.getName());
+            System.out.println(emp2.getName());
+            System.out.println(emp3.getName());
+            System.out.println(emp4.getName());
+         }
+      }    
+    #+END_SRC
 ** Service Provider
     研究类ImageIO
 
@@ -1374,3 +2081,5 @@
     Java Selector   no blocking I/O
 ** Proactor pattern
     Java Asynchronous I/O
+* 参考资料
+  1. https://sourcemaking.com/design_patterns

@@ -175,8 +175,6 @@
 
       - 常量左值引用是为了阻止对一个参数的修改。
 
-
-
 ** 对象与继承
    声明为const的一个类的对象只能调用声明为const的类的成员函数。 使用指
    针类型作为一个类的成员可以隐藏相关类型的具体实现。
@@ -216,7 +214,6 @@
      __DATE__: 文件编译的日期   
    #+END_SRC
 ** C++11 New Feature Overview
-   
 *** Important Minor Syntax Cleanups
     The requirement to put a space between two closing template
     expressions has gone:
@@ -246,7 +243,6 @@
       auto i; // ERROR: can’t dedulce the type of i    
     #+END_SRC
 
-    
 *** Uniform Initialization and Initializer Lists
 
     Initialization could happen with parentheses, braces, and/or
@@ -272,7 +268,9 @@
     #+END_SRC
 
     To support the concept of initializer lists for user-defined types, C++11 provides the class tem-
-    plate std::initializer_list<>. It can be used to support initializations by a list of values or in
+    plate
+    : std::initializer_list<>. 
+    It can be used to support initializations by a list of values or in
     any other place where you want to process just a list of values.
 
     #+BEGIN_SRC c++
@@ -287,7 +285,6 @@
       // pass a list of values to print()    
     #+END_SRC
 
-    
 *** Range Based for Loops
     #+BEGIN_SRC c++
       for ( decl : coll ) {
@@ -319,10 +316,23 @@
 *** 定义字符串常量
     原始字符串常量
     “\\\\n” can be defined as R(”\\n”)
-
+    
+    表示原始字符串的语法形式为：
+    : R"delim(...)delim"
+    其中delim是最多有16个基本字符的一个字符序列，不包括反斜杠，空白字
+    符以及括号。
+    例如：
+    #+BEGIN_SRC c++
+      R"nc(a\
+      b\nc()"
+      )nc";    
+    #+END_SRC
+    等价于如下普通的字符串表面量：
+    : "a\\\n  b\\nc()\"\n  "
+    
     编码过的字符串常量
     u8 defines a UTF-8 encoding. A UTF-8 string literal is initialized with the given characters as
-    encoded in UTF-8. The characters have type const char.
+    encoded in UTF-8. The characters have type =const char=.
     - u defines a string literal with characters of type =char16_t=.
     - U defines a string literal with characters of type =char32_t=.
     - L defines a wide string literal with characters of type
@@ -335,9 +345,16 @@
     用于指明一个函数不能抛出或不打算抛出异常，例如：
     : void foo() noexcept
     这样，如果在foo()函数内部发生异常，但是又没有去处理，则程序会停止，
-    并调用std::terminate()，它默认为调用std::abort()。
-
+    并调用std::terminate()，它默认调用std::abort()。
     
+*** 关键字decltype
+       通过decltype可以让编译器指导一个表达式的类型，实现typeof的语义，
+       如下所示：
+       #+BEGIN_SRC c++
+         std::map<std::string,float> coll;
+         decltype(coll)::value_type elem;       
+       #+END_SRC
+
 *** 常量表达式
     常量表达式的值不能改变，且在编译期间就会解析。
     在C++11中，引入了constexpr声明一个变量的初始化是一个常量表达式。由
@@ -376,6 +393,56 @@
 
     =interpret_cast=:执行比较底层的数据类型转换
 
+*** Move语义和右值引用
+        C++0x支持move语义，避免一些不必要的复制操作以及临时变量。
+        1. Overloading Rules for Rvalue and Lvalue References
+           - If you implement only
+             : void foo(X&);
+             without void foo(X&&), the behavior is as in C++98: foo()
+             can be called for lvalues but not for rvalues.
+           - If you implement
+             : void foo(const X&);
+             without void foo(X&&), the behavior is as in C++98: foo()
+             can be called for rvalues and for lvalues.
+           - If you implement
+             : void foo(X&);
+             : void foo(X&&);
+             or
+             : void foo(const X&);
+             : void foo(X&&);
+             you can distinguish between dealing with rvalues and
+             lvalues. The version for rvalues is allowed to and should
+             provide move semantics. Thus, it can steal the internal
+             state and resources of the passed argument.
+           - If you implement
+             : void foo(X&&);
+             but neither void foo(X&) nor void foo(const X&), foo()
+             can be called on rvalues, but trying to call it on an
+             lvalue will trigger a compile error. Thus, only move
+             semantics are provided here. This ability is used inside
+             the library: for example, by unique pointers, file
+             streams, or string streams.
+        2. Returning Rvalue References
+           You don’t have to and should not move() return
+           values. According to the language rules, the standard
+           specifies that for the following code: 
+           #+BEGIN_SRC c++
+             X foo ()
+             {
+             X x;
+             ...
+               return x;
+             }
+           #+END_SRC
+           有如下一些行为：
+           - If X has an accessible copy or move constructor, the
+             compiler may choose to elide（省略） the copy. This is the
+             so-called (named) return value optimization ((N)RVO),
+             which was specified even before C++11 and is supported by
+             most compilers.
+           - Otherwise, if X has a move constructor, x is moved.
+           - Otherwise, if X has a copy constructor, x is copied.
+           - Otherwise, a compile-time error is emitted.
     
 *** 异常处理
     C++库中定义几个类用于报告标准库函数中遇到的一些问题，这些类定义在
@@ -386,7 +453,6 @@
       <new> : bad_alloc
       <type_info>: bad_cast    
     #+END_EXAMPLE
-    
     
 *** 可变参数函数
     在C++11中，有两种方式
@@ -401,6 +467,18 @@
          }       
        #+END_SRC
     2. 如果参数类型不一致，则可以写一个特殊函数，称为variadic模板。
+       #+BEGIN_SRC c++
+         void print ()
+         {
+         }
+
+         template <typename T, typename... Types>
+         void print (const T& firstArg, const Types&... args)
+         {
+           std::cout << firstArg << std::endl; // print first argument
+           print(args...); // call print() for remaining arguments
+         }       
+       #+END_SRC
     3. 用省略号，不过一般用于与C函数对接的时候。
        #+BEGIN_SRC c++
          void foo1(const char *format, ...)
@@ -419,7 +497,7 @@
          #define D(...) fprintf(stderr, __VA_ARGS__)       
        #+END_SRC
 
-*** 声明复杂的函数返回类型
+*** 新的函数声明语法
     在C++11新的语法中，当函数的返回类型比较复杂时，比如是指向一个数组
     的指针，则可以声明如下：
     #+BEGIN_SRC c++
@@ -429,7 +507,18 @@
 
     当然，也可以使用decltype。
 
-    
+    有时，一个函数的返回值依赖于通过参数处理的表达式，利用新语法，可以
+    实现如下函数声明形式：
+    #+BEGIN_SRC c++
+      template <typename T1, typename T2>
+      decltype(x+y) add(T1 x, T2 y);    
+    #+END_SRC
+    同时也可以采用如下的声明形式：
+    #+BEGIN_SRC c++
+      template <typename T1, typename T2>
+      auto add(T1 x, T2 y) -> decltype(x+y);    
+    #+END_SRC
+
 *** Lambda
     最简单的lambda
     #+BEGIN_SRC c++
@@ -456,6 +545,38 @@
       //[=]，表明lambda外部的变量通过传值的方式，给lambda内部访问，不能在内部进行修改。
       //[&], 表明lambda外部的变量通过引用的方式，给lambda内部访问，可以在内部进行修改。
     #+END_SRC
+
+    Lambda函数的类型
+
+    如果想知道lambda函数的类型，可以使用decltype()， 也可以使用
+    std::function<>类模板，如下所示：
+    #+BEGIN_SRC c++
+      #include<functional>
+      #include<iostream>
+      std::function<int(int,int)> returnLambda ()
+      {
+        return [] (int x, int y) {
+          return x*y;
+        };
+      }
+      int main()
+      {
+        auto lf = returnLambda();
+        std::cout << lf(6,7) << std::endl;
+      }    
+    #+END_SRC
+
+*** 限定型枚举类型
+       C++0x引入了限定型枚举的定义，也称为强枚举或枚举类，如下：
+       : enum class Salutation : char { mr, ms, co, none };
+       enum后面增加了class关键字。
+       限定型枚举有如下一些优势：
+       - 与int之间的隐式转换是不可能了。
+       - 必须使用完整语法形式
+         : Salutation::mr
+         来引用mr。因为mr不属于枚举声明所在的变量范围（命名空间）
+       - 可以显式地定义基础类型，如上例是char,默认是int。
+       - 支持前向声明
 
 * 模块
 
