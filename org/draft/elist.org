@@ -108,7 +108,6 @@ body...)
             zera tiger))     
      #+END_SRC
 ** 条件与控制
-
 *** if
     #+BEGIN_SRC emacs-lisp
       (if true-or-false-test

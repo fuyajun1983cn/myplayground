@@ -1,0 +1,85 @@
+#+STARTUP: overview
+#+TITLE: Glib编程学习笔记
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* glib
+** main event loop
+   主事件循环管理GLib和GTK应用程序所有事件源。这些事件可来源于不同的类
+   型例如文件描述符（普通文件，管道或套接字）以及超时事件。也可以通过
+   =g_source_attach()= 添加新的事件源类型。
+
+   为了使不同的独立的事件源可在不同的线程中去处理，每个事件源被关联了
+   一个 =GMainContext= 。 一个 =GMainContext= 只能运行在单个线程中，但
+   是可以通过其他线程向其添加或删除一个事件源。
+
+   每个事件源被赋予了一个优先级。默认的优先级是 =G_PRIORITY_DEFAULT= ,
+   其值为0. 小于0的值表示更高的优先级。 高优先级的事件通常先处理。
+
+   也可以添加 =Idle= 函数，并赋予它一个优先级。当没有比它更高优先级的
+   事件产生时，就是运行此函数。
+
+   =GMainLoop= 数据类型代表一个主事件循环。通过 =g_main_loop_new()= 创
+   建一个 =GMainLoop= 实例。 在添加初始的一些事件源后，将会调用
+   =g_main_loop_run()= 。 它不断地检查每个事件源，看是否有事件产生，如
+   果有的话，会及时将它们派发。最后，当在处理某个事件时，通过调用
+   =g_main_loop_quit()= 退出主事件循环， =g_main_loop_run()= 返回。
+
+   可以递归地创建一个新的 =GMainLoop= 实例。通常使用在显示模态对话框的
+   GTK+应用程序中。事件源可以关联某个特定的 =GMainContext= ，所有与这
+   个 =GMainContext= 关联的主事件循环都会被检查并派发。
+*** 创建新的事件源类型
+       =GMainLoop= 功能中与众不同的一点是可以创建新的事件源类型，与内
+       建的事件源类型共同组成新的事件源集合。一个新的事件源类型用于处
+       理GDK事件。创建一个新的事件源类型是通过从 =GSource= 结构体“派生”而
+       来。派生的事件源类型由这样的一个结构体表示：它的第一个域为
+       =GSource= ，其他的域与新的事件源类型相关。通过调用
+       =g_source_new()= 创建一个新的事件源类型，传递的参数是派生结构体
+       的大小以及一组回调函数。这些 =GSourceFuncs= 决定了新的事件源类
+       型的行为。
+
+       新的事件源类型通常与主运行上下文以两种方式交互：
+       1. =GSourceFuncs= 中的 =prepare= 函数可以设置一个超时值，来决定
+          在再次检测事件源之前，主事件循环需要休眠等待的最大时间。
+       2. 事件源可以使用 =g_source_add_poll()= 将文件描述符添加到主事
+          件循环检测的事件集合中。
+*** 定制主事件循环迭代
+       通过 =g_main_context_iteration()= 来运行 =GMainContext= 的一次
+       单步迭代。主某些情况下，需要更精确地控制主事件循环是如何运作的。
+       例如，当将 =GMainLoop= 与一个外部事件循环集成时，在这种情况下，
+       可以直接调用 =g_main_context_iteration= 的组成函数，这些函数是
+       =g_main_context_prepare()=, =g_main_context_query()=,
+       =g_main_context_check()=, 以及 =g_main_context_dispatch()= 。
+*** 主上下文的状态
+       [./images/2016/2016100401.png]
+       在UNIX上，Glib的主事件循环与 =fork()= 不兼容。任何使用主事件循
+       环的程序必须从子进程中调用 =exec()= 或 =exit()= 退出，而不要返
+       回主事件循环来。
+*** 事件源的内存管理
+        传递给一个 =GSource= 的用户数据有两种使用内存管理的选项，这个
+        选项将传递给 =GSource= 的对应的回调函数中。例如，在调用如下一
+        些函数时，可能会涉及到此问题： =g_timeout_add()= ,
+        =g_timeout_add_full()= , =g_idle_add()= ，或者更一般的情况：
+        =g_source_set_callback()= 。 该数据通常是一个拥有超时或空转回
+        调函数的对象。 在许多情况下，在拥有它的对象被销毁的情况下去调
+        用这些回调函数将会产生错误，因为这会导致使用被释放的内存。
+
+        第一种，也是更好的一个选项是存储由函数 =g_timeout_add= ,
+        =g_source_attach= 以及 =g_source_remove()= 等函数返回的事件源
+        ID。这确保仅在对象存活的情况下调用这些回调函数。
+
+        第二种选项是在回调函数中持有对象的一个强引用，然后在
+        =GDestroyNOtify= 回调中释放它。 一直当事件源最终被析构释放之前，
+        该对象仍然处于活跃状态。这种方法需要注意的地方是：如果主事件循
+        环在 =GSource= 被析构之前停止了，那么该对象就会一直处理活跃状
+        态，无法释放了，这种行为是不可接受的。
+* gio
+
+* gobject
+
+* gmodule
+
+* gthread

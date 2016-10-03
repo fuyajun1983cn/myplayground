@@ -4934,9 +4934,9 @@ Vmalloc映射分三步：
    录下面的属性。
 
    
-
+* Device Tree
    
-* ＝iov_iter= interface
+* ＝iov_iter= interface──新的异步IO接口
       AIO changed to read/write-iter
       https://lwn.net/Articles/625077/  The iov_iter interface
 

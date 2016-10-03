@@ -312,18 +312,6 @@ Added: [2016-09-18 周日 00:15]
 ** ☛ TODO SDIO规范阅读                                                 :Study:
 
 Added: [2016-09-18 周日 00:15]
-** ☛ TODO [#C] =org.el= 
-    DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:20]
-   - State "✘ CANCELED" from "☛ TODO"     [2016-09-10 六 13:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-01 周四 20:55]
-   CLOCK: [2016-09-01 周四 18:46]--[2016-09-01 周四 20:56] =>  2:10
-   CLOCK: [2016-08-11 周四 19:32]--[2016-08-11 周四 20:36] =>  1:04
-   :PROPERTIES:
-   :Effort:   8:00
-   :LAST_REPEAT: [2016-09-18 周日 00:18]
-   :END:
-   - 406行
 ** ☛ TODO [#A] 办公桌6S整理                                            :Check:
    SCHEDULED: <2016-10-10 一 +1w>
    - State "✔ DONE"     from "☛ TODO"     [2016-09-27 二 09:25]
@@ -379,6 +367,10 @@ Added: [2016-09-05 周一 09:50]
    
 Added: [2016-09-09 五 20:35]
 ** ☛ TODO configfs接口研究
+** ☛ TODO 学习elisp tutorial
+   DEADLINE: <2016-11-30 三> SCHEDULED: <2016-10-10 一>
+** ☛ TODO 研究emacs输入法框架
+   DEADLINE: <2016-10-29 六> SCHEDULED: <2016-10-10 一>
 * Calendar
   :PROPERTIES:
   :CATEGORY: CALENDAR
@@ -424,8 +416,8 @@ Added: [2016-09-09 五 20:35]
    :END:
 
 * 本月已达成目标
-* 本周必达目标(W40)
-** [ ] 完成数据结构与算法习题──递归部分的学习
+* 本周必达目标
+  - [X] 完成数据结构与算法习题──递归部分的学习
 * 今天必须做的事情
   :PROPERTIES:
   :CATEGORY: 重要且紧急（计划内）
@@ -502,9 +494,8 @@ Added: [2016-09-19 一 19:00]
    :END:
     数据结构与常见算法思想学习
 *** 数据 结构与习题与解答——Java语言描述
-**** ☛ TODO 第三章 & 第四章 ——递归
-     DEADLINE: <2016-10-09 周日> SCHEDULED: <2016-09-26 周一>
 **** 第五章 & 第六章 —— 栈
+     DEADLINE: <2016-10-29 六> SCHEDULED: <2016-10-10 一>
 **** 第七章  —— 队列
 **** 第八章 —— 线性表
 **** 第九章 —— 树
