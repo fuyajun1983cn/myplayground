@@ -328,6 +328,59 @@ structure your answer with S(Situation), A(Action), R(Response)
 
      写一个函数判断两个字符串是否是变位词。
 
+**** 解答
+
+       实质就是判断两个字符串在长度相等的情况下，每个字符拥有相同的数
+       量
+
+       #+BEGIN_SRC java
+         public class Solution {
+             public static void main(String[] args) {
+                 
+             }
+
+             //将两个字符串进行排序后，比较
+             private static boolean isAnagram(String str1, String str2)
+             {
+                 return sort(str1) == sort(str2);
+             }
+
+             //包含的唯一字符相同，且数量一致
+             private static boolean isAnagram(String s, String t)
+             {
+                 if (str1 == null && str2 == null)
+                     return true;
+
+                 if (str1.length() != str2.length())
+                     return false;
+                 int uniqueChars = 0;
+                 
+                 int[] letters = new int[256];
+                 char[] s_array = s.toArray();
+                 for (char c : s_array) {
+                     if (letters[c] == 0)
+                         uniqueChars++;
+                     letters[c]++;
+                 }
+
+                 for (int i = 0; i < t.length(); i++) {
+                     int ch = (char)t.charAt(i);
+                     if (letters[ch] == 0)
+                         return false;
+                     letters[ch]--;
+
+                     if (letters[ch] == 0)
+                         uniqueChars--;
+
+                     if (uniqueChars == 0) {
+                         return i == t.length() - 1;
+                     }
+                 }
+                 return false;
+             }
+         }
+       #+END_SRC
+
 *** 替换空格
 
 **** 题目
@@ -335,6 +388,54 @@ structure your answer with S(Situation), A(Action), R(Response)
 
      写一个函数，把字符串中所有的空格替换为%20 
 
+**** 解答
+
+     #+BEGIN_SRC java
+       public class Solution {
+           public static void main(String[] args) {
+               
+           }
+
+           private static String removeSpaces(String str)
+           {
+               if (str == null)
+                   return null;
+
+               StringBuilder sb = new StringBuilder();
+               for (int i = 0; i < str.length(); i++) {
+                   if (Character.isWhiteSpace(str.charAt(i)))
+                       sb.append("%20");
+                   sb.append( str.charAt(i));
+               }
+               return sb.toString();
+           }
+
+           private static void replaceSpace(char[] str, int length)
+           {
+               int spaceCount = 0, newlength, i = 0;
+               //计算空格的数量，从而计算出新字符串的长度
+               for (i = 0; i < length; i++)
+                   if (str[i] == ' ')
+                       spaceCount++;
+
+               newlength = length + 3 * spaceCount;
+               str[newlength] = '\0';
+               //从后面开始，重新遍历一遍，将空格处替换“％20""
+               for (i = length - 1; i >= 0; i== ) {
+                   if (str[i] == ' ') {
+                       str[newlength - 1] = '0';
+                       str[newlength - 2] = '2';
+                       str[newlength - 3] = '%';
+                       newlength -= 3;
+                   } else {
+                       str[newlength - 1] str[i];
+                       newlength -= 1;
+                   }
+               }
+           }
+       }     
+     #+END_SRC
+      
 *** 旋转图像
 
 **** 题目

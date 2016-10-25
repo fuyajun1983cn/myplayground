@@ -92,7 +92,7 @@
 - =cfg80211_put_bss=
 - =cfg80211_inform_bss=
   2.6.31后，优先使用此接口
-  通知80211，获得了一个scan。
+  通知80211，获得了一个scan bss。
 - =cfg80211_inform_bss_frame=
 - =cfg80211_find_ie=
   寻找指定的IE。 如SSID
@@ -731,7 +731,6 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 * MAC80211
   
 ** 主要API速览
-
 *** =ieee80211_check_tim()=
     checks a specific information element (TIM)
     The TIM is an array of 2008 entries. Because the TIM size is 251

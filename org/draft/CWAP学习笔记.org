@@ -1312,41 +1312,1659 @@
          rates are supported: 2 Mbps, 5.5 Mbps, and 11 Mbps.
 
 * CH03 802.11 MAC Sublayer Frame Format
+** General 802.11 frame format
+     从技术上讲，一个802.11帧就是一个MPDU。一个MPDU主要包含三个基本部
+     分：
+     - MAC Header
+     - Frame Body
+     - Frame Check Sequence (FCS)
+** MAC header
+     MAC头部主要有8个字段，其中4个用于寻址，每个地址字段占用4个字节。
+     其他4个字段分别是： Frame Control， Duration/ID， Sequence
+     Control， QoS Control，每个字段各占2个字节。如果所有的字段都用到
+     时的话，一个802.11 MAC头部的最大大小为32字节。802.11n增加了一个新
+     的字段：HT Control，占4个字节。所以，对于11n设备来说，最大的MAC头
+     部大小为36字节。不过，通常实际帧的头部大小要小于上述值。
+** Frame control field
+*** Protocol Version field
+       占两个比特，主要标识802.11协议的版本，通常值为0.
+*** Type and Sub-type fields
+       两个字段一起标识了一个帧的功能。Type占用了2个比特，Sub-type占用
+       了4个比特。
+*** To DS and From DS fields
+        各占一个比特。 用于改变4个地址的意义。
+*** More Fragments field
+        占用一个比特，不为0时代表后面还有分片需要接收。
+*** Retry field
+        占用一个比特，不为0时代表当前帧是一个重传帧。Layer 2发生太多的
+        重传会导致数据传输的延迟增大，一般重传率应该不大于10%。
+*** Power Management field
+        占一个比特，表示当前STA是否处于省电状态。
+*** More Data field
+        当休眠的STA 醒来时，发现AP缓存了发往自己的数据时，通过PS-POLL
+        向AP获取数据，当该位不为0时，STA需要不断的发送PS-POLL以获取AP
+        中缓存的数据。
+*** Protected Frame field
+        占用一个比特，当不为0时，代表当前帧的MSDU部分已经加密。
+*** Order field
+        占用一个比特，当上层要求一个非QoS的数据帧必须严格按序发送数据
+        时，该位置为1,其他情况都应该置为0.
+** Duration/ID field
+     该字段占用16个比特，主要用于3个不同的目的：
+     - Virtual carrier-sense
+       The main purpose of this field is to reset the NAV timer of
+       other stations.
+     - Legacy power management
+       PS-Poll frames use the field as an association identifier (AID).
+     - Contention-free period
+       The field is used as an indicator that a point coordination
+       function (PCF) process has begun.
+** MAC layer addressing
+     802.11 MAC层地址主要分为两类：
+     - 单播地址
+     - 组地址
+       + 广播地址
+       + 多播地址
+
+      #+CAPTION: 802.11 MAC addressing
+       [[./images/2016/2016101001.png]]
+
+** Sequence Control field
+     占用16比特， 包含两个子字段： Fragment Number（4比特）， Sequence
+     Number（12比特）。 
+     
+*** Sequence Control Subfields
+         值的范围为0~4095. 
+
+*** Understanding the Fragmentation Threshold
+        All 802.11 stations can be configured with a fragmentation
+        threshold. If the fragmentation threshold is set at 300 bytes,
+        any MSDU larger than 300 bytes will be fragmented. 
+     
+** QoS Control field
+     the QoS control field is only used in the MAC header of QoS data
+     frames. 
+
+     #+CAPTION: QoS Control field
+     [[./images/2016/2016101002.png]]
+
+** Frame Body
+     大小可变， 其中控制帧没有帧主体。
+
+     The 802.11-2007 standard states that the maximum size of the MSDU
+     is 2,304 bytes.
+
+     An 802.11n station using this method of aggregation can have a
+     frame body with a maximum A-MSDU size (3839 or 7935 octets,
+     depending upon the STA’s capability), plus any overhead from
+     encryption. 
+
+     WEP encryption adds 8 bytes of overhead to the frame body of an
+     802.11 data frame.
+
+     TKIP encryption adds 20 bytes of overhead to an 802.11 MPDU.
+
+     CCMP encryption adds 16 bytes of overhead to an 802.11 data frame.
+   
+** FCS field
+     包含32比特的CRC，用于验证接收到的帧的完整性。
+
+** Review Questions
+     1. Based on the 802.11 frame capture shown here, what type of
+        networking communications are occurring?
+
+        [[./images/2016/2016101201.png]]
+
+        A. AP to client station
+
+        B. Client station to server
+
+        C. Client station to AP
+
+        D. Server to client station
+        
+        E. Mesh backhaul
+
+        *答案解析*
+
+        E. The graphic displays four MAC addresses. Although 802.11 frames have four address
+     fields in the MAC header, 802.11 frames typically use only three of the MAC address fields.
+     An 802.11 frame sent within a wireless distribution system (WDS) requires all four MAC
+     addresses. Although the standard does not specifically define procedures for using this format,
+     WLAN vendors often implement WDS solutions. Examples of a WDS include WLAN
+     bridges, mesh networks, and wireless repeaters.
+     
+     2. CCMP/AES encryption adds an extra  ____  of overhead to the
+        body of an 802.11 data frame.
+
+        A. 16 bytes
+
+        B. 12 bytes
+
+        C. 20 bytes
+
+        D. 10 bytes
+
+        E. None of the above
+
+        *答案解析*
+
+        A. CCMP/AES encryption will add an extra 16 bytes of overhead to the body of an 802.11
+     data frame. Eight bytes are added by the CCMP header, and 8 bytes are added by the MIC.
+     WEP encryption will add an extra 8 bytes of overhead to the body of an 802.11 data frame.
+     When TKIP is implemented, because of the extra overhead from the extended IV and the
+     MIC, a total of 20 bytes of overhead is added to the body of an 802.11 data frame.
+
+     3. Which of the following 802.11 frames carry an MSDU payload
+        that may eventually be transferred by the integration service
+        into an 802.3 Ethernet frame? (Choose all that apply.) 
+
+        A. 802.11 management frames
+
+        B. 802.11 control frames
+
+        C. 802.11 data frames
+
+        D. 802.11 power-management frames
+
+        E. 802.11 action frames
+
+        *答案解析*
+
+        C. Only 802.11 data frames can carry an upper-layer payload (MSDU) within the body
+     of the frame. The MSDU can be as large as 2,304 bytes and usually should be encrypted.
+     802.11 control frames do not have a body. 802.11 management frames have a body; however,
+     the payload is strictly layer 2 information.
+
+     4. What would cause an 802.11 station to retransmit a unicast
+        frame? (Choose all that apply.) 
+
+        A. The transmitted unicast frame was corrupted.
+
+        B. The ACK frame from the receiver was corrupted.
+
+        C. The receiver’s buffer was full.
+
+        D. The transmitting station sent a PS-Poll frame.
+
+        E. The transmitting station sent a retransmit notification.
+
+        *答案解析*
+
+        A, B. The receiving station may have received the data, but the returning ACK frame may
+     have become corrupted, and the original unicast frame will have to be retransmitted. If the
+     unicast frame becomes corrupted for any reason, the receiving station will not send an ACK.
+
+     5. How does a client station indicate that it is using Power Save
+        mode?
+
+        A. It transmits a frame to the access point with the Sleep
+        field set to 1.
+
+        B. It transmits a frame to the access point with the Power
+        Management field set to 1.
+
+        C. Using DTIM, the access point determines when the client
+        station uses Power Save mode.
+
+        D. It doesn’t need to, because Power Save mode is the default.
+
+        *答案解析*
+
+        B. When the client station transmits a frame with the Power Management field set to 1, it
+     is enabling Power Save mode. The DTIM does not enable Power Save mode; it only notifies
+     clients to stay awake in preparation for a multicast or broadcast.
+
+     6. Which field in the MAC header of an 802.11 frame resets the
+        NAV timer for all listening 802.11 stations?
+
+        A. NAV
+
+        B. Frame control
+
+        C. Duration/ID
+
+        D. Sequence number
+
+        E. Strictly ordered bit
+
+        *答案解析*
+
+        C. When the listening radio hears a frame transmission from another station, it looks at
+     the header of the frame and determines whether the Duration/ID field contains a Duration
+     value or an ID value. If the field contains a Duration value, the listening station will set its
+     NAV timer to this value.
+
+     7. What are some the reasons for the existence of the Duration/ID
+        field of the MAC header of an 802.11 MPDU? (Choose all that
+        apply.)
+
+        A. Physical carrier-sense
+
+        B. Fragmentation
+
+        C. Virtual carrier-sense
+
+        D. Integrity check
+
+        E. Power management
+
+        *答案解析*
+
+        C, E. The Duration/ID field has three possible purposes. The main purpose of this field is
+     to reset the NAV timer of other stations, which is a virtual carrier-sense mechanism. PSPoll
+     frames use the Duration/ID field as an association identifier (AID) during legacy power
+     management processes. Although never implemented by vendors, the Duration/ID field can
+     also be used to signal that a contention-free period (CFP) process has begun.
+
+     8. What is the maximum amount of microseconds that can be set on
+        the NAV timers of listening stations that hear the
+        transmission of another 802.11 station? 
+
+        A. 32,768 μs
+
+        B. 2007 μs
+
+        C. 16,383 μs
+
+        D. 2008 μs
+
+        E. 32,767 μs
+
+        *答案解析*
+
+        E. The main purpose of the Duration/ID field is to reset the NAV timer of other stations.
+     When bit 15 of the field is zero, the value in bits 140 represent the duration of a frame
+     exchange sequence remaining after the frame in which the Duration value is found. Bits
+     140 can have a Duration value of 0 to 32,767. The Duration value translates into microseconds
+     when resetting NAV timers of other stations. The other common use of the Duration/
+     ID field is as an AID in PS-Poll control frames. When bits 15 and 14 have a value of 1,
+     bits 130 can be used to represent an AID in PS-Poll frames from 1 to 2007.
+
+     9. What are some of the negative effects of layer 2
+        retransmissions? (Choose all that apply.) 
+
+        A. Decreased range
+
+        B. Excessive MAC sublayer overhead
+
+        C. Decreased latency
+
+        D. Increased latency
+
+        E. Jitter
+
+        *答案解析*
+
+        B, D, E. Excessive layer 2 retransmissions adversely affect the WLAN in two ways. First,
+     layer 2 retransmissions increase MAC overhead and therefore decrease throughput. Second,
+     if application data has to be retransmitted at layer 2, the timely delivery of application traffic
+     becomes delayed or inconsistent. Applications such as VoIP depend on the timely and consistent
+     delivery of the IP packet. Excessive layer 2 retransmissions usually result in increased
+     latency and jitter problems for time-sensitive applications such as voice and video.
+
+     10. When an AP sends a unicast frame to VoWiFi client station,
+         which of the other stations will not update their NAV timers
+         based on the Duration value represented in the Duration/ID
+         field in the unicast frame sent by the AP? (Choose all that
+         apply.) 
+
+         A. Transmitting access point
+
+         B. Another access point nearby on the same channel
+
+         C. All the other client stations
+
+         D. The VoWiFi client
+
+         E. Any other clients within listening range on the same
+         channel
+
+         *答案解析*
+
+         A, D. The NAV is not updated when the receiver address (RA) is the same as the receiving
+     station’s MAC address. Therefore, in this scenario, the Duration value did not reset the
+     VoWiFi client’s NAV because it was the receiver. You should also understand that the Duration
+     value of the transmitting station does not reset the transmitting stations NAV timer.
+     The transmitter cannot hear its own transmitted frame. The transmitter’s NAV will be zero
+     after transmitting, just like it was zero before the transmitter gained control of the medium.
+     The AP was the transmitter so the Duration value did not reset its NAV. Any other client or
+     AP stations within hearing range on the same channel will reset their NAV, even if they are
+     not members of the BSS.
+
+     11. Which of these statements regarding the four MAC address
+         fields in the header of a data MPDU are accurate? (Choose all
+         that apply.) 
+
+         A. Address 2 is always the transmitter address (TA).
+
+         B. Address 3 is always the transmitter address (TA).
+
+         C. Address 1 is always the basic service set identifier
+         (BSSID).
+
+         D. Address 1 is always the receiver address (RA).
+
+         *答案解析*
+
+         A, D. Depending on how the To DS and From DS fields are used, the definition of the four
+     MAC fields will change. One constant, however, is that the Address 1 field will always be
+     the receiver address (RA) but may have a second definition as well. The Address 2 field will
+     always be the transmitter address (TA) but also may have a second definition. Address 3 is
+     normally used to additional MAC address information. Address 4 is used only in the case
+     of a WDS.
+
+     12. Which of the following is a possible scenario when the To DS
+         field and the From DS field both have a value of 0? (Choose
+         all that apply.)
+
+         A. The frame transmission is a control frame.
+
+         B. An ad hoc network exists.
+
+         C. The frame transmission is a simple data frame.
+
+         D. Fragmentation is not being used.
+
+         E. The frame transmission is a management frame.
+
+         *答案解析*
+
+         A, B, E. When both bits are set to 0, several different scenarios exist. The most common
+     scenario is that the frames are either management or control frames. Management and
+     control frames do not have an MSDU payload, and therefore their final destination is never
+     the distribution system (DS). Management and control exist only at the MAC sublayer
+     and therefore have no need to be translated by the integration service (IS) and never are
+     delivered to the distribution system service (DSS). Another scenario is a direct data frame
+     transfer from one STA to another STA within an independent basic service set (IBSS), more
+     commonly known as an ad hoc network. The third scenario involves what is known as a
+     station-to-station link (STSL), which involves a data frame being sent directly from one client
+     station to another client station that belongs to the same BSS, thereby bypassing the AP.
+
+     13. What can you conclude about this frame based on the frame
+         capture graphic shown here?(Choose all that apply.) 
+
+         [[./images/2016/2016101202.png]]
+
+         A. This is the second fragment of an MSDU.
+
+         B. This is the third fragment of an MSDU.
+
+         C. The AP is using fragmentation.
+
+         D. This is the last transmitted fragment of an MSDU.
+
+         E. The client station is using fragmentation.
+
+         *答案解析*
+
+         B, C, D. In the Sequence Control field, the Fragment Number subfield contains a 4-bit
+     number assigned to each fragment of an MSDU. The first, or only, fragment of an MSDU is
+     assigned a fragment number of 0. Each successive fragment is assigned a sequentially incremented
+     fragment number. The graphic shows a fragment number of 2, which means it is the
+     third fragment. The More Fragments field indicates a value of 0, which means it is the last
+     transmitted fragment. The To DS field has a value of 0, and the From DS field has a value of
+     1, which means this is a downstream transmission from an AP to a client station.
+
+     14. What can you conclude about this frame based on the frame
+         capture graphic shown here?Choose all that apply.) 
+
+         [[./images/2016/2016101203.png]]
+
+         A. The Duration/ID field is an AID.
+
+         B. This is first fragment of a fragmented MSDU.
+
+         C. The AP is buffering the client station’s traffic.
+
+         D. Fragmentation is not being used.
+
+         E. This is a PS-Poll frame.
+
+         *答案解析*
+
+         C, D. The Power Management field indicates a value of 1, meaning that the client STA is in
+     Power Save mode and that the AP must buffer the client STA’s traffic. Fragmentation is not
+     being used because the frag number in the Sequence Control field has a value of 0 and the
+     More Fragments field also has a value of 0. The Subtype field indicates that this is a Null
+     data frame and not a PS-Poll frame. PS-Poll frames are the only frames that use the Duration/
+     ID field as an association identifier (AID).
+
+     15. What can you conclude about this frame based on the frame
+         capture graphic shown here?
+
+         [[./images/2016/2016101204.png]]
+
+         A. This data frame has no frame body.
+
+         B. CCMP encryption is being used.
+
+         C. This is an IBSS topology.
+
+         D. No data privacy is being provided.
+
+         E. The ACK frame was delivered successfully.
+
+         *答案解析*
+
+         D. The Protected Frame field has a value of 0, which indicates that the MSDU payload of
+     this simple data frame is not encrypted.
+
+     16. What can you conclude about this frame based on the frame
+         capture graphic shown here?(Choose all that apply.) 
+
+         [[./images/2016/2016101205.png]]
+
+         A. This is a unicast frame.
+
+         B. The frame check sequence (FCS) of the previous attempt of
+         the same frame failed at the receiving station.
+
+         C. This is a multicast frame.
+
+         D. This is a mesh backhaul transmission.
+
+         E. The ACK frame was delivered successfully.
+
+         *答案解析*
+
+         A, B. The Retry field indicates a value of 1, meaning this is a retransmission. Every time
+     an 802.11 radio transmits a unicast frame, if the frame is received properly and the cyclic
+     redundancy check (CRC) of the FCS passes, the 802.11 radio that received the frame will
+     reply with an acknowledgment (ACK) frame. If the ACK is received, the original station
+     knows that the frame transfer was successful. All unicast 802.11 frames must be acknowledged.
+     Broadcast and multicast frames do not require an acknowledgment.
+
+     If any portion of a unicast frame is corrupted, the CRC will fail, and the receiving
+     802.11 radio will not send an ACK frame to the transmitting 802.11 radio. If an ACK
+     frame is not received by the original transmitting radio, the unicast frame is not acknowledged
+     and will have to be retransmitted.
+
+     17. When the To DS field has a value of 0 and the From DS field
+         has a value of 1, which of these statements possibly are
+         accurate? (Choose all that apply.) 
+
+         A. The frame transmission is a control frame.
+
+         B. This is a DHCP response packet.
+
+         C. The frame transmission is a data frame.
+
+         D. Client STA is transmitting.
+
+         E. The frame transmission is a management frame.
+
+         *答案解析*
+
+         B, C. When the To DS bit is set to 0 and the From DS bit is set to 1, this indicates that an
+     802.11 data frame is being sent downstream from an access point to a client station. The
+     original source of the MSDU payload of the 802.11 data frame is an address that exists on
+     the distribution system medium (DSM). An example is a DHCP server that resides on the
+     802.3 network forwarding a DHCP response packet through an AP with the final destination
+     being an 802.11 client station.
+
+     18. How many bytes is the frame body of an 802.11 MPDU?
+
+         A. 0-2304
+
+         B. 2304
+
+         C. 2346
+
+         D. 4095
+
+         E. Variable
+
+         *答案解析*
+
+         E. The frame body is of variable size. The maximum frame body size is determined by
+     the maximum MSDU size (2,304 octets) plus any overhead from encryption. The 802.11n-
+     2009 HT amendment defines a frame aggregation method called Aggregate MAC Service
+     Data Unit (A-MSDU). An 802.11n station using this method of aggregation can have a
+     frame body with a maximum A-MSDU size (3839 or 7935 octets, depending upon the
+     STA’s capability), plus any overhead from encryption.
+
+     19. How many MAC addresses are found in an 802.3 frame?
+
+         A. Four
+
+         B. Three
+
+         C. Two
+
+         D. One
+
+         E. Zero
+
+         *答案解析*
+
+         C. 802.3 Ethernet frames have only a source address (SA) and destination address (DA)
+     in the layer 2 header. 802.11 frames have four address fields in the MAC header. The contents
+     of these four fields can include the following MAC addresses: receiver address (RA),
+     transmitter address (TA), basic service set identifier (BSSID), destination address (DA), and
+     source address (SA). In other words, an 802.11 frame can contain as many as four MAC
+     addresses with five different meanings.
+
+     20. How does a transmitting station maintain control of the
+         medium during a fragment burst?(Choose all that apply.) 
+
+         A. Random backoff algorithm
+
+         B. Duration
+
+         C. DIFS
+
+         D. Sequence Control
+
+         E. SIFS
+
+         *答案解析*
+
+         B, E. Fragments are always sent in what is known as a fragment burst. Once the transmitting
+     station gains control of the medium, it maintains control through two mechanisms:
+     Duration values (which set other stations’ NAVs) and SIFS. First, the value of the Duration
+     field in the MAC header of data fragments and ACK frames is used to reserve the medium
+     for the next fragment. As a backup mechanism, SIFS is used between data fragments
+     and ACK frames in order to preempt those stations that are trying to gain control of the
+     medium using DIFS.
 
 * CH04 802.11 Management Frames
-
 ** Management Frame Types
+    管理帧的结构：
+    #+CAPTION: Management frame structure
+    [[./images/2016/2016101701.png]]
     
+    管理帧通常标准MAC头部的大小为24字节，拥有三个地址域，当使用802.11n
+    时，会加入一些HT控制相关的信息，其结构如下：
+    #+CAPTION: Management frame structure: 802.11n
+    [[./images/2016/2016101702.png]]
 
-** Beacons
+    DA是帧的目的地址， 它可以是单播的，也可以是多播的，取决于管理帧的
+    了类型。 SA是传输该帧的STA的MAC地址， BSSID可能是AP的MAC地址，也可
+    能是一个通配值。如下是12种管理帧的类型：
+    
+    #+CAPTION: Management frame subtypes
+    | Subtype bits | Subtype description                            |
+    |--------------+------------------------------------------------|
+    |         0000 | Association request                            |
+    |         0001 | Association response                           |
+    |         0010 | Reassociation request                          |
+    |         0011 | Reassociation response                         |
+    |         0100 | Probe request                                  |
+    |         0101 | Probe response                                 |
+    |         1000 | Beacon                                         |
+    |         1001 | Announcement traffic indication message (ATIM) |
+    |         1010 | Disassociation                                 |
+    |         1011 | Authentication                                 |
+    |         1100 | Deauthentication                               |
+    |         1101 | Action                                         |
+    |         1110 | Action no ack                                               |
+    |--------------+-------------------------------------------------------------|
 
-** Probe Request / Response
+    管理帧总是是MAC层处理，它们不会被传递给上层（for app），另外，它们
+    的To DS和From DS的值总是为0.
+*** Beacons
+    MaxChannelTime: defined in each driver MIB, duration of dwelling
+    time on each channel.
 
-** Authentication
+    Beacon frames are sent periodically, at a time called target beacon transmission time
+    (TBTT) and at a rate defined by the dot11BeaconPeriod parameter in
+    the AP MIB.
 
-** Association Request / Response
+    dot11BeaconPeriod 这个参数默认是100 TU(time units)。 
 
-** Disassociation
+    AP以某个固定的时间间隔发送Beacon帧，并通知下一个Beacon帧发送的时间。
+    如果当前媒介忙碌，会推迟当前Beacon帧的发送，但是不会影响下一个
+    Beacon帧的发送，下一个Beacon帧仍然会按照预定的时间进行发送。
 
-** Deauthentication
+    #+CAPTION: Beacon frame structure
+    [[./images/2016/2016101703.png]]
+    
+*** Probe Request / Response
+    
+**** Probe Request Frame
+     主要用于主动扫描，查找AP信息。
+     #+CAPTION: Elements and fields in a probe request frame body
+     | Order | Information                   | Note                                                                                                                          |
+     |-------+-------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+     |     1 | Service Set Identifier (SSID) |                                                                                                                               |
+     |     2 | Supported Rates               |                                                                                                                               |
+     |     3 | Request Information           | Used with 802.11d.                                                                                                            |
+     |     4 | Extended Supported Rates      | The Extended Supported Rates element is present whenever there are more than eight supported rates; it is optional otherwise. |
+     |     5 | Vendor Specific               | One or more vendor-specific information elements may appear in this frame. This information element follows all other information elements.                                                                                                                            |
+     |-------+-------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
-** Reassociation Request / Response
+     STA也可以利用Probe Request来发现某个网络特定的信息。 为了支持这个
+     目的，Probe Request可以包含一个 Request Information信息， 它们可以
+     请求一个或多个额外的参数。 
+     #+CAPTION: Request Information element
+     | Element ID              | Length                 |
+     |-------------------------+------------------------|
+     | Requested element ID 1  | Requested element ID 2 |
+     | ...                     | ...                    |
+     | Requested element ID N1 | Requested element ID N                       |
+     |-------------------------+----------------------------------------------|
+     这些IE信息都是可选的。 另外， Probe Request也可以携带一些厂商自定
+     义的IE信息。
 
-** Management Frame body components
+**** Probe Response Frame
+      主要回应对方的 Probe Request请求。 携带的信息与Beacon帧类似。与
+      beacon帧相比，主要有如下一些区别：
+      1. The beacon frame contains a TIM field; the probe response does not.
+      2. The beacon frame can contain a QoS Capability Information
+         element that announces basic QoS support to the cell.
+      3. The probe response also contains the Requested Information
+         elements that may have  been requested by the probing station.
 
-** Management Frame body main fields
+*** Authentication
+    In all cases, after having performed a network discovery through the probe request/
+    probe response exchange or by listening to beacons, a station wanting to join a cell goes
+    through an authentication process, exchanging authentication frames with the access point.
+    Unlike the probe and association phases, which use a different frame for the request and
+    the response, there is only one type of authentication frame.
 
-** Management Frame body main Information Elements
+    #+CAPTION: Authentication frame format
+    [[./images/2016/2016101801.png]]
+    
+**** Open System
+     The initial purpose of the authentication frame is to validate the
+     device type, in other words, verify that the requesting station
+     has proper 802.11 capabilities to join the cell. 
 
+     This exchange is based on a simple two-frame dialogue
+     (authentication request, authentication response)
+
+     
+**** WEP Shared Key
+     This shared key exchange adds two frames to the default Open
+     System authentication, resulting in a four-frame exchange. 
+
+     The Authentication Algorithm number field value describes which
+     authentication system is used (0 for Open System and 1 for Shared
+     Key).
+
+     the 2-byte Authentication Transaction Sequence Number field
+     indicates the current state of progress through the multistep
+     transaction. 
+
+     #+CAPTION: Summary of authentication frame fields values and usage
+     | Authentication algorithm | Authentication transaction sequence no. | Status code | Challenge text |
+     |--------------------------+-----------------------------------------+-------------+----------------|
+     | Open System              |                                       1 | Reserved    | Not present    |
+     | Open System              |                                       2 | Status      | Not present    |
+     | Shared Key               |                                       1 | Reserved    | Not present    |
+     | Shared Key               |                                       2 | Status      | Present        |
+     | Shared Key               |                                       3 | Reserved    | Present        |
+     | Shared Key               |                                       4 | Status      | Not present               |
+     |--------------------------+-----------------------------------------+-------------+---------------------------|
+
+*** Association Request / Response
+    
+**** Association Request Frame
+     认证成功后，STA就会进入关联阶段， 这个交互的目的是为了加入这个BSS
+     并获取一个AID。 
+
+     #+CAPTION: Association request frame format
+     [[./images/2016/2016101802.png]]
+
+     #+CAPTION: Elements and fields in the association request body
+     | Order | Information                  | Notes                                                 |
+     |-------+------------------------------+-------------------------------------------------------|
+     |     1 | Capability Information       |                                                       |
+     |     2 | Listen interval              |                                                       |
+     |     3 | SSID                         |                                                       |
+     |     4 | Supported rates              |                                                       |
+     |     5 | Extended Supported Rates     | 当支持的速率超过8个的时候，会出现该IE，否则是可选的。 |
+     |     6 | Power Capability             | Used with 802.11h.                                    |
+     |     7 | Supported Channels           | Used with 802.11h.                                    |
+     |     8 | RSN                          | Used with 802.11i.                                    |
+     |     9 | QoS Capability               | Used with 802.11e QoS.                                |
+     |    10 | RRM Enabled Capabilities     | Used with 802.11k.                                    |
+     |    11 | Mobility Domain              | Used with 802.11r.                                    |
+     |    12 | Supported Regulatory Classes | Used with 802.11r.                                    |
+     |    13 | HT Capabilities              | Used with 802.11n.                                    |
+     |    14 | 20/40 BSS Coexistence        | Used with 802.11n.                                    |
+     |    15 | Extended Capabilities        | 只有存在一个IE，就会出现                              |
+     |  Last | Vendor Specific              | 一个或多个厂商相关的IE。                                         |
+     |-------+------------------------------+------------------------------------------------------------------|
+
+     通过Association Request携带的信息，使AP了解STA的相关能力信息，这样
+     AP就可以决定如何与该STA进行通信。
+
+**** Association Response Frame
+    当AP收到Association Request后，它会检查每一个802.11参数，并与自己
+    支持的802.11参数进行匹配，如果出现不匹配的情况，AP会看当前的差异
+    是否属于Bloocking Factor。 如果是的话，AP就会拒绝关联，否则的话，
+    AP就会标记这个差异，并在回Association Response的时候携带自己的
+    802.11参数。
+
+    #+CAPTION: Association response frame format
+    [[./images/2016/2016101803.png]]
+
+    #+CAPTION: The association response frame
+    | Order | Information                                 | Notes              |
+    |-------+---------------------------------------------+--------------------|
+    |     1 | Capability Information                      |                    |
+    |     2 | Status Code                                 |                    |
+    |     3 | Association ID                              |                    |
+    |     4 | Supported rates                             |                    |
+    |     5 | Extended Supported Rates                    |                    |
+    |     6 | EDCA Parameter Set                          |                    |
+    |     7 | RCPI                                        | Used with 802.11k. |
+    |     8 | RSNI                                        | Used with 802.11k. |
+    |     9 | RRM Enabled Capabilities                    | Used with 802.11k. |
+    |    10 | Mobility Domain                             | Used with 802.11r. |
+    |    11 | Fast BSS Transition                         | Used with 802.11r. |
+    |    12 | DSE Registered Location                     | Used with 802.11y. |
+    |    13 | Timeout Interval(association comeback time) | Used with 802.11w. |
+    |    14 | HT Capabilities                             | Used with 802.11n. |
+    |    15 | HT Operation                                | Used with 802.11n. |
+    |    16 | 20/40 BSS Coexistence                       | Used with 802.11n. |
+    |    17 | Overlapping BSS Scan Parameters             | Used with 802.11n. |
+    |    18 | Extended Capabilities                       |                    |
+    |    Last | Vendor Specific                                            |                    |
+    |---------+------------------------------------------------------------+--------------------|
+
+    AP返回一个状态码，0代表关联成功。 并为STA分配一个AID，它是1~2007(2
+    字节长，只用到最低的14个Bit,其他位为1.
+)
+*** Disassociation
+    通信的任何一方都可以主动发出这个帧。 它的格式如下：
+    #+CAPTION: Disassociation frame format
+    [[./images/2016/2016101804.png]]
+
+    该帧可能是单播帧，也可能是多播帧。 其IE信息如下：
+    #+CAPTION: Disassociation Frame
+    | Order | Notes                                                                      |
+    |-------+----------------------------------------------------------------------------|
+    |     1 | Reason code.                                                               |
+    |     2 | One or more vendor-specific information elements may appear in this frame. |
+    |  Last | Used with 802.11w.                                                                           |
+    |-------+----------------------------------------------------------------------------------------------|
+
+    处于Disassociated状态的STA仍然是处于Authenticated状态，它们可以直接
+    进行重新关联。
+
+*** Deauthentication
+    当双方通信完成，会发送此帧结束会话。 该帧的格式与Disassociation类似。
+*** Reassociation Request / Response
+**** Reassociation Request Frame
+     该帧只能由STA 发出。 使用场景主要是： 当STA已经关联到一个ESS并想关
+     联到同一个ESS下的另一个AP上。 也可用于： 当STA短暂离开当前关联的AP
+     后，重新关联此AP。 也可用于：当Authenticator timer过期后，STA
+     进行认证和重新关联。已经关联上某个AP的STA也可以通过此帧重新协商一
+     些参数。
+
+     #+CAPTION: Reassociation request frame format
+     [[./images/2016/2016101805.png]]
+
+**** Reassociation Response Frame
+     An AP uses the reassociation response frame in response to a
+     reassociation request frame.其格式与Association Response类似。
+
+*** ATIM Frame
+    The ATIM frame is specific to IBSS networks and used for
+    distribution of buffered frames to stations in sleep mode in the
+    ad hoc network. 
+
+*** Action Frame
+       Action frames form the 12th and last type of management frame. They
+       are used to trigger specific actions in the cell.
+   
+   #+CAPTION: Action frame format
+   [[./images/2016/2016101806.png]]
+   
+** Information Elements and Fields
+   
+*** Management Frame Fields
+   
+**** Timestamp Field
+          8字节长， 通常出现在Beacon帧和Probe Response帧。 
+          the timestamp is a value representing the time on the access
+          point, which is the number of microseconds the AP has been
+          active. 
+
+          The stations in the cell use that timestamp value to adjust
+          their own clock(using their Time Synchronization Function).
+**** Beacon Interval Field
+           2字节长， The Beacon Interval field represents the number
+           of time units between target beacon transmission times
+           (TBTTs). 
+
+           The default value is 100 TUs (0.102400 seconds), but the
+           field size allows for any value between 1 and more than 67
+           seconds! 
+
+           这个值不能太长，也不太短。太短的话， STA无法快速地从休眠的
+           状态下醒来监听Beacon帧。 会导致断线。
+**** Capability Information Field
+          The Capability Information field contains a number of
+          subfields that are used to indicate requested or advertised
+          optional capabilities. 
+
+          2个字节长， Capability Information field exists in several
+          management frames (beacons,probe response, association
+          request, association response, reassociation request,
+          andreassociation response). 
+          
+          #+CAPTION: Capability Information field
+          [[./images/2016/2016101901.png]]
+          
+***** ESS/IBSS Subfields
+            The ESS bit indicates whether the beacon is coming from an
+            AP (1) or not (0).  The IBSS bit indicates whether the
+            beacon is coming from an IBSS station (1) or not (0). 
+
+***** Privacy Subfield
+             APs set the Privacy subfield to 1 if data confidentiality is required for all data frames
+             exchanged within the BSS. If data confidentiality is not required, the Privacy subfield is set
+             to 0.
+
+             The Privacy field only shows the requirement (or not)
+             for encryption when sending data frames.
+
+***** Short Preamble Subfield
+            当为1时， 表示可使用short preamble和long preamble。 为0时，
+            只允许使用long preamble。 
+***** Channel Agility Subfield
+            Its aim was to offer the possibility for the center channel to shift periodically
+            slightly up and down, in the hopes of avoiding
+            interferences.
+
+            The Channel Agility feature
+            was never widely implemented. It is still present as a possibility in the Capability field, but
+            only for HR/DSSS stations (OFDM does not implement this
+            feature).
+            
+***** Spectrum Management Subfield
+            related to 802.11h, set this field to reflect that they
+            implement DFS and TPC.
+
+***** QoS Subfield
+            this field shows whether the AP supports QoS. The
+            QoS subfield in the Capability Information field simply tells the cell “I can do QoS; look for
+            other QoS fields in my frames.”
+
+***** Short Slot Time Subfield
+            Standard slot time used to be 20 μs with 802.11 and 802.11b and
+            was reduced to 9 μs with 802.11g (802.11a also uses 9 μs
+            slot times).
+
+            This subfield determines
+            whether short slot time is allowed in the cell (the Short
+            Slot Time subfield set to 1)
+
+            When AP set this filed, it's a clear sign that the AP is
+            not Supporting 802.11b. 
+            
+***** APSD Subfield
+            When this APSD bit is set to 1, the AP supports the
+            802.11e APSD feature.
+
+            STA发出的association or reassociation requests该域总是设为
+            0, 因为它功能是针对整个BSS的，不是单个STA能作出的决定。
+
+***** DSSS-OFDM Subfield
+            When this bit is set to 1, the DSSS-OFDM mode is allowed
+            in the cell。 
+
+            This bit is always set to 0 for 802.11a networks.
+
+**** Listen Interval Field
+          the Listen Interval field is used to indicate to the AP how often a station in Power Save
+          mode wakes to listen to beacon management frames.
+
+          This value is an integer expressed in
+          beacon interval units (for example, a value of 3 indicates that the station wakes up every
+          three beacons). This fi eld is 2 bytes long, which means that the maximum interval could
+          be 65,535.
+
+**** Status Code Field
+          The Status Code fi eld is used in a response management frame to indicate the success or
+          failure of a requested operation.
+
+**** Association ID Field
+          2个字节， AP为关联上的STA 分配的AID， 值的范围为1~2007. 
+
+**** Reason Code Field
+          This Reason Code field is used to indicate the reason that an unsolicited notification management
+          frame of type disassociation, deauthentication, DELTS, DELBA, or DLS teardown
+          was generated.
+
+          The Status Code field
+          indicates if a request is successful and details the cause
+          of the failure.
+
+          The Reason Code
+          fi eld is present only when the frames listed earlier are sent to a station without the station
+          asking for any negotiation of any parameter.
+
+*** Management Frame Information Elements
+        #+CAPTION: Generic information element format
+        [[./images/2016/2016101902.png]]
+
+**** Extended Capabilities Element
+          对Capability Information field的一个扩展，包含其没有的一些IE
+          信息。 它出现在以下的类型中： beacons, probe responses,
+          association requests, association responses, reassociation
+          requests, and reassociation responses. 
+          
+**** SSID Element
+          出现在如下一些类型的帧中：beacons, probe requests, probe
+          responses, association requests, and reassociation requests.
+          
+          ID为0, SSID字符串的最大长度为32. 
+          
+          如果AP支持多个SSID， 就会在每个beacon interval 发送相应数量
+          的beacon帧。 
+
+          If your AP is expected to send a beacon
+          every 100 TUs and your AP supports 5 SSIDs, the AP will send one beacon every 20 TU,
+          advertising its capabilities for each SSID in turn.
+
+**** Supported Rates Element
+           The Supported Rates element is present in beacons, probe requests, probe responses, and all
+           association frames。
+
+           This element
+           specifies up to eight rates.
+
+           In the Supported Rates field, the length field is encoded as 1 to 8 octets, where
+           each octet describes a single supported rate.
+
+           Each rate is listed over one octet, with the following
+           logic:
+           - The last bit (bit 7) is set to 1 if the rate is a basic
+             rate (NN or mandatory rate) and set to 0 if the rate is
+             simply supported.
+           - The other seven bits (bits 0 to 6) are set to the data
+             rate, if necessary rounded up to the next 500 Kbps, in
+             units of 500 Kbps. 
+
+             For example, a 5.5 Mbps rate contained in the BSSBasicRateSet parameter is encoded
+           as 10001011 (10000000 because it is set to Basic Rate, and binary 1011 for decimal
+           11, because 5.5 Mbps are 11 times 500 kbps); 2 Mbps
+           supported would be 00000100.
+
+           任何一个想加入某个AP的STA必须支持AP指定的基本速率。 
+
+**** Extended Supported Rates Element
+          The Extended Supported Rates element specifies the supported rates not carried in the
+          Supported Rates element.
+
+          The
+          information element is encoded as 1 to 255 octets where each octet describes a single supported
+          rate.
+
+**** Extended Rate PHY (ERP) Element
+          The ERP element is present only on 2.4 GHz networks supporting 802.11g and is present
+          in beacons and probe responses.
+
+**** Robust Security Network (RSN) Information Element
+         当使用WPA/WPA2来决定AP的认证和加密机制时，这个IE非常重要。
+
+         RSN的ID是48, 主要存在于beacons, probe responses,association
+         responses, and reassociation responses.其结构如下：
+
+         #+CAPTION: RSN element
+         [[./images/2016/2016102001.png]]
+         
+         - Version
+         总是设为1.
+         - Pairwise Cipher Suite Count
+         代表支持多少种加密算法。
+         - Pairwise Cipher Suite List field
+           Each field is of course 4 bytes long, because each cipher
+           is represented over 4 bytes.
+
+           When a station supports several ciphers, it always chooses
+           the strongest one first (in order: CCMP, TKIP, WEP 104, WEP
+           40). 
+           
+           *Authentication and Key Management (AKM)*
+
+           Now that the ciphers allowed in the cell are defined, you still need to inform potential
+           cell clients about how they are supposed to authenticate in
+           order to join the cell.
+
+           - AKM Suite count
+             the number of methods allowed
+
+           - AKM Suite list
+             displays each individual method. each method is coded
+             over 4 bytes: the first 3 bytes are an OUI, and the last
+             byte is one of the methods supported by the vendor
+             matching the OUI. 
+             
+             The 802.11i committee defined two methods : 00-0F-AC-1 for 802.1X or PMK caching
+             and 00-0F-AC-2 for PSK
+         
+**** Basic Service Set (BSS) Load Element
+           This element is used only when QoS is supported. It is
+           often called QBSS Load element. 
+           
+           从AP的角度提供了网络单元的信息， 通常由AP发出， 接收的STA根
+           据里面提供的信息决定如何进行漫游。 
+           
+           #+CAPTION: BSS Load element
+           [[./images/2016/2016101002.png]]
+           
+           - station count
+             a simple number, showing how many stations are currently
+             associated to the cell.
+           - Channel Utilization
+             the percentage of time, normalized to 255, that the AP
+             sensed the medium was busy, as indicated by either the
+             physical or virtual carrier sense mechanism.
+
+             The AP senses the medium, just like any other station, every slot time. At regular intervals
+           (every 50 beacons by default, which represents 5.12 seconds if the beacons are sent
+           at 100 TU intervals), the AP looks over the last period and counts how many times the
+           network was seen as busy and how many times the network was seen as idle. The AP then
+           calculates a simple percentage and translates it into a 0
+           to 255 range.
+
+           This information is used by QoS stations to gauge the space
+           available on several APs in range. 
+           
+**** Enhanced Distributed Channel Access (EDCA) Parameter Element
+           In most QoS-enabled networks, this field is not used, and
+           the same information is provided through the WMM or the WME
+           vendor-specific element. 
+           
+**** QoS Capability Element
+           This element is used only when QoS is supported. It is used
+           as a replacement to the EDCA Parameter element when EDCA
+           Parameter is not present. It is also used by the AP to communicate
+           to the cell the QoS information.
+
+           In most QoS-enabled networks, this field is not used, and
+           the same information is provided through the WMM or the WME
+           vendor-specific element. 
+
+**** Direct Sequence Parameter Set Element
+           This element is used by both the DSSS and OFDM systems, on
+           both 2.4 GHz and 5 GHz spectrums. It is a very important
+           field that  /simply indicates the current channel./ 
+           
+           #+CAPTION: DS Parameter Set element
+           [[[./images/2016/2016102003.png]]]
+
+           代表发送方发送数据时所在的Central Channel或Primary Channel
+           的值。
+
+**** Traffic Indication Map (TIM) Element
+           This element is present only in beacons.  
+
+           #+CAPTION: TIM element
+           [[./images/2016/2016102004.png]]
+
+           The DTIM is not present in all beacons and all TIMs. At regular intervals (usually configurable
+           on the AP), the beacon will contain a TIM that will also be a DTIM. The DTIM
+           purpose is easy to understand. The AP uses the beacon frames Delivery Traffic Indication
+           Message (DTIM) information to inform the cell if it has broadcasts or multicasts frames
+           buffered.
+
+           Stations in low power mode should wake up at least for every beacon that is a
+           DTIM. The DTIM does not have to be in every beacon but can, for example, occur every
+           two to five beacons. The DTIM is contained in the TIM, so in that case it is said that the
+           TIM is also a DTIM.
+
+           - DTIM period
+             the number of beacon intervals between successive DTIMs
+             (for example, 3 means every third beacon is a DTIM).
+           - DTIM Count
+             how many beacon frames (including the current frame)
+             appear before the next DTIM.
+
+             A DTIM Count field of 0 indicates that the current TIM is
+             a DTIM. A DTIM count of 1 indicates that the next beacon
+             is a DTIM.
+           - Bitmap Control field
+             The first bit of the bitmap control field is used to
+             announce the presence of multicast or broadcast traffic
+             buffered on the AP. 
+
+             The next 7 bits of the Bitmap Control fi eld, along with
+             the virtual bitmap, represent the stations in low power
+             mode for which the AP has traffic buffered. 
+             
+**** IBSS Parameter Set Element
+           This element is present only on probe responses and beacons
+           of stations in an IBSS.
+
+**** Country Element
+          802.11d. The Country field defines the country of operation,
+          along with the allowed channels and maximum transmit power. 
+
+          It is not a mandatory field and is typically found on APs
+          that can support several country settings. 
+          
+**** Power Constraint Element
+           802.11h. In the Power Constraint fi eld, the AP indicates
+           how much lower than this maximum power participants should
+           try to go. 
+           
+**** TPC Report Element
+           802.1h. The TPC Report element contains transmit power and
+           link margin information, usually sent in response to a TPC
+           Request element. 
+           
+**** Channel Switch Announcement Element
+           802.1h. When a radar blast is detected, all stations must
+           leave the affected channel. The AP can be set to announce
+           to the cell which is the next channel.
+           
+**** Quiet Element
+          802.1h. An AP can request a quiet time during which no
+          stations should transmit in order to test the channel for
+          the presence of radars. 
+          
+**** Vendor-Specific Elements
+          Beyond all the options defi ned by the standard or any of its amendments, each vendor can
+          defi ne proprietary options and add them to any management
+          frames’ supporting elements
+
+          #+CAPTION: Vendor-specific element
+          [[./images/2016/2016102005.png]]
+
+          Each vendor wanting to implement vendor-specific elements needs to obtain an OUI for
+          this purpose from the IEEE. The vendor will display this OUI in the element header, along
+          with the element ID 221, which identifies a vendor-specific
+          element.
+          
 ** Action Frames
+     Action frames are a type of management frame used to trigger an
+     action in the cell.
+     
+     #+CAPTION: Action frame structure
+     [[./images/2016/20102006.png]]
 
-** Spectrum and Transmit Power Management (802.11h)
+     The frame body contains three sections:
+     - Category
+       Describes the action frame type. Category allows you to know
+       which family the action frame belongs to and which protocol
+       introduced it.
+     - Action
+       The action to perform. It is usually a number. You need to know
+       the category to understand which action is called.
+     - Element
+       Adds additional information specific to the action.
 
-** Admission Control (802.11e)
 
-** Fast BSS Transition (802.11r)
+     #+CAPTION: Action frame types (continued)
+     | Category | Meaning                         | Action | Action description                             |
+     |----------+---------------------------------+--------+------------------------------------------------|
+     |        0 | spectrum management             |      1 | Measurement Request Frame                      |
+     |        0 | spectrum management             |      2 | TPC request                                    |
+     |        0 | spectrum management             |      3 | TPC report                                               |
+     |        0 | spectrum management             |      4 | Channel Switch Announcement frame              |
+     |        1 | QoS                             |      0 | ADDTS request                                  |
+     |        1 | QoS                             |      1 | ADDTS response                                 |
+     |        1 | QoS                             |      2 | DELTS                                          |
+     |        1 | QoS                             |      3 | Schedule                                       |
+     |        1 | QoS                             |  4-255 | Unused/reserved                                |
+     |        2 | DLS                             |      0 | DLS request                                    |
+     |        2 | DLS                             |      1 | DLS response                                   |
+     |        2 | DLS                             |      2 | DLS teardown                                   |
+     |        2 | DLS                             |  3-255 | Unused/reserved                                |
+     |        3 | Block ack                       |      0 | ADDBA request                                  |
+     |        3 | Block ack                       |      1 | ADDBA response                                 |
+     |        3 | Block ack                       |      2 | DELBA                                          |
+     |        3 | Block ack                       |  3-255 | Unused/reserved                                |
+     |        4 | Public                          |      0 | Reserved                                       |
+     |        4 | Public                          |      1 | DSE enablement                                 |
+     |        4 | Public                          |      2 | DSE deenablement                               |
+     |        4 | Public                          |      3 | DSE registered location announcement           |
+     |        4 | Public                          |      4 | Extended channel switch announcement           |
+     |        4 | Public                          |      5 | DSE measurement request                        |
+     |        4 | Public                          |      6 | DSE measurement report                         |
+     |        4 | Public                          |      7 | Measurement pilot                              |
+     |        4 | Public                          |      8 | DSE power constraint                           |
+     |        4 | Public                          |      9 | Vendor specific                                |
+     |        4 | Public                          | 10-255 | Unused/reserved                                |
+     |        5 | Radio measurement               |      0 | Radio measurement request                      |
+     |        5 | Radio measurement               |      1 | Radio measurement report                       |
+     |        5 | Radio measurement               |      2 | Link measurement request                       |
+     |        5 | Radio measurement               |      3 | Link measurement report                        |
+     |        5 | Radio measurement               |      4 | Neighbor report request                        |
+     |        5 | Radio measurement               |      5 | Neighbor report response                       |
+     |        5 | Radio measurement               |  6-255 | Unused/reserved                                |
+     |        6 | Fast BSS transition             |      0 | Reserved                                       |
+     |        6 | Fast BSS transition             |      1 | FT request                                     |
+     |        6 | Fast BSS transition             |      2 | FT response                                    |
+     |        6 | Fast BSS transition             |      3 | FT confirm                                     |
+     |        6 | Fast BSS transition             |      4 | FT ack                                         |
+     |        6 | Fast BSS transition             |  5-255 | Unused/reserved                                |
+     |        7 |                                 |  0-255 | Unused/reserved                                |
+     |        8 | SA query                        |      0 | SA query                                       |
+     |        8 | SA query                        |      1 | SA response                                    |
+     |        8 | SA query                        |  2-255 | Unused/reserved                                |
+     |        9 | Protected dual of public action |      0 | Reserved                                       |
+     |        9 | Protected dual of public action |      1 | Protected DSE enablement                       |
+     |        9 | Protected dual of public action |      2 | Protected DSE deenablement                     |
+     |        9 | Protected dual of public action |      3 | Reserved                                       |
+     |        9 | Protected dual of public action |      4 | Protected extended channel switch announcement |
+     |        9 | Protected dual of public action |      5 | Protected DSE measurement request              |
+     |        9 | Protected dual of public action |      6 | Protected DSE measurement report               |
+     |        9 | Protected dual of public action |      7 | Reserved                                       |
+     |        9 | Protected dual of public action |      8 | Protected DSE power constraint                 |
+     |        9 | Protected dual of public action |  9-255 | Unused/reserved                                |
+     |   10-125 |                                 |        | Unused/reserved                                |
+     |      126 | Vendor-specific protected       |  0-255 | Vendor dependent                               |
+     |      127 | Vendor specific                 |  0-255 | Vendor dependent                               |
+     |  128-255 | Error                           |  0-255 | Unused, returns an error message               |
+     |----------+---------------------------------+--------+------------------------------------------------|
 
-** Protected Management Frames (802.11w)
+*** Spectrum and Transmit Power Management (802.11h)
+          DFS & TPC. 
+          
+**** Channel Switch Announcement
+          AP use it to inform the cell that all stations had to move
+          to another channel because a radar was detected on the
+          current frequency.  present in beacons and probe responses 
+          
+          #+CAPTION: Channel Switch Announcement action frame
+          [[./images/2016/2016102006.png]]
+
+          The Channel Switch Count segment can be set to 0 to indicate that the change will
+          occur any time after the present beacon was sent. It can be set to 1 to show that the jump
+          will occur just before the next beacon.
+          
+**** Measurement Request Frame and Measurement Report Frame
+          侦测是否有Radar信号请求，以及报告侦测结果。 
+          
+**** TPC Request Frame and TPC Report Frame
+          用于动态调整功率。 
+
+**** Quiet Element
+          携带在probe responses和beacons.  告知STA 某段时间内保持沉默，
+          不允许发送数据。 
+
+*** Admission Control (802.11e)
+        QoS 按不同优先级传输数据。  traffic stream（TS）
+        
+**** ADDTS Request and ADDTS Response Frames
+          The ADDTS request is always sent by a station (that is, never by an access point) wanting
+          to add a new TS to the cell.
+          
+**** DELTS Frames
+          Once a TS is admitted, a station receives the predetermined QoS level negotiated in the
+          ADDTS exchange. After a while, the TS can be removed to free
+          resources from the cell.
+          
+**** Schedule Frames
+          When a TS is admitted, the schedule frame is transmitted by the AP to the station to
+          announce the schedule of delivery of data and polls (when
+          the station also uses power save).
+
+*** 802.11r and 802.11w
+
+**** Fast BSS Transition (802.11r)
+          The 802.11r amendment defines how fast secure roaming can be
+          handled between access points.
+          
+**** Protected Management Frames
+          In 2009, the 802.11w amendment was published to provide a
+          way to protect management frames 
+
+** Review Questions
+     1. How many management frame types are described by the
+        802.11-2007 standard?
+
+        A. 4
+
+        B. 11
+
+        C. 12
+
+        D. 13
+
+        *答案解析*
+
+        C. The 802.11-2007 standard describes 12 management frame types: beacon, probe request,
+     probe response, authentication, association request, association response, reassociation
+     request, reassociation response, disassociation, deauthentication, ATIM, and action frame.
+
+     2. In which frame would you find a timestamp field?
+
+        A. Beacon
+
+        B. Association request
+
+        C. Association response
+
+        D. Authentication
+
+        *答案解析*
+
+        A. The timestamp is present in beacons and is used by stations associated to the cell as a clock
+     reference. The time synchronization function uses the timestamp to align the stations’ cell
+     clock to the AP clock.
+
+     3. What is the purpose of the Listen Interval field?
+
+        A. To determine the next QoS service period
+
+        B. To organize the detection of radar blasts
+
+        C. To optimize BSS Fast Roaming transition times
+
+        D. To specify when stations in low power mode would wake up
+
+        *答案解析*
+
+        D. In frames sent from stations to access points (association request, reassociation request),
+     the Listen Interval field is used to indicate to the AP how often a station in Power Save
+     mode wakes to listen to beacon management frames.
+
+     4. In which case would a station send a reassociation frame?
+
+        A. To rejoin an IBSS after a member disconnected
+
+        B. To join a new AP on the same ESS
+
+        C. To rejoin an AP after deauthentication occurred
+
+        D. To reenter the cell after the AP jumped to a new channel
+
+        *答案解析*
+        
+        B. This type of frame can be sent only by a station to an access point and is used when the
+     station is already associated to the ESS and wants to associate to another access point connecting
+     to the same ESS.
+
+     5. How does a QoS station request a quality of service commitment
+        from its AP?
+
+        A. By using the ADDTS frame
+
+        B. By using the TSPEC request frame
+
+        C. By using the QoS BSS Load action frame
+
+        D. By sending the Schedule Request frame
+
+        *答案解析*
+
+        A. QoS station use the ADDTS frame to ask the AP to add a traffic stream to the cell. The
+     ADDTS contains a TSPEC element describing the traffic specifications. There is no such
+     thing as a TSPEC request frame. The QBSS Load Element is present in the beacon to inform
+     potential client stations about the current load in the cell. Schedule is a frame sent by the AP
+     to determine when the service period will start.
+
+     6. How long do stations have before leaving a channel affected by
+        a radar blast?
+
+        A. 260 milliseconds
+
+        B. 10 seconds
+
+        C. 30 seconds
+
+        D. 60 seconds
+
+        *答案解析*
+
+        B. Stations detecting a radar blast have 10 seconds from the moment of detection to leave
+     the affected frequency. During this interval, they have the right to still send up to 260 milliseconds
+     worth of frames. Upon getting to a new channel, they can respect a quiet interval
+     to listen for radar blasts on the new frequency. This quiet interval is commonly 60 seconds.
+     Stations cannot return to the affected channel for 30 minutes.
+
+     7. Which of the following is true about the Privacy subfield?
+
+        A. When its value is 1, WEP encryption is in place.
+
+        B. When its value is 1, any encryption may be in place.
+
+        C. Its values can be 0 for no encryption, 1 for WEP, 2 for
+        WPA, and 3 for WPA2.
+
+        D. When its value is 1, the station is in low power mode and
+        not listening to the cell frames.
+
+        *答案解析*
+
+        B. Although originally designed for WEP, the Privacy subfield
+        today indicates that some form of encryption is in place, WEP,
+        TKIP, or AES. 
+
+     8. What is the beacon default interval?
+
+        A. 100 milliseconds
+
+        B. 102.4 TUs
+
+        C. 102.4 milliseconds
+
+        D. 100 TBTTs
+
+        *答案解析*
+
+        C. A beacon is sent by default every 102.4 milliseconds or 100 TUs (one time unit is
+     1.024 millisecond). The time at which the next beacon should be sent is the target beacon
+     transmission time (TBTT). The AP tries to send the beacon at each
+     planned TBTT.
+
+     9. Which of the following is the OUI used by the IEEE in the RSN
+        information element?
+
+        A. 00-00-00
+
+        B. 0E-EE-00
+
+        C. 11-11-11
+
+        D. 00-0F-AC
+
+        *答案解析*
+
+        D. The RSN element uses a cipher suite to describe what encryption should be used for
+     unicast or broadcast/multicast frames. The element is composed of an organization unique
+     identifier representing the cipher vendor and of a cipher number for this vendor. The IEEE
+     uses the OUI 00-0F-AC.
+
+     10. Which amendment uses FT frames?
+
+         A. 802.11i
+
+         B. 802.11n
+
+         C. 802.11r
+
+         D. 802.11w
+
+         *答案解析*
+
+         C. FT frames are action frames defined by the BSS Fast Transition amendment 802.11r and
+     are used for fast and secure roaming between APs part of the same ESS.
+
+     11. What should a station where an ADDTS request has been refused
+         do next?
+
+         A. Retry the same or a lower TSPEC
+
+         B. Revert back to PCF
+
+         C. Roam to the next AP
+
+         D. Drop the current TS and negotiate the next TS
+
+         *答案解析*
+
+         A. When an ADDTS is denied by an AP, the station cannot get the QoS level it requested,
+     usually because there was not enough space to accept this TS as requested in the cell. The
+     station can retry, hoping that other TSPEC of the same level got terminated and that space
+     becomes available, or it can revert its ADDTS to a lower QoS level and retry. A station
+     would not leave the cell by default, because roaming takes longer than retry, and would not
+     drop its queued traffic. PCF was never implemented by any vendor.
+
+     12. What information is sent in a TPC report sent from station A
+         to station B?
+
+         A. Link margin as measured by A
+
+         B. Link margin as measured by B
+
+         C. A to B attenuation value
+         
+         D. B to A attenuation value
+
+         *答案解析*
+         
+         A. Station A sends its link margin, that is to say what margin it wants B to take when
+     reducing its power. If station A link margin is 5 dB and B calculates that it can send with its
+     power down to 6 dBm, B will send at 11 dBm to respect station A’s link margin request.
+
+     13. What is the category number allocated to QoS-related action
+         frames?
+
+         A. 0
+
+         B. 1
+
+         C. 4
+
+         D. 5
+
+         *答案解析*
+
+         B. The 802.11e amendment defines several action frames. QoS-related frames are Category 1.
+     Category 0 is allocated to spectrum management frames introduced by the 802.11h amendment.
+     Category 4 is used by public action frames introduced by the 802.11w amendment.
+     Category 5 is used by radio measurement action frames introduced by the 802.11k
+     amendment.
+
+     14. What does ATIM stand for?
+
+         A. Ad Hoc Traffic Indication Message
+
+         B. Announcement Traffic Indication Message
+
+         C. Announcement Traffic Indication Map
+
+         D. Ad Hoc Traffic Indication Map
+
+         *答案解析*
+
+         B. ATIM stands for Announcement Traffic Indication Message. Don’t confuse this acronym
+     with Traffic Indication Map (TIM) or Delivery Traffic Indication Message (DTIM).
+
+     15. Which information element is a summary of the AP QoS
+         capabilities?
+
+         A. EDCA Parameter Set
+
+         B. TSPEC
+
+         C. QoS Subfield
+
+         D. QoS Capabilities
+
+         *答案解析*
+
+         D. The QoS Capabilities IE summarizes the AP QoS Capabilities. A more extensive support
+     description is given in the EDCA parameter set. TSPEC element is used by stations
+     (not APs) requesting QoS level through ADDTS Request frames. It can be found in the AP
+     answers but only to describe the original station request, not the AP capabilities. The QoS
+     subfield simply informs whether the AP supports QoS, without details about its capabilities.
+
+     16. How does an AP hide its SSID (SSID not broadcasted in
+         beacons)?
+
+         A. By not sending the SSID information element
+
+         B. By sending an empty SSID information element
+
+         C. By stopping beacon broadcasts
+
+         D. By moving the SSID information element to the
+         vendor-specific section of the beacon
+
+         *答案解析*
+
+         B. An AP cannot stop broadcasting beacons (most clients would disconnect). The SSID
+     information element has to be present, but its size is not fixed. APs hide the SSID by sending
+     an empty SSID IE. Moving the SSID IE to the vendor-specific section would mean removing
+     the SSID IE from its standard position (order 4 in beacons), which is not allowed by the
+     802.11 standard.
+
+     17. For which specific conditions does the 802.11 standard
+         describe that the NonERPPresent bit should be set in AP
+         beacons?
+         
+         A. 802.11g station associated to the AP
+
+         B. 802.11/802.11b station detected by the AP
+
+         C. 802.11/802.11b station associated to the AP
+
+         D. 802.11/802.11b station authenticated by the AP
+
+         *答案解析*
+
+         C. The standard describes that the NonERPPresent bit should be set by the AP if a non
+     802.11g station (that is, 802.11 or 802.11b) is associated to the AP. Many vendors implement
+     this bit as soon as the station is detected by the AP, thus extending the standard
+     requirements.
+
+     18. How do the Supported Rates and Extended Supported Rates
+         information elements specify which rates are mandatory
+         (basic)?
+
+         A. By setting bit 7 to 1 when basic and 0 when supported
+
+         B. By setting mandatory rates in the Supported Rates IE and
+         Supported Rates in the Extended Supported Rates information
+         element
+
+         C. By displaying the six basic rates first and then the
+         supported rates
+
+         D. The distinction between mandatory and supported is set by
+         the 802.11 standard, not by the information elements
+
+         *答案解析*
+
+         A. Each rate is coded over 8 bits (bits 0 to 7), representing a multiple of 500 Kbps. Bit 7 is
+     set to 1 when the rate is mandatory and to 0 when the rate is supported. Disabled rates are
+     not listed.
+
+     19. Which information element describes support for 40 MHz wide
+         channels?
+
+         A. The Channel Bonding information element
+
+         B. The HT Extended Channel information element
+
+         C. The HT Frequency Slicing information element
+
+         D. The HT Operation element
+
+         *答案解析*
+
+         D. The HT Operation element describes how 40 MHz channel support is set. The Channel
+     Bonding information element, HT Extended Channel information element, and HT Frequency
+     Slicing information element do not exist.
+
+     20. Which of the following can be identified in an 802.11h
+         measurement report frame?
+
+         A. DSSS signals
+
+         B. OFDM signals
+
+         C. FHSS stations
+
+         D. NonERP stations
+
+         *答案解析*
+
+         B. The basic measurement report can identify other neighboring cells (BSS), OFDM signals,
+     unidentified signals, or recognized radar signatures (in the sense that a radar matches
+     a specific pattern, which 802.11h-compliant stations must recognize). The CCA measurement
+     can also simply report the RF activity in the cell.
 
 * CH05 802.11 Control Frames
 

@@ -131,6 +131,13 @@
        module_exit(my_release);     
      #+END_SRC
 
+  3. 设置线程优先级
+     #+BEGIN_SRC c
+       struct sched_param param = {.sched_priority = xxx,
+                               };
+       sched_setscheduler( , , &param);
+     #+END_SRC
+
 * 知识点2 内核错误码处理宏
   　　Linux有时候在操作成功时需要返回指针，而在失败时则返回错误码。但
   是C语言每个函数只允许一个直接的返回值，因此，任何有关可能错误的信息
@@ -959,7 +966,8 @@
   #+BEGIN_SRC c
     void wait_for_completion(struct completion *c); //执行一个不可中断的等待
     void complete(struct completion *c);//唤醒一个线程
-    void complete_all(struct completion *c);//唤醒多个线程i  
+    void complete_all(struct completion *c);//唤醒多个线程i
+    bool completion_done(struct completion *x); //当前是否有等待者
   #+END_SRC
 
   当调用 complete时，可重用completion对象，当调用 =complete_all= 时，需要重
@@ -2455,6 +2463,14 @@ jiffies变量定义如下：
   #define time_before(unknown, known) ((long)(unknown) - (long)(known) < 0)
   #define time_after_eq(unknown, known) ((long)(unknown) - (long)(known) >= 0)
   #define time_before_eq(unknown, known) ((long)(known) - (long)(unknown) >= 0)
+
+  /* Check if time "a" is before time "b" */
+  /* In 32-bit variable, 0x00000001~0x7fffffff -> positive number,
+   ,*                     0x80000000~0xffffffff -> negative number
+   ,*/
+  #define TIME_BEFORE_64bit(a, b)       (a < b)
+
+  #define TIME_BEFORE(a, b)        ((UINT_32)((UINT_32)(a) - (UINT_32)(b)) > 0x7fffffff)
 #+END_SRC
 
 使用例子：
@@ -3857,7 +3873,7 @@ suspend()、resume()函数，通常也需要由驱动实现， 如下代码所�
 * 知识点39 libfs内核接口
 　　Libfs是内核中的一个库，它提供了几个标准通用的接口，可用于创建用于
 特殊目的的小型文件系统。这些接口非常适用于内存文件。代码位于fs/libfs.c。
-这些接口名称通过以simple开头。
+这些接口名称通常以simple开头。
 
 　　debugfs文件系统就是基于这些标准接口实现的。
 
@@ -3873,9 +3889,9 @@ suspend()、resume()函数，通常也需要由驱动实现， 如下代码所�
        在内存不同的地址（物理地址不连续）映射为一个物理地址连续的总线
        地址，设备看到的是连续的物理地址。
     4. 内核逻辑地址：通过kmalloc返回的地址，通常与物理地址存在线性关系，
-       一一对应。=__pa()= , =__va()= 为相互转换的宏。
+       一一对应。 =__pa()= , =__va()= 为相互转换的宏。
     5. 内核虚拟地址：通过vmalloc以及kmap函数返回的值都属于内核空间虚拟
-       地址，也物理地址不一定存在线性关系。
+       地址，与物理地址不一定存在线性关系。
 
 　　通常只有位于低内存部分的物理地址才有对应的内核逻辑地址（不超过896M
 的部分），高出此部分的物理内存没有内核逻辑地址（即高内存）。通常内核地
@@ -4920,19 +4936,128 @@ Vmalloc映射分三步：
 
 * 知识点46 configfs
    一种用户空间驱动的内核对象配置。它与sysfs类似。 configfs是一种基于
-   Ram的文件系统， 从用户空间创建和销毁内核对象。而sysfs则是用于从用户
+   Ram的文件系统， 从用户空间创建和销毁内核对象, 内核对象的生命周期完
+   全由用户空间控制。而sysfs则是用于从用户
    空间查看和操纵内核空间创建的对象。通常挂载在  =/sys/kernel/config=
-   下。
+   下，对象生命周期由内核控制。
 
    在什么情况下用：
    - 当模块有很多参数需要配置时
    - 当需要动态创建内核对象并且内核对象需要修改配置时
+
+   configfs可被编译为一个模块或直接编译进内核，可通过如下命令访问：
+   : mount  -t configfs none /config
 
    顶层结构是 =struct configfs_subsystem= ，为configfs子系统结构，接着是
    =struct config_group= ，是configfs目录和属性的容器， =struct config_item=
    是configfs目录，代表可配置的内核对象， =struct configfs_attribute= 是目
    录下面的属性。
 
+   具有相同属性和操作的一组item称为group。mkdir创建一个item，rmdir销毁
+   一个item。
+   
+   示例程序：
+   #+BEGIN_SRC c
+     /*
+      ,*      LDT - Linux Driver Template - basic configfs
+      ,*
+      ,*      Copyright (C) 2012 Constantine Shulyupin http://www.makelinux.net/
+      ,*
+      ,*      Dual BSD/GPL License
+      ,*
+      ,*      based on configfs_example_explicit.c and much more simple, without containers, just 70 LOC
+      ,*
+      ,*      Sample usage:
+      ,*      sudo insmod ldt_configfs_basic.ko
+      ,*      ls /configfs/ldt_configfs_basic/
+      ,*      sudo sh -c "echo 123 >  /configfs/ldt_configfs_basic/parameter"
+      ,*      cat /configfs/ldt_configfs_basic/parameter
+      ,*
+      ,*/
+
+     #include <linux/module.h>
+     #include <linux/configfs.h>
+
+     static int parameter;
+
+     static ssize_t ldt_attr_description_show(struct config_item *item, char *page)
+     {
+       return sprintf(page, "basic sample of configfs\n");
+     }
+
+     static ssize_t ldt_attr_parameter_show(struct config_item *item, char *page)
+     {
+       return sprintf(page, "%d\n", parameter);
+     }
+
+     static ssize_t ldt_attr_parameter_store(struct config_item *item,  const char *page, size_t count)
+     {
+             ssize_t ret = -EINVAL;
+             ret = kstrtoint(page, 0, &parameter);
+             if (ret)
+               return ret;
+             ret = count;
+             return ret;
+     }
+
+     static struct configfs_attribute ldt_parameter_attr = {
+             .ca_owner = THIS_MODULE,
+             .ca_name = "parameter",
+             .ca_mode = S_IRUGO | S_IWUSR,
+             .show = ldt_attr_parameter_show,
+             .store = ldt_attr_parameter_store,
+     };
+
+     static struct configfs_attribute ldt_description_attr = {
+             .ca_owner = THIS_MODULE,
+             .ca_name = "description",
+             .ca_mode = S_IRUGO,
+             .show = ldt_attr_description_show,
+     };
+
+     static struct configfs_attribute *ldt_attrs[] = {
+             &ldt_description_attr,
+             &ldt_parameter_attr,
+             NULL,
+     };
+
+
+     static struct config_item_type ci_type = {
+       .ct_attrs = ldt_attrs,
+       .ct_owner = THIS_MODULE,
+     };
+
+     static struct configfs_subsystem ldt_subsys = {
+             .su_group = {
+                     .cg_item = {
+                             .ci_namebuf = KBUILD_MODNAME,
+                             .ci_type = &ci_type,
+                     },
+             },
+     };
+
+     static int __init configfs_example_init(void)
+     {
+             int ret;
+             config_group_init(&ldt_subsys.su_group);
+             mutex_init(&ldt_subsys.su_mutex);
+             ret = configfs_register_subsystem(&ldt_subsys);
+             if (ret)
+                     pr_err("Error %d while registering subsystem %s\n",
+                            ret, ldt_subsys.su_group.cg_item.ci_namebuf);
+             return ret;
+     }
+
+     static void __exit configfs_example_exit(void)
+     {
+             configfs_unregister_subsystem(&ldt_subsys);
+     }
+
+     module_init(configfs_example_init);
+     module_exit(configfs_example_exit);
+     MODULE_LICENSE("GPL");
+        
+   #+END_SRC
    
 * Device Tree
    

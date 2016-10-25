@@ -34,12 +34,12 @@
 
 ** 端口访问控制操作的目的
 
-   端口访问控制为系统的功能提到了一种可选的扩展功能：提供了一种方法来
+   端口访问控制为系统原有功能提到了一种可选的扩展功能：提供了一种方法来
    阻止未授权的Supplicants来访问系统提供的服务，同时也阻止某个
    Supplicant试图访问一个未授权的系统。端口访问控制同时也为Supplicant
    提供了一种方法来阻止未授权的系统连接它。
 
-   系统通过未个未授权的端口来控制访问。在未授权的状态下，对该端口的使
+   系统通过某个未授权的端口来控制访问。在未授权的状态下，对该端口的使
    用是受限的，与之关联的参数是 =OperControlledDirections= 。
 
 ** 端口访问控制操作的范围
@@ -70,10 +70,10 @@
    有两个变量控制了受控的端口认证的数据传输方向 
    =AdminControlledDirections= , =OperationalControlledDirections= 。
 
-   1. =AdminControlledDirections=Both=
+   1. *AdminControlledDirections=Both*
       通过受控端口的进入或出来的数据传输都需要进行认证。这种情况下　
       =OperationalControlledDirections= 的值也必须设置为Both。 
-   2. =AdminControlledDirections=In= 
+   2. *AdminControlledDirections=In*
       这种情况下，只对进入的数据传输进行认证。
       =OperationalControlledDirections= 默认为In。 根据情况值也会发生
       改变。
@@ -129,31 +129,20 @@
    Layer。 对于Supplicant PAE， Higher Layer是由EAP功能模块组成，而对于
    Authenticator PAE，Higher Layer则是EAP与AAA功能的组合。
 
-   [[./images/2016/2016041301.png]]
-
 ** 状态机
 
-*** Supplicant state machines
+*** PACP state machines
+**** Port Timers state machine
+**** Authenticator PAE(Port Access Entity) state machine
+**** Authenticator Key Transmit state machine
+**** Supplicant Key Transmit state machine
+**** Key Receive state machine
+**** Reauthentication Timer state machine
+**** Backend Authentication state machine
+**** Controlled Directions state machine
 
 **** Supplicant PAE state machine
-
-**** Key Receive state machine
-
 **** Supplicant Backend state machine
-
-**** Supplicant Authenticator state machines
-
-**** Authenticator PAE(Port Access Entity) state machine
-
-**** Backend Authentication state machine
-
-**** Reauthentication Timer state machine
-
-**** Authenticator Key Transmit state machine
-
-**** Key Receive state machine
-
-**** Controlled Directions state machine
      
 * 端口访问控制的管理
 

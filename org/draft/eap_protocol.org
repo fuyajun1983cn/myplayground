@@ -5,8 +5,7 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
     
-* EAP协议
-
+* EAP协议(RFC3748)
 ** 概述
    EAP是一种认证框架性协议，支持多种认证方法。EAP通常运行在数据链接层
    （不推荐使用在IP层及以上的协议层），本身支持侦测重复数据包以及重传，
@@ -109,7 +108,7 @@
       通常情况下， EAP的实现者不能假定EAP Identity Request/Response大
       于1020个字节。
 
-      通常建议Identity Response的主要用是：
+      通常建议Identity Response的主要作用是：
       1. Routing Purpose
       2. 选择使用的EAP method.
 
@@ -173,7 +172,7 @@
     - Length
       4
 
-* State Machines for EAP Peer And Authenticator
+* State Machines for EAP Peer And Authenticator(RFC4137)
 ** 摘要
    本文档描述了EAP Peer，EAP独立的authenticator(non-pass-through),EAP后
    端authenticator(用于Authentication， Authorization以及Accounting服务
@@ -192,7 +191,7 @@
    [[./images/2016/2016040206.png]]
 
    双方协商出一个共同使用的方法，进行交互。Authenticator通过
-   EAP-Success或EAP-Failure来表示协调的成功或失败。方法本身也有一些状态
+   EAP-Success或EAP-Failure来表示协商的成功或失败。方法本身也有一些状态
    机。
 
 *** EAP Pass-Through Model
@@ -201,8 +200,99 @@
 
 *** Peer状态机
 
-  Peer状态机图解：
-  [[./images/2016/2016033101.png]]
+    #+BEGIN_SRC plantuml :exports results :file ./images/2016/2016033101.png :cmdline -charset UTF-8
+      @startuml
+      [*] --> DISABLED : !portEnabled
+      DISABLED --> INITIALIZE : portEnabled
+      [*] --> INITIALIZE : eapRestart && portEnabled
+      INITIALIZE --> IDLE : UCT
+      IDLE --> RECEIVED : eapReq
+      IDLE --> SUCCESS : (altAccept && decision != FAIL) ||\n(idleWhile == 0 &&\ndecision == UNCOND_SUCC)
+      IDLE --> FAILURE : altReject ||\n(idleWhile == 0 &&\ndecision != UNCOND_SUCC) ||\n(altAccept &&\nmethodState != CONT &&\ndecision == FAIL)
+      RECEIVED --> SUCCESS : rxSuccess && \n(reqId == lastId) && \n(decision != FAIL)
+      RECEIVED --> FAILURE : (methodState != CONT) &&\n ((rxFailure && decision != UNCOND_SUCC) ||\n(rxSuccess && decision == FAIL)) &&\n(reqId == lastId)
+      RECEIVED --> GET_METHOD : rxReq &&\n(reqId != lastId) &&\n(selectedMethod == NONE) &&\n(reqMethod != IDENTITY) &&\n(reqMethod != NOTIFICATION)
+      RECEIVED --> IDENTITY : rxReq &&\n(reqId != lastId) &&\n(selectedMethod == NONE) &&\n(reqMethod == IDENTITY)
+      RECEIVED --> NOTIFICATION : rxReq &&\n(reqId != lastId) &&\n(reqMethod == NOTIFICATION) &&\nallowNotifications
+      RECEIVED --> RETRANSMIT : rxReq &&\n(reqId == lastId)
+      RECEIVED --> METHOD : rxReq &&\n(reqId != lastId) &&\n(reqMethod ==selectedMethod) &&\n(methodState != DONE)
+      GET_METHOD --> METHOD : selectedMethod == reqMethod
+      RECEIVED --> DISCARD : else
+      METHOD --> DISCARD : ignore
+      METHOD --> SEND_RESPONSE : else
+      METHOD --> FAILURE : (methodState == DONE) &&\n(decision == FAIL)
+      GET_METHOD --> SEND_RESPONSE : else
+      IDENTITY --> SEND_RESPONSE : UCT
+      NOTIFICATION --> SEND_RESPONSE : UCT
+      RETRANSMIT --> SEND_RESPONSE : UCT
+      DISCARD --> IDLE : UCT
+      SEND_RESPONSE --> IDLE : UCT
+      SUCCESS --> [*]
+      FAILURE --> [*] 
+
+      INITIALIZE : selectedMethod = NONE
+      INITIALIZE: methodState = NONE
+      INITIALIZE: allowNotifications = TRUE
+      INITIALIZE: decision = FAIL
+      INITIALIZE: idleWhile = ClientTimeout
+      INITIALIZE: lastId = NONE
+      INITIALIZE: eapSuccess = FALSE
+      INITIALIZE: eapFail = FALSE
+      INITIALIZE: eapKeyData = NONE
+      INITIALIZE: eapKeyAvailable = FALSE
+      INITIALIZE: eapRestart = FALSE
+
+      RECEIVED: (rxReq, rxSuccess, rxFailure, reqId, reqMethod) = parseEapReq(eapReqData)
+
+      DISCARD: eapReq = FALSE
+      DISCARD: eapNoResp = TRUE
+
+      SEND_RESPONSE: lastId = reqId
+      SEND_RESPONSE: lastRespData = eapRespData
+      SEND_RESPONSE: eapReq = FALSE
+      SEND_RESPONSE: eapResp = TRUE
+      SEND_RESPONSE: idleWhile = ClientTimeout
+
+      METHOD: ignore = m.check(eapReqData)
+      METHOD: if (!ignore) {
+      METHOD:    (methodState, decision, allowNotifications) =
+      METHOD:    m.process(eapReqData)
+      METHOD:    /* methodState is CONT, MAY_CONT, or DONE */
+      METHOD:    /* decision is FAIL , COND_SUCC , or UNCOND_SUCC */
+      METHOD:    eapRespData = m.buildResp(reqId)
+      METHOD:    if (m.isKeyAvailable())
+      METHOD:       eapKeyData = m.getKey()
+      METHOD: }
+
+      GET_METHOD: if (allowMethod(reqMethod)) {
+      GET_METHOD:    selectedMethod = reqMethod
+      GET_METHOD:    methodState = INIT
+      GET_METHOD: } else {
+      GET_METHOD:    eapRespData = buildNak(reqId)
+      GET_METHOD: }
+
+      IDENTITY: processIdentity(eapReqData)
+      IDENTITY: eapRespData = buildIdentity(reqId)
+
+      NOTIFICATION: processNotify(eapReqData)
+      NOTIFICATION: eapRespData = buildNotify(reqId)
+
+      RETRANSMIT: eapRespData = lastRespData
+
+      SUCCESS: if (eapKeyData != NONE)
+      SUCCESS:    eapKeyAvailable = TRUE
+      SUCCESS: eapSuccess = TRUE
+
+      FAILURE: eapFail = TRUE
+
+
+      @enduml
+
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:./images/2016/2016033101.png]]
+    
 *** Peer状态机与底层之间的接口
     底层将收到的数据包存储在 =eapReqData= 中，并设置 =eapReq= 为TRUE。
     当EAP Peer状态机完成处理该消息，它要么设置 =eapResp= 或 =eapNoResp=
@@ -1041,37 +1131,37 @@
       different from the FAILURE state, in which a message indicating
       failure is sent to the peer.
 
-** EAP与802.1X， WPA/WPA2
-   802.1X is NOT an encryption type. It is basically just a per-user
-   (e.g. username and password) authentication mechanism. 
+* EAP与802.1X， WPA/WPA2
+  802.1X is NOT an encryption type. It is basically just a per-user
+  (e.g. username and password) authentication mechanism. 
 
-   WPA2 is a security scheme that specifies two main aspects of your
-   wireless security: 
-   - Authentication: Your choice of PSK ("Personal") or 802.1X ("Enterprise").
-   - Encryption: Always AES-CCMP.
+  WPA2 is a security scheme that specifies two main aspects of your
+  wireless security: 
+  - Authentication: Your choice of PSK ("Personal") or 802.1X ("Enterprise").
+  - Encryption: Always AES-CCMP.
 
-    If you're using WPA2 security on your network, you have two
-     authentication choices: You either have to use a single password
-     for the whole network that everyone knows (this is called a
-     Pre-Shared Key or PSK), or you use 802.1X to force each user to
-     use his own unique login credentials (e.g. username and
-     password). 
+   If you're using WPA2 security on your network, you have two
+    authentication choices: You either have to use a single password
+    for the whole network that everyone knows (this is called a
+    Pre-Shared Key or PSK), or you use 802.1X to force each user to
+    use his own unique login credentials (e.g. username and
+    password). 
 
-     Regardless of which authentication type you've set up your
-     network to use, WPA2 always uses a scheme called AES-CCMP to
-     encrypt your data over the air for the sake of confidentiality,
-     and to thwart various other kinds of attacks. 
+    Regardless of which authentication type you've set up your
+    network to use, WPA2 always uses a scheme called AES-CCMP to
+    encrypt your data over the air for the sake of confidentiality,
+    and to thwart various other kinds of attacks. 
 
-     802.1X is "EAP over LANs" or EAPoL. EAP stands for "Extensible
-     Authentication Protocol", which means it's kind of a plug-in
-     scheme for various authentication methods. Some examples: 
-     - Do you want to authenticate your users with usernames and passwords? Then "PEAP" is a good EAP type to use.
+    802.1X is "EAP over LANs" or EAPoL. EAP stands for "Extensible
+    Authentication Protocol", which means it's kind of a plug-in
+    scheme for various authentication methods. Some examples: 
+    - Do you want to authenticate your users with usernames and passwords? Then "PEAP" is a good EAP type to use.
 
-     - Do you want to authenticate your users via certificates? Then "EAP-TLS" is a good EAP type to use.
+    - Do you want to authenticate your users via certificates? Then "EAP-TLS" is a good EAP type to use.
 
-     - Are the devices on your network all GSM smartphones with SIM
-       cards? Then you can use "EAP-SIM" to do GSM SIM-card style
-       authentication to get on your network. etc. etc.
+    - Are the devices on your network all GSM smartphones with SIM
+      cards? Then you can use "EAP-SIM" to do GSM SIM-card style
+      authentication to get on your network. etc. etc.
 
-     
-     
+    
+    

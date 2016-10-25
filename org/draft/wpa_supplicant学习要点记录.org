@@ -3,7 +3,7 @@
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
-* =wpa_supplicant= 基本架构分析[fn:1] [fn:2]
+* 基本架构分析[fn:1] [fn:2]
 ** 模块结构图
      #+CAPTION:  =wpa_supplicant modules=
      [[./images/2015/2015121506.png]]
@@ -351,7 +351,7 @@
          执行某个操作）， socket事件以及信号事件等。
 
 **** eloop相关数据结构的关系
-        #+CAPTION: struct eloop_data
+        #+CAPTION:  =struct eloop_data=
         [[./images/2015/2015122901.png]]
 
         socket主要有读、写和异常等三种。 =struct eloop_sock_table= 是
@@ -501,7 +501,7 @@
        #+RESULTS:
        [[file:./images/2015/2015123001.png]]
 
-*** 其他一些 =eloop_*= 函数速速览
+*** 其他一些 =eloop_*= 函数速览
        #+BEGIN_SRC c
          /*
           ,* 监听发生在某个socket的读事件
@@ -642,7 +642,8 @@
      - BSSID <network id> <BSSID>
      - =LIST_NETWORKS=
      - DISCONNECT
-     - SCAN
+     - SCAN     
+
        SCAN流程分析
        =wpa_supplicant_event= --> =EVENT_SCAN_RESULTS= -->
        =wpa_supplicant_event_scan_results=
@@ -670,8 +671,12 @@
    函数 =wpa_config_alloc_empty(...)= 定义了所有成员的默认值，一些重要配置
    项如下所示：
    - =update_config= 
-     是否允许 =wpa_supplicant= 覆盖(更新)配置文件（当配置文件发生变化时）。
+
+     是否允许 =wpa_supplicant= 覆盖(更新)配置文件（当配置文件发生变化
+     时）。
+
    - =ctrl_interface= 
+
      这是一个全局配置，指定了该参数后， =wpa_supplicant= 会打开一个控
      制接口，外部程序可以通过此控制接口来管理 =wpa_supplicant= 。 字符
      串的含义取决于使用的控制接口的机制。 但是，有一点，只要配置了该参
@@ -697,12 +702,16 @@
      #+BEGIN_EXAMPLE
       ctrl_interface=SDDL=D:= 。 
      #+END_EXAMPLE
+
    - =eapol_version= 
+
      设置 =IEEE 802.1X/EAPOL= 的版本， =wpa_supplicant= 是基于 =IEEE
      802.1X-2004 EAPOL version 2=  实现的，  但是为了兼容不支持
      version 2的AP，该值默认为设置为1. 当使用MACSec时，该值应该设置
      为3，在 =IEEE Std 802.1X-2010= 中有定义。
+
    - =ap_scan= 
+
      默认情况下， =wpa_supplicant= 会请求驱动执行AP扫描，然后使用扫描
      结果来选择一个合适的AP。另一种选择就是驱动负责AP扫描并选择一个AP
      来关联， =wpa_supplicant= 只是基于驱动给出的关联信息去处理 EAPOL
@@ -729,6 +738,7 @@
      : ap_scan=1 scan_ssid=1
 
    - =passive_scan= 
+
      是否强制被动扫描。
 
      0:  Do normal scans (allow active scans) (default)
@@ -737,69 +747,115 @@
 
      如果开启被动扫描，则会降低扫描设备的速度，且会导致有些AP扫不到，
      如隐藏SSID的AP。
+
    - =user_mpm= 
+
      默认情况下， =wpa_supplicnat= 会为一个Open Mesh实现MPM(Mesh
      Peering Manager)，如果驱动实现了MPM，可以设置些值为0. 
      
      0: MPM lives in the driver
 
-     1: =wpa_supplicant= provides an MPM which handles peering (default)
+     1: =wpa_supplicant= provides an MPM which handles peering
+     (default)
+
    - =max_peer_links= 
+
      Maximum number of mesh peering currently maintained by the STA.
      Maximum number of peer links (0-255; default: 99)
+
    - =mesh_max_inactivity= 
+
      This timeout value is used in mesh STA to clean up inactive
      stations.
      Timeout in seconds to detect STA inactivity (default: 300
      seconds)
+
    - =cert_in_cb= 
+
      This controls whether peer certificates for authentication server
      and its certificate chain are included in EAP peer certificate
      events.
      This is enabled by default.
+
    - =fast_reauth= 
+
      快速重新认证。默认情况下，对于所有支持的EAP方法，快速重新认证是开
      启的。
+
    - =opensc_engine_path= 
+
      OpenSSL Engine support, 默认情况下，没有加载任何Engine.
+
    - =openssl_ciphers= 
+
      OpenSSL cipher string
+
    - =load_dynamic_eap=
+
      Dynamic EAP methods. 当EAP方法是编译成单独的so文件时，需要配置该
      项。默认情况下，EAP方法是静态编译到 =wpa_supplicant= 。
+
    - =driver_param=
+
      驱动接口参数, 在函数  =nl80211_set_param= 中设置。
      : driver_param=use_p2p_group_interface=1
      这个参数主要是针对P2P设置的，是否支持 p2p concurrent
      operation. 每次p2p 协商成功后，会创建一个group interface. 通过这
      个接口，来处理p2p相关的管理帧 ，也可以处理非p2p的管理帧，如关联请
      求（GC与GO关联时的交互帧）
+
    - =country=
+
      国家码
+
    - =dot11RSNAConfigPMKLifetime=
+
      PMKSA最大存活时间，默认是43200秒.
+
    - =dot11RSNAConfigPMKReauthThreshold= 
+
      重新认证的阀值(PMKSA值的百分比), 默认是70.
+
    - =dot11RSNAConfigSATimeout= 
+
      安全关联的超时，默认是60秒。
+
    - =uuid= 
+
      Universally Unique IDentifier, 如果没有配置，会根据MAC地址来产生。
+
    - =device_name= 
+
      设备名，字符串。
+
    - =manufacturer=
+
      设备生产商， 字符串。
+
    - =model_name=
+
      设备模式。
+
    - =model_number= 
+
      模式编号。
+
    - =serial_number=
+
      序列号。
+
    - =device_type=
+
      主设备类型，格式：<categ>-<OUI>-<subcateg>
+
    - =os_version=
+
      操作系统版本号
+
    - =config_methods=
+
      WPS支持的方法。
+
    - =wps_cred_processing=
 
      0: process received credentials internally (default)
@@ -809,43 +865,74 @@
 
      2: process received credentials internally and pass them over
      ctrl_iface to external program(s)
+
    - =wps_vendor_ext_m1= 
+
      Vendor attribute in WPS M1
+
    - =wps_priority=
+
      Priority for the networks added through WPS
+
    - =bss_max_count=
+
      Maximum number of BSS entries to keep in memory
+
    - =autoscan= 
+
      Automatic scan
+
    - =filter_ssids= 
+
      过滤SSID
      0： do not filter scan results (default)
      1： only include configured SSIDs in scan results/BSS table
+
    - =ext_password_backend=
+
      Password (and passphrase, etc.) backend for external storage
+
    - =p2p_disabled=
+
      禁用P2P功能。
+
    - =p2p_go_max_inactivity=
+
      检测STA是否活跃的超时值，默认是300秒。
+
    - =p2p_passphrase_len=
+
      GO随机产生的密码的长度，默认是8.
+
    - =p2p_search_delay=
+
      Extra delay between concurrent P2P search iterations
      默认值为：500ms.
+
    - =dtim_period=
+
      efault value for DTIM period
+
    - =beacon_int=
+
      Default value for Beacon interval
+
    - =ap_vendor_elements=
+
      Additional vendor specific elements for Beacon and Probe Response
      frames
+
    - =ignore_old_scan_res=
+
      Ignore scan results older than request
+
    - =scan_cur_freq=
+
      Whether to scan only the current frequency
      0: Scan all available frequencies. (Default)
      1: Scan current operating frequency if another VIF on the same
      radio is already associated.
+
    - =mac_addr=
 
      0 = use permanent MAC address
@@ -865,11 +952,22 @@
 
      2 = like 1, but maintain OUI (with local admin bit set)
 
-    - =config_ssid.h= Definition of per network configuration items
-    - =config.h= Definition of the =wpa_supplicant= configuration
-    - =config.c= Configuration parser and common functions
-    - =config_file.c= Configuration backend for text files (e.g.,
-      =wpa_supplicant=.
+    - =config_ssid.h= 
+
+     Definition of per network configuration items
+
+    - =config.h= 
+
+      Definition of the =wpa_supplicant= configuration
+
+    - =config.c= 
+
+      Configuration parser and common functions
+
+    - =config_file.c= 
+
+      Configuration backend for text files (e.g.,  =wpa_supplicant=.
+
 ** Cryptographic functions
      重点看下如何调用这些函数进行加密的
 
@@ -1026,7 +1124,7 @@
      首先，需要包含这个头文件，另外在实现文件中，有如下一些要求：
      1. 必须定义这个宏 =STATE_MACHINE_DATA= ，代表包含状态机变量的数据
         结构
-     2. 定义宏 =STATE_MACHINE_DEBUG_PREFIX= 已保证输出该状态机相关的打
+     2. 定义宏 =STATE_MACHINE_DEBUG_PREFIX= 以保证输出该状态机相关的打
         印消息时，有相关的前缀信息出来。
      3. 宏 =SM_ENTRY_MA= 用于定义一组共享一个数据结构的状态机。
      4. 宏 =STATE_MACHINE_ADDR= 定义到指向在调试输出中的MAC地址
@@ -1235,9 +1333,49 @@
 
                 
        #+END_SRC
-*** EAP
-    EAP Peer State Machine & EAP Server State Machine, RFC4137 & RFC3748
+*** L2 Packet (EAPOL包)处理
+      创建了一个链路层的套接字(=driver_nl802.11.c=)：
+      #+BEGIN_SRC c
+        drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));       
+      #+END_SRC
+      监听并处理EAPOL链路层数据包
+      #+BEGIN_SRC c
+         if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
+         {
+                 printf("Could not register read socket for eapol\n");
+                 goto failed;
+         }
+               
+      #+END_SRC
 
+      处理流程：
+       #+BEGIN_SRC plantuml :file ./images/2016/2016011801.png :cmdline -charset UTF-8
+         @startuml
+         start
+         :nl802.11驱动初始化;
+         :handle_eapol ;
+         note right
+         在802.11驱动初始化时，注册了处理EAPOL数据包的
+         回调函数handle_eapol
+         end note
+         :drv_event_eapol_rx;
+         :wpa_supplicant_event;
+         :wpa_supplicant_assoc;
+         :wpa_supplicant_rx_eapol;
+         stop
+         @enduml
+       #+END_SRC
+
+       #+RESULTS:
+       [[file:./images/2016/2016011801.png]]
+
+      1. evnets.c  
+         =EVENT_EAPOL_RX=
+         在Association之前收到EAPOL包，会先缓存起来，等到Association成
+         功后，再处理。
+      2. =wpa_supplicant.c=
+*** EAP
+         EAP Peer State Machine & EAP Server State Machine, RFC4137 & RFC3748
 **** EAP peer
       这个模块是个相对独立的模块，可单独使用。
       相关文件说明如下：
@@ -1261,12 +1399,47 @@
         eap_mschapv2.c, eap_otp.c, eap_peap.c, eap_-sim.c, eap_tls.c=
         其他EAP方法实现
 
+        初始化函数：
+        #+BEGIN_SRC c
+          struct eap_sm * eap_peer_sm_init(void *eapol_ctx,
+                                           const struct eapol_callbacks *eapol_cb,
+                                           void *msg_ctx, struct eap_config *conf)        
+        #+END_SRC
+        相关数据结构：
+        - =eapol_ctx=
+          基于 =eap_sm= 状态机数据结构
+
+        - =struct eapol_callbacks=
+          与状态机交互的回调函数
+
+        - =struct eap_config= 
+          状态机配置相关的数据
+
 **** EAP Server
+          初始化函数：
+          #+BEGIN_SRC c
+            struct eap_sm * eap_server_sm_init(void *eapol_ctx,
+                                               const struct eapol_callbacks *eapol_cb,
+                                               struct eap_config *conf)          
+          #+END_SRC
+          相关数据结构：
+          - =eapol_ctx=
+            服务器端状态机相关数据结构。
+          - =eapol_callbacks=
+          - =eap_config=
+
+**** EAP Method
+***** WSC
+             Wi-Fi Protected Setup, 包含enrollee 和 registrar 的实现。
+
 *** EAPOL
         IEEE 802.1X-2004 - Supplicant - EAPOL state machines, 处理
         EAPOL包的函数： =wpa_supplicant_rx_eapol= 。
 **** EAPOL supplicant
-     =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处理。
+     =eapol_supp_sm.c and eapol_supp_sm.h= EAPOL状态机和IEEE 802.1X处
+     理。
+        
+     初始化函数 =wpa_supplicant_init_eapol=
 **** EAPOL Authenticator
      在 =ieee802_1x_init= 会初始化 =eapol_authenticator= 
 *** WPA/WPA2 
@@ -1294,52 +1467,7 @@
         
         当关联成功后，会通过 =wpa_sm_notify_assoc=  来告知WPA
         State machine。这个函数会进行一些变量重置。
-
-**** wpa state machine初始化
-***** L2 Packet (EAPOL包)处理
-        创建了一个链路层的套接字(=driver_nl802.11.c=)：
-        #+BEGIN_SRC c
-          drv->eapol_sock = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_PAE));       
-        #+END_SRC
-        监听并处理EAPOL链路层数据包
-        #+BEGIN_SRC c
-           if (eloop_register_read_sock(drv->eapol_sock, handle_eapol, drv, NULL))
-           {
-                   printf("Could not register read socket for eapol\n");
-                   goto failed;
-           }
-                 
-        #+END_SRC
-
-        处理流程：
-         #+BEGIN_SRC plantuml :file ./images/2016/2016011801.png :cmdline -charset UTF-8
-           @startuml
-           start
-           :nl802.11驱动初始化;
-           :handle_eapol ;
-           note right
-           在802.11驱动初始化时，注册了处理EAPOL数据包的
-           回调函数handle_eapol
-           end note
-           :drv_event_eapol_rx;
-           :wpa_supplicant_event;
-           :wpa_supplicant_assoc;
-           :wpa_supplicant_rx_eapol;
-           stop
-           @enduml
-         #+END_SRC
-
-         #+RESULTS:
-         [[file:./images/2016/2016011801.png]]
-
-        1. evnets.c  
-           =EVENT_EAPOL_RX=
-           在Association之前收到EAPOL包，会先缓存起来，等到Association成
-           功后，再处理。
-        2. =wpa_supplicant.c=
-           
-
-        =wpa_supplicant_set_state=
+         
 **** wpa Authenticator
      在 =hostapd_setup_wpa= 中会初始化 =wpa_authenticator=
      (wpa_auth_glue.h), 标记为： =WPA_PROTO_WPA= =WPA_PROTO_RSN=
@@ -1351,15 +1479,18 @@
        (RSN/WPA2)
      - =wpa_i.h= Internal definitions for WPA code; not to be included
        to other modules.
-*** wpa statemachine状态变化
-     设置当前状态： =wpa_supplicant_set_state=
-     获取当前状态： =wpa_supplicant_get_state=
 
-     访问当前状态机的状态(仅供wpa状态机内部调用)： 
-     1. 获取当前状态机的状态：  =wpa_sm_get_state=
-     2. 设置当前状态机的状态:  =wpa_sm_set_state= 
+       在函数 =wpa_supplicant_init_wpa= 中初始化该状态机。
         
-* =wpa_supplicant= 功能模块分析
+**** wpa statemachine状态变化
+      设置当前状态： =wpa_supplicant_set_state=
+      获取当前状态： =wpa_supplicant_get_state=
+
+      访问当前状态机的状态(仅供wpa状态机内部调用)： 
+      1. 获取当前状态机的状态：  =wpa_sm_get_state=
+      2. 设置当前状态机的状态:  =wpa_sm_set_state= 
+         
+* 功能模块分析
 ** P2P
 *** 数据结构分析与初始化流程 
 **** 主要数据结构
@@ -4449,9 +4580,85 @@
           the driver does not implement MLME/SME. This needs to be
           extended to check driver capabilities (the information
           mentioned above) and make hostapd decide at run time whether
-          to use the internal MLME/SME or not. 
+          to use the internal MLME/SME or not.
 
-* =wpa_supplicant= 代码修改
+* 测试框架
+  =wpa_supplicant= 自带了一套测试框架，用于测试不同的CASE， 依赖于一个
+  虚拟的基于mac80211网络驱动 =mac80211_hwsim= ，它可以虚拟出一些无线网
+  络设备出来供模拟测试使用。
+  
+** 环境准备
+   1. 首先确保 =mac80211_hwsim= 网络驱动有编译进内核
+      : CONFIG_MAC80211_HWSIM=m
+   2. 加载驱动，测试模块能否正常加载
+      : sudo modprobe mac80211_hwsim
+   3. 按如下步骤编译相关文件
+      测试框架的代码在 tests/hwsim/ 目录下，在当前目录下执行如下操作：
+      #+BEGIN_SRC sh
+        cd ../../wpa_supplicant
+        cp ../tests/hwsim/example-wpa_supplicant.config .config
+        make clean
+        make
+        cd ../hostapd
+        cp ../tests/hwsim/example-hostapd.config .config
+        make clean
+        make hostapd hlr_auc_gw
+        cd ../wlantest
+        make clean
+        make      
+      #+END_SRC
+   4. 按照该目录下的 example_setup.txt 文件描述的步骤验证测试环境是否OK。
+   5. 执行测试
+      - 编写一个测试程序
+        文件名必须以 =test_*= 开头
+        #+BEGIN_SRC python
+          # wpa_supplicant control interface
+          # Copyright (c) 2014, Qualcomm Atheros, Inc.
+          #
+          # This software may be distributed under the terms of the BSD license.
+          # See README for more details.
+
+          import logging
+          logger = logging.getLogger()
+          import os
+          import socket
+          import subprocess
+          import time
+          import thread
+
+          import hostapd
+          import hwsim_utils
+          from hwsim import HWSimRadio
+          from wpasupplicant import WpaSupplicant
+          from utils import alloc_fail
+          from test_wpas_ap import wait_ap_ready
+
+          #
+          ## Test wpasupplicant
+          #
+          def test_fyj_test1(dev):
+              """wpa_supplicant: a simple test """
+              wpas = WpaSupplicant("wlan0")
+              wpas.request("SCAN_RESULTS")
+              wpas.dump_monitor()
+              logger.info("Test Finished!!") 
+
+          def test_fyj_test2(dev, apdev):
+              hapd = hostapd.add_ap(apdev[0]['ifname'], { "ssid": "open" })
+              dev[0].connect("open", key_mgmt="NONE", scan_freq="2412",
+                             bg_scan_period="0")
+          #    ev = hapd.wait_event([ "AP-STA-CONNECTED" ], timeout=5)
+            #  if ev is None:
+              #    raise Exception("No connection event received from hostapd")
+              #hwsim_utils.test_connectivity(dev[0], hapd)
+             
+        #+END_SRC
+      - 运行一个测试
+        可以通过如下命令执行一个测试程序：
+        : sudo ./run_tests fyj_test1
+        : sudo ./run_tests fyj_test2
+   
+* 代码修改参考
 ** add a conf parameter to start a GO as HT40 if allowed
    When specified in the conf file this parameter will make all
    invocations of p2p_group_add and p2p_connect behave as if "ht40"

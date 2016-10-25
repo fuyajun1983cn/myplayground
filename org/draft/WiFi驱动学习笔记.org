@@ -151,6 +151,54 @@
     - CNM
       Concurrent Network Management
 
+*** AIS FSM
+
+*** CNM 
+        Concurrent Network Management (CNM)
+        - RLM(Radio Link Management) resource control
+          + Channel switch
+          + Configure RLM settings like TX power
+        - Common database/feature management
+          + BSS info/STA record
+          + Timer
+          + Packet allocate
+
+        主要目的是为协调其他模块对Radio资源的访问。
+
+        CNM has no task/thread to handle it, so its FSM controlled by :
+        - HW timer interrupt
+          + CTT (CATT/CPTT) Timeout
+            Channel Absence/Presence Target Time
+        - HEM mail box
+          + Privilege Request
+          + Privilege Abort
+        - Function Call
+          + BSS update (create/modify/remove)
+
+            
+        Important database
+        - Pending List
+          + Channel Privilege Request will queue here.
+        - Operation Channel (OPCH)
+          + Every BSS has its working channel
+          + BSS with same working channel will be put into same OPCH
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 ** 命令数据发送的基本流程
    
    主极有三个线程：
@@ -341,5 +389,47 @@
     "5.5M"=>0x06,
     "2M"=>0x05,
     "1M"=>0x00,
+
+** 吞吐量问题分析建议
+   当客户报怨网速不够快时，应该从以下几个方面入手：
+   1. 使用一些工具实地测试一下客户环境下的网络速率
+      - 使用iperf工具
+        通过不同情况下的对比（比如内网与外网环境下）
+        确认是否为特定AP的问题，如果是AP的问题，找一个正常的AP与非正常
+        的AP进行对比分析。
+   2. 如果仍然怀疑吞吐量问题，进一步从以下几个方面入手：
+      - 调整与AP的距离，对比测试一下。
+        关注RSSI以及SNR等信息。
+      - 切换不同的网络模式，看结果是否有差异
+        重点关注bandwidth的情况，是否有使用到channel bonding。检查GI以
+        及RIFS等信息。
+      - 检查数据传输速率是否异常
+        最低传输速率的配置。
+      - 一些重点Check项
+        + channel utilization
+        + Packet aggregation method in use
+        + check if we are doing AMSDU v/s AMPDU.
+          AMSDU中比较脏的环境下，只要其中一包数据传输错误，整个AMSDU都
+          会重新传输。
+        + 分片情况
+        + 确保11n的速率是使能的。
+   3. 速率参考
+      - Maximun Theoritical Wireless Speeds
+        + 802.11b - 11 Mbps (2.4GHz)
+        + 802.11a - 54 Mbps (5 GHz)
+        + 802.11g - 54 Mbps (2.4GHz)
+        + 802.11n - 600 Mbps (2.4GHz and 5 GHz)
+        + 802.11ac - 1300 Mbps (5 GHz)
+      - Actual Real-World Average Wireless Speeds
+        + 802.11b - 2-3 Mbps downstream (bi-directional data rates can be lower)
+        + 802.11g - ~20 Mbps downstream
+        + 802.11n - 40-50 Mbps typical, varying greatly depending on
+          configuration, whether it is mixed or N-only network, the
+          number of bonded channels, etc. Specifying a channel, and
+          using 40MHz channels can help achieve 70-80Mbps with some
+          newer routers.
+        + 802.11ac - 70-100 Mbps
+
+
 
 

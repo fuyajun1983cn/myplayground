@@ -14,7 +14,7 @@
    four-way WPA2 handshake essentially makes the supplicant and
    authenticator prove to each other that they both know the PMK, and
    creates the temporal keys used to actually secure network
-   data. Capturing the four-way handshake will not divulge the PMK or
+   data. Capturing the four-way handshake will not divulge(泄露) the PMK or
    PSK (since capturing the handshake is trivial over wireless this
    would be a major vulnerability). The PMK isn't even sent during the
    handshake, instead it is used to calculate a Message Integrity
@@ -123,6 +123,9 @@
     则在请求IE中包含PMKID信息，AP收到后，根据PMKID信息检测是否有对应的
     PMKSA，如果存在，则使用之前协商好的PMKSA直接进入4步握手阶段。
 
+    PMKSA缓存节省的主要是4步握手之前的时间(如802.1X论证)，每次关联后，
+    4步握手是必须要做的。  
+
 *** 临时密钥计算
 
     PMK并不直接用于保密操作，它本身用来产生一组Key，这些Key用来保护设备
@@ -145,81 +148,91 @@
    PMK。
 
 * 4-Way HandShake  
-*** 基本步骤
 
-      #+CAPTION: 802.11i四次握手过程
-      [[./images/2015/2015121401.png]]
+** 基本步骤
 
-      四次握手是802.11i标准中用来在AP和客户端之间生成并管理PTK临时密钥的
-      交互过程，在整个过程中，AP和STA均确认对方是否持有与自己一致的PMK，
-      如不一致，四次握手过程就失败。
+     #+CAPTION: 802.11i四次握手过程
+     [[./images/2015/2015121401.png]]
 
-      1. 认证者向申请者发送消息M1, M1包含用于产生PTK的随机数Anonce，申
-          请者利用事先共享的PMK,Snonce和Anonce计算PTK。
+     四次握手是802.11i标准中用来在AP和客户端之间生成并管理PTK临时密钥的
+     交互过程，在整个过程中，AP和STA均确认对方是否持有与自己一致的PMK，
+     如不一致，四次握手过程就失败。
 
-      2. 申请者向认证者发送M2，M2中包含SNonce，并且用刚计算出的PTK中的
-         KCK（EAPOL-Key完整性密钥）部分对M2进行MIC认证。
+     1. 认证者向申请者发送消息M1, M1包含用于产生PTK的随机数Anonce，申
+         请者利用事先共享的PMK,Snonce和Anonce计算PTK。
 
-      3. 认证者得到Snonce并利用事先共享的PMK计算出PTK，利用PTK中KCK部分
-         对M2进行MIC校验。如果校验失败就丢弃该M2，正确则向申请者发送M3。
-         M3中包含一个MIC校验，使申请者能够核实认证方拥有一个匹配的PMK。
+     2. 申请者向认证者发送M2，M2中包含SNonce，并且用刚计算出的PTK中的
+        KCK（EAPOL-Key完整性密钥）部分对M2进行MIC认证。
 
-      4. 申请者收到M3并校验正确后，即装入PTK，并发送M4给认证者，表示已经
-         装入PTK。认证者在收到M4并校验正确后也装入PTK。至此四次握手过程
-         完成，PTK产生并完成装载。
+     3. 认证者得到Snonce并利用事先共享的PMK计算出PTK，利用PTK中KCK部分
+        对M2进行MIC校验。如果校验失败就丢弃该M2，正确则向申请者发送M3。
+        M3中包含一个MIC校验，使申请者能够核实认证方拥有一个匹配的PMK。
+        论证者也会产生GTK信息，并通过PTK进行加密，传送给申请者。
 
-      整个步骤用如下图表示所示：
-      [[./images/2016/2016042501.png]]
+     4. 申请者收到M3并校验正确后，即装入PTK，并发送M4给认证者，表示已经
+        装入PTK。认证者在收到M4并校验正确后也装入PTK。至此四次握手过程
+        完成，PTK产生并完成装载， 同时也会将收到的GTK装载。
 
-      用简单的言语解释一下，基本意思就是：
-       PTK是两边都要对上的，而GTK是在PTK成功后，AP直接将加密过GTK发给STA，
-       STA再把GTK解出来。抓包看到有四个EAPOL-KEY，后两个包含AP和STA安装
-       GTK。
+     整个步骤用如下图表示所示：
+     [[./images/2016/2016042501.png]]
 
-       对于PTK，AP送Anouce给STA，STA收到后，自己产生一个SNounce然后结合
-       ANounce PMK AA和SA得出PTK，进而有MIC key然后连同一个802.1X data通
-       过HMAC_MD5算出MIC，STA把MIC和SNounce发给AP。AP收到Snouce后，自己
-       也使用相同的算法，通过SA AA SNounce ANounce计算MIC，如果这个MIC和
-       STA发过来的MIC是一样的，那么就说明两侧的PMK是一样的，不然过后AP就
-       会发出deauth给STA
+     用简单的言语解释一下，基本意思就是：
+      PTK是两边都要对上的，而GTK是在PTK成功后，AP直接将加密过的GTK发给STA，
+      STA再把GTK解出来。抓包看到有四个EAPOL-KEY，后两个包含AP和STA安装
+      GTK。
+
+      对于PTK，AP送Anouce给STA，STA收到后，自己产生一个SNounce然后结合
+      ANounce PMK AA和SA得出PTK，进而有MIC key然后连同一个802.1X data通
+      过HMAC_MD5算出MIC，STA把MIC和SNounce发给AP。AP收到Snouce后，自己
+      也使用相同的算法，通过SA AA SNounce ANounce计算MIC，如果这个MIC和
+      STA发过来的MIC是一样的，那么就说明两侧的PMK是一样的，不然过后AP就
+      会发出deauth给STA
 
 * Group HandShake
+    一般发生在AP要更新GTK的情况，通常由AP主导，当然STA也可以主动要求。
+** 基本步骤
 
-*** 基本步骤
+    PTK成功后，两侧的PTK Key结构就确定下来了，随后AP会通过
+      =EAPOL-KEY= 把GTK发给STA，AP发一个MIC给STA，STA把KEY解出来，发一个确认信息给AP。
 
-     PTK成功后，两侧的PTK Key结构就确定下来了，随后AP会通过
-       =EAPOL-KEY= 把GTK发给STA，AP发一个MIC给STA，STA把KEY解出来，发一个确认信息给AP。
+    这个Key通过加密通道进行传输，拥有Group Key的设备才能收到从AP发送
+    过来的广播包。AP在发送Group Key的时候会执行如下操作：
 
-     这个Key通过加密通道进行传输，拥有Group Key的设备才能收到从AP发送
-     过来的广播包。AP在发送Group Key的时候会执行如下操作：
+    1. 产生一个256-bit的GMK(Group Master Key)。
+    2. 得到256-bit的GTK(Group Transient Key)，临时Key从GTK中获取。
+    3. 当AP与移动设备间的单播安全链路建立后：
+       a)发送GTK给移动设备
+       b)检测接收到GTK的确认消息。
 
-     1. 产生一个256-bit的GMK(Group Master Key)。
-     2. 得到256-bit的GTK(Group Transient Key)，临时Key从GTK中获取。
-     3. 当AP与移动设备间的单播安全链路建立后：
-        a)发送GTK给移动设备
-        b)检测接收到GTK的确认消息。
+    [[./images/2016/2016042503.png]]
 
-     [[./images/2016/2016042503.png]]
+** 如何产生GMK？
+   
+     The access point allocates a GMK simply by choosing a 256-bit
+     cryptographic-quality random number. 
 
+** 如何产生临时Key？
 
-*** 如何产生GMK？
-    
-      The access point allocates a GMK simply by choosing a 256-bit
-      cryptographic-quality random number. 
+    需要两个Key：
+    1. Group Encryption Key(128 bits)
+    2. Group Integrity Key(128 bits)
 
-*** 如何产生临时Key？
+    The combination of these two keys forms a 256-bit value, the
+    GTK. AP将会把GTK发送到与之关联的设备上。GTK由GMK值再结合nonce值和
+    AP的MAC地址来产生的。
 
-     需要两个Key：
-     1. Group Encryption Key(128 bits)
-     2. Group Integrity Key(128 bits)
+** Rekey
+*** Rekey Intervals
+    WPA automatically changes secret keys after a certain period of
+    time. The group rekey interval is the period of time in between
+    automatic changes of the group key, which all devices on the
+    network share. WPA changes the group key so quickly that you won't
+    even notice the process.
 
-     The combination of these two keys forms a 256-bit value, the
-     GTK. AP将会把GTK发送到与之关联的设备上。GTK由GMK值再结合nonce值和
-     AP的MAC地址来产生的。
-
-
-
-
-
-
-
+*** Benefits of Rekeying
+    The WPA protocol uses rekeying to provide your network with
+    increased security. Constantly rekeying the group key protects
+    your network against intrusion, as the would-be intruder must cope
+    with an ever-changing secret key. Older security standards like
+    WEP do not possess this automatic rekey function, and are
+    therefore less secure.

@@ -1324,5 +1324,55 @@ Added: [2016-09-04 周日 21:35]
     :LAST_REPEAT: [2016-10-03 一 10:58]
     :END:
     - 406行
+*** ✔ DONE 第五章 & 第六章 —— 栈
+    CLOSED: [2016-10-10 一 09:15] DEADLINE: <2016-10-29 六> SCHEDULED: <2016-10-10 一>
+*** ✔ DONE 深入分析WPA状态机实现源码                                   :Study:
+   CLOSED: [2016-10-10 一 18:00] DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-09-19 周一>
+    - 目录
+      弄清状态机实现的细节，产生详细文档。
+    - EAP框架源码
+      Done
+    - EAP Authenticator/Supplicant代码分析
+      EAPOL State machine, 从代码实现的角度来看，eapol是eap的一个扩展。
+Added: [2016-09-08 周四 17:25]
+*** ✔ DONE configfs接口研究
+    CLOSED: [2016-10-10 一 18:00]
+*** ✔ DONE 学习DBUS                                                    :Study:
+   CLOSED: [2016-10-11 二 21:15] SCHEDULED: <2016-10-09 日> DEADLINE: <2016-10-22 六>
+    了解Python下使用DBUS通信，能够编写基本的程序
+    - [X] Dbus基本认识
+    - [X] Python Dbus API的基本使用
+Added: [2016-09-09 周五 11:45]
+*** ✘ CANCELED 802.11常见帧格式深入研究
+    CLOSED: [2016-10-12 三 13:45]
+**** Beacon帧
+     CHANNEL_SWITCH_ANNOUNCEMENT
+**** CSA(Channel Switch Announcement
+     eCSA
+*** ✔ DONE 【创维mstar平台】──播放过程中，出现Beacon Lost            :Project:
+   CLOSED: [2016-10-12 三 18:05]
+   现象： 播放视频的过程中，出现了断开重连打印
+Added: [2016-09-19 一 18:15]
+*** ✔ DONE [#B] 查看公版分支上的修改                                   :Study:
+    CLOSED: [2016-10-17 一 09:40] SCHEDULED: <2016-10-10 一>
+    - State "✔ DONE"     from "☛ TODO"     [2016-10-17 一 09:40]
+     - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+     - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
+     - State "✔ DONE"     from "☛ TODO"     [2016-09-07 周三 11:50]
+     - State "✔ DONE"     from "☛ TODO"     [2016-09-04 周日 22:50]
+     - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:10]
+    :PROPERTIES:
+    :Effort:   8:00
+    :LAST_REPEAT: [2016-10-17 一 09:38]
+    :END:
+**** Next Action: 153502 158500
+**** 待深入了解的修改：
+       1. 155501   add p2p VHT 80 Draft Support
+       2. 159623
+          driver didn't try to associate with GO until timeout in
+          invitation to join case. 
+
+*** ✔ DONE 第七章  —— 队列
+    CLOSED: [2016-10-24 一 13:55]
 ** 11月[/]
 ** 12月[/]
