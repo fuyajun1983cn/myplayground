@@ -176,8 +176,7 @@
       </li>
     </ol>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="full-1"/>
 </node>
 <node CREATED="1426515853239" ID="ID_211335091" MODIFIED="1426516179228">
@@ -341,7 +340,7 @@
 </node>
 <node COLOR="#006633" CREATED="1426404688131" ID="ID_666067697" MODIFIED="1429879031995" POSITION="right" TEXT="&#x804c;&#x573a;&#x63d0;&#x5347;&#x7c7b;&#x8bfe;&#x7a0b;">
 <font BOLD="true" NAME="SansSerif" SIZE="20"/>
-<node COLOR="#00b439" CREATED="1425698074195" FOLDED="true" ID="ID_481041441" MODIFIED="1429879339085" TEXT="&#x770b;&#x5b9e;&#x4f8b;&#x5b66;&#x601d;&#x7ef4;&#x5bfc;&#x56fe;&#x63d0;&#x5347;&#x8bb0;&#x5fc6;&#x529b;">
+<node COLOR="#00b439" CREATED="1425698074195" FOLDED="true" ID="ID_481041441" MODIFIED="1478425477494" TEXT="&#x770b;&#x5b9e;&#x4f8b;&#x5b66;&#x601d;&#x7ef4;&#x5bfc;&#x56fe;&#x63d0;&#x5347;&#x8bb0;&#x5fc6;&#x529b;">
 <edge COLOR="#00b439" WIDTH="2"/>
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <node COLOR="#990000" CREATED="1425698153829" ID="ID_1064384844" MODIFIED="1425709691393" TEXT="&#x600e;&#x6837;&#x9605;&#x8bfb;">
@@ -587,7 +586,7 @@
 <icon BUILTIN="idea"/>
 </node>
 </node>
-<node COLOR="#669900" CREATED="1429879047197" FOLDED="true" ID="ID_1017027280" MODIFIED="1431261618782">
+<node COLOR="#669900" CREATED="1429879047197" ID="ID_1017027280" MODIFIED="1478425487392">
 <richcontent TYPE="NODE"><html>
   <head>
     
