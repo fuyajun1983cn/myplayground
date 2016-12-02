@@ -1472,23 +1472,152 @@
      在 =hostapd_setup_wpa= 中会初始化 =wpa_authenticator=
      (wpa_auth_glue.h), 标记为： =WPA_PROTO_WPA= =WPA_PROTO_RSN=
 **** WPA supplicant
-     WPA功能代码如下：
-     - =wpa.c and wpa.h= WPA state machine and 4-Way/Group Key Handshake
-       processing
-     - =preauth.c and preauth.h= PMKSA caching and pre-authentication
-       (RSN/WPA2)
-     - =wpa_i.h= Internal definitions for WPA code; not to be included
-       to other modules.
-
-       在函数 =wpa_supplicant_init_wpa= 中初始化该状态机。
+           WPA功能代码如下：
+           - =wpa.c and wpa.h= 
+            WPA state machine and 4-Way/Group Key Handshake 
+             processing
+           - =preauth.c and preauth.h= 
+             PMKSA caching and pre-authentication
+             (RSN/WPA2)
+           - =wpa_i.h= 
+             Internal definitions for WPA code; not to be included
+             to other modules.
+      
+            在函数 =wpa_supplicant_init_wpa= 中初始化该状态机。
         
 **** wpa statemachine状态变化
-      设置当前状态： =wpa_supplicant_set_state=
-      获取当前状态： =wpa_supplicant_get_state=
+           设置当前状态： =wpa_supplicant_set_state=
+           获取当前状态： =wpa_supplicant_get_state=
+          
+           访问当前状态机的状态(仅供wpa状态机内部调用)： 
+           1. 获取当前状态机的状态：  =wpa_sm_get_state=
+           2. 设置当前状态机的状态:  =wpa_sm_set_state=
 
-      访问当前状态机的状态(仅供wpa状态机内部调用)： 
-      1. 获取当前状态机的状态：  =wpa_sm_get_state=
-      2. 设置当前状态机的状态:  =wpa_sm_set_state= 
+**** 4步握手日志分析
+           连接AP时， =wpa_supplicant= 执行4步握手过程的日志：
+           #+BEGIN_SRC sh
+             I/wpa_supplicant( 5349): wlan0: Associated with 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): wlan0: WPA: Association event - clear replay counter
+             D/wpa_supplicant( 5349): wlan0: WPA: Clear old PTK
+             D/wpa_supplicant( 5349): TDLS: Remove peers on association
+             D/wpa_supplicant( 5349): EAPOL: External notification - portEnabled=0
+             D/wpa_supplicant( 5349): EAPOL: Supplicant port status: Unauthorized
+             D/wpa_supplicant( 5349): nl80211: Set supplicant port unauthorized for 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): EAPOL: External notification - portValid=0
+             D/wpa_supplicant( 5349): EAPOL: Supplicant port status: Unauthorized
+             D/wpa_supplicant( 5349): nl80211: Set supplicant port unauthorized for 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): EAPOL: External notification - EAP success=0
+             D/wpa_supplicant( 5349): EAPOL: Supplicant port status: Unauthorized
+             D/wpa_supplicant( 5349): nl80211: Set supplicant port unauthorized for 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): EAPOL: External notification - portEnabled=1
+             D/wpa_supplicant( 5349): EAPOL: SUPP_PAE entering state CONNECTING
+             D/wpa_supplicant( 5349): EAPOL: enable timer tick
+             D/wpa_supplicant( 5349): EAPOL: SUPP_BE entering state IDLE
+             D/wpa_supplicant( 5349): wlan0: Setting authentication timeout: 10 sec 0 usec
+             D/wpa_supplicant( 5349): wlan0: Cancelling scan request
+             D/wpa_supplicant( 5349): wlan0: P2P: Station mode scan operation not pending anymore (sta_scan_pending=0 p2p_cb_on_scan_complete=0)
+             D/wpa_supplicant( 5349): RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+             D/wpa_supplicant( 5349): RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+             D/wpa_supplicant( 5349): nl80211: if_removed already cleared - ignore event
+             D/wpa_supplicant( 5349): RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+             D/wpa_supplicant( 5349): RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+             D/wpa_supplicant( 5349): nl80211: if_removed already cleared - ignore event
+             D/wpa_supplicant( 5349): RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+             D/wpa_supplicant( 5349): RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+             D/wpa_supplicant( 5349): nl80211: if_removed already cleared - ignore event
+             D/wpa_supplicant( 5349): RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+             D/wpa_supplicant( 5349): RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+             D/wpa_supplicant( 5349): nl80211: if_removed already cleared - ignore event
+             D/wpa_supplicant( 5349): RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+             D/wpa_supplicant( 5349): RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+             D/wpa_supplicant( 5349): nl80211: if_removed already cleared - ignore event
+             D/wpa_supplicant( 5349): RX ctrl_iface - hexdump(len=27): 42 53 53 20 52 41 4e 47 45 3d 33 35 38 2d 20 4d 41 53 4b 3d 30 78 32 31 39 38 37
+             D/wpa_supplicant( 5349): wlan0: Control interface command 'BSS RANGE=358- MASK=0x21987'
+             D/wpa_supplicant( 5349): wlan0: RX EAPOL from 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): wlan0: Setting authentication timeout: 10 sec 0 usec
+             D/wpa_supplicant( 5349): wlan0: IEEE 802.1X RX: version=2 type=3 length=117
+             D/wpa_supplicant( 5349): wlan0:   EAPOL-Key type=2
+             D/wpa_supplicant( 5349): wlan0:   key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+             D/wpa_supplicant( 5349): wlan0:   key_length=16 key_data_length=22
+             D/wpa_supplicant( 5349):   replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 01
+             D/wpa_supplicant( 5349):   key_nonce - hexdump(len=32): 57 fd 7f f5 43 b6 5e 97 0c 1f d9 39 68 12 f0 76 04 07 45 ec ab 86 95 07 01 b6 11 78 ab d2 60 84
+             D/wpa_supplicant( 5349):   key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+             D/wpa_supplicant( 5349):   key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+             D/wpa_supplicant( 5349):   key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+             D/wpa_supplicant( 5349):   key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+             D/wpa_supplicant( 5349): wlan0: State: ASSOCIATED -> 4WAY_HANDSHAKE
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): wlan0: WPA: RX message 1 of 4-Way Handshake from 8c:be:be:2d:3f:27 (ver=2)
+             D/wpa_supplicant( 5349): RSN: msg 1/4 key data - hexdump(len=22): dd 14 00 0f ac 04 8a dd f5 15 e4 80 52 73 19 66 b0 c0 ab 38 ea 92
+             D/wpa_supplicant( 5349): WPA: PMKID in EAPOL-Key - hexdump(len=22): dd 14 00 0f ac 04 8a dd f5 15 e4 80 52 73 19 66 b0 c0 ab 38 ea 92
+             D/wpa_supplicant( 5349): RSN: PMKID from Authenticator - hexdump(len=16): 8a dd f5 15 e4 80 52 73 19 66 b0 c0 ab 38 ea 92
+             D/wpa_supplicant( 5349): wlan0: RSN: no matching PMKID found
+             D/wpa_supplicant( 5349): WPA: Renewed SNonce - hexdump(len=32): 59 7e 2a ad 8a 1a 8c 1e 2d 67 dc 8a 69 9f 76 08 c7 82 49 eb 5b 94 c0 94 fd cf d5 1d 2e 1a 10 8c
+             D/wpa_supplicant( 5349): WPA: PTK derivation - A1=00:0c:e7:66:32:ae A2=8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): WPA: Nonce1 - hexdump(len=32): 59 7e 2a ad 8a 1a 8c 1e 2d 67 dc 8a 69 9f 76 08 c7 82 49 eb 5b 94 c0 94 fd cf d5 1d 2e 1a 10 8c
+             D/wpa_supplicant( 5349): WPA: Nonce2 - hexdump(len=32): 57 fd 7f f5 43 b6 5e 97 0c 1f d9 39 68 12 f0 76 04 07 45 ec ab 86 95 07 01 b6 11 78 ab d2 60 84
+             D/wpa_supplicant( 5349): WPA: PMK - hexdump(len=32): [REMOVED]
+             D/wpa_supplicant( 5349): WPA: PTK - hexdump(len=48): [REMOVED]
+             D/wpa_supplicant( 5349): WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 02 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+             D/wpa_supplicant( 5349): WPA: Replay Counter - hexdump(len=8): 00 00 00 00 00 00 00 01
+             D/wpa_supplicant( 5349): wlan0: WPA: Sending EAPOL-Key 2/4
+             D/wpa_supplicant( 5349): WPA: KCK - hexdump(len=16): [REMOVED]
+             D/wpa_supplicant( 5349): WPA: Derived Key MIC - hexdump(len=16): 25 ff 3d 16 51 bc bd 42 fe aa 3f 25 63 8c 65 5e
+             D/wpa_supplicant( 5349): wlan0: RX EAPOL from 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): wlan0: IEEE 802.1X RX: version=2 type=3 length=175
+             D/wpa_supplicant( 5349): wlan0:   EAPOL-Key type=2
+             D/wpa_supplicant( 5349): wlan0:   key_info 0x13ca (ver=2 keyidx=0 rsvd=0 Pairwise Install Ack MIC Secure Encr)
+             D/wpa_supplicant( 5349): wlan0:   key_length=16 key_data_length=80
+             D/wpa_supplicant( 5349):   replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 02
+             D/wpa_supplicant( 5349):   key_nonce - hexdump(len=32): 57 fd 7f f5 43 b6 5e 97 0c 1f d9 39 68 12 f0 76 04 07 45 ec ab 86 95 07 01 b6 11 78 ab d2 60 84
+             D/wpa_supplicant( 5349):   key_iv - hexdump(len=16): 04 07 45 ec ab 86 95 07 01 b6 11 78 ab d2 60 85
+             D/wpa_supplicant( 5349):   key_rsc - hexdump(len=8): 8f 4f 0b 00 00 00 00 00
+             D/wpa_supplicant( 5349):   key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+             D/wpa_supplicant( 5349):   key_mic - hexdump(len=16): 91 bc 81 3d 95 3d a5 c3 93 38 d0 09 9e a7 45 28
+             D/wpa_supplicant( 5349): RSN: encrypted key data - hexdump(len=80): ca 54 90 ac 17 eb c2 40 63 a0 c5 f8 16 11 5a 96 72 2b 7d fa 80 c9 ca d6 5f 86 b8 f5 70 44 29 e8 ...
+             D/wpa_supplicant( 5349): WPA: decrypted EAPOL-Key key data - hexdump(len=72): [REMOVED]
+             D/wpa_supplicant( 5349): wlan0: State: 4WAY_HANDSHAKE -> 4WAY_HANDSHAKE
+             D/wpa_supplicant( 5349): wlan0: WPA: RX message 3 of 4-Way Handshake from 8c:be:be:2d:3f:27 (ver=2)
+             D/wpa_supplicant( 5349): WPA: IE KeyData - hexdump(len=72): 30 18 01 00 00 0f ac 02 02 00 00 0f ac 04 00 0f ac 02 01 00 00 0f ac 02 0c 00 dd 26 00 0f ac 01 ...
+             D/wpa_supplicant( 5349): WPA: RSN IE in EAPOL-Key - hexdump(len=26): 30 18 01 00 00 0f ac 02 02 00 00 0f ac 04 00 0f ac 02 01 00 00 0f ac 02 0c 00
+             D/wpa_supplicant( 5349): WPA: GTK in EAPOL-Key - hexdump(len=40): [REMOVED]
+             D/wpa_supplicant( 5349): wlan0: WPA: Sending EAPOL-Key 4/4
+             D/wpa_supplicant( 5349): WPA: KCK - hexdump(len=16): [REMOVED]
+             D/wpa_supplicant( 5349): WPA: Derived Key MIC - hexdump(len=16): 06 48 d0 6e 3c eb 56 19 6a a6 7c 8d e8 6e cf 2c
+             D/wpa_supplicant( 5349): wlan0: WPA: Installing PTK to the driver
+             D/wpa_supplicant( 5349): wpa_driver_nl80211_set_key: ifindex=6 (wlan0) alg=3 addr=0xab197b84 key_idx=0 set_tx=1 seq_len=6 key_len=16
+             D/wpa_supplicant( 5349):    addr=8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): EAPOL: External notification - portValid=1
+             D/wpa_supplicant( 5349): wlan0: State: 4WAY_HANDSHAKE -> GROUP_HANDSHAKE
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): RSN: received GTK in pairwise handshake - hexdump(len=34): [REMOVED]
+             D/wpa_supplicant( 5349): WPA: Group Key - hexdump(len=32): [REMOVED]
+             D/wpa_supplicant( 5349): wlan0: WPA: Installing GTK to the driver (keyidx=1 tx=0 len=32)
+             D/wpa_supplicant( 5349): WPA: RSC - hexdump(len=6): 8f 4f 0b 00 00 00
+             D/wpa_supplicant( 5349): wpa_driver_nl80211_set_key: ifindex=6 (wlan0) alg=2 addr=0xaabaf2cc key_idx=1 set_tx=0 seq_len=6 key_len=32
+             D/wpa_supplicant( 5349):    broadcast key
+             I/wpa_supplicant( 5349): wlan0: WPA: Key negotiation completed with 8c:be:be:2d:3f:27 [PTK=CCMP GTK=TKIP]
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): wlan0: Cancelling authentication timeout
+             D/wpa_supplicant( 5349): wlan0: State: GROUP_HANDSHAKE -> COMPLETED
+             I/wpa_supplicant( 5349): wlan0: CTRL-EVENT-CONNECTED - Connection to 8c:be:be:2d:3f:27 completed (auth) [id=1 id_str=]
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): wpa_driver_nl80211_set_operstate: operstate 0->1 (UP)
+             D/wpa_supplicant( 5349): netlink: Operstate: linkmode=-1, operstate=6
+             D/wpa_supplicant( 5349): wlan0: P2P: Station mode scan operation not pending anymore (sta_scan_pending=0 p2p_cb_on_scan_complete=0)
+             D/wpa_supplicant( 5349): CTRL_IFACE monitor send - hexdump(len=40): 2f 64 61 74 61 2f 6d 69 73 63 2f 77 69 66 69 2f 73 6f 63 6b 65 74 73 2f 77 70 61 5f 63 74 72 6c ...
+             D/wpa_supplicant( 5349): EAPOL: External notification - portValid=1
+             D/wpa_supplicant( 5349): EAPOL: External notification - EAP success=1
+             D/wpa_supplicant( 5349): EAPOL: SUPP_PAE entering state AUTHENTICATING
+             D/wpa_supplicant( 5349): EAPOL: SUPP_BE entering state SUCCESS
+             D/wpa_supplicant( 5349): EAP: EAP entering state DISABLED
+             D/wpa_supplicant( 5349): EAPOL: SUPP_PAE entering state AUTHENTICATED
+             D/wpa_supplicant( 5349): EAPOL: Supplicant port status: Authorized
+             D/wpa_supplicant( 5349): nl80211: Set supplicant port authorized for 8c:be:be:2d:3f:27
+             D/wpa_supplicant( 5349): EAPOL: SUPP_BE entering state IDLE
+             D/wpa_supplicant( 5349): EAPOL authentication completed successfully           
+           #+END_SRC
          
 * 功能模块分析
 ** P2P
@@ -2408,10 +2537,10 @@
        p2p过程中使用VHT：
       1. 双方设备物理网卡要支持VHT
       2. p2p GO在启动时，需要配置VHT Enabled, 配置时是通过
-         wpa_supplicant从上层下参数到driver的。(p2p_go_vht=1,可以在配置文件中明确指定)
-      3. p2p GC在与GO连接时，需要带vht参数，即显示表明希望GO和GC关联成功后，
-         以VHT的速率进行数据传输（p2p_group_add, p2p_connect, p2p_invite三个
-         接口都可以带下来)。
+         =wpa_supplicant= 从上层下参数到driver的。( =p2p_go_vht=1=,可以在配置文件中明确指定)
+      3. p2p GC在与GO连接时，需要带vht参数，即显式表明希望GO和GC关联成功后，
+         以VHT的速率进行数据传输（ =p2p_group_add=, =p2p_connect=,
+         =p2p_invite= 三个接口都可以带下来)。
 
       函数 =nl80211_set_channel= 会设置Channel相关信息：HT, Channel Width
 
@@ -3457,7 +3586,7 @@
     #+END_SRC
 
     If you want to use the preconfigure passphrase, set the AP into
-    configured state instead (wps_state=2).
+    configured state instead ( =wps_state=2= ).
 
     hostapd does not touch almost any of the Data frames going through
     the AP. The only Data frames it uses are related to authentication
@@ -3480,8 +3609,10 @@
     - A =hostapd_iface= has at least one bss(=hostapd_data=)
 
     - =struct hapd_interfaces=
+
       全局数据结构，定义了一系列公共回调函数，并统计了当前实际虚拟接
       口的数量与引用。
+
       #+BEGIN_SRC c
         struct hapd_interfaces {
                 int (*reload_config)(struct hostapd_iface *iface);
@@ -3512,10 +3643,11 @@
       #+END_SRC
 
     - =struct hostapd_iface=
+
       per-interface data structure.
        
-
     3. =struct hostapd_config=
+
        #+BEGIN_SRC c
          /**
           ,* struct hostapd_config - Per-radio interface configuration
@@ -3624,6 +3756,7 @@
        #+END_SRC
 
     4. =struct hostapd_bss_config=
+
        #+BEGIN_SRC c
          /**
           ,* struct hostapd_bss_config - Per-BSS configuration
@@ -4557,6 +4690,7 @@
     
        1. Query regarding nl80211 support in hostapd(about
           =NEED_AP_MLME=)
+
           问题描述：
 
           We are planning to add AP support in open source mwifiex
@@ -4607,9 +4741,22 @@
         make clean
         make      
       #+END_SRC
-   4. 按照该目录下的 example_setup.txt 文件描述的步骤验证测试环境是否OK。
+   4. 按照该目录下的 =example_setup.txt= 文件描述的步骤验证测试环境是否
+      OK。
+      #+BEGIN_SRC sh
+        cd hostap/tests/hwsim
+        ./build.sh
+
+        # load mac80211_hwsim and start test software
+        ./start.sh
+
+        # run a single test case ap_open
+        sudo ./run-tests.py ap_open
+              
+      #+END_SRC
    5. 执行测试
       - 编写一个测试程序
+
         文件名必须以 =test_*= 开头
         #+BEGIN_SRC python
           # wpa_supplicant control interface
@@ -4654,6 +4801,7 @@
              
         #+END_SRC
       - 运行一个测试
+
         可以通过如下命令执行一个测试程序：
         : sudo ./run_tests fyj_test1
         : sudo ./run_tests fyj_test2
@@ -5412,6 +5560,36 @@
             os_memcmp(addr, dev_addr, ETH_ALEN) == 0)
           return bss;
       }    
+    #+END_SRC
+
+** 在指定的Channel上执行一次扫描
+    #+BEGIN_SRC c
+      static int wpa_driver_nl80211_authenticate(
+                                                 struct i802_bss *bss, struct wpa_driver_auth_params *params)
+      {
+        ...
+
+        struct wpa_driver_scan_params scan;
+        int freqs[2];
+
+        os_memset(&scan, 0, sizeof(scan));
+        scan.num_ssids = 1;
+        if (params->ssid) {
+          scan.ssids[0].ssid = params->ssid;
+          scan.ssids[0].ssid_len = params->ssid_len;
+        }
+        freqs[0] = params->freq;
+        freqs[1] = 0;
+        scan.freqs = freqs;
+        wpa_printf(MSG_DEBUG, "nl80211: Trigger single "
+                   "channel scan to refresh cfg80211 BSS "
+                   "entry");
+        ret = wpa_driver_nl80211_scan(bss, &scan);
+
+
+        ...
+
+       }
     #+END_SRC
 * Footnotes
 [fn:1] https://w1.fi/

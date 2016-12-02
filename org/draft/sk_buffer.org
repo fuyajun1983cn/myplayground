@@ -390,7 +390,7 @@
       //queue
       struct sk_buff_head ack_quue;
       ...
-      //获取队列尾部元素
+      //push sk_buffer to the queue
       skb_queue_tail(...)
 
       //队列长度
@@ -398,9 +398,20 @@
 
       //从队列取元素
       skb_dequeue(...)
+      __skb_dequeue(...)
 
       //
       skb_get_queue_mapping(...)
+
+      /*判断队列是否为空*/
+      skb_queue_empty()
+
+
+      /*遍历sk_buff列表 */
+      skb_queue_walk(&tx->skbs, skb) {
+        info  = IEEE80211_SKB_CB(skb);
+       ...
+      }
 
     #+END_SRC
 * Pass Package to Upper Layer

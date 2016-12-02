@@ -6,7 +6,623 @@
 
 
 * 基础语法
+  
+** 基本语法要素
+     变量名和关键字区分大小写。
+     支持Unicode转义，如
+     #+BEGIN_SRC javascript
+       "café" === "caf\u00e9"
+         // => true     
+     #+END_SRC
+     
+     javascript的变量名必须以字母，下划线或$字符为开头。
 
+** 基本数据类型
+    
+*** 原始类型
+       =null= 和 =undefined= 是两个特殊的原始类型值，它们不是数字，字符串
+       或布尔型。
+       
+*** 对象类型
+       对象拥有一系列属性，这些属性都有一个名字和对应的值，这些值可以
+       是原始类型，也可以是对象类型。 
+
+       一个普通的JavaScript对象是一个有名值对的无序集合， array，作为一种
+       特殊的对象，代表一组被标记数字的值的有序集合。
+
+       函数是另一种特殊的对象，它一般关联了可执行的代码。
+
+       类可认为是对象类型的一个子类型。
+
+       另外， JavaScript还定义了另外三个有用的类:
+       1. Date
+          定义代表日期的对象。
+       2. RegExp
+          定义代表正则表达式的类。
+       3. Error
+          定义对象语法或运行时错误的对象。
+
+          
+       JavaScript有垃圾回收器自动回收不被使用的对象所占的内存。
+
+       对象和数组是可修改的类型。 数字，布尔，null, 以及undefined是不
+       可修改类型， 字符串也是不可修改的类型。
+
+       JavaScript的变量是无类型的，你可以给一个变量赋任何类型的值。
+
+       使用var声明一个变量， JavaScript使用lexical scoping。
+
+       JavaScript不区分整型和浮点型，所有数值都被表示为浮点型。
+
+       复杂的数值运行可以通过Math对象提供的方法。
+
+*** 数值比较
+       - == 
+         判断是否相等
+       - !==
+         判断是否不相等。(值是否为true或false)
+       - ===
+         严格相等 （可以区分null和undefined)
+
+*** 全局对象
+        当一个JavaScript解释器启动时，它会创建一个新的全局对象并给它一
+        些属性赋予初始值：
+        - 全局属性如undefined, Infinity和NaN
+        - 全局函数如isNaN(), parseInt()和eval()
+        - 构造函数如Date(), RegExp(), String(), Object(), Array()
+        - 全局对象如Math和JSON
+
+          
+        全局变量的初始属性虽然不是保留字，但是最好将它们当作保留字看待。
+        在JavaScript的最顶层代码，可以使用关键字this来引用全局对象： 
+        : var global = this; //Define a global variable to  refer to the global object
+
+        在客户端JavaScript的代码中，Window对象作为运行在浏览器中的所有
+        JavaScript代码的一个全局变量而存在。
+
+        对象比较是by reference，而变量比较是by value， 两个对象相同当
+        且仅当它们指向相同的对象， 所以对象之间的比较一般使用===和!==。
+
+        转换一个对象为字符串：
+        1. 先查看该对象有没有toString()方法，且其返回值是一个原型类型。
+        2. 如果不存在，再看有没有valueOf()方法，且其返回值是一个原型类型。
+        3. 如果也不存在，对会抛出TypeError异常。
+
+           
+        转换一个对象为数字：
+        1. 先看有没有valueOf()方法，且其返回值是一个原型类型。
+        2. 再查看该对象有没有toString()方法，且其返回值是一个原型类型。
+        3. 如果也不存在，对会抛出TypeError异常。
+
+*** 语法要点
+       
+**** 声明变量
+         声明一个全局变量可以省略var关键字，但是声明一个局部变量则不能
+         省略。
+
+**** 代码作用域
+          在一些编程语言中， 位于{ }里面的代码块拥有自己的域，代码块内
+          的变量对代码块外的程序不可见。 JavaScript则不存在这种行为，
+          它只有函数域。
+
+**** eval()
+          当使用别名调用eval()时，会相当于在最项层执行一个独立的代码，
+          而当直接调用eval()时，则相当于在本地域执行一 段代码。 但是，
+          当使用use strict指令后，不允许通过别名调用eval(), 并且eval()
+          只能查询或设置一个局部变量，不 能定义新的变量或函数。 
+
+**** strict mode
+
+           - In strict mode, assignments to nonwritable properties and
+             attempts to create new properties on nonextensible
+             objects throw a TypeError. (In non-strict mode, these
+             attempts fail silently.) 
+           - In strict mode, code passed to eval() cannot declare
+             variables or define functions in the caller’s scope as
+             it can in non-strict mode. Instead, variable and function
+             definitions live in a new scope created for the eval()
+             . This scope is discarded when the eval() returns. 
+           - In strict mode, a SyntaxError is thrown if the delete
+             operator is followed by an unqualified identifier such as
+             a variable, function, or function parameter. (In non-
+             strict mode, such a delete expression does nothing and
+             evaluates to false .) In strict mode, an attempt to
+             delete a nonconfigurable property throws a TypeError. (In
+             non-strict mode, the attempt fails and the delete
+             expression evaluates to false .) 
+           - In strict mode, it is a syntax error for an object
+             literal to define two or more prop- erties by the same
+             name. (In non-strict mode, no error occurs.) 
+           - In strict mode, it is a syntax error for a function
+             declaration to have two or more parameters with the same
+             name. (In non-strict mode, no error occurs.) 
+           - In strict mode, octal integer literals (beginning with a
+             0 that is not followed by an x) are not allowed. (In
+             non-strict mode, some implementations allow octal
+             literals.) 
+           - In strict mode, the identifiers eval and arguments are
+             treated like keywords, and you are not allowed to change
+             their value. You cannot assign a value to these iden-
+             tifiers, declare them as variables, use them as function
+             names, use them as function parameter names, or use them
+             as the identifier of a catch block. 
+           - In strict mode, the ability to examine the call stack is
+             restricted. arg ments.caller and arguments.callee both
+             throw a TypeError within a strict mode function. Strict
+             mode functions also have caller and arguments properties
+             that throw TypeError when read. (Some implementations
+             define these nonstandard properties on non-strict
+             functions.)
+
+** 对象
+     - 对象一般由属性以及属性值构成, 属性有三种类型：
+       + 可写的。
+       + 可迭代的(属性是否可以通过for/in循环返回。
+       + 可配置的(属性是否可以被删除或更改)。
+     - 每个对象有三个关联的对象属性
+       + prototype, 对另一个被继承的对象的引用
+       + class , 属性的类别
+       + extensible, 标识新属性是否可以加到对象中。
+     - 每个对象都有一个与之关联的第二个对象，第二个对象称为prototype,
+       许多对象的属性都有继承自该prototype对象。
+       Object.prototype是一个特殊的对象，它没有与之关联的prototype对象。
+     - Object.create()
+       这是一个静态方法，
+       #+BEGIN_SRC javascript
+         var o1 = Object.create({x:1, y:2});
+         // o1 inherits properties x and y.
+         var o2 = Object.create(null);
+         //o2 inherits no props or methods.
+         var o3 = Object.create(Object.prototype);
+         // o3 is like {} or new Object()       
+       #+END_SRC
+     - 属性赋值
+       属性赋值的时候，会检测prototype链，以决定当前的赋值操作是否被允
+       许。如果当前对象继承了一个只读的属性，则对该属性的赋值是被禁止
+       的。反之，如果当前的赋值是被允许的，则会在当前的对象中创建或设
+       置一个属性，不会改变prototype链，事实上，继承仅发生于查询属性的
+       时候，而不是设置属性的时候，这是JavaScript的一个核心特征，它允
+       许我们有选择性地修改继承过来的属性。针对这个规则的一个例外是，
+       当该属性被当成setter方法的一个访问者属性时，setter方法将会被调
+       用，而不会为当前对象创建一个新的属性。但是，setter方法也是在当
+       前对象上进行调用，而不是定义该属性的prototype对象。
+     - 删除属性
+       删除属性仅删除对象本身的属性，并不会删除继承的属性。当对象的
+       configurable属性为false时，delete无法删除该属性。
+     - 属性测试
+       #+BEGIN_SRC javascript
+         var o = { x: 1 }
+         "x" in o;  // true: o has an own property "x"
+         "y" in o;// false: o doesn't have a property "y"
+         "toString" in o // true: o inherits a toString property
+
+         var o = { x: 1 }
+         o.hasOwnProperty("x"); // true: o has an own property x
+         o.hasOwnProperty("y"); // false: o doesn't have a property y
+         o.hasOwnProperty("toString"); // false: toString is an inherited property
+
+         var o = inherit({ y: 2 });
+         o.x = 1;
+         o.propertyIsEnumerable("x"); // true: o has an own enumerable property x
+         o.propertyIsEnumerable("y"); // false: y is inherited, not own
+         Object.prototype.propertyIsEnumerable("toString"); // false: not enumerable
+
+         var o = { x: 1 }
+         o.x !== undefined; // true: o has a property x
+         o.y !== undefined; // false: o doesn't have a property y
+         o.toString !== undefined; // true: o inherits a toString property       
+       #+END_SRC
+     - Getters和Setters属性
+       示例：
+       #+BEGIN_SRC javascript
+         var o = {
+             // An ordinary data property
+             data_prop: value,
+
+             // An accessor property defined as a pair of functions
+             get accessor_prop() { /* function body here */ },
+             set accessor_prop(value) { /* function body here */ }
+         };       
+       #+END_SRC
+     - 以$开关的属性名，表明它是一个私有属性。
+     - 属性描述符
+       数据类型属性的属性描述符对象有如下名称的属性： value, writable,
+       enumerable, configurable. 而访问类型属性的属性描述符对象有如下
+       名称的属性：set,get, enumerable, configurable.
+     - 定义一个属性
+       Object.defineProperty()
+       #+BEGIN_SRC javascript
+         var o = {}; // Start with no properties at all
+         // Add a nonenumerable data property x with value 1.
+         Object.defineProperty(o, "x", { value : 1,
+                             writable: true,
+                             enumerable: false,
+                             configurable: true});       
+       #+END_SRC
+
+       同时定义多个属性
+       #+BEGIN_SRC javascript
+         var p = Object.defineProperties({}, {
+             x: { value: 1, writable: true, enumerable:true, configurable:true },
+             y: { value: 1, writable: true, enumerable:true, configurable:true },
+             r: {
+             get: function() { return Math.sqrt(this.x*this.x + this.y*this.y) },
+             enumerable:true,
+             configurable:true
+             }
+         });       
+       #+END_SRC
+     - 属性改变规则
+       + If an object is not extensible, you can edit its existing own properties, but you cannot add new properties to it.
+
+       + If a property is not configurable, you cannot change its configurable or enumerable attributes.
+
+       + If an accessor property is not configurable, you cannot
+         change its getter or setter method, and you cannot  change it to a data property.
+
+       + If a data property is not configurable, you cannot change it to an accessor property.
+
+       + If a data property is not configurable, you cannot change its
+         writable attribute from false to true , but you can  change
+         it from true to false .
+
+       + If a data property is not configurable and not writable, you
+         cannot change its value. You can change the value of  a
+         property that is configurable but nonwritable, how- ever
+         (because that would be the same as making it  writable, then
+         changing the value, then converting it back to nonwritable).
+
+** 数组
+    - 创建数组
+      #+BEGIN_SRC javascript
+        var arr = [2,3,4]
+        var a = new Array(4)
+        var a = new Array(5, 4, 3, 2, 1, "test string")
+
+        var a1 = [,,] //this array is [undefined, undefined, undefined]
+        var a2 = new Array(2) //this array has no values at all      
+      #+END_SRC
+
+    - 数组长度 
+      #+BEGIN_SRC javascript
+        a = [1, 2, 3]
+        a.length
+        Object.defineProperty(a, "length", {writable:false}); //make the length property read only.      
+      #+END_SRC
+
+    - 添加和删除元素
+      #+BEGIN_SRC javascript
+        a = [] a.push("zero") a.push("one", "two")
+
+        a = [1, 2, 3] delete a[1] //delete element in index 1
+
+        spice() unshift() shift() pop()
+
+        forEach() var data = [1, 2, 3, 4]
+        var sumOfSquares = 0;
+        data.forEach(function(x) { sumOfSquares += x * x; });      
+      #+END_SRC
+
+    - 常见的数组方法
+      #+BEGIN_SRC javascript
+        join() //将数据所有的元素转换为字符串并连接起来。
+        reverse() //反转一个数组的元素顺序
+        sort() //数组元素排序， 默认是按字母顺序排序，也可以传递一个比较函数来指定排序的依据
+        concat() //返回一个新的数组包含原数组和传递进来的参数
+        var a = [1, 2, 3]; a.concat([4,5], [6, 7]) //Returns [1, 2, 3, 4, 5, 6, 7]
+        a.concat(4, [5, [6, 7]]) //Returns [1, 2, 3, 4, 5, [6, 7]]
+
+        slice() //切分数组
+        var a = [1, 2, 3, 4, 5] a.slice(0, 3) // returns [1, 2, 3]
+        a.slice(3) // return [4, 5]
+        a.slice(1, -1) //returns [2, 3, 4]
+        a.slice(-3, -2) //returns [3]
+
+        splice() //通用的数组元素插入和删除函数 对数组本身进行了修改。 前两个参数指定要删除的元素，之后的参数指定要插入的元素。
+        var a = [1,2,3,4,5]; a.splice(2,0,'a','b'); // Returns []; a is [1,2,'a','b',3,4,5]
+        a.splice(2,2,[1,2],3); // Returns ['a','b']; a is [1,2,[1,2],3,3,4,5]
+
+        push()和pop(): 让数组可以像栈一样工作。
+
+        unshift()和shift(): 跟push()和pop()函数类似，只不过操作元素的位置是数组的开始处。
+
+        toString()和toLocaleString()
+      #+END_SRC
+
+    - ECMAScript 5数组方法 forEach()
+      #+BEGIN_SRC javascript
+        data.forEach(function(v, i, a) { a[i] = v + 1; });
+        map() a = [1, 2, 3];
+        b = a.map(function(x) { return x * x; }); // b is [1, 4, 9]
+      #+END_SRC
+      传递进来的函数必须有返回值
+
+      filter() 传递进来的函数必须返回true或false
+      : a = [5, 4, 3, 2, 1]; smallvalues = a.filter(function(x) { return x < 3 });
+
+      every() 和 some() 传递进来的函数必须返回true或false
+      : a = [1, 2, 3, 4, 5]; a.every(function(x) { return x < 10; }) // true, all values < 10
+      : a.some(function(x) { return x % 2 === 0; }); // true, a has some even numbers.
+
+      reduce(), reduceRight() 
+      #+BEGIN_SRC javascript
+        a = [1,2,3,4,5]
+        sum = a.reduce(function(x,y) { return x+y }, 0); //sum of values
+        product = a.reduce(function(x,y) { return x*y }, 1); // Product of values
+        max = a.reduce(function(x,y) { return (x>y)?x:y; }); // Largest value      
+      #+END_SRC
+
+      indexOf(), lastIndexOf()
+      #+BEGIN_SRC javascript
+        Array.isArray()
+        var isArray = Function.isArray || function(o) { return typeof o === "object" && Object.prototype.toString.call(o) === "[object Array]"; };      
+      #+END_SRC
+
+** 闭包
+    - 闭包不能访问外部函数的this, 除非通过变量事先保存。
+      : var self = this; // Save this value in a variable for use by nested funcs.
+    - 闭包也不能访问外部函数的arguments,除非通过变量事先保存。
+      :  var outerArguments = arguments;// Save for use by nested functions
+    - It is important to remember that the scope chain associated with
+      a closure is “live.” Nested functions do not make private
+      copies of the scope or make static snapshots of the variable
+      bindings.
+      #+BEGIN_SRC javascript
+        // Return an array of functions that return the values 0-9
+        function constfuncs() {
+           var funcs = [];
+           for(var i = 0; i < 10; i++)
+           funcs[i] = function() { return i; };
+           return funcs;
+        }
+        var funcs = constfuncs();
+        funcs[5]() // What does this return? 10      
+      #+END_SRC
+    - lexical scoping
+      functions are executed using the variable scope that was in
+      effect when they were defined, not the variable scope that is in
+      effect when they are invoked.
+      #+BEGIN_SRC javascript
+        // This function returns a function that always returns v
+        function constfunc(v) { return function() { return v; }; }
+        // Create an array of constant functions:
+        var funcs = [];
+        for(var i = 0; i < 10; i++) funcs[i] = constfunc(i);
+        // The function at array element 5 returns the value 5.
+        funcs[5]()   // => 5      
+      #+END_SRC
+    - scope chain is a list or chain of objects that defines the
+      variables that are “in scope” for that code.
+
+** 类
+    
+*** 类的创建
+        #+BEGIN_SRC javascript
+          #!/usr/bin/env nodejs
+
+          //java script代码
+          // inherit() returns a newly created object that inherits properties from the
+          // prototype object p. It uses the ECMAScript 5 function Object.create() if
+          // it is defined, and otherwise falls back to an older technique.
+          function inherit(p) {
+              if (p == null) throw TypeError(); // p must be a non-null object
+              if (Object.create)// If Object.create() is defined...
+                  return Object.create(p); //then just use it.
+              var t = typeof p; // Otherwise do some more type checking
+              if (t !== "object" && t !== "function") throw TypeError();
+              function f() {};  // Define a dummy constructor function.
+              f.prototype = p;// Set its prototype property to p.
+              return new f(); // Use f() to create an "heir" of p.
+          }
+
+          //this is a factory function that return a new range object
+          function range(from, to) {
+              var r = inherit(range.methods);
+              r.from = from;
+              r.to = to;
+
+              return r;
+          }
+
+          // This prototype object defines methods inherited by all range objects.
+          range.methods = {
+              includes: function(x) { return this.from <= x && x <= this.to; },
+              foreach: function(f) {
+                  for(var x = Math.ceil(this.from); x <= this.to; x++) f(x);
+              },
+              toString: function() { return "(" + this.from + "..." + this.to + ")"; }
+          }
+
+          //test code
+          var r = range(1, 3);
+          r.includes(2);
+          r.foreach(console.log);
+          console.log(r);
+
+          console.log("=================");
+
+          function Range(from, to) {
+              this.from = from;
+              this.to = to;
+          }
+
+          Range.prototype = {
+              includes: function(x) { return this.from <= x && x <= this.to; },
+              foreach: function(f) {
+                  for(var x = Math.ceil(this.from); x <= this.to; x++) f(x);
+              },
+              toString: function() { return "(" + this.from + "..." + this.to + ")"; }   
+          };
+
+          var r2 = new Range(1, 3);
+          r2.includes(2);
+          r2.foreach(console.log);
+          console.log(r2);
+
+          var F = function() {}; 
+          var p = F.prototype;  
+          var c = p.constructor;
+          c === F;  //true        
+        #+END_SRC
+
+*** 创建类的步骤
+    
+**** 步骤
+          1. write a constructor function that sets instance properties on new objects.
+          2. define =instance= methods on the prototype object of the constructor.
+          3. define class fields and class properties on the
+             constructor itself.
+
+**** 代码示例
+          #+BEGIN_SRC javascript
+            function defineClass(constructor, // A function that sets instance properties
+                                 methods, //Instance methods: copied to prototype
+                                 statics) //class properties: copied to constructor
+            {
+                if (methods) extend(constructor.prototype, methods);
+                if (statics) extend(constructor, statics);
+                return constructor;
+            }
+
+            // This is a simple variant of our Range class
+            var SimpleRange =
+            defineClass(function(f,t) { this.f = f; this.t = t; },
+                        {
+                            includes: function(x) { return this.f <= x && x <= this.t;},
+                            toString: function() { return this.f + "..." + this.t; }
+                        },
+                        { upto: function(t) { return new SimpleRange(0, t); } });          
+          #+END_SRC
+* Node
+
+** 程序参数
+    process.argv[0] = '/usr/bin/nodejs'
+
+** Core APIs
+    
+*** Events
+       
+**** EventEmitter
+          EventEmitter class to provide some basic event
+          functionality. 
+
+          它是一个接口类，供其他类扩展。
+
+          EventEmitter拥有许多方法，其中比较常见的是 /on/ 和 /emit/ 。
+          这些方法提供给其他类使用。 
+
+          /on/ 方法创建一个事件监听者，如下代码所示：
+          #+BEGIN_SRC javascript
+            server.on('event', function(a, b, c) {
+              //do things
+            });          
+          #+END_SRC
+
+          由于 EventEmitter是一个接口伪类， 需要实例化从EventEmitter继
+          承而来的类。 实例化一个EventEmitter派生类的代码如下：
+          #+BEGIN_SRC javascript
+            var utils = require('utils'),
+                EventEmitter = require('events').EventEmitter;
+
+            var Server = function() {
+              console.log('init');
+            };
+
+            utils.inherits(Server, EventEmitter);
+
+            var s = new Server();
+
+            s.on('abc', function() {
+              console.log('abc');
+            });
+
+            //Fire an event
+            s.emit('abc');
+          #+END_SRC
+
+*** HTTP
+
+**** HTTP Servers
+         #+BEGIN_SRC javascript
+           var http = require('http');
+           var server = http.createServer();
+           var handleReq = function(req,res){
+             res.writeHead(200, {});
+             res.end('hello world');
+           };
+           server.on('request', handleReq);
+           server.listen(8125);         
+         #+END_SRC
+
+**** HTTP Clients
+          #+BEGIN_SRC javascript
+            var http = require('http');
+
+            var opts = {
+              host: 'www.google.com'
+              port: 80,
+              path: '/',
+              method: 'GET'
+            };
+
+            var req = http.request(opts, function(res) {
+              console.log(res);
+              res.setEncoding('utf-8');
+              res.on('data', function(data) {
+                console.log(data);
+              });
+            });
+
+            req.end();          
+          #+END_SRC
+
+*** I/O
+        
+**** Streams
+         Streams can be readable, writable, or both. All  streams are
+         EventEmitter instances, allowing them to emit events. 
+          
+**** Readable streams
+         #+BEGIN_SRC javascript
+           var fs = require('fs');
+           var filehandle = fs.readFile('data.txt', function(err, data) {
+             console.log(data)
+           });         
+         #+END_SRC
+
+         Using the spooling pattern to read a complete stream
+         #+BEGIN_SRC javascript
+           //abstract stream
+           var spool = "";
+           stream.on('data', function(data) {
+             spool += data;
+           });
+           stream.on('end', function() {
+             console.log(spool);
+           });         
+         #+END_SRC
+
+**** Filesystem
+          filesystem模块实现了POSIX风格的文件I/O接口。 它提供的方法分
+          为异步模式和同步模式，一般建议使用异步模式下的接口。
+          #+BEGIN_SRC javascript
+            var fs = require('fs');
+
+            fs.readFile('warandpeace.txt', function(e, data) {
+              console.log('War and Peace: ' + data);
+              fs.unlink('warandpeace.txt');
+            });          
+          #+END_SRC
+
+**** Buffers
+          Buffer代表一块内存区域，它是固定大小的， 如果想添加更多的数
+          据，必须拷贝当前的Buffer到一个更大的Buffer中。
+          
+          Buffers can be created using three possible parameters: the
+          length of the Buffer in bytes, an array of bytes to copy
+          into the Buffer, or a string to copy into the Buffer.
+
+          
 * HTML5
 
 ** HTML5特性检查 -- MODERNIZR
@@ -122,3 +738,9 @@
       // no native canvas support available :(
       }    
     #+END_SRC
+
+* 参考
+  1. http://chimera.labs.oreilly.com/books/1234000000262/index.html
+  2. http://chimera.labs.oreilly.com/books/1234000001808/index.html
+  3. https://github.com/pd4d10/js-stack-from-scratch
+  4. https://developers.google.com/web/fundamentals/

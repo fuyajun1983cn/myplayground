@@ -7,6 +7,55 @@
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
 * 理论与规范
+
+** USB 3.1构架
+    USB 3.1接口提供了向下兼容的机制， 总体构架图如下：
+
+    #+CAPTION: USB 3.1 Dual Bus System Architecture
+    [[./images/2016/2016110401.png]]
+    
+    USB 3.1的线缆结构如下图所示：
+    #+CAPTION: USB 3.1 Cable
+    [[./images/2016/2016110402.png]]
+
+    与USB 2.0总线架构的对比情况如下：
+    #+CAPTION: Comparing Enhanced SuperSpeed Bus to USB 2.0 Bus
+    [[./images/2016/2016110403.png]]
+    
+    
+*** Enhanced SuperSpeed Bus Architecture
+    
+        #+CAPTION: USB 3.1 Terminology Reference Model
+        [[./images/2016/2016110404.png]]
+        
+        它是一种分层的通信构架，由如下一些部分组成：
+        - Enhanced SuperSpeed Interconnect
+          设备与主机之间连接与通信的方式。
+        - Devices
+          信息交换过程中的Source或Sink端。
+        - Host
+          主机端，信息的Source或Sink端。
+
+          1. Physical Layer
+
+          2. Link Layer
+
+          3. Protocol Layer
+
+** USB架构(2.0)
+*** USB interconnect
+         USB设备端与主机端连接与通信的方式。
+**** Bus Topology
+          USB设备端与主机端之间的连接模型。
+**** Inter-layer Relationships
+          每层间执行的USB任务。
+**** Data Flow Models
+          数据流动方式。
+**** USB Schedule
+          USB interconnect属于共享的，对其访问需要进行调度以支持同步数
+          据访问，消除仲裁开销。
+*** USB devices
+*** USB host
 ** USB Basics
 
 *** Speed

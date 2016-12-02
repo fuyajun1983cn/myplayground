@@ -946,7 +946,7 @@
 
 *** DBus
         DBus有一个bus daemon， 用于转发两个不同应用程序之间传送的消息，
-        一端属于Service端，一端属于Client端。
+        一端属于Server端，一端属于Client端。
         默认有两个这种的对象，一个是SessionBus, 一个是SystemBus。
 
         =bus_name= : dot-separated name . 

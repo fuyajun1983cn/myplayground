@@ -2404,7 +2404,8 @@ flush一个工作队列
    为了创建一个服务于某个工作队列的内核线程，使用
    =create_singlethread_workqueue()= 。创建系统中的一个每-CPU工作者线程，
    使用 =create_workqueue()= 。 内核也提供了默认的每-CPU工作者线程供你直接
-   使用(event/n， 其中n是CPU号)。
+   使用(event/n， 其中n是CPU号)。 =alloc_ordered_workqueue= 创建一个有
+   序工作队列，任何时候，安排好入队顺序，最多只执行一个工作项。
 2. 创建一个工作单元(或一个 =work_struct= 变量)。一个 =work_struct= 变
    量使用 =INIT_WORK()= 进行初始化。
 3. 提交工作单元到工作队列中。使用 =queue_work()= 将一个工作单元提交到一个专
@@ -3680,86 +3681,7 @@ PCI中断
    }
 #+END_SRC
 
-* 知识点37 platform设备驱动
-　　在Linux 2.6的设备驱动模型中，主要关心总线、设备和驱动这3个实体，总
-线将设备和驱动绑定。在系统每注册一个设备的时候，会寻找与之匹配的驱动；
-相反的，在系统每注册一个驱动的时候，会寻找与之匹配的设备，而匹配由总线
-完成。
-
-　　一个现实的Linux设备和驱动通常都需要挂接在一种总线上，对于本身依附
-于PCI、USB、I2 C、SPI等的设备而言，这自然不是问题，但是在嵌入式系统里
-面，SoC系统中集成的独立的外设控制器、挂接在SoC内存空间的外设等却不依附
-于此类总线。基于这一背景，Linux发明了一种虚拟的总线，称为platform总线，
-相应的设备称为 =platform_device= ，而驱动成为 =platform_driver= 。
-
-　　注意，所谓的 =platform_device= 并不是与字符设备、块设备和网络设备并列的
-概念，而是Linux系统提供的一种附加手段，例如，在S3C6410处理器中，把内部
-集成的I2 C、RTC、SPI、LCD、看门狗等控制器都归纳为 =platform_device= ，而它
-们本身就是字符设备。
-
-=platform_device=结构体的定义如代码所示：
-[[./images/2016/2016071605.png]]
-
-　　=platform_driver= 这个结构体中包含probe()、remove()、shutdown()、
-suspend()、resume()函数，通常也需要由驱动实现， 如下代码所示：
-[[./images/2016/2016071606.png]]
-
-　　系统中为platform总线定义了一个 =bus_type= 的实例 =platform_bus_type=
-，其定义如代码所示：
-[[./images/2016/2016071607.png]]
-
-这里要重点关注其match()成员函数，正是此成员表明了 =platform_device= 和
-=platform_driver= 之间如何匹配，如代码所示：
-
-[[./images/2016/2016071608.png]]
-
-　　匹配 =platform_device= 和 =platform_driver= 会采取多种方式，其中名字匹配是一
-种匹配方式。
-
-　　对 =platform_device= 的定义通常在BSP的板文件中实现，在板文件中，将
-=platform_device= 归纳为一个数组，最终通过 =platform_add_devices()= 函数统一注
-册。 =platform_add_devices()= 函数可以将平台设备添加到系统中，这个函数的原型
-为：
-: int platform_add_devices(struct platform_device **devs, int num);
-
-　　该函数的第一个参数为平台设备数组的指针，第二个参数为平台设备的数量，
-它内部调用了 =platform_device_register()= 函数用于注册单个的平台设备。
-
-　　 =platform_device= 的资源由resource结构体描述，其定义如代码所示：
-[[./images/2016/2016071609.png]]
-
-我们通常关心start、end和flags这3个字段，分别标明资源的开始值、结束值和
-类型，flags可以为 =IORESOURCE_IO= 、 =IORESOURCE_MEM= 、
-=IORESOURCE_IRQ= , =IORESOURCE_DMA= 等。start、end的含义会随着flags而变更，如当 flags为
-=IORESOURCE_MEM= 时，start、end分别表示该 =platform_device= 占据的内存的开始地
-址和结束地址；当 flags为 =IORESOURCE_IRQ= 时，start、end分别表示该
-=platform_device= 使用的中断号的开始值和结束值，如果只使用了 1个中断号，开
-始和结束值相同。对于同种类型的资源而言，可以有多份，譬如说某设备占据了
-2个内存区域，则可以定义2个 =IORESOURCE_MEM= 资源。
-
-　　对resource的定义也通常在BSP的板文件中进行，而在具体的设备驱动中透
-过 =platform_get_resource()= 这样的API来获取，此API的原型为：
-: struct resource *platform_get_resource(struct platform_device *, unsigned int, unsigned int);
-
-设备除了可以在BSP中定义资源以外，还可以附加一些数据信息，因为对设备的
-硬件描述除了中断、内存、DMA通道以外，可能还会有一些配置信息，而这些配
-置信息也依赖于板，不适宜直接放置在设备驱动本身，因此，platform也提供了
-=platform_data= 的支持。 =platform_data= 的形式是自定义的。
-[[./images/2016/2016071610.png]]
-
-　　可以看到 =platform_data= 是一个void型的指针，可以指向任何自定义的数据结
-构，我们可以将MAC地址、总线宽度、有无EEPROM信息放入 =platform_data= 。通过
-=platform_device_add_data= 可以向给 =platform_data= 赋值，其代码如下：
-[[./images/2016/2016071611.png]]
-
-由以上分析可知，设备驱动中引入platform的概念至少有如下2大好处：
-1. 使得设备被挂接在一个总线上，因此，符合Linux 2.6的设备模型。其结果是，
-   配套的sysfs结点、设备电源管理都成为可能。
-2. 隔离BSP和驱动。在BSP中定义platform设备和设备使用的资源、设备的具体
-   配置信息，而在驱动中，只需要通过通用API去获取资源和数据，做到了板相
-   关代码和驱动代码的分离，使得驱动具有更好的可扩展性和跨平台性。
-
-* 知识点37 debugfs接口
+* 知识点38 debugfs接口
 在内核开发中，为了更有效地调试驱动的功能，监测一些状态信息，需要利用内
 存文件系统导出一些信息，供用户空间访问。其中debugfs就是一种这样的内存
 文件系统，它常驻内存。要启用它，必须配置内核编译选项： =CONFIG_DEBUG_FS= 。
@@ -3799,7 +3721,7 @@ suspend()、resume()函数，通常也需要由驱动实现， 如下代码所�
   }
 #+END_SRC
 
-* 知识点38 =seq_file= 接口的使用
+* 知识点39 =seq_file= 接口的使用
 　　顺序文件是内核根据记录序列生成的一种文件。顺序文件一般是按顺序从头
 到尾读取文件内容，尽管支持seek操作，但是效率低下。
 
@@ -3870,14 +3792,14 @@ suspend()、resume()函数，通常也需要由驱动实现， 如下代码所�
 　　有时，我们只能简单地一次性输出一些信息出来，可以直接使用 =single_open=
 函数，我们只需要提供对应的show函数即可。
 
-* 知识点39 libfs内核接口
+* 知识点40 libfs内核接口
 　　Libfs是内核中的一个库，它提供了几个标准通用的接口，可用于创建用于
 特殊目的的小型文件系统。这些接口非常适用于内存文件。代码位于fs/libfs.c。
 这些接口名称通常以simple开头。
 
 　　debugfs文件系统就是基于这些标准接口实现的。
 
-* 知识点40 内存映射
+* 知识点41 内存映射
 　　驱动通常实现mmap()接口，使得用户空间可以直接访问在内核空间中分配或
 保留的内存。例如，PCI设备通过允许用户空间直接访问用于DMA传输的内核空间
 分配的内存。
@@ -3970,7 +3892,7 @@ Vmalloc映射分三步：
 2. =allocate_page= ：从物理内存中请求单个物理页
 3. =map_vm_area= ：将申请的物理页依次顺序地映射到vamlloc区域
 　
-* 知识点41 Linux内核模块
+* 知识点42 Linux内核模块
   Linux内核的整体结构非常庞大，其包含的组件也非常多，我们需要包含所需
   的部分功能组件。有两种方法：一种是将所需的功能组件编译进内核。二是，
   将所需的功能组件编译成独立于内核的模块，需要时动态加载进内核。通常采
@@ -4140,7 +4062,7 @@ Vmalloc映射分三步：
     int try_module_get(struct module *module):
     void module_put(struct module *module);
   #+END_SRC
-* 知识点42 字符设备驱动程序框架
+* 知识点43 字符设备驱动程序框架
   1. 设备号的内部表示形式
      类型： =dev_t= 32=12(主设备号) + 20(次设备号)
      相关宏：
@@ -4686,7 +4608,7 @@ Vmalloc映射分三步：
        module_init(ebbchar_init);
        module_exit(ebbchar_exit);
      #+END_SRC
-* 知识点43 在内核中读写文件
+* 知识点44 在内核中读写文件
   有时候，需要在内核中读写外部文件，如输出配置信息或读取配置信息等。
   我们可以利用文件读写的系统调用，但是系统调用是供用户程序程序使用，所
   以，要想在内核中使用，需要一点技巧，即基于如下方法：
@@ -4824,7 +4746,7 @@ Vmalloc映射分三步：
      MODULE_DESCRIPTION("Module to read a file from kernel space");      
   #+END_SRC
 
-* 知识点44 poll 和select
+* 知识点45 poll 和select
   非阻塞I/O的应用程序通过会调用poll,select和epoll等系统调用，这些系统
   调用实际上实现的是同一个功能：允许每个进程判断在不阻塞进程的情况下，
   当前的文件是否可读写。
@@ -4897,7 +4819,7 @@ Vmalloc映射分三步：
       }    
     #+END_SRC
 
-* 知识点45 iotcl函数
+* 知识点46 iotcl函数
   Linux系统建议以如下方式定义ioctl()的命令码。
   | 设备类型(type) | 序列号(nr) | 方向 | 数据尺寸(size) |
   |----------------+------------+------+----------------|
@@ -4934,7 +4856,7 @@ Vmalloc映射分三步：
     ((size) << _IOC_SIZESHIFT))    
   #+END_SRC
 
-* 知识点46 configfs
+* 知识点47 configfs
    一种用户空间驱动的内核对象配置。它与sysfs类似。 configfs是一种基于
    Ram的文件系统， 从用户空间创建和销毁内核对象, 内核对象的生命周期完
    全由用户空间控制。而sysfs则是用于从用户
@@ -5058,8 +4980,63 @@ Vmalloc映射分三步：
      MODULE_LICENSE("GPL");
         
    #+END_SRC
-   
 * Device Tree
+   对于不同被内核自动识别的设备，使用平台设备的这种机制来解决。但是，
+   它最大的缺点就是需要在代码中初始化这些设备。一种新的解决方案就是设
+   备树。
+
+   设备树是一种文本的方式描述 特定系统的硬件配置。设备树在内核启动的时
+   候被传递给内核，内核会通过读取设备树信息来了解当前运行的系统相关的
+   信息，特别是一些硬件配置信息。
+
+   设备树抽象了不同系统的硬件差异，使得通用的内核可以运行在更广泛的硬
+   件平台上。
+
+   对于使能了设备树的系统，仍然可以使用平台设备机制，而且不需要额外工
+   作。如果一个设备树包含一个平台设备（它是设备树根结点的直接子设备结
+   点或是挂载到一个“简单总线”上），该设备会被初始化并会为其匹配相应
+   的驱动。内存映射的I/O以及中断资源会从设备树的描述中分配，并在驱动的
+   probe()函数中可以访问这些资源。驱动并不清楚这些资源是通过设备树描述
+   信息信息分配的，还是通过代码定义的。 
+
+   内核中提供了 =of_device_id= 数据结构来将一个特定的名称（设备树中的
+   结点名称）与平台设备关 联。
+
+   #+BEGIN_SRC c
+     static const struct of_device_id my_of_ids[] = {
+             { .compatible = "long,funky-device-tree-name" },
+             { }
+         };   
+   #+END_SRC
+
+   当声明平台设备驱动时，它会保存一个指向该结点实例的指针：
+   #+BEGIN_SRC c
+     static struct platform_driver my_driver = {
+             /* ... */
+             .driver = {
+                     .name = "my-driver",
+                     .of_match_table = my_of_ids
+             }
+         };   
+   #+END_SRC
+
+   驱动也可以通过如下宏来使得在设备树初始化自动加载模块：
+   : MODULE_DEVICE_TABLE(of, my_of_ids);
+
+   通过设备树这种方式初始化平台设备时，不能传递 =platform_data= , 所在
+   在驱动的 probe() 函数中，可以判断 =dev.platform_data= 是否为空，如
+   果不为空，则说明平台设备是以传统的方式初始化的，如果为空，则说明设
+   备是通过设备树来初始化的，驱动所需要的信息需要通过其他的方式获得。
+   在这种情况下，驱动会寻找平台设备的 =dev.of_node= 域，它是一个指向
+   =device_node= 结构的指针。有了这个指针 ，就可以使用设备树相关的函数
+   来访问所需要的信息（主要通过 =of_get_property()= 接口）。
+
+   DTS文件格式的说明，可以参考： http://elinux.org/Device_Tree_Usage
+   
+* RCU
+  rcu_dereference
+  struct rcu_head
+  rcu_dereference_protected
    
 * ＝iov_iter= interface──新的异步IO接口
       AIO changed to read/write-iter

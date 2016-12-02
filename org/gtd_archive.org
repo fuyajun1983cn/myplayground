@@ -1304,7 +1304,7 @@ Added: [2016-09-20 二 20:45]
      - [X] mac80211网络驱动程序编写
      - [X] p2p连接过程中wpa_supplicant接口实例的变更过程
      - [X] 完成设计模式的初期学习
-** 10月[/]
+** 10月[15/15]
 *** ✘ CANCELED 网络课程——计算机原理                                    :Study:
    CLOSED: [2016-10-02 日 22:55] SCHEDULED: <2016-09-19 周一>
 
@@ -1374,5 +1374,48 @@ Added: [2016-09-19 一 18:15]
 
 *** ✔ DONE 第七章  —— 队列
     CLOSED: [2016-10-24 一 13:55]
+*** ✔ DONE [#A] Module FSM
+     CLOSED: [2016-10-25 周二 09:40] SCHEDULED: <2016-10-09 日> DEADLINE: <2016-10-14 五>
+
+*** ✔ DONE mac80211源码分析                                            :Study:
+    CLOSED: [2016-10-31 周一 09:50]
+    - Action: 制定研究计划
+    - [X] 研究hwsim源码，编写一个基于mac80211的网络驱动程序
+    - [X] 研究mac80211的源码，整理出学习笔记
+
+*** ✘ CANCELED 研究emacs输入法框架
+     CLOSED: [2016-10-31 周一 09:50] DEADLINE: <2016-10-29 六> SCHEDULED: <2016-10-10 一>
+*** ✔ DONE 本月已达成目标
+    CLOSED: [2016-10-31 周一 10:00]
+**** 本周必达目标(W40)
+     - [X] 完成数据结构与算法习题──递归部分的学习
+**** 本周必达目标(W41)
+     - [X] 完成CWAP第三章的学习
+     - [X] 完成EAP Framework源码分析
+     - [X] 完成栈的学习
+     - [X] 深入理解Netd
+**** 本周必达目标(W42)
+     - [X] 完成CWAP第四章的学习
+     - [X] 完成mt7688状态机的学习
+     - [X] 完成队列的学习
+**** 本周必达目标(W43)
+      - [X] 完成CWAP第五章的学习
+      - [X] 完成字符串与数组面试题
+      - [X] 7668 SCAN流程学习
+      - [X] 梳理mac80211大体框架，制定下一步学习计划
 ** 11月[/]
+*** ✔ DONE 在发送Association Request之前禁用一些HT/VHT的速率
+     CLOSED: [2016-11-02 周三 18:00] SCHEDULED: <2016-09-19 周一>
+     http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
+
+*** ✔ DONE 编写一个Chrome Plugin，记录自己收藏的网址
+    CLOSED: [2016-11-03 周四 16:15]
+*** ✔ DONE 域名续费
+     CLOSED: [2016-11-03 周四 16:20] DEADLINE: <2016-11-28 一> SCHEDULED: <2016-11-01 二>
+*** ✔ DONE [#B] SCAN                                            :7668学习:Study:
+     CLOSED: [2016-11-03 周四 16:20] DEADLINE: <2016-10-29 周六> SCHEDULED: <2016-10-26 周三>
+*** ✔ DONE 了解晶元制程
+    CLOSED: [2016-11-04 周五 14:25]
+     http://www.extremetech.com/computing/235842-globalfoundries-announces-new-7nm-finfet-process-full-node-shrink
+Added: [2016-09-18 周日 00:15]
 ** 12月[/]

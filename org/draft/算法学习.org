@@ -446,6 +446,32 @@ structure your answer with S(Situation), A(Action), R(Response)
      一张图像表示成NxN的矩阵，图像中每个像素是4个字节，写一个函数把图
      像旋转90度。 你能原地进行操作吗？(即不开辟额外的存储空间) 
 
+**** 解答
+           从最外圈开始，第次将外围的元素按一个方向进行移动
+          #+BEGIN_SRC java
+            public static void rotate(int[][] matrix, int n) {
+                for (int layer = 0; layer < n / 2; ++layer) {
+                    int first = layer;
+                    int last = n - 1 - layer;
+                    for(int i = first; i < last; ++i) {
+                        int offset = i - first;
+                        int top = matrix[first][i]; // save top
+                        // left -> top
+                        matrix[first][i] = matrix[last-offset][first];
+
+                        // bottom -> left
+                        matrix[last-offset][first] = matrix[last][last - offset];
+
+                        // right -> bottom
+                        matrix[last][last - offset] = matrix[i][last];
+
+                        // top -> right
+                        matrix[i][last] = top; // right <- saved top
+                    }
+                }
+            }          
+          #+END_SRC
+
 *** 行列置0
 
 **** 题目
@@ -454,6 +480,39 @@ structure your answer with S(Situation), A(Action), R(Response)
 
      写一个函数处理一个MxN的矩阵，如果矩阵中某个元素为0，那么把它所在
      的行和列都置为0. 
+
+**** 解答
+           先标记为0的元素所在的行和列，然后再将行和列上的元素都置
+           为0. 
+           #+BEGIN_SRC java
+             class Solution {
+                 public static void main(String args[]) {
+                     
+                 }
+
+                 public static void setZeros(int [][] matrix) {
+                     int m = matrix.length;
+                     int n = matrix[0].length;
+                     int[] row = new int[m];
+                     int colum = new int[n];
+
+                     //store the row and column index whose value is 0
+                     for (int i = 0; i < m; i++)
+                         for (int j = 0; j < n; j++) {
+                             if (matrix[i][j] == 0) {
+                                 row[i] = 1;
+                                 column[j] = 1;
+                             }
+                         }
+
+                     for (int i = 0; i < m; i++)
+                         for (int j = 0; j < n; j++) {
+                             if (row[i] == 1 || column[j] == 1)
+                                 a[i][j] = 0;
+                         }
+                 }
+             }           
+           #+END_SRC
 
 *** 旋转字符串
 
@@ -467,8 +526,34 @@ structure your answer with S(Situation), A(Action), R(Response)
      假设你有一个isSubstring函数，可以检测一个字符串是否是另一个字符串
      的子串。 给出字符串s1和s2，只使用一次isSubstring就能判断s2是否是
      s1的旋转字符串， 请写出代码。旋转字符
-     串：”waterbottle”是”erbottlewat”的旋转字符串。 
+     串：”waterbottle”是”erbottlewat”的旋转字符串。
 
+**** 解答
+         #+BEGIN_SRC java
+           class Solution {
+               public static void main(String[] args) {
+                   
+               }
+
+               //判断s1是否为s2子串
+               public static boolean isSubstring(String s1, String s2) {
+                   //...
+               }
+
+               //判断s1是否为s2的旋转字符串
+               public static boolean isRotationString(String s1, String s2) {
+                   if (s1.length() != s2.length())
+                       return false;
+
+                   if (s1.length() == 0)
+                       return false;
+
+                   String s = s1 + s1;
+                   
+                   return isSubstring(s2, s1);
+               }
+           }         
+         #+END_SRC
 *** 两个数组的交集
 
 **** 题目
@@ -596,6 +681,30 @@ structure your answer with S(Situation), A(Action), R(Response)
      进一步地，
      如果不允许使用临时的缓存，你如何解决这个问题？
 
+**** 解答
+         #+BEGIN_SRC java
+           public void removeDups(LinkedListNode head) {
+               LinkedListNode previous = head;
+               LinkedListNode current = header.next;
+
+               while (current != null) {
+                   LinkedListNode runner = head;
+                   while (runner != current) {
+                       if (runner.data == current.data) { //found a dupplicated one
+                           previous.next = current.next;
+                           currrent = current.next;
+                           break;
+                       }
+                       runner = runner.next;
+                   }
+                   if (runner == current) {
+                       previous = current;
+                       current = current.next;
+                   }
+               }
+           }
+         #+END_SRC
+
 *** 返回链表元素
 
 **** 题目
@@ -603,6 +712,25 @@ structure your answer with S(Situation), A(Action), R(Response)
      singly linked list.
 
      实现一个算法从一个单链表中返回倒数第n个元素。
+
+**** 解答
+       #+BEGIN_SRC java
+         public LinkedListNode lastNElement(LinkedListNode head, int n) {
+             LinkedListNode current = head;
+             int step = n;
+             while (n-- > 0 && current != null)
+                 current = current.next;
+
+             if (current == null)
+                 return null;
+
+             LinkedListNode previous = head;
+             while (current != null) {
+                 previous = previous.next;
+                 current = current.next;
+             }
+         }       
+       #+END_SRC
 
 *** 删除链表结点
     
@@ -623,6 +751,24 @@ structure your answer with S(Situation), A(Action), R(Response)
      输入：指向链表a->b->c->d->e中结点c的指针
 
      结果：不需要返回什么，得到一个新链表：a->b->d->e
+
+**** 解答
+          #+BEGIN_SRC java
+            /**
+             ,* 将后一个元素的值复制到当前的结点上，然后把后一个节点删除掉
+             ,*/
+
+            public void removeNode(LinkedListNode node) {
+                LinkedListNode current = node;
+                LinkedListNode next = current.next;;
+                if (next != null) {
+                    current.data = next.data;
+                    current.next = next.next;
+                    next = null;
+                } else
+                    current = null;
+            }
+          #+END_SRC
      
 *** 链表求和
 
@@ -740,3 +886,5 @@ structure your answer with S(Situation), A(Action), R(Response)
 * Footnotes
 
 [fn:1] https://linux.cn/article-7480-1.html?utm_source=weixin
+
+https://github.com/fxrcode/leetcodenotebook.git

@@ -897,7 +897,7 @@
            #+CAPTION: TIM element format
            [[./images/2015/2015113046.png]]
 
-           =DTIM Count=  在下一次DTIM之前，需要出现多少多少个Beacon帧。
+           =DTIM Count=  在下一次DTIM之前，需要出现多少个Beacon帧。
            当该值为0时，表明当前TIM就是一个DTIM。
 
            =DTIM Period= 连续两个DTIM之间的Beacon interval的个数。
@@ -912,9 +912,6 @@
 
            #+CAPTION: Challenge Text element format
            [[./images/2015/2015113048.png]]
-           
-
-           
          
 ** 第五章  有线等效加密
 ***  通信安全有三个主要目标
@@ -1058,7 +1055,6 @@
 
            #+CAPTION: WEP frame extension
            [[./images/2015/2015122104.png]]
-
 
 ** 第六章  802.1X用户身份认证
 *** 概述

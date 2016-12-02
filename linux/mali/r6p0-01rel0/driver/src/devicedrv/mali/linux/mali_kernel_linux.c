@@ -382,6 +382,7 @@ int mali_module_init(void)
 #endif
 
 	/* Initialize module wide settings */
+        /* when not defining dts file, try this way ==>Yajun*/
 #ifdef MALI_FAKE_PLATFORM_DEVICE
 #ifndef CONFIG_MALI_DT
 	MALI_DEBUG_PRINT(2, ("mali_module_init() registering device\n"));

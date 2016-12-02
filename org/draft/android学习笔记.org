@@ -719,6 +719,13 @@
     [[./images/2016/2016053011.png]]
 
 ** Wifi Framework
+      Android L中Framework为了保证设备在移动过程中，能够连接到新的AP，
+      针对不支持Background Scan的设备，在WifiStateMachine中定义了一个
+      变量 =mDefaultFrameworkScanIntervalMs= ，默认初始化为
+      =config_wifi_framework_scan_interval= , 这个值是在
+      =frameworks\base\core\res\res\values\config.xml= 文件中定义的，默
+      认值为 30s。 
+    
     学习计划：
     1. 先按顺序分析每个类
     2. 总结重点流程
@@ -765,6 +772,11 @@
         =config_wifi_supplicant_scan_interval=  
         =config_wifi_framework_enable_associated_autojoin_scan=  关联
         后是否允许扫描
+
+**** 无网络时的行为
+           当系统没有连接上任何网络时，且没有保存过的网络信息时，，这个命令
+           =CMD_NO_NETWORKS_PERIODIC_SCAN= 会执行一个周期性的扫描来通
+           知用户当前有哪些开放网络。
 
 **** WifiServiceImpl
 
@@ -1021,7 +1033,7 @@
 
 *** defaults.xml
     #+BEGIN_SRC xml
-      <!-- /packages/SettingsProvider/res/values/defaults.xml -->
+      <!--framework/bas /packages/SettingsProvider/res/values/defaults.xml -->
       <integer name="def_wifi_auto_connect">0</integer>
     #+END_SRC
 

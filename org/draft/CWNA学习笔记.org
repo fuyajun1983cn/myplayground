@@ -6858,12 +6858,15 @@
        的省电机制。
 
       1. spatial multiplexing power save(SM power save)
+
          这个机制允许一个使用MIMO技术的11n设备保留一个radio活跃的情况下，
          关闭所有其他的radio。 
-         使用SM power save action帧来告知AP当前STA的ratio活跃状况。王
+         使用SM power save action帧来告知AP当前STA的ratio活跃状况。
 
       2. Power Save Multi Poll (PSMP)
-         对APSD和U-APSD的一个扩展
+
+         基于S-APSD之上的一种Power Management方法，主要应用于使用HCCA
+         信道访问控制机制的网络 。
 
 ** HT operation
 

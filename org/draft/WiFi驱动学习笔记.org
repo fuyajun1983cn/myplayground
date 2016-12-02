@@ -8,7 +8,6 @@
 
 
 * 基本架构介绍
-  
 ** Overal Architecture
     
     #+CAPTION: Device Driver Architecture
@@ -138,6 +137,7 @@
       Radio link Management
     - QM
       Queue Management
+      : prAdapter->rQM
     - BOW
       BT over Wi-Fi
     - SAA
@@ -182,22 +182,6 @@
         - Operation Channel (OPCH)
           + Every BSS has its working channel
           + BSS with same working channel will be put into same OPCH
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
 ** 命令数据发送的基本流程
    
@@ -289,7 +273,6 @@
            - Download N9
            - Download CR4 FW
         4. Bulk out to USB
-
 
 *** Reference Charts
      
@@ -430,6 +413,42 @@
           newer routers.
         + 802.11ac - 70-100 Mbps
 
+** 常用API
+*** 获取当前Sta Rec信息
+         : prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
+         : prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+         : prStaRec = cnmGetStaRecByAddress(prAdapter, (UINT_8) prAdapter->prAisBssInfo->ucBssIndex, mac);
 
+*** 获取当前BSS信息
+         : prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prStaRec->ucBssIndex);
+         : prBssInfo = prAdapter->aprBssInfo[prMsduInfo->ucBssIndex];
+         
+*** 获取两个全局变量的实例
+         : prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
+         : prAdapter = prGlueInfo->prAdapter;
+
+** Log开关
+    - 檢查debug level 
+      : cat /proc/net/wlan/dbg_level
+    - 关闭日志
+      :  echo 0xff:0x00 > /proc/net/wlan/dbg_level
+    - 打开日志
+      : echo 0xff:0xbf > /proc/net/wlan/dbg_level
+
+** 客户平台
+
+*** ZTE
+         加载KO前，输入：
+         : echo 1 > /sys/class/remount/need_remount
+         : ioctl /dev/wifi_power 27907
+
+         4-bit需要加载添加如下命令(set async interrupt)：
+         : iwpriv wlan0 driver "set_drv_mcr 0x8 0xf"
+         
+         替换dt.img(uboot命令行中):
+         : usb start ; fatload usb 0  12000000 dt.img  ; store dtb write 12000000 256
+
+         替换boot.img的方法(Android启动后):
+         : dd if=boot.img of=/dev/block/boot
 
 

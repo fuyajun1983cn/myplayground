@@ -17,6 +17,133 @@
 
 ** JDK 7 新特性
    http://www.ibm.com/developerworks/cn/java/j-lo-jdk7-1/
+   
+*** 语法改进
+       1. Diamond Operator
+          #+BEGIN_SRC java
+            Map<String, List<Trade>> trades = new TreeMap <> ();           
+          #+END_SRC
+       2. Using strings in switch statements
+          #+BEGIN_SRC java
+            public voidprocessTrade(Trade t) {
+                String status = t.getStatus();
+                switch(status) {
+                case NEW:
+                    newTrade(t);
+                    break;
+                case EXECUTE:
+                    executeTrade(t);
+                    break;
+                case PENDING:
+                    pendingTrade(t);
+                    break;
+                default:
+                    break;
+                }
+            }          
+          #+END_SRC
+       3. Automatic resource management
+          #+BEGIN_SRC java
+            public void newTry() {
+                try(FileOutputStream fos = new FileOutputStream("movies.txt");
+                    DataOutputStream dos = new DataOutputStream(fos)) {
+                    dos.writeUTF("Java 7 Block Buster");
+                } catch(IOException e) {
+                    // log the exception
+                }
+            }          
+          #+END_SRC
+          前提是这些对象 所属的类实现了AutoCloseble接口。
+       4. Numeric literals with underscores
+          #+BEGIN_SRC java
+            int thousand =  1_000;
+            int million  =  1_000_000;
+          #+END_SRC
+       5. Improved exception handling
+          #+BEGIN_SRC java
+            public voidnewMultiCatch() {
+                try{
+                    methodThatThrowsThreeExceptions();
+                } catch(ExceptionOne | ExceptionTwo | ExceptionThree e) {
+                    // log and deal with all Exceptions
+                }
+            }
+
+            public voidnewMultiMultiCatch() {
+                try{
+                    methodThatThrowsThreeExceptions();
+                } catch(ExceptionOne e) {
+                    // log and deal with ExceptionOne
+                } catch(ExceptionTwo | ExceptionThree e) {
+                    // log and deal with ExceptionTwo and ExceptionThree
+                }
+            }
+          #+END_SRC
+       6. New file system API (NIO 2.0)
+          - Working with Path
+            引入了新的接口和类：
+            Path, Paths, FileSystem,FileSystems.
+
+          - File change notifications
+            #+BEGIN_SRC java
+              /**
+               ,* This initiates the police
+               ,*/
+              private void init() {
+                  Path path = Paths.get("C:\\Temp\\temp\\");
+                  try{
+                      watchService= FileSystems.getDefault().newWatchService();
+                      path.register(watchService, ENTRY_CREATE, ENTRY_DELETE,
+                                    ENTRY_MODIFY);
+                  } catch(IOException e) {
+                      System.out.println("IOException"+ e.getMessage());
+                  }
+              }
+
+              /**
+               ,* The police will start making rounds
+               ,*/
+              private void doRounds() {
+                  WatchKey key = null;
+                  while(true) {
+                      try{
+                          key = watchService.take();
+                          for(WatchEvent<?> event : key.pollEvents()) {
+                              Kind<?> kind = event.kind();
+                              System.out.println("Event on "+ event.context().toString() + " is " + kind);
+                          }
+                      } catch(InterruptedException e) {
+                          System.out.println("InterruptedException: "+e.getMessage());
+                      }
+                      booleanreset = key.reset();
+                      if(!reset)
+                          break;
+                  }
+              }
+            #+END_SRC
+
+       7. Fork and Join
+          #+BEGIN_SRC java
+            ForkJoinPool pool = new ForkJoinPool(numberOfProcessors)
+                
+            public class MyBigProblemTask extends RecursiveAction {
+                @Override
+                protected void compute() {
+                    . . . // your problem invocation goes here
+                }
+            }
+                
+            pool.invoke(task);
+          #+END_SRC
+
+       8. Supporting dynamism
+          In Java 7, a new feature called invokedynamic was
+          introduced. This makes VM changes to incorporate non-Java
+          language requirements. A new package, java.lang.invoke,
+          consisting of classes such as MethodHandle, CallSite and
+          others, has been created to extend the support of dynamic
+          languages.
+
 ** Java 8 新特性
    https://www.ibm.com/developerworks/cn/java/j-lo-jdk8newfeature/
 

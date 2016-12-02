@@ -81,6 +81,94 @@
         该对象仍然处于活跃状态。这种方法需要注意的地方是：如果主事件循
         环在 =GSource= 被析构之前停止了，那么该对象就会一直处理活跃状
         态，无法释放了，这种行为是不可接受的。
+
+** 基本数据结构
+
+*** 数组——GArray, GPtrArray, GByteArray
+         
+**** 初始化数组
+          #+BEGIN_SRC c
+            GArray *garray;
+            gint i;
+            gint *segment;
+
+            garray = g_array_new(FALSE, FALSE, sizeof(gint));
+            for (i = 0; i < 100; i++)
+              g_array_append_val(garray, i);
+
+            segment = (gint*)g_array_free(garray, FALSE);
+            g_free(segment);
+
+            /*or free it in one step */
+            g_array_free(garray, TRUE);
+          #+END_SRC
+
+**** 添加元素
+          向后插入元素请使用
+          : g_array_append_val(...)
+
+          向前插入元素请使用
+          : g_array_prepend_val(...)
+
+          向特定位置插入元素请使用
+          : g_array_insert_val(...)
+
+**** 访问元素
+          访问元素请使用
+          : g_array_index(...)
+
+**** 删除元素
+          一般使用
+          : g_array_remove_index(...)
+     
+          也可以使用快速版本
+          : g_array_remove_index_fast(...)
+          此版本的函数，每删除一个元素，就将最后一个元素移入到当前被删
+          除的函数的位置。
+
+          删除某个区间范围的元素
+          : g_array_remove_range(a, i, len)
+
+          设置清除数组元素的回调函数
+          : g_array_set_clear_func (garray, my_clear_func);
+
+**** 数组引用计数
+          增加数组引用计数
+          : g_array_ref(...)
+
+**** 数组排序
+          一般使用
+          : g_array_sort(...)
+
+          还可以使用
+          : g_array_sort_with_data(...)
+
+*** 链表——GList, GSlist
+        
+**** 添加元素
+          向后添加元素
+          : g_list_append(...)
+
+          向前插入元素
+          : g_list_prepend(...)
+
+**** 访问元素
+          访问第n个元素
+          : g_list_nth(...)
+          : g_list_nth_data(...)
+
+          查找某个元素
+          : g_list_find(...)
+
+          返回元素的索引号
+          : g_list_position(...)
+          : g_list_index(...)
+
+**** 排序
+          一般使用
+          : g_list_sort(...)
+          : g_list_sort_with_data(...)
+
 * gio
 
 * gobject
@@ -88,3 +176,271 @@
 * gmodule
 
 * gthread
+
+* 模块
+
+** Dbus
+
+*** C API
+        1. Common Code
+           #+BEGIN_SRC c
+             DBusError err;
+             DBusConnection* conn;
+             int ret;
+             // initialise the errors
+             dbus_error_init(&err);
+
+
+             // connect to the bus
+             conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
+             if (dbus_error_is_set(&err)) { 
+               fprintf(stderr, "Connection Error (%s)\n", err.message); 
+               dbus_error_free(&err); 
+              }
+             if (NULL == conn) { 
+               exit(1); 
+              }
+
+
+             // request a name on the bus
+             ret = dbus_bus_request_name(conn, "test.method.server", 
+                                         DBUS_NAME_FLAG_REPLACE_EXISTING 
+                                         , &err);
+             if (dbus_error_is_set(&err)) { 
+               fprintf(stderr, "Name Error (%s)\n", err.message); 
+               dbus_error_free(&err); 
+              }
+             if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) { 
+               exit(1);
+              }
+
+             dbus_connection_close(conn);
+           #+END_SRC
+
+        2. Sending a Signal
+           用DBusMessage 代表信号，并指定信号代表的对象和接口，然后添
+           加相应的参数，发送到总线上。
+
+           #+BEGIN_SRC c
+             dbus_uint32_t serial = 0; // unique number to associate replies with requests
+             DBusMessage* msg;
+             DBusMessageIter args;
+                   
+             // create a signal and check for errors 
+             msg = dbus_message_new_signal("/test/signal/Object", // object name of the signal
+                                           "test.signal.Type", // interface name of the signal
+                                           "Test"); // name of the signal
+             if (NULL == msg) 
+               { 
+                 fprintf(stderr, "Message Null\n"); 
+                 exit(1); 
+               }
+
+             // append arguments onto signal
+             dbus_message_iter_init_append(msg, &args);
+             if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &sigvalue)) { 
+               fprintf(stderr, "Out Of Memory!\n"); 
+               exit(1);
+              }
+
+             // send the message and flush the connection
+             if (!dbus_connection_send(conn, msg, &serial)) { 
+               fprintf(stderr, "Out Of Memory!\n"); 
+               exit(1);
+              }
+             dbus_connection_flush(conn);
+                
+             // free the message 
+             dbus_message_unref(msg);           
+           #+END_SRC
+
+        3. Calling a Method
+           与发送一个信号类似，如果调用的方法需要返回值，则使用
+           DBusPendingCall对象，并在其上等待回应的DBusMessage对象。
+           
+           #+BEGIN_SRC c
+             DBusMessage* msg;
+             DBusMessageIter args;
+             DBusPendingCall* pending;
+
+             msg = dbus_message_new_method_call("test.method.server", // target for the method call
+                                                "/test/method/Object", // object to call on
+                                                "test.method.Type", // interface to call on
+                                                "Method"); // method name
+             if (NULL == msg) { 
+               fprintf(stderr, "Message Null\n");
+               exit(1);
+              }
+
+             // append arguments
+             dbus_message_iter_init_append(msg, &args);
+             if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &param)) { 
+               fprintf(stderr, "Out Of Memory!\n"); 
+               exit(1);
+              }
+
+             // send message and get a handle for a reply
+             if (!dbus_connection_send_with_reply (conn, msg, &pending, -1)) { // -1 is default timeout
+               fprintf(stderr, "Out Of Memory!\n"); 
+               exit(1);
+              }
+             if (NULL == pending) { 
+               fprintf(stderr, "Pending Call Null\n"); 
+               exit(1); 
+              }
+             dbus_connection_flush(conn);
+
+             // free message
+             dbus_message_unref(msg);
+
+             bool stat;
+             dbus_uint32_t level;
+                     
+             // block until we receive a reply
+             dbus_pending_call_block(pending);
+                
+             // get the reply message
+             msg = dbus_pending_call_steal_reply(pending);
+             if (NULL == msg) {
+               fprintf(stderr, "Reply Null\n"); 
+               exit(1); 
+              }
+             // free the pending message handle
+             dbus_pending_call_unref(pending);
+
+             // read the parameters
+             if (!dbus_message_iter_init(msg, &args))
+               fprintf(stderr, "Message has no arguments!\n"); 
+              else if (DBUS_TYPE_BOOLEAN != dbus_message_iter_get_arg_type(&args)) 
+                fprintf(stderr, "Argument is not boolean!\n"); 
+              else
+                dbus_message_iter_get_basic(&args, &stat);
+
+             if (!dbus_message_iter_next(&args))
+               fprintf(stderr, "Message has too few arguments!\n"); 
+              else if (DBUS_TYPE_UINT32 != dbus_message_iter_get_arg_type(&args)) 
+                fprintf(stderr, "Argument is not int!\n"); 
+              else
+                dbus_message_iter_get_basic(&args, &level);
+
+             printf("Got Reply: %d, %d\n", stat, level);
+
+             // free reply and close connection
+             dbus_message_unref(msg);   
+           #+END_SRC
+
+        4. 接收信号
+           
+           #+BEGIN_SRC c
+             // add a rule for which messages we want to see
+             dbus_bus_add_match(conn, 
+                                "type='signal',interface='test.signal.Type'", 
+                                &err); // see signals from the given interface
+             dbus_connection_flush(conn);
+             if (dbus_error_is_set(&err)) { 
+               fprintf(stderr, "Match Error (%s)\n", err.message);
+               exit(1); 
+              }
+
+             // loop listening for signals being emmitted
+             while (true) {
+
+               // non blocking read of the next available message
+               dbus_connection_read_write(conn, 0);
+               msg = dbus_connection_pop_message(conn);
+
+               // loop again if we haven't read a message
+               if (NULL == msg) { 
+                 sleep(1);
+                 continue;
+               }
+
+               // check if the message is a signal from the correct interface and with the correct name
+               if (dbus_message_is_signal(msg, "test.signal.Type", "Test")) {
+                 // read the parameters
+                 if (!dbus_message_iter_init(msg, &args))
+                   fprintf(stderr, "Message has no arguments!\n"); 
+                 else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args)) 
+                   fprintf(stderr, "Argument is not string!\n"); 
+                 else {
+                   dbus_message_iter_get_basic(&args, &sigvalue);
+                   printf("Got Signal with value %s\n", sigvalue);
+                 }
+               }
+
+               // free the message
+               dbus_message_unref(msg);
+              }
+           #+END_SRC
+
+        5. Exposing a Method to be called
+           需要一直监听其他应用程序的调用请求。
+
+           #+BEGIN_SRC c
+             // loop, testing for new messages
+             while (true) {
+               // non blocking read of the next available message
+               dbus_connection_read_write(conn, 0);
+               msg = dbus_connection_pop_message(conn);
+
+               // loop again if we haven't got a message
+               if (NULL == msg) { 
+                 sleep(1); 
+                 continue; 
+               }
+
+               // check this is a method call for the right interface and method
+               if (dbus_message_is_method_call(msg, "test.method.Type", "Method"))
+                 reply_to_method_call(msg, conn);
+
+               // free the message
+               dbus_message_unref(msg);
+              }
+
+
+             void reply_to_method_call(DBusMessage* msg, DBusConnection* conn)
+             {
+               DBusMessage* reply;
+               DBusMessageIter args;
+               DBusConnection* conn;
+               bool stat = true;
+               dbus_uint32_t level = 21614;
+               dbus_uint32_t serial = 0;
+               char* param = "";
+
+               // read the arguments
+               if (!dbus_message_iter_init(msg, &args))
+                 fprintf(stderr, "Message has no arguments!\n"); 
+               else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args)) 
+                 fprintf(stderr, "Argument is not string!\n"); 
+               else 
+                 dbus_message_iter_get_basic(&args, &param);
+               printf("Method called with %s\n", param);
+
+               // create a reply from the message
+               reply = dbus_message_new_method_return(msg);
+
+               // add the arguments to the reply
+               dbus_message_iter_init_append(reply, &args);
+               if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_BOOLEAN, &stat)) { 
+                 fprintf(stderr, "Out Of Memory!\n"); 
+                 exit(1);
+               }
+               if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &level)) { 
+                 fprintf(stderr, "Out Of Memory!\n"); 
+                 exit(1);
+               }
+
+               // send the reply && flush the connection
+               if (!dbus_connection_send(conn, reply, &serial)) { 
+                 fprintf(stderr, "Out Of Memory!\n"); 
+                 exit(1);
+               }
+               dbus_connection_flush(conn);
+
+               // free the reply
+               dbus_message_unref(reply);
+             }
+           #+END_SRC
+
+*** Glib binding
