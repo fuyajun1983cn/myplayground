@@ -479,35 +479,8 @@ Added: [2016-08-31 周三 17:20]
 ** SDIO规范阅读
     - [ ] SDIO识卡流程
       驱动流程已经理清，下一步就是对照Spec跟读一下代码流程。
-
 * 本月已完成目标
-** W45
-    - [X] 准备Scan模块分享PPT
-    - [X] 完成CWAP第六章的学习
-    - [X] 完成如下资料学习
-          http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
-    - [X] 完成如下资料学习
-      晶元制程
-** W46
-    - [X] 完成第八章线性表的练习
-    - [X] 完成USB规范第三章的学习
-    - [X] 完成CWAP第七章的学习
-** W47
-    - [ ] 了解下SDIO识卡流程
-    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-    - [ ] 了解下SDIO Low Power
-** W48
-    - [ ] 了解下SDIO识卡流程
-      代码流程已经理清，下一步要对着Spec再看一下。
-    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-    - [ ] 了解下SDIO Low Power
 ** W49
-     - [X] 了解下SDIO识卡流程
-      代码流程已经理清，下一步要对着Spec再看一下。
-     - [X] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-     - [ ] 了解一个7662/7668 PM的功能
-     - [X] 完成CWAP第八章的学习
-
 * 今天必须做的事情
   :PROPERTIES:
   :CATEGORY: 重要且紧急（计划内）
