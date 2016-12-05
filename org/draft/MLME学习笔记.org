@@ -359,6 +359,9 @@ IE_EXT_CAPABILITY
 *** TX Sw Queue
        4AC + 1HCCA, pAd->TxSwQueue
 
+       Dequeue outgoing frames from TxSwQueue0..3 queue and process it 
+       : RTMPDeQueuePacket()
+
 * SoftAp
 
 ** 初始化Channel选择
@@ -563,13 +566,33 @@ IE_EXT_CAPABILITY
   代码操作： =PWR_SAVING_OP=
 * 与FW(MCU)交互的接口(mcu_and.c)
   函数 =andes_ctrl_usb_init= 初始化一些MCU控制相关的一些参数。
+  数据结构的引用关系：
+  1. struct cmd_msg & struct MCU_CTRL
+     : PNDIS_PACKET net_pkt = msg->net_pkt;
+     : RTMP_ADAPTER *ad = (RTMP_ADAPTER *) (msg->priv);
+     : struct MCU_CTRL *ctl = &ad->MCUCtrl;
+     : RTMP_CHIP_CAP *cap = &ad->chipCap;
+
+  2. 6个队列
+     txq, rxq, ackq(处理需要反馈的消息), kickq(处理不需要反馈的消息), tx_doneq, rx_doneq
+
   andes_send_cmd_msg
+
 * Scan
    上层通过 =NL80211_TRIGGER_SCAN= 将扫描命令传递给驱动。 
    扫描结束后，驱动会调用 =cfg80211_scan_done= 通过命令
    =NL80211_CMD_NEW_SCAN_RESULTS= 通知上层扫描已经结束，在扫描期间，每
    发现一个bss信息，都会通过 =cfg80211_inform_bss= 将bss信息更新到内核。
    上层通过 =NL80211_CMD_GET_SCAN= 获取扫描结果信息。
+
+   常见的几个变量：
+   1. =pAd->MlmeAux.Channel= 
+      等于0的话，表示Scan已经结束
+   2. =pAd->CommonCfg.CentralChannel=
+      表示Scan前所处的信道
+   3. =pAd->LatchRfRegs.Channel=
+      表示当前扫描的信道
+
 * Rate Control
    MlmePeriodicExec --> ...
 

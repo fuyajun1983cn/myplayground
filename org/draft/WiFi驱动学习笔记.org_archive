@@ -1,0 +1,154 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file e:/cygwin/home/mtk71339/myplayground/org/draft/WiFi驱动学习笔记.org
+
+
+* 调试
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-11-09 周三 15:44
+  :ARCHIVE_FILE: ~/myplayground/org/draft/WiFi驱动学习笔记.org
+  :ARCHIVE_CATEGORY: WiFi驱动学习笔记
+  :END:
+
+** FixedRate Iwpriv CMD
+   有兩種方法,  建議用第一種：
+   1. 命令格式
+      : iwpriv wlanXX driver fixedrate=[WCID]-[Mode]-[BW]-[MCS]-[VhtNss]-[SGI]-[Preamble]-[STBC]-[LDPC]-[SPE_EN]
+      其中，WCID未support， 使用示例：
+      : iwpriv wlan0 driver fixedrate=1-2-1-7-0-0-0-0-0-0
+
+      相关说明：
+      - WCID
+        WTBL Index, meaningless in FW now, and will take effect on all connected peer
+
+      - Mode
+        0: CCK   1: Legacy OFDM   2: HT   3: GF   4: VHT
+
+      - BW
+        0: BW20   1: BW40   2: BW80   3: BW160
+
+      - MCS
+        CCK: 0-3   OFDM: 0-7    HT: 0-32   VHT: 0-9
+
+      - VhtNss
+        1-2 for VHT only
+
+      - SGI
+        0: Disable all BW SGI   1: Enable all BW SGI
+
+      - Preamble    
+        0: Long   1: Short
+
+      - STBC
+        0: Disable   1: Enable
+
+      - LDPC
+        0: Disable   1: Enable
+
+      - SPE_EN
+        0: Disable   1: Enable
+      
+   2. 命令格式
+       : iwpriv wlanXX driver “set_sw_ctrl 0xa0620000 <ratecode>”
+      使用示例：
+      : iwpriv wlanXX driver “set_sw_ctrl 0xa0620001 0x1”
+
+      
+   相关说明：
+   <Ratecode> rule
+   bit[31]: 0x1  -> fix rate
+   bit[30]: SGI enable
+   bit[29]: LDPC enable
+   bit[11]: STBC enable
+   bit[10:9]: Nsts (0x00 means 1 Nsts)
+   bit[8:0]: TX mode and rate (請參考以下coding)
+   
+   bit[8:0]: TX mode and rate
+
+    "VHT_MCS0"=>0x100,                 
+    "VHT_MCS1"=>0x101,                 
+    "VHT_MCS2"=>0x102,                    
+    "VHT_MCS3"=>0x103,
+    "VHT_MCS4"=>0x104,
+    "VHT_MCS5"=>0x105,
+    "VHT_MCS6"=>0x106,
+   "VHT_MCS7"=>0x107,
+    "VHT_MCS8"=>0x108,
+    "VHT_MCS9"=>0x109,
+
+    "HT_MCS0"=>0x80,
+    "HT_MCS1"=>0x81,
+    "HT_MCS2"=>0x82,
+    "HT_MCS3"=>0x83,
+    "HT_MCS4"=>0x84,
+    "HT_MCS5"=>0x85,
+    "HT_MCS6"=>0x86,
+    "HT_MCS7"=>0x87,
+    
+    "54M"=>0x4C,
+    "48M"=>0x48,
+    "36M"=>0x4D,
+   "24M"=>0x49,
+    "18M"=>0x4E,
+    "12M"=>0x4A,
+   "9M"=>0x4F,
+    "6M"=>0x4B,
+    
+    "11M"=>0x7,           
+    "5.5M"=>0x06,
+    "2M"=>0x05,
+    "1M"=>0x00,
+
+** 吞吐量问题分析建议
+   当客户报怨网速不够快时，应该从以下几个方面入手：
+   1. 使用一些工具实地测试一下客户环境下的网络速率
+      - 使用iperf工具
+        通过不同情况下的对比（比如内网与外网环境下）
+        确认是否为特定AP的问题，如果是AP的问题，找一个正常的AP与非正常
+        的AP进行对比分析。
+   2. 如果仍然怀疑吞吐量问题，进一步从以下几个方面入手：
+      - 调整与AP的距离，对比测试一下。
+        关注RSSI以及SNR等信息。
+      - 切换不同的网络模式，看结果是否有差异
+        重点关注bandwidth的情况，是否有使用到channel bonding。检查GI以
+        及RIFS等信息。
+      - 检查数据传输速率是否异常
+        最低传输速率的配置。
+      - 一些重点Check项
+        + channel utilization
+        + Packet aggregation method in use
+        + check if we are doing AMSDU v/s AMPDU.
+          AMSDU中比较脏的环境下，只要其中一包数据传输错误，整个AMSDU都
+          会重新传输。
+        + 分片情况
+        + 确保11n的速率是使能的。
+   3. 速率参考
+      - Maximun Theoritical Wireless Speeds
+        + 802.11b - 11 Mbps (2.4GHz)
+        + 802.11a - 54 Mbps (5 GHz)
+        + 802.11g - 54 Mbps (2.4GHz)
+        + 802.11n - 600 Mbps (2.4GHz and 5 GHz)
+        + 802.11ac - 1300 Mbps (5 GHz)
+      - Actual Real-World Average Wireless Speeds
+        + 802.11b - 2-3 Mbps downstream (bi-directional data rates can be lower)
+        + 802.11g - ~20 Mbps downstream
+        + 802.11n - 40-50 Mbps typical, varying greatly depending on
+          configuration, whether it is mixed or N-only network, the
+          number of bonded channels, etc. Specifying a channel, and
+          using 40MHz channels can help achieve 70-80Mbps with some
+          newer routers.
+        + 802.11ac - 70-100 Mbps
+
+
+
+
+** 常用API
+*** 获取当前Sta Rec信息
+         : prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
+         : prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+
+*** 获取当前BSS信息
+         : prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prStaRec->ucBssIndex);
+         : prBssInfo = prAdapter->aprBssInfo[prMsduInfo->ucBssIndex];
+         

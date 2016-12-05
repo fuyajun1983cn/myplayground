@@ -1,0 +1,34 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file e:/cygwin/home/mtk71339/myplayground/org/gtd.org
+
+
+* ☛ TODO [#B] 深入了解TxRx原理
+  DEADLINE: <2016-10-31 一> SCHEDULED: <2016-08-27 周六>
+  CLOCK: [2016-09-13 周二 11:09]--[2016-09-13 周二 14:23] =>  3:14
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-25 周二 16:38
+  :ARCHIVE_FILE: ~/myplayground/org/gtd.org
+  :ARCHIVE_OLPATH: 本月必须完成的任务
+  :ARCHIVE_CATEGORY: gtd
+  :ARCHIVE_TODO: ☛ TODO
+  :END:
+  - [X] 帧聚合
+  - [X] 重点研究TX流程，特别是VLAN的支持
+  - [X] TX/RX FIFO Status, TX/RX Queue Operation
+    Tx queue parameter
+  - [ ] 驱动Scan的一些行为分析
+
+* 本周必达目标(W43)
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-26 周三 11:24
+  :ARCHIVE_FILE: ~/myplayground/org/gtd.org
+  :ARCHIVE_CATEGORY: gtd
+  :END:
+  - [ ] 吞量SOP初步学习
+  - [ ] 完成dbus-glib学习
+  - [X] 完成字符串与数组面试模拟题
+  - [ ] 完成SCAN分享的PPT初稿
+  - [ ] 完成CWAP第五章的学习
+

@@ -1,0 +1,172 @@
+#+STARTUP: overview
+#+TITLE: SDIO驱动学习
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+
+* 理论与规范
+  
+** 术语
+
+     - SDIO
+       Secure Digital Input / Output
+     - OCR
+       Operating Conditions Register
+     - MMC
+       Multi Media Card
+     - CMD
+       Command (SDIO commands)
+     - RCA
+       Relative Card Address
+
+** SD内存接口
+     Security Digital(SD)内存卡首次出现在2000年的消费电子展上。 它属于
+     一种可插拔的非易失性存储设备。 SD设备相比硬盘来说，体积更小，单价
+     更便宜，通常应用在如下电子设备。
+     
+     [[./images/2016/2016110901.png]]
+
+     相对于早期的PCMCIA接口（主要用于笔记本电脑），SD设备主要用于消费
+     电子设备，物理Pin脚更少（5个信号和一个时钟与电源引脚），数据传
+     输速率通常在25MHz到208MHz。 SD卡已经成为消费电子数据存储的标准。
+
+** MMC
+    MMC与SD卡紧密相关，MMC标准早于SD卡标准几年。两种标准拥有相同的物理
+    层以及电气方面的规范，区别主要体现在软件层的命令。MMC卡与SD卡可以
+    插入相同的卡槽。
+
+** SD协议
+     SD总线通过双向CMD和DATA引脚串行地传输数据。每个命令数据包包含CMD
+     引脚中传输的48位的信息。命令数据包包含有命令索引号，参数以及CRC校
+     检位。命令总是通过主机发起，SD卡通过COMMAND引脚发送响应。大部分响
+     应包也是48位的。主机总是命令发起者，SD卡是命令的发送目标。并非所
+     有的命令伴随数据的传输。只是那些读写命令才会伴随着数据的传输。数
+     据包的单位是块，主机可以定义不同的块大小，一般大小为512k。数据传
+     输可使用1个或4个数据引脚。每个数据包后面跟着16位的CRC数据。
+
+     SD命令的处理与状态强相关。 在任何时刻，SD卡总是处于特定的操作状态。
+     在某个状态下，只有一些命令是有效的。通过初始化命令序列，主机修改
+     了SD卡的操作状态直到它已经准备好传输数据。
+
+     命令与数据传输是通过主机产生的一个时间信号进行同步的。重置后，主
+     机使用最低的时间频率400KHz与SD卡进行通信。SD卡的内部寄存器会提供
+     SD能力相关的信息给主机，通过了解SD卡的最大操作频率，数据总线宽度
+     以及其他 的一些能力信息后，主机会调整时钟频率来优化性能 。
+
+*** SD and MMC versions
+
+      [[./images/2016/2016110902.png]]
+
+*** SDIO  & SDIO Combo
+      SD总线规范定义了三种卡类型： 
+      1. 内存卡（只用于存储）
+      2. IO卡（SDIO）
+      3. 包含存储以及IO的功能（SD Combo）。
+
+       SDIO是SD规范的一个扩展，主要用于IO-Only的设备。在SDIO规范中定义
+       了一些新的命令，而只与存储相关的特性都删除了。SDIO规范支持多功
+       能架构，每个功能独立运行，且拥有自己的内存空间。最小的功能数量
+       是1，最大的功能数量是8. 典型的SDIO通常有两个功能，0号功能是系
+       统功能，1号功能是用户功能。
+
+         SD Combo包含了Memory 以及IO的功能，但不如Memory-Only和SDIO-Only
+         的设备常见。
+
+         使用SDIO卡主要是为了达到：
+         1. 高速率I/O
+         2. 低功耗
+
+** SD bus architecture
+    
+     #+CAPTION: SD bus system with the host controller and the SD card
+    [[./images/2016/2016110903.png]]
+
+    SD总线上的信号主要包含：一个时钟引脚（由Host产生时钟信号），一个双
+    向的CMD引脚以及1或4个双向的DT引脚。
+
+    所有的SD总线上的传输是由主机通过CMD引脚发起的。所有的CMD与DT信号都
+    与时钟信号进行同步。所有命令包的大小是48比特。
+        
+    命令包的格式如下：
+
+    [[./images/2016/2016110904.png]]
+
+*** SDIO Host Controller
+     The SD host controller is the hardware logic that forms the bridge
+     between the host CPU and the SD bus. 
+
+     From the CPU’s perspective, the host controller consists of a
+     256-byte register set which is mapped to the system’s memory or
+     IO space. Transaction on the SD bus is initiated by the software
+     reading or writing to this register set. Through this register
+     set, the host driver software can：
+     - 检测SD卡的插入与拔出
+     - SD卡的上电与断电
+     - 使能、禁止以及控制SD卡的时钟速率
+     - 定义发往SD卡的命令参数，以及发送命令给SD卡
+     - 从SD卡接收命令响应
+     - 往SD卡读写数据
+     - 暂停、恢复或停止数据传输
+     - 中断CPU，事件源包含：命令完成，CRC错误等。
+
+       
+     主机控制端也可以包含DMA的支持。这种情况下，Host Controller需要有访
+     问系统内存的能力。
+
+     #+CAPTION: two host designs with and without DMA support
+     [[./images/2016/2016120101.png]]
+
+*** 几种不同尺寸的SD卡
+      
+      #+CAPTION: SD,miniSD,MicroSD
+     [[./images/2016/2016120102.png]]
+
+*** 软件需求
+
+       #+CAPTION: software requirements
+       [[./images/2016/2016120103.png]]
+
+       1. the operating system module that handles the initialization
+          and the low level signaling to the SD device,
+       2. the device driver that runs on top of the OS to perform
+          application specific function of the device.
+       3. the software that runs the local microprocessor inside the
+          SD card. 
+
+** SDIO数据传输模式
+
+    [[./images/2016/2016112301.png]]
+    
+*** 1-bit mode
+        在这种模式下，数据传输只在DAT[0]的引脚上。在该模式下，引脚8用
+        于中断引脚。（此引脚中内存卡中未用到）
+
+*** 4-bit Mode
+        在这种模式下，数据传输在所有的4个数据引脚中进行（DAT[3:0]）。
+        在这种模式下，中断引脚不能独占为中断所有，它会初始化为一个数据
+        传输线，因此，当需要中断功能时，需要一个特别的计时来提供中断。
+        这种模式下，会尽可能地提供最高的数据传输速率。
+
+*** SPI Mode
+        此种模式下，引脚8用于中断引脚。
+
+    
+* Linux SDIO驱动
+
+** 识卡流程
+    卡的检测与初始化入口函数：
+    mmc_rescan -> mmc_rescan_try_freq ->
+    mmc_attach_sdio -> mmc_sdio_init_card 
+
+    mmc_alloc_host 初始化 per-host 结构，定义了一个识卡的工作队列：
+    : INIT_DELAYED_WORK(&host->detect, mmc_rescan);
+
+    这个API是每个SDIO Host驱动在初始化必须调用的一个接口。
+
+    Host驱动一般会注册中断处理函数（卡插入或拔出），当中断触发后，如果检测到状态发生变
+    化的话，会触发识卡流程，一般是调用 =mmc_detect_change= 。它会调用
+    执行识卡的工作队列执行识卡流程。
+    : mmc_schedule_delayed_work(&host->detect, delay);

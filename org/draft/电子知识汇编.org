@@ -1,0 +1,23 @@
+#+STARTUP: overview
+#+TITLE: 电子技术知识汇编
+#+AUTHOR: 山庄来客
+#+EMAIL: fuyajun1983cn@163.com
+#+STARTUP: hidestars
+#+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
+#+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
+
+* Topic 1 —— 晶元制作流程
+  半导体生产可以分解成三步：
+  1. FEOL(front-end-of-line)
+     FEOL covers wafer(晶元) production, lithography(石印), etch, and
+     deposition. Broadly speaking, FEOL refers to the process of
+     manufacturing transistors.  
+  2. BEOL(back-end-of-line)
+     Once the individual components of a chip have been created, they
+     have to be connected together. BEOL refers to this process. The
+     metal layers, insulating layers, vias, and bond sites are all
+     added during this phase. 
+  3. Packaging
+     
+     
+  

@@ -6,6 +6,8 @@
 #+OPTIONS:    H:3 num:nil toc:t \n:nil ::t |:t ^:t -:t f:t *:t tex:t d:(HIDE) tags:not-in-toc
 #+HTML_HEAD: <link rel="stylesheet" title="Standard" href="css/worg.css" type="text/css" />
 
+* Wifi Display协议技术规范要点
+  
 * WiFi Display连接步骤
 ** WFD Device Discovery
 
@@ -88,7 +90,7 @@
   2. 除了M16外，所以消息类型的请求与响应交互必须在5秒内完成。
   3. 在WFD会话建立之前，从收到前一个消息的响应开始到下一个消息请求的传输之间
      的间隔时间不超过6秒。
-  4. 在WFD会话建立之前 ，从发送一个前一个消息的请求开始，到下一个消息
+  4. 在WFD会话建立之前 ，从发送前一个消息的请求开始，到下一个消息
      请求的传输，时间不超过6秒。
   5. 从接收RTSP M6响应开始，到传输RTSP M7请求结束这段时间的超时值为：
      - 如果HDCP保护未打开，则值为6秒。

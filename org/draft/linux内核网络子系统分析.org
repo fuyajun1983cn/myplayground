@@ -7,7 +7,6 @@
 
 
 * 重要数据结构
-
 ** =struct softnet_data=
    #+BEGIN_SRC c
      /*
@@ -16,7 +15,7 @@
      struct softnet_data {
              struct Qdisc            *output_queue;
              struct Qdisc            **output_queue_tailp;
-             struct list_head        poll_list;
+             struct list_head        poll_list; /*有需要处理报文的NAPI设备*/
              struct sk_buff          *completion_queue;
              struct sk_buff_head     process_queue;
 
@@ -33,13 +32,13 @@
              struct call_single_data csd ____cacheline_aligned_in_smp;
              struct softnet_data     *rps_ipi_next;
              unsigned int            cpu;
-             unsigned int            input_queue_head;
+             unsigned int            input_queue_head;  /*旧接口的输入队列*/
              unsigned int            input_queue_tail;
      #endif
              unsigned int            dropped;
              //在incoming frame被Driver处理之前，存储的位置
              struct sk_buff_head     input_pkt_queue;
-             struct napi_struct      backlog;
+             struct napi_struct      backlog; /*虚拟的NAPI设备 backlog*/
 
      #ifdef CONFIG_NET_FLOW_LIMIT
              struct sd_flow_limit __rcu *flow_limit;
@@ -76,10 +75,87 @@
              unsigned int            napi_id;
      };
    #+END_SRC
+    定义一个 =per_cpu= 变量 =softnet_data=
+    : DECLARE_PER_CPU(struct softnet_data,softnet_data);
+    在函数  =net_dev_init= 对其进行了初始化。
+    
 ** =struct sk_buff=
     [[./images/2016/2016071101.png]]
 ** =struct net_device=
+** =struct netdev_queue=
+    encapsulates all of the information about a single transmit
+    queue. 结构定义如下：
+    #+BEGIN_SRC c
+      struct netdev_queue {
+      /*
+       ,* read mostly part
+       ,*/
+              struct net_device       *dev;
+              struct Qdisc __rcu      *qdisc;
+              struct Qdisc            *qdisc_sleeping;
+      #ifdef CONFIG_SYSFS
+              struct kobject          kobj;
+      #endif
+      #if defined(CONFIG_XPS) && defined(CONFIG_NUMA)
+              int                     numa_node;
+      #endif
+      /*
+       ,* write mostly part
+       ,*/
+              spinlock_t              _xmit_lock ____cacheline_aligned_in_smp;
+              int                     xmit_lock_owner;
+              /*
+               ,* please use this field instead of dev->trans_start
+               ,*/
+              unsigned long           trans_start;
 
+              /*
+               ,* Number of TX timeouts for this queue
+               ,* (/sys/class/net/DEV/Q/trans_timeout)
+               ,*/
+              unsigned long           trans_timeout;
+
+        /*
+         ,* __QUEUE_STATE_DRV_XOFF is used by drivers to stop the transmit queue.
+         ,* netif_tx_* functions below are used to manipulate this flag.
+         ,* __QUEUE_STATE_STACK_XOFF flag is used by the stack to stop the transmit
+         ,* queue independently.  The netif_xmit_*stopped functions below are called
+         ,* o check if the queue has been stopped by the driver or stack
+         ,*/
+              unsigned long           state;
+
+      #ifdef CONFIG_BQL
+              struct dql              dql;
+      #endif
+      } ____cacheline_aligned_in_smp;
+    #+END_SRC
+    引入这个结构体是为了支持多队列发送，即发送数据被放到不同优先级的队
+    列中。
+
+    [[./images/2016/2016110701.png]]
+
+    为此，引入了新的接口：
+    : struct net_device *alloc_etherdev_mq(int sizeof_priv, unsigned int queue_count);
+    其中， 参数 =queue_count=  表示设备支持的最大传输队列数量。实际使
+    用的传输队列的数量保存在 =net_device= 的 =real_num_tx_queues= 中。
+    为了判断将要发送的数据包应该发送到哪个队列中，调用如下函数：
+    : u16 skb_get_queue_mapping(struct sk_buff *skb);
+    返回的值范围为 [0, real_num_tx_queue)。
+    针对某个发送队列上的接口如下：
+    #+BEGIN_SRC c
+      struct netdev_queue *netdev_get_tx_queue(struct net_device *dev,
+                                               u16 index);
+
+      void netif_tx_start_queue(struct netdev_queue *dev_queue);
+      void netif_tx_wake_queue(struct netdev_queue *dev_queue);
+      void netif_tx_stop_queue(struct netdev_queue *dev_queue);    
+    #+END_SRC
+    针对所有队列的接口：
+    #+BEGIN_SRC c
+      void netif_tx_start_all_queues(struct net_device *dev);
+      void netif_tx_wake_all_queues(struct net_device *dev);
+      void netif_tx_stop_all_queues(struct net_device *dev);    
+    #+END_SRC
 * 接收数据
 
 ** 概述
@@ -173,7 +249,7 @@
     开启当前设备上的数据传输。 当设备停止后，也可以再次调用该
     函数重新开启数据传输。
 
-*** =netif_stop_queue=
+*** =netif_stop_queue= 
     停止在当前设备上的数据传输。
 
 *** =netif_queue_stopped=
@@ -190,6 +266,12 @@
     输完成或者有足够的空间传输至少一帧数据时，重新开启数据传输,就需要
     调用些函数。 =netif_wake_queue= 与 =netif_start_queue= 相比，除了
     开启数据传输外，还会检查发送队列中是否有数据待传。
+
+*** 停止当前网卡上的数据传输
+      #+BEGIN_SRC c
+        netif_carrier_off(...)
+        netif_tx_stop_all_queues(...)
+      #+END_SRC
 
 ** 调度数据传输
    内核提供了函数 =dev_queue_xmit= 来传输一个数据帧，该函数从设备的发
@@ -414,3 +496,5 @@
 ** 参考网址
    1. https://wiki.linuxfoundation.org/networking/start
    2. https://wireless.wiki.kernel.org/en/users/Drivers/iwlwifi
+   3. http://yaoyang.blog.51cto.com/7657153/1263630
+      

@@ -1,0 +1,22 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file e:/cygwin/home/mtk71339/myplayground/org/draft/CWAP学习笔记.org
+
+
+* PSMP
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-11-29 周二 20:29
+  :ARCHIVE_FILE: ~/myplayground/org/draft/CWAP学习笔记.org
+  :ARCHIVE_OLPATH: CH08 Power Management/802.11n Power Management
+  :ARCHIVE_CATEGORY: CWAP学习笔记
+  :END:
+      PSMP is a power management method that builds on scheduled
+      automatic power save delivery (S-APSD). 
+      
+      It is the power management method primarily defined for
+      networks that use hybrid coordination function (HCF) controlled 
+      channel access (HCCA), which is a method of channel access that
+      involves the AP negotiating or assigning service periods for
+      stations to transmit and receive frames.
+      

@@ -15,6 +15,10 @@
 
 http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-being-equal-stronger-signal-strength-is-correlated-with-higher-data-transfer-sp.html
 
+*** 802.11z
+        Tunneled Direct Link Setup (TDLS), which enables direct device
+        to device communication but requires stations to be associated
+        with the same AP. 
 
 ** 聚合帧
     http://support.huawei.com/ecommunity/bbs/10216793.html
@@ -69,7 +73,47 @@ http://www.theruckusroom.net/2015/05/all-other-factors-of-which-there-are-many-b
      在此状态，完成了4步握手，所有的数据都能够通过。
 
     [[./images/2016/2016093001.png]]
+** 一些扫描行为
+    1. Active scan
+       - Directed probe
+         The client sends a probe request with a specific destination
+         SSID; only APs with a matching SSID will reply with a probe
+         response
+       - Broadcast probe
+         The client sends a broadcast SSID (actually a null SSID) in
+         the probe request; all APs receiving the probe-request will
+         respond, with a probe-response for each SSID they support.
 
-     
+    2. Passive scan
+       Passive scanning is performed by simply changing the clients
+       IEEE 802.11 radio tothe channel being scanned and waiting for a
+       periodic beacon from any APs on that channel. 
 
-     
+
+    During a channel scan, the client is unable to transmit or receive
+    client data traffic.There are a number of approaches clients take
+    to minimize this impact to client data traffic:
+    1. Background scanning
+       Clients may scan available channels before they need to
+       roam. This allows them to build-up knowledge of the RF
+       environment and available APs so they may roam faster if it
+       becomes necessary. Impact to client traffic can be minimized by
+       only scanning when the client is not actively transmitting
+       data, or by periodically scanning only a single alternate
+       channel at a time (scanning a single channel incurs minimal
+       data loss)
+
+       The term "background" is quite misleading and many people
+       thought that the hardware will somehow scan without having an
+       effect on the transfer rate. This is certainly not true. In
+       cases where scanning causes problems a second radio is needed
+
+    2. On-roam scanning
+       In contrast with background, on-roam scanning occurs after a
+       roam has been determined necessary. Each vendor/device may
+       implement its own algorithms to minimize the roam latency and
+       the impact to data traffic. For example, some clients might
+       only scan the non-overlapping channels.
+
+
+   
