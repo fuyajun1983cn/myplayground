@@ -195,6 +195,72 @@ body...)
 ** 错误处理
    unwind-protect函数专门用于调用某个程序发生错误时，自动回退到调用前的状态。
 ** Point Marker
+** 处理命令行参数
+   --script模式下，与处理命令行参数相关的常用变量有如下几个：
+   1. command-line-args-left
+      尚未处理的命令行参数的列表
+   2. command-line-args 
+      传递给emacs完整的命令行参数列表，一般用于获取当前执行的脚本名。
+   3. command-switch-alist
+      检查command-line-args-left是否包含以 - 开头的选项，并在变量中查
+      找并运行对应的handler-function。每处理完一个选项后，就将该参数从
+      command-line-args-left中删除。该元素为'(option
+      . handler-function)的alist。如果该参数后面还有其他的参数，则在该
+      函数中可以通过变量'command-line-args-left来获取剩余的命令行参数。
+   4. command-line-functions
+      该变量是一系列函数的列表，这些函数用来处理无法识别的command-line
+      参数。只要处理的函数不返回非nil的值，则该函数会依次被不同的函数
+      处理。这些函数被调用时并不传递参数，但这些函数内可以通过变量
+      =argi= 获取当前未被处理的命令行参数。
+
+   EmacsScript的执行顺序：
+   1. Emacs读取并执行EmacsScript中的内容
+   2. Emacs遍历command-line-args-left中的参数，对于
+      command-switch-alist中的参数调用对应的函数，对于不在
+      command-switch-alist中的参数依次调用command-line-functions中的函
+      数。
+   3. 倘若command-line-functions中没有定义函数或者某参数在依次调用
+      command-line-functions中的函数后都返回nil的话，那么该参数交由
+      emacs本身处理。
+
+   脚本示例：
+   #+BEGIN_SRC emacs-lisp
+     #!/bin/sh
+     ":"; exec emacs --script "$0" "$@" #-*- mode: emacs-lisp; lexical-binding: t; -*-
+     (message "Hello world")
+
+      ;;命令行相关常用变量
+
+      ;; 1. command-line-args-left
+      ;; 传递给可执行程序的参数，不包含应用程序本身    
+      (print (format "command-line-args-left=%s" command-line-args-left))
+
+      ;;2. command-line-args
+        ;;一般用于获取可执行程序本身的名称
+        (print (format "command-line-args=%s\n" command-line-args))
+        (print (format "$0=%s" (nth 2 command-line-args)))
+
+
+        ;;3. command-switch-alist
+          (defun print-option-value (option)
+           (print (format "command-line-args-left=%s\n"  command-line-args-left))
+           (print (format "value of %s is %s\n" option (car command-line-args-left)))
+           (pop command-line-args-left)
+          )
+
+          (add-to-list 'command-switch-alist '("-f" . print-option-value))
+
+          (defun print-option ()
+           (print (format "command-line-args-left=%s\n" command-line-args-left))
+           (print (format "option is %s\n" argi))
+          )
+
+          (add-to-list 'command-line-functions #'print-option)
+
+          (print (shell-command-to-string "ls -l"))
+        
+   #+END_SRC
+      
 * 数据结构
 ** 向量
    1. 创建一个向量
