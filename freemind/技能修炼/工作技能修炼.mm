@@ -506,7 +506,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1476409717890" FOLDED="true" ID="ID_469100470" MODIFIED="1477303333122" TEXT="mac80211&#x6846;&#x67b6;&#x6e90;&#x7801;&#x5206;&#x6790;">
+<node CREATED="1476409717890" FOLDED="true" ID="ID_469100470" MODIFIED="1481466689408" TEXT="mac80211&#x6846;&#x67b6;&#x6e90;&#x7801;&#x5206;&#x6790;">
 <node CREATED="1476410841026" ID="ID_1305653455" MODIFIED="1476410859930">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1000,7 +1000,7 @@
 <node CREATED="1475208174268" ID="ID_1483442935" MODIFIED="1475208178987" TEXT="for control frames"/>
 </node>
 </node>
-<node CREATED="1474869441499" ID="ID_975733955" MODIFIED="1477292199597" TEXT="mt7668">
+<node CREATED="1474869441499" FOLDED="true" ID="ID_975733955" MODIFIED="1481467047139" TEXT="mt7668">
 <node CREATED="1474869611115" ID="ID_621820542" MODIFIED="1474869612690" TEXT="Tx"/>
 <node CREATED="1474869613147" ID="ID_1634330745" MODIFIED="1474869614410" TEXT="Rx">
 <node CREATED="1477302877779" ID="ID_718161628" MODIFIED="1477302879592" TEXT="nicRxProcessRFBs">
@@ -1015,8 +1015,7 @@
       <b>nicRxProcessMgmtPacket</b>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477302988454" ID="ID_84848527" MODIFIED="1477303018289" TEXT="apfnProcessRxMgtFrame">
 <richcontent TYPE="NOTE"><html>
   <head>
@@ -1027,8 +1026,7 @@
       register the callback function for different subtype management
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477303186470" ID="ID_875353768" LINK="#ID_1750226335" MODIFIED="1477303271103">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1039,8 +1037,7 @@
       scanProcessBeaconAndProbeResp
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477303128516" ID="ID_1978593939" MODIFIED="1477303131676">
@@ -1053,8 +1050,7 @@
       nicRxReturnRFB
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -1073,8 +1069,7 @@
       <font color="#666666">scan.c/scan.h</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477290659350" ID="ID_974125567" MODIFIED="1477290664468" TEXT="&#x4e24;&#x79cd;&#x60c5;&#x666f;">
 <node CREATED="1477290294937" ID="ID_1084460299" MODIFIED="1477290297302" TEXT="wlan scan"/>
 <node CREATED="1477290286265" ID="ID_1641378073" MODIFIED="1477290291294" TEXT="p2p scan"/>
@@ -1088,8 +1083,7 @@
       SchedScan
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477292806051" ID="ID_950525852" MODIFIED="1477292815888" TEXT="&#x4e3b;&#x8981;&#x8fc7;&#x7a0b;">
@@ -1103,8 +1097,7 @@
       scnInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477292860036" FOLDED="true" ID="ID_519645803" MODIFIED="1477293055306">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1115,8 +1108,7 @@
       &#21021;&#22987;&#21270;P_SCAN_INFO_T
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477292869405" ID="ID_1519321590" MODIFIED="1477292872349">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1127,8 +1119,7 @@
       prAdapter-&gt;rWifiVar.rScanInfo
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477292901398" FOLDED="true" ID="ID_1388995380" MODIFIED="1477293057489">
@@ -1141,8 +1132,7 @@
       1. &#35774;&#32622;&#24403;&#21069;&#29366;&#24577;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477292933784" ID="ID_775387935" MODIFIED="1477292942670">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1153,8 +1143,7 @@
       prScanInfo-&gt;eCurrentState = SCAN_STATE_IDLE;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477292945162" FOLDED="true" ID="ID_192402074" MODIFIED="1477293059482">
@@ -1167,8 +1156,7 @@
       2. &#21021;&#22987;&#21270;&#26410;&#20915;&#28040;&#24687;&#22788;&#29702;&#21015;&#34920;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477292973849" ID="ID_1618147985" MODIFIED="1477292975735">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1179,8 +1167,7 @@
       LINK_INITIALIZE(&amp;prScanInfo-&gt;rPendingMsgList);
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477292991953" ID="ID_281477680" MODIFIED="1477293016094">
@@ -1193,8 +1180,7 @@
       3. &#37325;&#32622;BSS_DESC_T&#21015;&#34920;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477293033548" ID="ID_1051847339" MODIFIED="1477303457018">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1205,8 +1191,7 @@
       prScanInfo-&gt;rFreeBSSDescLis
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1216,8 +1201,7 @@
       Bss Desc Pool
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477293036531" ID="ID_541992024" MODIFIED="1477303500499">
 <richcontent TYPE="NODE"><html>
@@ -1229,8 +1213,7 @@
       prScanInfo-&gt;rBSSDescList
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1240,8 +1223,7 @@
       current scan result list
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -1255,8 +1237,7 @@
       <b>scanProcessBeaconAndProbeResp</b>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1266,8 +1247,7 @@
       handling beacon and probe response frames.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477290572027" ID="ID_111598812" MODIFIED="1477290580714">
@@ -1280,8 +1260,7 @@
       &#30456;&#20851;&#25968;&#25454;&#32467;&#26500;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477290901558" ID="ID_513386577" MODIFIED="1477290915204">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1292,8 +1271,7 @@
       struct _BSS_DESC_T
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1303,8 +1281,7 @@
       BSS Descriptors
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291055180" ID="ID_555869001" MODIFIED="1477291088357">
 <richcontent TYPE="NODE"><html>
@@ -1316,8 +1293,7 @@
       used by SCN_FSM
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477290963257" ID="ID_1204016248" MODIFIED="1477291163045">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1375,8 +1351,7 @@
       SCAN_INFO_T
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477291113510" ID="ID_189391468" MODIFIED="1477291124444">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1387,8 +1362,7 @@
       eCurrentState
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1398,8 +1372,7 @@
       Store the STATE variable of SCAN FSM
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291126431" ID="ID_1372399135" MODIFIED="1477291168850">
 <richcontent TYPE="NODE"><html>
@@ -1411,8 +1384,7 @@
       rScanParam
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <arrowlink COLOR="#ff0099" DESTINATION="ID_1204016248" ENDARROW="Default" ENDINCLINATION="98;0;" ID="Arrow_ID_677627362" STARTARROW="None" STARTINCLINATION="98;0;"/>
 </node>
 <node CREATED="1477291137479" ID="ID_1562519665" MODIFIED="1477291174873">
@@ -1425,8 +1397,7 @@
       rNloParam
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <arrowlink COLOR="#3333ff" DESTINATION="ID_769108161" ENDARROW="Default" ENDINCLINATION="99;0;" ID="Arrow_ID_855709524" STARTARROW="None" STARTINCLINATION="99;0;"/>
 </node>
 </node>
@@ -1440,8 +1411,7 @@
       Incoming Mailbox Messages
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477291241874" ID="ID_815930803" MODIFIED="1477291244091">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1464,8 +1434,7 @@
       MSG_SCN_SCAN_REQ_V2
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291432041" ID="ID_309507790" MODIFIED="1477291446005">
 <richcontent TYPE="NODE"><html>
@@ -1477,8 +1446,7 @@
       MSG_SCN_SCAN_CANCEL
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1488,8 +1456,7 @@
       Cancel Scan Request
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291475931" ID="ID_1910306294" MODIFIED="1477291478739">
 <richcontent TYPE="NODE"><html>
@@ -1501,8 +1468,7 @@
       MSG_SCN_NLO_REQ
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291492107" ID="ID_1044574123" MODIFIED="1477291494450">
 <richcontent TYPE="NODE"><html>
@@ -1514,8 +1480,7 @@
       MSG_SCN_NLO_CANCEL
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1477291516493" ID="ID_394372055" MODIFIED="1477291518685">
@@ -1528,8 +1493,7 @@
       Outgoing Mailbox Messages
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477291525813" ID="ID_1163722504" MODIFIED="1477291528299">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1540,8 +1504,7 @@
       MSG_SCN_SCAN_DONE
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477291570654" ID="ID_1314970388" MODIFIED="1477291573096">
 <richcontent TYPE="NODE"><html>
@@ -1553,8 +1516,7 @@
       MSG_SCN_NLO_DONE
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -1568,8 +1530,7 @@
       &#31574;&#30053;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1477291696571" ID="ID_1792220868" MODIFIED="1477291699832" TEXT="remove bss">
 <node CREATED="1477293766533" ID="ID_514776937" MODIFIED="1477293838169">
 <richcontent TYPE="NODE"><html>
@@ -1581,8 +1542,7 @@
       scanByPassRemoveBssDesc
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1592,8 +1552,7 @@
       bypass BSS Descriptors from current list according to specific BSSID.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477293839272" ID="ID_1605540210" MODIFIED="1477293858329">
 <richcontent TYPE="NODE"><html>
@@ -1605,8 +1564,7 @@
       scanRemoveBssDescsByPolicy
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -1616,8 +1574,7 @@
       Delete BSS Descriptors from current list according to given Remove Policy.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -1631,8 +1588,7 @@
       &#20869;&#23384;&#31649;&#29702;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1476693591000" ID="ID_992150334" MODIFIED="1476693594000" TEXT="mbox">
@@ -2629,8 +2585,7 @@
       MGMT Initialization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1477292210277" ID="ID_1417113232" MODIFIED="1477292238072" TEXT="cnmInit">
 <richcontent TYPE="NOTE"><html>
@@ -2642,8 +2597,7 @@
       &#160;CNM Module - initialization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477292222861" ID="ID_139601233" MODIFIED="1477292258375">
 <richcontent TYPE="NODE"><html>
@@ -2655,8 +2609,7 @@
       rlmFsmEventInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2666,8 +2619,7 @@
       RLM Module - initialization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477292275776" ID="ID_1372480492" LINK="#ID_657070274" MODIFIED="1477292438731">
 <richcontent TYPE="NODE"><html>
@@ -2679,8 +2631,7 @@
       scnInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2690,8 +2641,7 @@
       SCN Module - initialization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477292288536" ID="ID_1255259297" MODIFIED="1477292347399">
 <richcontent TYPE="NODE"><html>
@@ -2703,8 +2653,7 @@
       aisFsmInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2714,8 +2663,7 @@
       AIS Module - intiailization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <arrowlink DESTINATION="ID_444355911" ENDARROW="Default" ENDINCLINATION="94;0;" ID="Arrow_ID_58358806" STARTARROW="None" STARTINCLINATION="94;0;"/>
 </node>
 <node CREATED="1477292337890" ID="ID_444355911" MODIFIED="1477292347398">
@@ -2728,8 +2676,7 @@
       aisInitializeConnectionSettings
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <linktarget COLOR="#b0b0b0" DESTINATION="ID_444355911" ENDARROW="Default" ENDINCLINATION="94;0;" ID="Arrow_ID_58358806" SOURCE="ID_1255259297" STARTARROW="None" STARTINCLINATION="94;0;"/>
 </node>
 <node CREATED="1477292351458" ID="ID_695275792" MODIFIED="1477292372709">
@@ -2742,8 +2689,7 @@
       roamingFsmInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2753,8 +2699,7 @@
       Roaming Module - intiailization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1477292396332" ID="ID_1848459893" MODIFIED="1477292411157">
 <richcontent TYPE="NODE"><html>
@@ -2766,8 +2711,7 @@
       swCrDebugInit
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -2777,8 +2721,7 @@
       Cr Debug Control
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1476698892195" ID="ID_960603798" MODIFIED="1476698901123">
@@ -3256,6 +3199,8 @@
 </node>
 </node>
 </node>
+<node CREATED="1481466731982" ID="ID_1894333841" MODIFIED="1481466750320" TEXT="&#x5c04;&#x9891;&#x7406;&#x8bba;"/>
+<node CREATED="1481466750835" ID="ID_705467405" MODIFIED="1481466755467" TEXT="&#x5929;&#x7ebf;&#x7406;&#x8bba;"/>
 </node>
 </node>
 </map>
