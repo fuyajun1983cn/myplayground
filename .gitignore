@@ -30,3 +30,6 @@ node_modules/
 %APPDATA%/*
 .#*
 Thumbs.db
+*.db
+*.db-journal
+*.org_archive

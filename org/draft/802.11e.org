@@ -6,20 +6,23 @@
 
 * 802.11e简介
   在IEEE 802.11e，有两种类型的QoS：
-  1. prioritized QoS
+  1. prioritized QoS 
+
      a weak requirement
+
   2. parameterized QoS
+
      a strict requirement
 
 ** new field in 802.11 header
    
 *** TID (traffic ID)
-    select a UP (user priority) for prioritized QoS or a TSPEC
-    (traffic specification) for parameterized 
-
-    0 – 7 are considered user priorities
-
-    8 – 16 refer to TSPECs.
+         select a UP (user priority) for prioritized QoS or a TSPEC
+         (traffic specification) for parameterized 
+         
+         0 – 7 are considered user priorities
+         
+         8 – 16 refer to TSPECs.
 
 ** Action
 
@@ -45,11 +48,8 @@
 
    supports only EDCA but not HCCA. 
    Without HCCA, parametererized QoS can not be supported. 
-
-
     
 * Enhanced Distributed Channel Access (EDCA)
-  
 ** Basic Elements for QoS
    - Traffic Differentiation
    - Concept of Transmission Opportunity (TXOP)
@@ -76,10 +76,10 @@
         特定優先權所預期的串流類型。
      3. 許可(進入)控制(Admission Control)透過傳輸規格保護優先次序高
         的訊務流量類別不會受其他優先次序較低的流量影響。
-        
 
 ** New Contention Free Channel Access
    - HCF Controlled Channel Access (HCCA)
+     
      HCCA是HCF的一構成要素(component) 同時提供服務
      品質(QoS)參數化(parameterized)的支持。
 
@@ -89,12 +89,6 @@
      HCCA不同於PCF的運作，而對無線媒介(Wireless
      Medium )提供polled access，這可用在無競爭時期(CFP)
      與競爭時期(CP)。
-
-** Automatic Power-Save Delivery (APSD)
-
-** New mechanisms for higher throughput
-   - Block Acknowledgement (Block Ack)
-   - Direct Link Setup (DLS)
 
 ** Same Contention Based that EDC but…
    - *8 priority levels* per station (identical to IEEE 802.1D priority
@@ -106,11 +100,9 @@
 
   [[/images/2016/2016051901.png]]
 
-
 * EDCA Implementation Model
 
   [[./images/2016/2016051902.png]]
-
 
 * Arbitration InterFrame Space
 
@@ -120,63 +112,105 @@
 
   improve channel utilization and efficiency.
   
-*** Block ACK
-    Improves channel efficiency by aggregating several
-    acknowledgments into one frame.
+** Block ACK
+   Improves channel efficiency by aggregating several
+   acknowledgments into one frame.
 
-**** 2 types of Block Ack mechanisms:
-     immediate and delayed
+*** 2 types of Block Ack mechanisms:
+    immediate and delayed
 
-     [[/images/2016/2016051906.png]]
+    [[/images/2016/2016051906.png]]
 
-*** Direct Link Protocol
-    Ability to exchange data directly between two
-    stations in the network, without traversing the AP.
+** Direct Link Protocol
+   Ability to exchange data directly between two
+   stations in the network, without traversing the AP.
 
-    [[/images/2016/2016051907.png]]
+   [[/images/2016/2016051907.png]]
 
-*** Automatic Power-Save Delivery
-    =ps-poll= is inefficient for current product, one poll one packet.
+** Automatic Power-Save Delivery
+   
+   =ps-poll= is inefficient for current product, one poll one packet.
 
-    Enhancing Power Saving mode in QoS Basic Service Set
+   Enhancing Power Saving mode in QoS Basic Service Set
 
-    *QoS-AP* automatically delivers downlink frames,which belong to some
-    specified Access Category, to *Power-Saving* stations
+   *QoS-AP* automatically delivers downlink frames,which belong to some
+   specified Access Category, to *Power-Saving* stations
 
-    Two types of delivery mechanism
-    1. Unscheduled APSD (U-APSD)
-    2. Scheduled APSD (S-APSD)
+   Two types of delivery mechanism
+   1. Unscheduled APSD (U-APSD)
+   2. Scheduled APSD (S-APSD)
 
-**** Unscheduled APSD (U-APSD)
-     [[./images/2016/2016051904.png]]
+*** Unscheduled APSD (U-APSD)
 
-     STA will announce its capability for uapsd (ac) through wmm ie
-     . it will tell ap which AC is supported for STA. u can check the
-     (re)association packet to get the information .
+    [[./images/2016/2016051904.png]]
 
-     Power-saving QoS-STA wakes up and send a “trigger”data
-     frame belonging to “trigger-enabled” AC to QoS-AP
+    STA will announce its capability for uapsd (ac) through wmm ie
+    . it will tell ap which AC is supported for STA. u can check the
+    (re)association packet to get the information .
 
-     After receiving “trigger” frame, a Service Period (SP) is
-     started
+    Power-saving QoS-STA wakes up and send a “trigger”data
+    frame belonging to “trigger-enabled” AC to QoS-AP
 
-     QoS-AP send frames belonging to “delivery-enabled” AC
-     to QoS-STA
+    After receiving “trigger” frame, a Service Period (SP) is
+    started
 
-**** Scheduled APSD (S-APSD)
+    QoS-AP send frames belonging to “delivery-enabled” AC
+    to QoS-STA
 
-     [[./images/2016/2016051905.png]]
+    如果没有封包，则回一个Null Data(EOSP=1)，如果有数据，则回数据帧，
+    直到最后一帧(EOSP=1)。
 
-     QoS-STA negotiates a APSD Schedule with QoS-AP
+*** Scheduled APSD (S-APSD)
 
-     QoS-AP start transmitting the frames of the specified
-     Traffic Stream at Service Start Time and the following
-     periods
+    [[./images/2016/2016051905.png]]
 
-     QoS STA must wake up at Service Start Time and the
-     following periods to receive frames
+    QoS-STA negotiates a APSD Schedule with QoS-AP
 
+    QoS-AP start transmitting the frames of the specified
+    Traffic Stream at Service Start Time and the following
+    periods
 
+    QoS STA must wake up at Service Start Time and the
+    following periods to receive frames
 
+* WMM Power Save
+   WMM Power Save是基于U-APSD. 
 
+** Legacy Power Save
+    
+     #+CAPTION: Wi-Fi legacy power save
+    [[./images/2016/2016112401.png]]
 
+    Client等待Beacon帧。Beacon帧包含了Traffic Indication Map (TIM)信息，
+    告知Client当前是否缓存有发往Client的数据，没有没有的话，Client可以
+    继续休眠直至一个Beacon到来。如果有数据的话，Client向基站发送
+    PS-Poll帧请求下载数据，AP发送一个Ack帧后，就开始发送第一帧数据，对
+    于每帧数据，Client都必须先发送一个PS-Poll帧，然后等待AP发送的Ack帧，
+    当接收到AP发送的帧后，最后要发送一个Ack帧给AP。
+
+    这样AP发送一个数据帧，AP和Client都需要发送两个数据帧，以及延迟两个
+    DCF的时间。
+
+    传统的这种省电模式会导致那么需要在AP与Client之间进行快速交换数据的
+    应用的延迟加长。原因如下：
+    1. Client必须等待Beacon帧，不能在更短的时间内初始化传输。
+    2. 一次只能发送一个数据帧，Client还不得不在每个接收的数据帧中发送
+       和接收额外的信号帧。
+    3. 休眠时间是由Client的WiFi驱动设置的，而不管当前运行的是那种类型
+       的应用。这样不利于针对特定应用程序进行调整。
+
+** WMM Power Save的改进
+     WMM Power Save通过增加允许Client休眠的时间和减少Client需要发送和
+     接收的数据帧个数来改善传统的省电效率。
+
+     省电行为是Client与AP之间关联的过程中协商的。针对每个WMM AC传输队
+     列会设置不同的省电行为（WMM Power Save or legacy power save）。
+
+     #+CAPTION: Example of a setup for WMM Power Save,
+     [[./images/2016/2016112403.png]]
+
+     WMM Power Save的行为下，Client不需要等待Beacon帧，可随时发送一个
+     Trigger帧来启动数据下载。
+
+     #+CAPTION: WMM Power Save
+     [[./images/2016/2016112402.png]]

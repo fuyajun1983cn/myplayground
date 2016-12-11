@@ -786,7 +786,7 @@
       The 2.4 GHz ISM band is 83.5 MHz wide and spans from 2.4000 GHz
       to 2.4835 GHz.
 
-      每个国家根据自己的管制要求，会制定允许在2.4G中的哪些信道是进行数
+      每个国家根据自己的管制要求，会制定允许在2.4G中的哪些信道上进行数
       据传输。
 *** 2.4 GHz Channels
         2.4G 各信道的中心频率之间的差值为 5 MHz，如果两个信道之间不重
@@ -977,8 +977,8 @@
         layer, the appropriate PLCP Preamble and PLCP header are added
         to the PSDU to create the PPDU.
 
-     4. The Long PPDU includes a __ -bit PLCP Preamble, which consists
-        of a __ -bit Sync field.
+     4. The Long PPDU includes a  __  -bit PLCP Preamble, which consists
+        of a  __  -bit Sync field.
 
         A. 144, 128
 
@@ -1428,11 +1428,11 @@
         *答案解析*
 
         E. The graphic displays four MAC addresses. Although 802.11 frames have four address
-     fields in the MAC header, 802.11 frames typically use only three of the MAC address fields.
-     An 802.11 frame sent within a wireless distribution system (WDS) requires all four MAC
-     addresses. Although the standard does not specifically define procedures for using this format,
-     WLAN vendors often implement WDS solutions. Examples of a WDS include WLAN
-     bridges, mesh networks, and wireless repeaters.
+       fields in the MAC header, 802.11 frames typically use only three of the MAC address fields.
+       An 802.11 frame sent within a wireless distribution system (WDS) requires all four MAC
+       addresses. Although the standard does not specifically define procedures for using this format,
+       WLAN vendors often implement WDS solutions. Examples of a WDS include WLAN
+       bridges, mesh networks, and wireless repeaters.
      
      2. CCMP/AES encryption adds an extra  ____  of overhead to the
         body of an 802.11 data frame.
@@ -1450,10 +1450,10 @@
         *答案解析*
 
         A. CCMP/AES encryption will add an extra 16 bytes of overhead to the body of an 802.11
-     data frame. Eight bytes are added by the CCMP header, and 8 bytes are added by the MIC.
-     WEP encryption will add an extra 8 bytes of overhead to the body of an 802.11 data frame.
-     When TKIP is implemented, because of the extra overhead from the extended IV and the
-     MIC, a total of 20 bytes of overhead is added to the body of an 802.11 data frame.
+        data frame. Eight bytes are added by the CCMP header, and 8 bytes are added by the MIC.
+        WEP encryption will add an extra 8 bytes of overhead to the body of an 802.11 data frame.
+       When TKIP is implemented, because of the extra overhead from the extended IV and the
+       MIC, a total of 20 bytes of overhead is added to the body of an 802.11 data frame.
 
      3. Which of the following 802.11 frames carry an MSDU payload
         that may eventually be transferred by the integration service
@@ -1472,9 +1472,9 @@
         *答案解析*
 
         C. Only 802.11 data frames can carry an upper-layer payload (MSDU) within the body
-     of the frame. The MSDU can be as large as 2,304 bytes and usually should be encrypted.
-     802.11 control frames do not have a body. 802.11 management frames have a body; however,
-     the payload is strictly layer 2 information.
+        of the frame. The MSDU can be as large as 2,304 bytes and usually should be encrypted.
+        802.11 control frames do not have a body. 802.11 management frames have a body; however,
+        the payload is strictly layer 2 information.
 
      4. What would cause an 802.11 station to retransmit a unicast
         frame? (Choose all that apply.) 
@@ -1492,8 +1492,8 @@
         *答案解析*
 
         A, B. The receiving station may have received the data, but the returning ACK frame may
-     have become corrupted, and the original unicast frame will have to be retransmitted. If the
-     unicast frame becomes corrupted for any reason, the receiving station will not send an ACK.
+        have become corrupted, and the original unicast frame will have to be retransmitted. If the
+        unicast frame becomes corrupted for any reason, the receiving station will not send an ACK.
 
      5. How does a client station indicate that it is using Power Save
         mode?
@@ -1512,8 +1512,8 @@
         *答案解析*
 
         B. When the client station transmits a frame with the Power Management field set to 1, it
-     is enabling Power Save mode. The DTIM does not enable Power Save mode; it only notifies
-     clients to stay awake in preparation for a multicast or broadcast.
+        is enabling Power Save mode. The DTIM does not enable Power Save mode; it only notifies
+        clients to stay awake in preparation for a multicast or broadcast.
 
      6. Which field in the MAC header of an 802.11 frame resets the
         NAV timer for all listening 802.11 stations?
@@ -1531,9 +1531,9 @@
         *答案解析*
 
         C. When the listening radio hears a frame transmission from another station, it looks at
-     the header of the frame and determines whether the Duration/ID field contains a Duration
-     value or an ID value. If the field contains a Duration value, the listening station will set its
-     NAV timer to this value.
+        the header of the frame and determines whether the Duration/ID field contains a Duration
+        value or an ID value. If the field contains a Duration value, the listening station will set its
+        NAV timer to this value.
 
      7. What are some the reasons for the existence of the Duration/ID
         field of the MAC header of an 802.11 MPDU? (Choose all that
@@ -1552,10 +1552,10 @@
         *答案解析*
 
         C, E. The Duration/ID field has three possible purposes. The main purpose of this field is
-     to reset the NAV timer of other stations, which is a virtual carrier-sense mechanism. PSPoll
-     frames use the Duration/ID field as an association identifier (AID) during legacy power
-     management processes. Although never implemented by vendors, the Duration/ID field can
-     also be used to signal that a contention-free period (CFP) process has begun.
+        to reset the NAV timer of other stations, which is a virtual carrier-sense mechanism. PS-Poll
+        frames use the Duration/ID field as an association identifier (AID) during legacy power
+        management processes. Although never implemented by vendors, the Duration/ID field can
+        also be used to signal that a contention-free period (CFP) process has begun.
 
      8. What is the maximum amount of microseconds that can be set on
         the NAV timers of listening stations that hear the
@@ -1574,12 +1574,12 @@
         *答案解析*
 
         E. The main purpose of the Duration/ID field is to reset the NAV timer of other stations.
-     When bit 15 of the field is zero, the value in bits 140 represent the duration of a frame
-     exchange sequence remaining after the frame in which the Duration value is found. Bits
-     140 can have a Duration value of 0 to 32,767. The Duration value translates into microseconds
-     when resetting NAV timers of other stations. The other common use of the Duration/
-     ID field is as an AID in PS-Poll control frames. When bits 15 and 14 have a value of 1,
-     bits 130 can be used to represent an AID in PS-Poll frames from 1 to 2007.
+       When bit 15 of the field is zero, the value in bits 140 represent the duration of a frame
+       exchange sequence remaining after the frame in which the Duration value is found. Bits
+       140 can have a Duration value of 0 to 32,767. The Duration value translates into microseconds
+       when resetting NAV timers of other stations. The other common use of the Duration/
+       ID field is as an AID in PS-Poll control frames. When bits 15 and 14 have a value of 1,
+       bits 130 can be used to represent an AID in PS-Poll frames from 1 to 2007.
 
      9. What are some of the negative effects of layer 2
         retransmissions? (Choose all that apply.) 
@@ -1597,11 +1597,11 @@
         *答案解析*
 
         B, D, E. Excessive layer 2 retransmissions adversely affect the WLAN in two ways. First,
-     layer 2 retransmissions increase MAC overhead and therefore decrease throughput. Second,
-     if application data has to be retransmitted at layer 2, the timely delivery of application traffic
-     becomes delayed or inconsistent. Applications such as VoIP depend on the timely and consistent
-     delivery of the IP packet. Excessive layer 2 retransmissions usually result in increased
-     latency and jitter problems for time-sensitive applications such as voice and video.
+        layer 2 retransmissions increase MAC overhead and therefore decrease throughput. Second,
+        if application data has to be retransmitted at layer 2, the timely delivery of application traffic
+       becomes delayed or inconsistent. Applications such as VoIP depend on the timely and consistent
+       delivery of the IP packet. Excessive layer 2 retransmissions usually result in increased
+       latency and jitter problems for time-sensitive applications such as voice and video.
 
      10. When an AP sends a unicast frame to VoWiFi client station,
          which of the other stations will not update their NAV timers
@@ -1623,14 +1623,14 @@
          *答案解析*
 
          A, D. The NAV is not updated when the receiver address (RA) is the same as the receiving
-     station’s MAC address. Therefore, in this scenario, the Duration value did not reset the
-     VoWiFi client’s NAV because it was the receiver. You should also understand that the Duration
-     value of the transmitting station does not reset the transmitting stations NAV timer.
-     The transmitter cannot hear its own transmitted frame. The transmitter’s NAV will be zero
-     after transmitting, just like it was zero before the transmitter gained control of the medium.
-     The AP was the transmitter so the Duration value did not reset its NAV. Any other client or
-     AP stations within hearing range on the same channel will reset their NAV, even if they are
-     not members of the BSS.
+        station’s MAC address. Therefore, in this scenario, the Duration value did not reset the
+        VoWiFi client’s NAV because it was the receiver. You should also understand that the Duration
+        value of the transmitting station does not reset the transmitting stations NAV timer.
+        The transmitter cannot hear its own transmitted frame. The transmitter’s NAV will be zero
+        after transmitting, just like it was zero before the transmitter gained control of the medium.
+        The AP was the transmitter so the Duration value did not reset its NAV. Any other client or
+        AP stations within hearing range on the same channel will reset their NAV, even if they are
+        not members of the BSS.
 
      11. Which of these statements regarding the four MAC address
          fields in the header of a data MPDU are accurate? (Choose all
@@ -1648,11 +1648,11 @@
          *答案解析*
 
          A, D. Depending on how the To DS and From DS fields are used, the definition of the four
-     MAC fields will change. One constant, however, is that the Address 1 field will always be
-     the receiver address (RA) but may have a second definition as well. The Address 2 field will
-     always be the transmitter address (TA) but also may have a second definition. Address 3 is
-     normally used to additional MAC address information. Address 4 is used only in the case
-     of a WDS.
+        MAC fields will change. One constant, however, is that the Address 1 field will always be
+        the receiver address (RA) but may have a second definition as well. The Address 2 field will
+        always be the transmitter address (TA) but also may have a second definition. Address 3 is
+        normally used to additional MAC address information. Address 4 is used only in the case
+        of a WDS.
 
      12. Which of the following is a possible scenario when the To DS
          field and the From DS field both have a value of 0? (Choose
@@ -1671,15 +1671,15 @@
          *答案解析*
 
          A, B, E. When both bits are set to 0, several different scenarios exist. The most common
-     scenario is that the frames are either management or control frames. Management and
-     control frames do not have an MSDU payload, and therefore their final destination is never
-     the distribution system (DS). Management and control exist only at the MAC sublayer
-     and therefore have no need to be translated by the integration service (IS) and never are
-     delivered to the distribution system service (DSS). Another scenario is a direct data frame
-     transfer from one STA to another STA within an independent basic service set (IBSS), more
-     commonly known as an ad hoc network. The third scenario involves what is known as a
-     station-to-station link (STSL), which involves a data frame being sent directly from one client
-     station to another client station that belongs to the same BSS, thereby bypassing the AP.
+         scenario is that the frames are either management or control frames. Management and
+         control frames do not have an MSDU payload, and therefore their final destination is never
+         the distribution system (DS). Management and control exist only at the MAC sublayer
+         and therefore have no need to be translated by the integration service (IS) and never are
+         delivered to the distribution system service (DSS). Another scenario is a direct data frame
+         transfer from one STA to another STA within an independent basic service set (IBSS), more
+         commonly known as an ad hoc network. The third scenario involves what is known as a
+         station-to-station link (STSL), which involves a data frame being sent directly from one client
+         station to another client station that belongs to the same BSS, thereby bypassing the AP.
 
      13. What can you conclude about this frame based on the frame
          capture graphic shown here?(Choose all that apply.) 
@@ -1699,12 +1699,12 @@
          *答案解析*
 
          B, C, D. In the Sequence Control field, the Fragment Number subfield contains a 4-bit
-     number assigned to each fragment of an MSDU. The first, or only, fragment of an MSDU is
-     assigned a fragment number of 0. Each successive fragment is assigned a sequentially incremented
-     fragment number. The graphic shows a fragment number of 2, which means it is the
-     third fragment. The More Fragments field indicates a value of 0, which means it is the last
-     transmitted fragment. The To DS field has a value of 0, and the From DS field has a value of
-     1, which means this is a downstream transmission from an AP to a client station.
+         number assigned to each fragment of an MSDU. The first, or only, fragment of an MSDU is
+         assigned a fragment number of 0. Each successive fragment is assigned a sequentially incremented
+         fragment number. The graphic shows a fragment number of 2, which means it is the
+         third fragment. The More Fragments field indicates a value of 0, which means it is the last
+         transmitted fragment. The To DS field has a value of 0, and the From DS field has a value of
+         1, which means this is a downstream transmission from an AP to a client station.
 
      14. What can you conclude about this frame based on the frame
          capture graphic shown here?Choose all that apply.) 
@@ -1724,12 +1724,12 @@
          *答案解析*
 
          C, D. The Power Management field indicates a value of 1, meaning that the client STA is in
-     Power Save mode and that the AP must buffer the client STA’s traffic. Fragmentation is not
-     being used because the frag number in the Sequence Control field has a value of 0 and the
-     More Fragments field also has a value of 0. The Subtype field indicates that this is a Null
-     data frame and not a PS-Poll frame. PS-Poll frames are the only frames that use the Duration/
-     ID field as an association identifier (AID).
-
+         Power Save mode and that the AP must buffer the client STA’s traffic. Fragmentation is not
+         being used because the frag number in the Sequence Control field has a value of 0 and the
+         More Fragments field also has a value of 0. The Subtype field indicates that this is a Null
+         data frame and not a PS-Poll frame. PS-Poll frames are the only frames that use the Duration/
+         ID field as an association identifier (AID).
+         
      15. What can you conclude about this frame based on the frame
          capture graphic shown here?
 
@@ -1748,7 +1748,7 @@
          *答案解析*
 
          D. The Protected Frame field has a value of 0, which indicates that the MSDU payload of
-     this simple data frame is not encrypted.
+         this simple data frame is not encrypted.
 
      16. What can you conclude about this frame based on the frame
          capture graphic shown here?(Choose all that apply.) 
@@ -1769,17 +1769,17 @@
          *答案解析*
 
          A, B. The Retry field indicates a value of 1, meaning this is a retransmission. Every time
-     an 802.11 radio transmits a unicast frame, if the frame is received properly and the cyclic
-     redundancy check (CRC) of the FCS passes, the 802.11 radio that received the frame will
-     reply with an acknowledgment (ACK) frame. If the ACK is received, the original station
-     knows that the frame transfer was successful. All unicast 802.11 frames must be acknowledged.
-     Broadcast and multicast frames do not require an acknowledgment.
-
-     If any portion of a unicast frame is corrupted, the CRC will fail, and the receiving
-     802.11 radio will not send an ACK frame to the transmitting 802.11 radio. If an ACK
-     frame is not received by the original transmitting radio, the unicast frame is not acknowledged
-     and will have to be retransmitted.
-
+         an 802.11 radio transmits a unicast frame, if the frame is received properly and the cyclic
+         redundancy check (CRC) of the FCS passes, the 802.11 radio that received the frame will
+         reply with an acknowledgment (ACK) frame. If the ACK is received, the original station
+         knows that the frame transfer was successful. All unicast 802.11 frames must be acknowledged.
+         Broadcast and multicast frames do not require an acknowledgment.
+        
+         If any portion of a unicast frame is corrupted, the CRC will fail, and the receiving
+         802.11 radio will not send an ACK frame to the transmitting 802.11 radio. If an ACK
+         frame is not received by the original transmitting radio, the unicast frame is not acknowledged
+         and will have to be retransmitted.
+        
      17. When the To DS field has a value of 0 and the From DS field
          has a value of 1, which of these statements possibly are
          accurate? (Choose all that apply.) 
@@ -1797,12 +1797,12 @@
          *答案解析*
 
          B, C. When the To DS bit is set to 0 and the From DS bit is set to 1, this indicates that an
-     802.11 data frame is being sent downstream from an access point to a client station. The
-     original source of the MSDU payload of the 802.11 data frame is an address that exists on
-     the distribution system medium (DSM). An example is a DHCP server that resides on the
-     802.3 network forwarding a DHCP response packet through an AP with the final destination
-     being an 802.11 client station.
-
+         802.11 data frame is being sent downstream from an access point to a client station. The
+         original source of the MSDU payload of the 802.11 data frame is an address that exists on
+         the distribution system medium (DSM). An example is a DHCP server that resides on the
+         802.3 network forwarding a DHCP response packet through an AP with the final destination
+         being an 802.11 client station.
+        
      18. How many bytes is the frame body of an 802.11 MPDU?
 
          A. 0-2304
@@ -1818,11 +1818,11 @@
          *答案解析*
 
          E. The frame body is of variable size. The maximum frame body size is determined by
-     the maximum MSDU size (2,304 octets) plus any overhead from encryption. The 802.11n-
-     2009 HT amendment defines a frame aggregation method called Aggregate MAC Service
-     Data Unit (A-MSDU). An 802.11n station using this method of aggregation can have a
-     frame body with a maximum A-MSDU size (3839 or 7935 octets, depending upon the
-     STA’s capability), plus any overhead from encryption.
+         the maximum MSDU size (2,304 octets) plus any overhead from encryption. The 802.11n-
+         2009 HT amendment defines a frame aggregation method called Aggregate MAC Service
+         Data Unit (A-MSDU). An 802.11n station using this method of aggregation can have a
+         frame body with a maximum A-MSDU size (3839 or 7935 octets, depending upon the
+         STA’s capability), plus any overhead from encryption.
 
      19. How many MAC addresses are found in an 802.3 frame?
 
@@ -1839,12 +1839,12 @@
          *答案解析*
 
          C. 802.3 Ethernet frames have only a source address (SA) and destination address (DA)
-     in the layer 2 header. 802.11 frames have four address fields in the MAC header. The contents
-     of these four fields can include the following MAC addresses: receiver address (RA),
-     transmitter address (TA), basic service set identifier (BSSID), destination address (DA), and
-     source address (SA). In other words, an 802.11 frame can contain as many as four MAC
-     addresses with five different meanings.
-
+         in the layer 2 header. 802.11 frames have four address fields in the MAC header. The contents
+         of these four fields can include the following MAC addresses: receiver address (RA),
+         transmitter address (TA), basic service set identifier (BSSID), destination address (DA), and
+         source address (SA). In other words, an 802.11 frame can contain as many as four MAC
+         addresses with five different meanings.
+         
      20. How does a transmitting station maintain control of the
          medium during a fragment burst?(Choose all that apply.) 
 
@@ -1861,13 +1861,13 @@
          *答案解析*
 
          B, E. Fragments are always sent in what is known as a fragment burst. Once the transmitting
-     station gains control of the medium, it maintains control through two mechanisms:
-     Duration values (which set other stations’ NAVs) and SIFS. First, the value of the Duration
-     field in the MAC header of data fragments and ACK frames is used to reserve the medium
-     for the next fragment. As a backup mechanism, SIFS is used between data fragments
-     and ACK frames in order to preempt those stations that are trying to gain control of the
-     medium using DIFS.
-
+         station gains control of the medium, it maintains control through two mechanisms:
+         Duration values (which set other stations’ NAVs) and SIFS. First, the value of the Duration
+         field in the MAC header of data fragments and ACK frames is used to reserve the medium
+         for the next fragment. As a backup mechanism, SIFS is used between data fragments
+         and ACK frames in order to preempt those stations that are trying to gain control of the
+         medium using DIFS.
+        
 * CH04 802.11 Management Frames
 ** Management Frame Types
     管理帧的结构：
@@ -2066,8 +2066,8 @@
     |---------+------------------------------------------------------------+--------------------|
 
     AP返回一个状态码，0代表关联成功。 并为STA分配一个AID，它是1~2007(2
-    字节长，只用到最低的14个Bit,其他位为1.
-)
+    字节长，只用到最低的14个Bit,其他位为1.)
+
 *** Disassociation
     通信的任何一方都可以主动发出这个帧。 它的格式如下：
     #+CAPTION: Disassociation frame format
@@ -2216,7 +2216,7 @@
 
           This value is an integer expressed in
           beacon interval units (for example, a value of 3 indicates that the station wakes up every
-          three beacons). This fi eld is 2 bytes long, which means that the maximum interval could
+          three beacons). This field is 2 bytes long, which means that the maximum interval could
           be 65,535.
 
 **** Status Code Field
@@ -2411,23 +2411,51 @@
            TIM is also a DTIM.
 
            - DTIM period
+
              the number of beacon intervals between successive DTIMs
-             (for example, 3 means every third beacon is a DTIM).
+             (for example, 3 means every third beacon is a
+             DTIM). Maximum Value is 255, Minimum Value is 1. 
+
            - DTIM Count
+
              how many beacon frames (including the current frame)
              appear before the next DTIM.
 
              A DTIM Count field of 0 indicates that the current TIM is
              a DTIM. A DTIM count of 1 indicates that the next beacon
              is a DTIM.
+
+             MAX DTIM Count = DTIM period - 1
+
            - Bitmap Control field
+
              The first bit of the bitmap control field is used to
              announce the presence of multicast or broadcast traffic
              buffered on the AP. 
 
-             The next 7 bits of the Bitmap Control fi eld, along with
+             The next 7 bits of the Bitmap Control field, along with
              the virtual bitmap, represent the stations in low power
              mode for which the AP has traffic buffered. 
+
+             The remaining seven bits are the Bitmap Offset, which may
+             have any value between 0 and 127. 通过设置它的值，可以节
+             省空间。 Partial Virtual Bitmap从开始起的一些字节全为0，
+             则Bitmap Offset可以显示哪些字节可以被跳过。Bitmap Offset
+             的值乘以2，结果就是Partial Virtual Bitmap中从第一字节开始
+             算全为0的字节数。例如，如果AID在1和39之间的STA都没有缓存
+             的单播帧，则Bitmap Offset的值为2， 则Partial Virtual
+             Bitmap只需要使用一个全零的字节表示，开始的4个字节会认为是
+             全零。
+
+           - Partial Virtual Bitmap
+             
+             The Partial Virtual Bitmap value is just a series of
+             flags (bits set to either a 1 or a 0) indicating whether
+             each associated station has unicast frames buffered at
+             the AP.
+
+             每个分配了AID的STA会对应PartialVirtual Bitmap中的某个比特
+             位，如果比特位为1，则代表AP有缓存该STA的帧。
              
 **** IBSS Parameter Set Element
            This element is present only on probe responses and beacons
@@ -2623,8 +2651,8 @@
         *答案解析*
 
         C. The 802.11-2007 standard describes 12 management frame types: beacon, probe request,
-     probe response, authentication, association request, association response, reassociation
-     request, reassociation response, disassociation, deauthentication, ATIM, and action frame.
+        probe response, authentication, association request, association response, reassociation
+        request, reassociation response, disassociation, deauthentication, ATIM, and action frame.
 
      2. In which frame would you find a timestamp field?
 
@@ -2639,8 +2667,8 @@
         *答案解析*
 
         A. The timestamp is present in beacons and is used by stations associated to the cell as a clock
-     reference. The time synchronization function uses the timestamp to align the stations’ cell
-     clock to the AP clock.
+        reference. The time synchronization function uses the timestamp to align the stations’ cell
+        clock to the AP clock.
 
      3. What is the purpose of the Listen Interval field?
 
@@ -2655,9 +2683,9 @@
         *答案解析*
 
         D. In frames sent from stations to access points (association request, reassociation request),
-     the Listen Interval field is used to indicate to the AP how often a station in Power Save
-     mode wakes to listen to beacon management frames.
-
+        the Listen Interval field is used to indicate to the AP how often a station in Power Save
+        mode wakes to listen to beacon management frames.
+        
      4. In which case would a station send a reassociation frame?
 
         A. To rejoin an IBSS after a member disconnected
@@ -2671,8 +2699,8 @@
         *答案解析*
         
         B. This type of frame can be sent only by a station to an access point and is used when the
-     station is already associated to the ESS and wants to associate to another access point connecting
-     to the same ESS.
+        station is already associated to the ESS and wants to associate to another access point connecting
+        to the same ESS.
 
      5. How does a QoS station request a quality of service commitment
         from its AP?
@@ -2688,11 +2716,11 @@
         *答案解析*
 
         A. QoS station use the ADDTS frame to ask the AP to add a traffic stream to the cell. The
-     ADDTS contains a TSPEC element describing the traffic specifications. There is no such
-     thing as a TSPEC request frame. The QBSS Load Element is present in the beacon to inform
-     potential client stations about the current load in the cell. Schedule is a frame sent by the AP
-     to determine when the service period will start.
-
+        ADDTS contains a TSPEC element describing the traffic specifications. There is no such
+        thing as a TSPEC request frame. The QBSS Load Element is present in the beacon to inform
+        potential client stations about the current load in the cell. Schedule is a frame sent by the AP
+        to determine when the service period will start.
+        
      6. How long do stations have before leaving a channel affected by
         a radar blast?
 
@@ -2707,11 +2735,11 @@
         *答案解析*
 
         B. Stations detecting a radar blast have 10 seconds from the moment of detection to leave
-     the affected frequency. During this interval, they have the right to still send up to 260 milliseconds
-     worth of frames. Upon getting to a new channel, they can respect a quiet interval
-     to listen for radar blasts on the new frequency. This quiet interval is commonly 60 seconds.
-     Stations cannot return to the affected channel for 30 minutes.
-
+        the affected frequency. During this interval, they have the right to still send up to 260 milliseconds
+        worth of frames. Upon getting to a new channel, they can respect a quiet interval
+        to listen for radar blasts on the new frequency. This quiet interval is commonly 60 seconds.
+        Stations cannot return to the affected channel for 30 minutes.
+       
      7. Which of the following is true about the Privacy subfield?
 
         A. When its value is 1, WEP encryption is in place.
@@ -2743,10 +2771,10 @@
         *答案解析*
 
         C. A beacon is sent by default every 102.4 milliseconds or 100 TUs (one time unit is
-     1.024 millisecond). The time at which the next beacon should be sent is the target beacon
-     transmission time (TBTT). The AP tries to send the beacon at each
-     planned TBTT.
-
+        1.024 millisecond). The time at which the next beacon should be sent is the target beacon
+        transmission time (TBTT). The AP tries to send the beacon at each
+        planned TBTT.
+        
      9. Which of the following is the OUI used by the IEEE in the RSN
         information element?
 
@@ -2761,10 +2789,10 @@
         *答案解析*
 
         D. The RSN element uses a cipher suite to describe what encryption should be used for
-     unicast or broadcast/multicast frames. The element is composed of an organization unique
-     identifier representing the cipher vendor and of a cipher number for this vendor. The IEEE
-     uses the OUI 00-0F-AC.
-
+        unicast or broadcast/multicast frames. The element is composed of an organization unique
+        identifier representing the cipher vendor and of a cipher number for this vendor. The IEEE
+        uses the OUI 00-0F-AC.
+       
      10. Which amendment uses FT frames?
 
          A. 802.11i
@@ -2778,7 +2806,7 @@
          *答案解析*
 
          C. FT frames are action frames defined by the BSS Fast Transition amendment 802.11r and
-     are used for fast and secure roaming between APs part of the same ESS.
+         are used for fast and secure roaming between APs part of the same ESS.
 
      11. What should a station where an ADDTS request has been refused
          do next?
@@ -2794,12 +2822,12 @@
          *答案解析*
 
          A. When an ADDTS is denied by an AP, the station cannot get the QoS level it requested,
-     usually because there was not enough space to accept this TS as requested in the cell. The
-     station can retry, hoping that other TSPEC of the same level got terminated and that space
-     becomes available, or it can revert its ADDTS to a lower QoS level and retry. A station
-     would not leave the cell by default, because roaming takes longer than retry, and would not
-     drop its queued traffic. PCF was never implemented by any vendor.
-
+         usually because there was not enough space to accept this TS as requested in the cell. The
+         station can retry, hoping that other TSPEC of the same level got terminated and that space
+         becomes available, or it can revert its ADDTS to a lower QoS level and retry. A station
+         would not leave the cell by default, because roaming takes longer than retry, and would not
+         drop its queued traffic. PCF was never implemented by any vendor.
+        
      12. What information is sent in a TPC report sent from station A
          to station B?
 
@@ -2814,9 +2842,9 @@
          *答案解析*
          
          A. Station A sends its link margin, that is to say what margin it wants B to take when
-     reducing its power. If station A link margin is 5 dB and B calculates that it can send with its
-     power down to 6 dBm, B will send at 11 dBm to respect station A’s link margin request.
-
+         reducing its power. If station A link margin is 5 dB and B calculates that it can send with its
+         power down to 6 dBm, B will send at 11 dBm to respect station A’s link margin request.
+        
      13. What is the category number allocated to QoS-related action
          frames?
 
@@ -2831,10 +2859,10 @@
          *答案解析*
 
          B. The 802.11e amendment defines several action frames. QoS-related frames are Category 1.
-     Category 0 is allocated to spectrum management frames introduced by the 802.11h amendment.
-     Category 4 is used by public action frames introduced by the 802.11w amendment.
-     Category 5 is used by radio measurement action frames introduced by the 802.11k
-     amendment.
+         Category 0 is allocated to spectrum management frames introduced by the 802.11h amendment.
+         Category 4 is used by public action frames introduced by the 802.11w amendment.
+         Category 5 is used by radio measurement action frames introduced by the 802.11k
+         amendment.
 
      14. What does ATIM stand for?
 
@@ -2849,7 +2877,7 @@
          *答案解析*
 
          B. ATIM stands for Announcement Traffic Indication Message. Don’t confuse this acronym
-     with Traffic Indication Map (TIM) or Delivery Traffic Indication Message (DTIM).
+         with Traffic Indication Map (TIM) or Delivery Traffic Indication Message (DTIM).
 
      15. Which information element is a summary of the AP QoS
          capabilities?
@@ -2865,11 +2893,11 @@
          *答案解析*
 
          D. The QoS Capabilities IE summarizes the AP QoS Capabilities. A more extensive support
-     description is given in the EDCA parameter set. TSPEC element is used by stations
-     (not APs) requesting QoS level through ADDTS Request frames. It can be found in the AP
-     answers but only to describe the original station request, not the AP capabilities. The QoS
-     subfield simply informs whether the AP supports QoS, without details about its capabilities.
-
+         description is given in the EDCA parameter set. TSPEC element is used by stations
+         (not APs) requesting QoS level through ADDTS Request frames. It can be found in the AP
+         answers but only to describe the original station request, not the AP capabilities. The QoS
+         subfield simply informs whether the AP supports QoS, without details about its capabilities.
+    
      16. How does an AP hide its SSID (SSID not broadcasted in
          beacons)?
 
@@ -2885,11 +2913,11 @@
          *答案解析*
 
          B. An AP cannot stop broadcasting beacons (most clients would disconnect). The SSID
-     information element has to be present, but its size is not fixed. APs hide the SSID by sending
-     an empty SSID IE. Moving the SSID IE to the vendor-specific section would mean removing
-     the SSID IE from its standard position (order 4 in beacons), which is not allowed by the
-     802.11 standard.
-
+         information element has to be present, but its size is not fixed. APs hide the SSID by sending
+         an empty SSID IE. Moving the SSID IE to the vendor-specific section would mean removing
+         the SSID IE from its standard position (order 4 in beacons), which is not allowed by the
+         802.11 standard.
+        
      17. For which specific conditions does the 802.11 standard
          describe that the NonERPPresent bit should be set in AP
          beacons?
@@ -2905,10 +2933,10 @@
          *答案解析*
 
          C. The standard describes that the NonERPPresent bit should be set by the AP if a non
-     802.11g station (that is, 802.11 or 802.11b) is associated to the AP. Many vendors implement
-     this bit as soon as the station is detected by the AP, thus extending the standard
-     requirements.
-
+         802.11g station (that is, 802.11 or 802.11b) is associated to the AP. Many vendors implement
+         this bit as soon as the station is detected by the AP, thus extending the standard
+         requirements.
+         
      18. How do the Supported Rates and Extended Supported Rates
          information elements specify which rates are mandatory
          (basic)?
@@ -2928,9 +2956,9 @@
          *答案解析*
 
          A. Each rate is coded over 8 bits (bits 0 to 7), representing a multiple of 500 Kbps. Bit 7 is
-     set to 1 when the rate is mandatory and to 0 when the rate is supported. Disabled rates are
-     not listed.
-
+         set to 1 when the rate is mandatory and to 0 when the rate is supported. Disabled rates are
+         not listed.
+    
      19. Which information element describes support for 40 MHz wide
          channels?
 
@@ -2945,9 +2973,9 @@
          *答案解析*
 
          D. The HT Operation element describes how 40 MHz channel support is set. The Channel
-     Bonding information element, HT Extended Channel information element, and HT Frequency
-     Slicing information element do not exist.
-
+         Bonding information element, HT Extended Channel information element, and HT Frequency
+         Slicing information element do not exist.
+      
      20. Which of the following can be identified in an 802.11h
          measurement report frame?
 
@@ -2962,17 +2990,2441 @@
          *答案解析*
 
          B. The basic measurement report can identify other neighboring cells (BSS), OFDM signals,
-     unidentified signals, or recognized radar signatures (in the sense that a radar matches
-     a specific pattern, which 802.11h-compliant stations must recognize). The CCA measurement
-     can also simply report the RF activity in the cell.
+         unidentified signals, or recognized radar signatures (in the sense that a radar matches
+         a specific pattern, which 802.11h-compliant stations must recognize). The CCA measurement
+         can also simply report the RF activity in the cell.
 
 * CH05 802.11 Control Frames
+  控制帧是802.11网络中的“交通警察”， 协助数据帧与管理帧的传送。
+** Understanding Control Frames
+    control frames do not have a frame body. In addition to the PHY
+    and preamble,control frames contain only a layer 2 header and
+    trailer. control frames are typically transmitted at one of the
+    defined basic rates. 
 
+| Type value b3 b2 | Type description | Subtyupe value b7 b6 b5 b4 | Subtype description                            |
+|------------------+------------------+----------------------------+------------------------------------------------|
+|               01 | Control          |                  0000–0110 | Reserved                                       |
+|               01 | Control          |                       0111 | Control  wrapper                               |
+|               01 | Control          |                       1000 | Block     ack     request        (BlockAckReq) |
+|               01 | Control          |                       1001 | Block     ack      (BlockAck)                  |
+|               01 | Control          |                       1010 | PS-Poll                                        |
+|               01 | Control          |                       1011 | RTS                                            |
+|               01 | Control          |                       1100 | CTS                                            |
+|               01 | Control          |                       1101 | ACK                                            |
+|               01 | Control          |                       1110 | CF-End                                         |
+|               01 | Control          |                       1111 | CF-End    and       CF-Ack                     |
+|------------------+------------------+----------------------------+------------------------------------------------|
+
+** Carrier Sense
+    802.11网络进行数据传输前，需要进行载波监听以判断当前媒介是否处于忙
+    碌状态。 载波监听分为虚拟载波监听与物理载波监听 。
+*** Virtual Carrier Sense
+    #+CAPTION: Virtual carrier sense
+    [[./images/2016/2016102501.png]]
+    
+    The stations that are
+    not transmitting listen and hear the Duration/ID, set a countdown timer (NAV), and wait
+    until their timer hits 0 before they can contend for the medium and eventually transmit on
+    the medium.
+
+    A station cannot contend for the medium until its NAV timer is 0, nor can a
+    station transmit on the medium if the NAV timer is set to a
+    nonzero value.
+
+*** Physical Carrier Sense
+    Physical carrier sensing is performed constantly by all stations that are not transmitting
+    or receiving.
+
+    Physical carrier sense has two purposes:
+    1. to determine whether a frame transmission is inbound for a
+       station to receive.
+       If the medium is busy, the radio will attempt to synchronize
+       with the transmission. 
+    2. to determine whether the medium is busy before transmitting.
+       This is known as the clear channel assessment (CCA).
+
+** RTS/CTS Frames
+    RTS/CTS是对虚拟载波机制的一个增强。STA在发送数据前，会先向对方发出
+    一个RTS请求，周围设备侦听到RTS的STA会重新调整它们的NAV的值。 接收
+    方会回一个CTS，周围侦听到CTS的STA也会重新调整它们的NAV的值。这种机
+    制有效地避免了相互都不能侦听到对方发送数据的STA之间的访问冲突。 
+
+    #+CAPTION: RTS frame
+    [[./images/2016/2016102701.png]]
+
+    #+CAPTION: CTS frame
+    [[./images/2016/2016102702.png]]
+
+    #+CAPTION: RTS/CTS Duration values
+    [[./images/2016/2016102703.png]]
+    
+** CTS-to-Self
+    CTS-to-self is used strictly as a protection mechanism for
+    mixed-mode environments.
+    
+    #+CAPTION: CTS-to-self frame Duration values
+    [[./images/2016/2016102704.png]]
+
+    CTS-to-Self相对来说，开销要小些，但是可能会遇到隐藏结点的问题。 
+
+** Protection Mechanism
+    For 802.11g, 802.11b stations, and legacy 802.11 DSSS stations to
+    coexist within the same BSS, the 802.11g devices enable what is
+    referred to as the protection mechanism, also known as 802.11g
+    Protected mode. 
+
+    Many access point vendors offer three confi guration modes for an
+    802.11g access point:
+    1. 802.11b-Only Mode
+       此种模式下，相当于一个802.11b的AP
+    2. 802.11g-Only Mode
+       APs confi gured as g-only will communicate with only 802.11g
+       client     stations using ERP-OFDM technology at data rates of
+       6, 9, 12, 18, 24, 36, 48, and 54 Mbps.     Support for DSSS and
+       HR-DSSS is disabled;
+    3. 802.11b/g Mode
+       默认模式，支持DSSS和OFDM。 
+    
+*** Preventing Collisions
+       802.11g设备在发送数据前，会先发送RTS/CTS或CTS-to-self来获得媒介
+       访问时间，但是发送这些帧的速率必须是802.11b HR-DSSS设备支持的速
+       率，否则这些设备将不能理解接收的数据帧，从而解析不出Duration的
+       值出来。 
+       
+*** ERP Information Element
+        ERP IE包含802.11/802.11b的信息，
+
+        #+CAPTION: ERP information element
+        [[./images/2016/2016102705.png]]
+        The element ID field contains the value 42, which
+        identifies the IE as an ERP IE, and the length field contains the value 3. The fields r3 through
+        r7 are reserved and set to 0 by default.
+
+        The remaining three fi elds are =NonERP_Present=, =Use_Protection=, and =Barker_Preamble_Mode=
+        When a non-ERP station is associated to the BSS, the =Non-ERP_Present= bit is set
+        to 1. If one or more associated non-ERP stations are not capable of using short preambles,
+        then the =Barker_Preamble_Mode= bit is set to 1.
+
+*** Triggering Protection Mechanism
+         802.11g AP来决定是否启用保护机制。它在通过Beacon中的包含ERP
+         IE来传达相关信息。 以下几种情况会触发保护机制：
+         - an HR-DSSS (802.11b) client association will trigger protection.
+         - if an 802.11g AP hears a beacon frame from an 802.11 or
+           802.11b access point or ad hoc client, the protection
+           mechanism will be triggered.
+         - If an ERP AP hears a management frame (other than a probe
+           request) where the supported rate includes only 802.11 or
+           802.11b rates, the =NonERP_Present= bit may be set to 1.
+
+           How Does 802.11b Affect 802.11g Throughput?
+           
+           影响原因不是因为切换到802.11b的速率，实际上，ERP之间的无线
+           传输仍然是以ERP-OFDM的速率传输的，而是因为在保护模式下，发
+           送数据前传送RTS/CTS, CTS-to-self带来的大量的开销。 54Mbps的
+           速率通常情况下会提供18~24Mbps的聚合吞吐量。 而一旦开启保护
+           模式，虽然STA仍然会以ERP的速率传输数据，但是实际的聚合吞吐
+           量则低于13 Mbps甚至低至9 Mbps。 
+
+** Acknowledgement Frame
+    802.11速率传输是半双式模式，所以为了确认数据传输成功，每个单播数据
+    都要一个确认帧，它有14个字节长。 
+
+    Layer 2 重传率过高是影响WiFi性能的一个重要因素。
+
+** Block Acknowledgement Request
+    802.11e 引入了BA机制，将多个确认帧聚合到一个确认帧中，改进了信道传
+    输效率。
+    
+    #+CAPTION: BlockAckReq frame
+    [[./images/2016/2016102706.png]]
+    
+    The Multi-TID and Compressed Bitmap subfields determine whether
+    this is a basic Block ACK request, a compressed Block ACK request,
+    or a multi-TID Block ACK request.
+
+** Block Acknowledgement
+    
+    #+CAPTION: BlockAck frame
+    [[./images/2016/2016102707.png]]
+    
+** PS-Poll
+    #+CAPTION: PS-Poll frame
+    [[./images/2016/2016102708.png]]
+    
+    #+CAPTION: Legacy power management
+    [[./images/2016/2016102709.png]]
+
+** Control Wrapper
+    由802.11n中引入， 用于携带其他的控制帧（不包含Control Wrapper帧）
+    和一些HT控制域。
+    
+    #+CAPTION: Control Wrapper frame format
+    [[./images/2016/2016102710.png]]
+    
+** Contention Free
+    #+CAPTION: CF-End frame format
+    [[./images/2016/2016102711.png]]
+
+    #+CAPTION: CF-End+CF-Ack frame format
+    [[./images/2016/2016102712.png]]
+
+** Review Questions
+    1. ACK and CTS frames follow which interframe space?
+       
+       A. EIFS
+
+       B. DIFS
+
+       C. PIFS
+
+       D. SIFS
+
+       E. LIFS
+
+       *答案解析*
+
+       D. ACK frames and CTS frames may follow a SIFS. LIFS do not exist.
+
+    2. 802.11 collision detection is handled using which technology?
+
+       A. Network allocation vector (NAV)
+
+       B. Clear channel assessment (CCA)
+
+       C. Duration/ID value
+
+       D. Receiving an ACK from the destination station
+
+       E. Positive collision detection cannot be determined
+
+       *答案解析*
+
+       E. 802.11 technology does not use collision detection. If an ACK frame is not received by
+       the original transmitting radio, the unicast frame is not acknowledged and will have to be
+       retransmitted. This process does not specifically determine whether a collision occurs. Failure
+       to receive an ACK frame from the receiver means that either a unicast frame was not received
+       by the destination station or the ACK frame was not received, but it cannot positively determine
+       the cause. It may be because of collision or other reasons such as a high noise level. All
+       of the other options are used to help avoid collisions.
+     
+    3. What would cause an 802.11 station to retransmit a unicast
+       frame? (Choose all that apply.)
+
+       A. The transmitted unicast frame was corrupted.
+
+       B. The ACK frame from the receiver was corrupted.
+
+       C. The receiving station was set to PCF mode.
+
+       D. The transmitting station will attempt to retransmit the data
+       frame.
+
+       E. The transmitting station will send a retransmit
+       notification.
+
+       *答案解析*
+
+       A, B. The receiving station may have received the data, but the returning ACK frame may
+       have become corrupted, and the original unicast frame will have to be retransmitted. If the
+       unicast frame becomes corrupted for any reason, the receiving station will not send an ACK.
+
+    4. A station has enabled protection mechanism and has to enable
+       RTS/CTS to provide NAV reservation. During this process, which
+       of the following frames are transmitted by the station? (Choose
+       all that apply.)
+
+       A. RTS
+
+       B. CTS
+
+       C. DATA
+
+       D. SIFS
+
+       E. ACK
+
+       *答案解析*
+
+       A, C. During the RTS/CTS process, the transmitting station will first transmit the RTS.
+       After a SIFS, the intended recipient of the frame will transmit a CTS. After another SIFS,
+       the station will transmit the data frame, and then following another SIFS, the intended
+       recipient will transmit an ACK if the frame was received correctly.
+     
+    5. When Power Save mode is enabled, the station uses the TBTT to
+       determine when to awaken so that it can listen for the __
+       frame, specifically looking to see whether its __ is set in the
+       __ field.
+
+       A. Data, AID, TIM
+
+       B. Data, AID, ATIM
+
+       C. Beacon, AID, TIM
+
+       D. Beacon, AID, ATIM
+
+       E. Beacon, SID, TIM
+
+       F. Data, SID, TIM
+
+       *答案解析*
+
+       C. When Power Save mode is enabled, the station uses the Target Beacon Transmission
+       Time along with the Beacon frame’s time stamp to know when to awaken prior to the transmission
+       of a Beacon. If the AP has cached frames for the station, it will notify the station by
+       indicating the station’s Association ID (AID) in the Traffic Indication Map (TIM) field.
+      
+    6. While performing a packet analysis, you periodically see some
+       CF-End frames along with some CF-End+CF-ACK frames. Why are
+       these frames occurring? (Choose all that apply.) 
+
+       A. These are corrupted frames
+
+       B. You are running an IBSS network that has PCF enabled.
+
+       C. You are running a BSS network that has DCF enabled.
+
+       D. These are normal frames in a contention network.
+
+       *答案解析*
+       
+       A. Contention-free (CF) frames occur if a Point Coordination Function (PCF) network is
+       configured; however, to our knowledge, no manufacturers have implemented PCF. If PCF
+       were implemented, it would require an AP to operate as the point coordinator, so PCF
+       could not operate on an IBSS or ad hoc network. Since no manufacturers have implemented
+       PCF, the only way these frames could be displaying in the packet analyzer is if other frames
+       are corrupted and are being misidentified as PCF frames.
+   
+    7. Which of the following are protection mechanisms? (Choose all
+       that apply.)
+
+       A. NAV back-off
+
+       B. RTS/CTS
+
+       C. RTS-to-self
+
+       D. CTS-to-self
+
+       E. WEP encryption
+
+       *答案解析*
+       
+       B, D. RTS/CTS and CTS-to-Self provide 802.11g protection mechanisms, sometimes
+       referred to as mixed-mode support. NAV back-off and RTS-to-Self do not exist. WEP
+       encryption provides data security.
+   
+    8. Control frames contain which of the following components?
+       (Choose all that apply.)
+
+       A. Layer 2 header
+
+       B. Layer 3 header
+
+       C. Layer 2 trailer
+
+       D. Layer 3 trailer
+
+       E. Frame body
+
+       F. Data
+
+       *答案解析*
+
+       A, C. Unlike management and data frames, control frames contain only a layer 2 header
+       and trailer.
+
+    9. The Type and Subtype fields are used to identify the function
+       of the frame. The Type field is __ bits long, and the Subtype
+       field is __ bits long.
+
+       A. 2, 2
+
+       B. 2, 4
+
+       C. 4, 4
+
+       D. 4, 8
+
+       E. 8, 8
+
+       *答案解析*
+
+       B. In any frame, the Type field is 2 bits long and identifies whether the frame is a data
+       frame, management frame, or control frame. The Subtype field is 4 bits long.
+
+    10. During a packet capture, you see that the =Barker_Preamble_Mode=
+        bit of the ERP information element is set to 1. What is the
+        likely cause? 
+
+        A. All nodes support ERP.
+
+        B. A station is not capable of using short preambles.
+
+        C. This is a setting that was manually configured on the AP.
+
+        D. A station is only capable of complementary code keying.
+
+        E. This is the default setting.
+
+        *答案解析*
+
+        B, C. If one or more associated NonERP stations are not capable of using short preambles,
+        then the Barker_Preamble_Mode bit is set to 1. This is a setting that can also be manually
+        set on many access points.
+
+    11. Which field in the MAC header of an 802.11 frame resets the
+        NAV timer for all listening 802.11 stations?
+
+        A. NAV
+
+        B. Frame control
+
+        C. Duration/ID
+
+        D. Sequence number
+
+        E. Strictly ordered bit
+
+        *答案解析*
+
+        C. When the listening radio hears a frame transmission from another station, it looks at
+        the header of the frame and determines whether the Duration/ID field contains a Duration
+        value or an ID value. If the field contains a Duration value, the listening station will set its
+        NAV timer to this value.
+        
+    12. Prior to using the Block ACK mechanism to transmit QoS data,
+        which of the following is true? (Choose all that apply.)
+
+        A. The station must first check to see whether the peer
+        station is capable of performing the Block ACK mechanism.
+
+        B. All stations are capable of performing Block ACK, so no
+        validation is required.
+
+        C. Notify the station of the QoS mode being used.
+
+        D. Block ACK cannot be used with QoS data.
+
+        *答案解析*
+
+        A. When a station intends to use the Block ACK mechanism, it must first check to see
+        whether the peer station is capable of performing the Block ACK mechanism.
+
+    13. A station is operating in a mixed-mode environment and is
+        using RTS/CTS to perform NAV distribution. Assuming that the
+        station is not using block acknowledgements, when the station
+        transmits the RTS frame, the Duration field will include the
+        time necessary for which of the following to occur? (Choose
+        all that apply.)
+
+        A. One SIFS
+
+        B. Two SIFS
+
+        C. Three SIFS
+
+        D. RTS transmission
+
+        E. CTS transmission
+
+        F. ACK transmission
+
+        G. Data transmission
+
+        *答案解析*
+
+        C, E, F, G. When RTS/CTS is enabled, the RTS frame performs a NAV distribution by setting
+        its Duration field to the time it will take for the following to occur, in this order: SIFS,
+        CTS transmission, SIFS, Data transmission, SIFS, ACK transmission.
+
+    14. What are the two reasons that 802.11 radios use physical
+        carrier sense? (Choose two.)
+
+        A. Synchronize incoming transmissions
+
+        B. Synchronize outgoing transmissions
+
+        C. Reset the NAV
+
+        D. Start the random back-off timer
+
+        E. Assess the RF medium
+
+        *答案解析*
+
+        A, E. The first purpose is to determine whether a frame transmission is inbound for a station
+        to receive. If the medium is busy, the radio will attempt to synchronize with the transmission.
+        The second purpose is to determine whether the medium is busy before transmitting. This
+        is known as the clear channel assessment (CCA). The CCA involves listening for 802.11 RF
+        transmissions at the Physical layer. The medium must be clear before a station can transmit.
+
+    15. The presence of what type of transmissions can trigger the
+        protection mechanism within an ERP basic service set? (Choose
+        all that apply.) 
+
+        A. Association of an HR-DSSS client
+
+        B. Association of an ERP-OFDM client
+
+        C. HR-DSSS beacon frame
+
+        D. ERP beacon frame with the NonERP Present bit set to 1
+
+        E. Association of an FHSS client
+
+        *答案解析*
+
+        A, C, D. An ERP access point signals for the use of the protection mechanism in the ERP
+        information element in the beacon frame. Three scenarios can trigger protection in an ERP
+        basic service set. If a non-ERP STA associates to an ERP AP, the ERP AP will enable the
+        NonERP_Present bit in its own beacons, enabling protection mechanisms in its BSS. In other
+        words, an HR-DSSS (802.11b) client association will trigger protection. If an ERP AP hears a
+        beacon with an 802.11b or 802.11 supported rate set from another AP or an IBSS STA, it will
+        enable the =NonERP_Present= bit in its own beacons, enabling protection mechanisms in its
+        BSS. If an ERP AP hears a beacon from another ERP access point with the =NonERP_Present=
+        bit set to 1, it also will enable protection mechanisms in its BSS.
+      
+    16. Which of the following frames will receive an acknowledgment
+        if the transmission is successful? (Choose all that apply.)
+
+        A. Simulcast frames
+
+        B. Multicast frames
+
+        C. Broadcast frames
+
+        D. Unicast frames
+
+        *答案解析*
+
+        D. Only Unicast frames will be acknowledged.
+
+    17. While performing a packet analysis, after the data transfer is
+        complete, you notice that you captured three data frames and
+        two ACKs. Which of the following can explain this capture?
+        (Choose all that apply.) 
+
+        A. One of the ACKs is providing a block acknowledgment for two
+        data frames.
+
+        B. One of the frames was not received properly, so there was
+        no ACK.
+
+        C. All frames were received properly; however, for some reason
+        the packet analyzer did not hear the third ACK.
+
+        D. There is not enough information to explain this occurrence.
+
+        E. This is a normal packet capture.
+
+        *答案解析*
+
+        B, C. Every data frame needs to receive an ACK to acknowledge that the data was received
+        properly. Since there are three data frames, there should be three ACKs. One possible reason
+        is the one of these data frames was not successfully received by the intended recipient;
+        therefore, there is no ACK. The other possible reason is that all of the data frames were successfully
+        received and acknowledged. However, the station that was performing the packet
+        analysis did not hear one of the ACKs.
+    
+    18. A station is participating in a mixed-mode network and wants
+        to transmit data. The station is configured to use CTS-to-self
+        as its protection mechanism. Which of the following frames are
+        transmitted by the station? (Choose all that apply.) 
+
+        A. RTS
+
+        B. CTS
+
+        C. Data
+
+        D. ACK
+        
+        E. SIFs
+
+        *答案解析*
+
+        B, C. When CTS-to-self is enabled, the transmitting station will transmit a CTS, wait for
+        a SIFS, and then transmit the data frame. If the frame is received correctly, after another
+        SIFS, the receiving station will transmit an ACK.
+    
+    19. ACKs are required for which of the following frames?
+
+        A. Unicast
+
+        B. Broadcast
+
+        C. Multicast
+
+        D. Simulcast
+
+        *答案解析*
+
+        A. All unicast 802.11 frames must be acknowledged. Broadcast and multicast frames do
+        not require an acknowledgement. Simulcast frames do not exist.
+
+    20. During a basic RTS/CTS transmission, when a station sends. an
+        RTS, the Duration/ID field notifies the other stations that
+        they must set their NAV timers to which of the following
+        values? 
+
+        A. 213 microseconds
+
+        B. The time necessary to transmit the DATA and ACK frames,
+        along with one SIFS
+
+        C. The time necessary to transmit the CTS frame
+
+        D. The time necessary to transmit the CTS, DATA, and ACK
+        frames, along with three SIFS
+
+        *答案解析*
+
+        D. When the RTS frame is sent, the value of the Duration/ID field is equal to the time necessary
+        for the CTS, DATA, and ACK frames to be transmitted, along with a SIFS before
+        each of these frames.
+           
 * CH06 Data Frames
+** Data Subtypes
+     总共定义了15种数据帧类型。 
+
+     #+CAPTION: Data frames: valid Type and Subtype combinations
+     | Type value | Type        | Subtype value |                                       |
+     |       b3b2 | description |   b7 b6 b5 b4 | Subtype description                   |
+     |------------+-------------+---------------+---------------------------------------|
+     |         10 | Data        |          0000 | Data                                  |
+     |         10 | Data        |          0001 | Data + CF-Ack [PCF only]              |
+     |         10 | Data        |          0010 | Data + CF-Poll [PCF only]             |
+     |         10 | Data        |          0011 | Data + CF-Ack + CF-Poll [PCF only]    |
+     |         10 | Data        |          0100 | Null (no data)                        |
+     |         10 | Data        |          0101 | CF-Ack (no data) [PCF only]           |
+     |         10 | Data        |          0110 | CF-Poll (no data) [PCF only]          |
+     |         10 | Data        |          0111 | CF-Ack + CF-Poll (no data) [PCF only] |
+     |         10 | Data        |          1000 | QoS Data [HCF]                        |
+     |         10 | Data        |          1001 | QoS Data + CF-Ack [HCF]               |
+     |         10 | Data        |          1010 | QoS Data + CF-Poll [HCF]              |
+     |         10 | Data        |          1011 | QoS Data + CF-Ack + CF-Poll [HCF]     |
+     |         10 | Data        |          1100 | QoS Null (no data) [HCF]              |
+     |         10 | Data        |          1101 | Reserved                              |
+     |         10 | Data        |          1110 | QoS CF-Poll (no data) [HCF]           |
+     |         10 | Data        |          1111 | QoS CF-Ack + CF-Poll (no data) [HCF]                                      |
+     |------------+-------------+---------------+---------------------------------------------------------------------------|
+
+     there is actually a pattern or system to the Subtype bits, with each of the individual bits
+     having a specific meaning. By changing bit 4 (b4) from a 0 to a 1, the data subtype includes
+     +CF-Ack. Changing bit 5 (b5) from a 0 to a 1 will include +CF-Poll. Changing bit 6 (b6) from
+     a 0 to a 1 will indicate that the frame contains no data, specifically, that it contains no Frame
+     Body field. The most significant bit (MSB) of the Subtype field (bit b7) is defined as the quality
+     of service (QoS) subfield, specifying that the frame is a QoS data frame. This pattern or
+     system applies to all subtypes except for 1101, which is Reserved.
+
+** QoS and Non-QoS Data Frames
+     具有QoS能力的STA即可以传输QoS数据帧，也可以传输Non-Qos数据帧。 当
+     传输QoS数据帧时， 帧控制中的QoS子字段（bit7)为1， 且在帧的头部中
+     包含一个QoS控制域。 
+
+     #+CAPTION: Data Frame format
+     [[./images/2016/2016110101.png]]
+
+     当一个BSS中有QoS和Non-QoS数据时， 传输的情况如下：
+     
+     #+CAPTION: QoS and non-QoS transmissions
+     | Transmitting station | Receiving station | Data frame subtype used                                                                                                                                                            |
+     |----------------------+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+     | Non-QoS station      | Non-QoS station   | Non-QoS frame                                                                                                                                                                      |
+     | Non-QoS station      | QoS station       | Non-QoS frame                                                                                                                                                                      |
+     | QoS station          | QoS station       | QoS frame                                                                                                                                                                          |
+     | QoS station          | Non-QoS station   | Non-QoS frame                                                                                                                                                                      |
+     | All                  | Broadcast         | Non-QoS frame, unless the transmitting station knows that all stations in the BSS are QoS capable, in which case a QoS frame would be used                                         |
+     | All                  | Multicast         | Non-QoS frame, unless the transmitting station knows that all stations in the BSS that are members of the multicast group are QoS capable, in which case a QoS frame would be used |
+     |----------------------+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+     
+** Data-carrying versus non-data-carrying frames
+    几乎一半的数据帧并没有携带数据，其中真正携带数据的数据帧有：
+    - Data (simple data frame)
+    - Data + CF-Ack
+    - Data + CF-Poll
+    - Data + CF-Ack + CF-Poll
+    - QoS Data
+    - QoS Data + CF-Ack
+    - QoS Data + CF-Poll
+    - QoS Data + CF-Ack + CF-Poll
+
+      
+    实际上并没有携带任何数据的数据帧 有： 
+    - Null
+    - CF-Ack
+    - CF-Poll
+    - CF-Ack + CF-Poll
+    - Qos Null
+    - QoS CF-Poll
+    - QoS CF-Ack + CF-Poll
+
+
+    这些没有携带任何数据的数据帧主要用于传达特殊的控制信息到AP或另外的
+    STA。 
+
+** Simple data frames
+    普通的数据帧，一般携带的上层协议数据MSDU，当上报给上层时，MSDU通常
+    会被转换为802.3数据帧格式。 
+
+** Data frame address fields
+    
+    #+CAPTION: Address field contents and usage
+    [[./images/2016/2016110201.png]]
+
+** Fragmentation
+    在干扰比较严重的时候，使用分片机制，可以降低重传的开销。但是，在干
+    扰不是很严重的情况下，分片机制会导致传输开销变大，反而会降低吞吐量。 
+
+    
+** Data frame aggregation
+    
+    #+CAPTION: A-MSDU frame aggregation
+    [[./images/2016/2016110202.png]]
+
+    There are some restrictions for aggregating multiple MSDUs into
+    a single MPDU. The MPDU can only contain MSDUs where the DA and SA values map to the
+    same RA and TA values. All of the MSDUs must also have the same
+    priority value.
+
+    #+CAPTION: A-MPDU frame aggregation
+    [[./images/2016/2016110203.png]]
+
+    The individual MPDUs within an
+    A-MPDU must all have the same receiver address. Also, the individual MPDUs must
+    all be of the same 802.11e QoS access category. A-MPDU also requires the use of block
+    acknowledgments.
+    
+** Rate Selection
+*** Multirate support
+        Every wireless adapter has defined minimum received signal and
+        minimum SNR levels.
+
+        #+CAPTION: WLAN data cell: vendor recommendations
+        [[./images/2016/2016110204.png]]
+        
+*** Basic rates
+         协议标准中定义了基本速率集，每个STA或AP都必须支持。此外，还可
+         以支持基本速率集之外的一些速率 。
+
+*** Dynamic rate selection
+         随着AP与STA之间的距离发生变化，它们之间传输数据使用的速率也会
+         动态变化。 一般来讲，当两者距离增加时，速率会逐渐降低。
+
+         [[./images/2016/2016110205.png]]
+
+** Review Questions
+    1. In the data subtype field, by changing the bits b7–b4 from a
+       binary 0 to a binary 1, which of the following will be added to
+       the basic data frame? (Choose all that apply.) 
+       
+       A. +CF-Ack
+
+       B. (no data)
+
+       C. +CF-Poll
+
+       D. +ToS
+
+       E. QoS
+
+       *答案解析*
+
+       A, B, C, E. The basic data frame is represented by a Subtype of 0 (bits b7–b4 = 0000). By
+       changing any of these Subtype bits, a modification is made to the basic data frame. Most
+       people are not aware that there is actually a pattern or system to the Subtype bits, with each
+       of the individual bits having a specific meaning. By changing bit 4 (b4) from a 0 to a 1, the
+       data subtype includes +CF-Ack. Changing bit 5 (b5) from a 0 to a 1 will include +CF-Poll.
+       Changing bit 6 (b6) from a 0 to a 1 will indicate that the frame contains no data, specifically,
+       that it contains no Frame Body field. The most significant bit (MSB) of the Subtype
+       field (bit b7) is defined as the quality of service (QoS) subfield, specifying that the frame is
+       a QoS data frame. This pattern or system applies to all subtypes except for 1101, which
+       is Reserved. +ToS does not exist.
+      
+    2. When a station transmits a multicast frame, what type of data
+       frame subtype is used?
+
+       A. Non-QoS frame always
+
+       B. QoS frame always
+
+       C. Non-Qos frame unless the transmitting station knows that all
+       stations in the BSS are QoS capable, in which case a QoS frame
+       would be used
+
+       D. Two multicast frames are transmitted, one QoS and one
+       non-QoS
+
+       E. Non-QoS frame unless the transmitting station knows that all
+       stations in the BSS that are members of the multicast group are
+       QoS capable, in which case a QoS Frame would be used.
+
+       *答案解析*
+
+       E. If the transmitting station knows that all stations in the
+       BSS that are members of the multicast group are QoS capable, it
+       will send a QoS frame. If the transmitting station were sending
+       a broadcast frame, then it would send a QoS frame if it knew
+       all stations in the BSS are QoS capable. A QoS station would
+       send a unicast frame only to another QoS station. All other
+       transmissions would be non-QoS. 
+
+    3. Which of the following data frames carry data?
+
+       A. Data
+
+       B. CF-Ack
+
+       C. CF-Ack + CF-Poll
+
+       D. QoS Null
+
+       E. QoS CF-Ack + CF-Poll
+
+       *答案解析*
+
+       A. The only one of these frames that actually carries data is
+       the data frame, also commonly referred to as the simple data
+       frame. The names of all the frames that carry data begin with
+       either Data or QoS Data. 
+
+    4. When transmitting a data frame, the values of the To DS and
+       From DS fields designate the contents of the address
+       fields. During a packet capture of a wireless bridge, what are
+       the values of these fields?
+
+       A. To DS = 0, From DS = 0
+
+       B. To DS = 0, From DS = 1
+
+       C. To DS = 1, From DS = 0
+
+       D. To DS = 1, From DS = 1
+
+       E. Not enough information to determine the values
+
+       *答案解析*
+
+       D. A wireless bridge connection is also referred to as a
+       wireless distribution system. In this case, both the To DS and
+       From DS bits are set to 1. 
+
+    5. When looking at a packet capture, which of the following
+       address field statements is false?
+
+       A. The receiver address is always Address 1.
+
+       B. The transmission address is always Address 2.
+
+       C. Address 3 is always the BSSID when the frame is an A-MSDU
+       frame.
+
+       D. Address 4 is the source address when both the To DS and From
+       DS fields are 1.
+
+       E. The source address is always Address 4.
+
+       *答案解析*
+
+       E. Address 4 is used only when the To DS and From DS bits
+       are 1. Address 1 is always the receiver address, and Address 2
+       is always the transmission address. 
+
+    6. Frame aggregation allows multiple smaller pieces of data to be
+       grouped together into a single frame, reducing the amount of
+       overhead. With the 802.11n amendment, two types of frame
+       aggregation were added. What are the two types? (Choose all
+       that apply.)
+
+       A. A-PPDU
+
+       B. A-PLCP
+    
+       C. A-MSDU
+    
+       D. A-MPDU
+    
+       E. A-MMDU
+
+       *答案解析*
+
+       C, D. With the ratification of the 802.11n amendment, two types
+       of frame aggregation were added to 802.11: aggregate MAC
+       service data unit (A-MSDU) and aggregate MAC protocol data unit
+       (A-MPDU). Frame aggregation allows multiple smaller MSDUs or
+       MPDUs to be grouped together into a single frame, reducing the
+       amount of overhead that would have been necessary for each
+       individual frame. 
+
+    7. When A-MSDU is used to aggregate frames, which of the following
+       is true about encryption?
+
+       A. All of the MSDUs are encrypted together as a single payload.
+
+       B. All of the MPDUs are encrypted together as a single payload.
+
+       C. The MSDUs are encrypted individually, prior to aggregation.
+
+       D. The MPDUs are encrypted individually, prior to aggregation.
+
+       E. A-MSDU does not affect the encryption process.
+
+       *答案解析*
+
+       A. A-MSDU is an aggregation process that combines multiple
+       MSDUs within a single MPDU. The network layer passes the MSDUs
+       down to the MAC layer. Normally at this point each MSDU would
+       be packaged with its own MPDU. With A-MSDU, two or more MSDUs
+       are placed in an MPDU, and a single MAC and PHY layer header is
+       added to the group of MSDUs. If encryption is enabled, then all
+       the MSDUs are encrypted together as a single payload.
+
+    8. A 2.4 GHz access point is configured with basic rates of 5.5
+       and 11 Mbps. Which of the following stations could connect to
+       this AP? (Choose all that apply.)
+
+       A. 802.11 station
+       
+       B. 802.11b station
+       
+       C. 802.11g station
+       
+       D. 802.11a station
+       
+       E. 802.11n station
+
+       *答案解析*
+
+       B, C, E. Since the AP is a 2.4 GHz device, the 802.11a station
+       could not connect. Since 802.11 supports only 1 and 2 Mbps,
+       that station could not connect. The basic rate is required in
+       order to connect to the network. Since 802.11b, 802.11g, and
+       802.11n are all capable of transmitting at 5.5 and 11 Mbps,
+       they can connect. 
+
+    9. When referring strictly to the Point Coordination Function
+       (PCF) media access method, which of the following terms do not
+       apply? (Choose all that apply.) 
+
+       A. Polling
+       
+       B. Contention-free period (CFP)
+       
+       C. Contention free (CF)
+       
+       D. CSMA/CD
+
+       *答案解析*
+
+       D. PCF is a central polling method that provides
+       contention-free access. CSMA/CD is a contention method used by
+       wired Ethernet. 
+
+    10. A-MSDU is being used for frame aggregation. Which of the
+        following statements is true for this process? (Choose all
+        that apply.) 
+
+        A. Two or more MSDUs are placed in an MPDU.
+
+        B. The MPDU can only contain MSDUs that have DA and SA values
+        that map to the same RA and TA values.
+
+        C. If encryption is enabled, the MSDUs are encrypted together
+        as a single payload.
+
+        D. A single MAC and PHY layer header is added to the group of
+        MSDUs.
+
+        E. The MSDUs can have different priority values.
+
+        *答案解析*
+
+        A, B, C, D. With A-MSDU, two or more MSDUs are placed in an
+        MPDU, and a single MAC and PHY layer header is added to the
+        group of MSDUs. If encryption is enabled, then all the MSDUs
+        are encrypted together as a single payload. There are some
+        restrictions for aggregating multiple MSDUs into a single
+        MPDU. The MPDU can only contain MSDUs that have DA and SA
+        values that map to the same RA and TA values. All of the MSDUs
+        must also have the same priority value. 
+
+    11. Which of the following statements is false regarding quality
+        of service (QoS) stations?
+
+        A. When a QoS data frame is transmitted, the frame contains a
+        QoS Control field in the MAC header.
+
+        B. When a non-QoS data frame is transmitted, the QoS Control
+        field in the MAC header is empty.
+
+        C. When a QoS data frame is transmitted, the QoS subfield
+        contains a value of 1.
+
+        D. QoS stations are capable of transmitting both QoS and
+        non-QoS data frames.
+
+        E. It is likely that QoS devices will transmit both QoS and
+        non-QoS data frames in a mixed environment.
+
+        *答案解析*
+        
+        B. Quality of service (QoS) stations are capable of
+        transmitting both QoS and non-QoS data frames. It is not
+        uncommon to have a wireless network that consists of both QoS
+        and non-QoS stations. In this type of mixed environment, it is
+        likely that QoS devices will transmit both QoS data frames and
+        non-QoS data frames depending upon the capabilities of the
+        receiving station. When a QoS data frame is transmitted, the
+        QoS subfield (the b7 bit) contains a value of 1, and the frame
+        contains a QoS Control field in the MAC header. When a non-QoS
+        data frame is transmitted, the QoS subfield (the b7 bit)
+        contains a value of 0, and the QoS Control field is not
+        present in the MAC header. 
+
+    12. A wireless 802.11g adapter supports multiple data rates, with
+        the manufacturer specifications showing a minimum received
+        signal of -73 dBm for the 36 Mbps data rate and a minimum
+        signal-to-noise ratio of 18 dB. For the 54 Mbps data rate,
+        which of the following are likely values? (Choose all that
+        apply.) 
+
+        A. -71 dBm minimum received signal
+
+        B. -77 dBm minimum received signal
+
+        C. 12 dB minimum signal-to-noise ratio
+
+        D. 25 dB minimum signal-to-noise ratio
+
+        *答案解析*
+
+        A,D. Since 54 Mbps is a faster data rate than the 36 Mbps,
+        then the minimum received signal needs to be stronger, and the
+        difference between the signal and the noise needs to be greater.
+
+    13. Which of the following are other terms used for dynamic rate
+        selection? (Choose all that apply.)
+
+        A. Dynamic rate shifting
+
+        B. Fast rate selection
+
+        C. Adaptive rate selection
+
+        D. Automatic rate selection
+
+        *答案解析*
+
+        A, C, D. DRS is also referred to as dynamic rate shifting,
+        adaptive rate selection, and automatic rate selection. All
+        these terms refer to a method of speed fallback on a wireless
+        LAN client as signal quality from the access point decreases. 
+
+    14. During the packet capture of a frame from an AP to a station,
+        which of the following statements about the frame header are
+        true if the frame payload originated from a wired-side server?
+        (Choose all that apply.)
+
+        A. To DS = 1, From DS = 0
+
+        B. Address 1 = RA = DA
+
+        C. Address 2 = TA = BSSID
+
+        D. Address 3 = SA
+
+        E. Address 4 = BSSID
+
+        *答案解析*
+
+        B, C, D. To begin with, Address 1 is always the receiver
+        address, and Address 2 is always the transmitter address. When
+        the frame is transmitted from an AP to a station, the To DS
+        and From DS bits are 01. In this case, the transmitter address
+        is also the address of the BSSID, so Address 2 is also the
+        BSSID address. Since the source of this frame is the AP, then
+        the receiver address and the destination address are the same
+        in Address 1. Address 3 is thus set to the source address, and
+        Address 4 is not used. 
+
+    15. Which of the following is true regarding dynamic rate
+        switching? (Choose all that apply.)
+
+        A. The algorithms used are proprietary and defined by the
+        radio card manufacturers.
+
+        B. The 802.11 standard defines limits for when to switch
+        between different rates.
+
+        C. Most vendors base switching upon RSSI thresholds, packet
+        error rates, and retransmissions.
+
+        D. Strict adherence to the 802.11 rate selection algorithms
+        provides consistent roaming across devices.
+
+        *答案解析*
+
+        A, C. Since the 802.11-2007 standard does not define any
+        specific rate selection algorithm, the algorithms used for
+        dynamic rate switching are proprietary and are defined by
+        radio card manufacturers. Most vendors base DRS on receive
+        signal strength indicator (RSSI) thresholds, packet error
+        rates, and retransmissions. RSSI metrics are usually based on
+        signal strength and signal quality. In other words, a station
+        might shift up or down between data rates based both on
+        received signal strength in dBm and possibly on a
+        signal-to-noise ratio (SNR) value. Because vendors implement
+        DRS differently, you may have two different vendor client
+        cards at the same location, while one is communicating with
+        the access point at 65 Mbps and the other is communicating at
+        6 Mbps. 
+
+    16. A-MSDU is being used for frame aggregation. Which of the
+        following statements is true for this process? (Choose all
+        that apply.)
+
+        A. Two or more MPDUs are placed in a single PPDU.
+
+        B. An MPDU is created for each MSDU.
+
+        C. If encryption is enabled, each MPDU is encrypted
+        individually.
+
+        D. The individual MPDUs must all be of the same 802.11e QoS
+        access category.
+
+        E. Each A-MPDU will receive an ACK.
+
+        *答案解析*
+        
+        A, B, C, D. A-MPDU is an aggregation process that combines
+        multiple MPDUs within a single PPDU. The network layer passes
+        the MSDUs down to the MAC layer, where an MPDU is created for
+        each MSDU. If encryption is enabled, then each MPDU is
+        encrypted individually. The MPDUs are then passed down to the
+        PLCP sublayer where two or more MPDUs are placed in a single
+        PPDU. The individual MPDUs within an A-MPDU must all have the
+        same receiver address. Also, the individual MPDUs must all be
+        of the same 802.11e quality-of-service access category. A-MPDU
+        also requires the use of block acknowledgments.
+
+    17. When A-MSDU is used to aggregate frames, which of the
+        following is true about encryption?
+
+        A. All of the MSDUs are encrypted together as a single
+        payload.
+
+        B. All of the MPDUs are encrypted together as a single
+        payload.
+
+        C. The MSDUs are encrypted individually, prior to aggregation.
+
+        D. The MPDUs are encrypted individually, prior to aggregation.
+
+        E. A-MSDU does not affect the encryption process.
+
+        *答案解析*
+
+        A. A-MPDU is an aggregation process that combines multiple
+        MPDUs within a single PPDU. The network layer passes the MSDUs
+        down to the MAC layer, where an MPDU is created for each
+        MSDU. If encryption is enabled, then each MPDU is encrypted
+        individually. 
+
+    18. For the MSDU or MMPDU fragments to be reassembled, which of
+        the following must be contained in the header of the
+        fragmented frames? (Choose all that apply.)
+
+        A. Frame type
+        
+        B. Address of the sender
+
+        C. Destination address
+
+        D. Sequence Control field
+
+        E. More Fragments indicator
+
+        *答案解析*
+
+        A, B, C, D, E. The header must contain all this
+        information. The Sequence Control field is actually made up of
+        two pieces, the sequence number and the fragment number. The
+        sequence number within this field remains the same for all
+        fragments from the same MSDU or MPDU, while the fragment
+        number within this field is incremented for each individual
+        fragment. 
+
+    19. During a packet capture, you notice that there is a series of
+        fragmented frames. These frame fragments can contain what type
+        of frames? 
+
+        A. Broadcast
+        
+        B. Multicast
+
+        C. Anycast
+
+        D. Unicast
+
+        E. All of the above
+
+        *答案解析*
+
+        D. The 802.11-2007 standard allows for the fragmentation of unicast addressed frames.
+
+    20. When the To DS bit is 1 and the From DS bit is 0, what is the
+        value of the Address 1 field?
+
+        A. Receiver address
+        
+        B. Transmitter address
+
+        C. Destination address
+
+        D. Source address
+
+        E. BSSID
+
+        *答案解析*
+
+        A, E. To begin with, Address 1 is always the receiver address,
+        and Address 2 is always the transmitter address. When the To
+        DS and From DS bits are 10, then the frame is being sent from
+        a station to the distribution system. In this case, the
+        receiver address is also the address of the BSSID, so Address
+        1 is also the BSSID address. Since the source of this frame is
+        the station, then the transmitter address and the source
+        address are the same in Address 2. Address 3 is thus set to
+        the destination address, and Address 4 is not used. 
 
 * CH07 802.11 Medium Contention
 
+** CSMA/CA
+
+*** Distributed Coordination Function
+        对于non-Qo无线网络，CSM/CA使用DCF来竞争媒介。而对于QoS网络，则
+        采用hybrid coordination function (HCF)，它使用了enhanced
+        distributed channel access (EDCA)。与DCF相比，EDCA主要是增加了
+        能区分优先级的参数。它是Wi-Fi Multimedia的核心机制。
+
+        至于 point coordination function (PCF)， HCF使用HCF-controlled
+        channel access (HCCA)来竞争媒介，但并未在真实网络上实现。
+
+*** An Example of 802.11 Medium Contention
+         There are two carrier sense protocols used by stations to
+         indicate whether a channel is busy or idle: 
+         - Physical carrier sense, also known as the clear channel
+           assessment (CCA)
+         - Virtual carrier sense, also known as the network allocation
+           vector (NAV) 
+           
+** Interframe Spaces
+     不同的帧间间隔主要用来差异化媒介的访问。它们的使用规则如下：
+     - If the arbitration has been completed, t NN hen a reduced IFS
+       (RIFS) or short IFS (SIFS) will be used. In most cases, the
+       SIFS is used. The RIFS is only used between consecutive frames
+       transmitted by the same 802.11n device.
+     - If arbitration has not been determined, then an arbitration IFS
+       (AIFS) or DCF IFS (DIFS) will be used. The AIFS is used for
+       WLANs that support 802.11e QoS, and the DIFS is used for WLANs
+       that do not support 802.11e QoS.
+     - If an AP or station has received a corrupted frame—as defined
+       by having an incorrect frame check sequence (FCS)—then an
+       extended IFS (EIFS) will be used.
+     - The PCF IFS (PIFS) is part of PCF and therefore not used in the
+       real world. 
+     
+*** SIFS
+        SIFS是其他IFS的基础，它设置为一个静态的长度，它的长度用于决定
+        其他IFS的长度。根据不同的WLAN类型，SIFS可能会被设置成10ms或
+        16ms。 对于2.4G下的802.11b/g/n设务，SIFS的值为10ms。 对于5G下
+        的802.11a/n设备，SIFS的值为16ms。
+
+        SIFS是一个使用比较普遍的IFS，它问题用于Arbitration完成后。例外
+        是，当802.11n设备正在使用MIMO传输数据，且传输的数据属于某次次
+        CFB(contention-free burst)的一部分，那么就会使用RIFS。
+
+*** RIFS
+        RIFS的长度总是2ms。 只用于使用MIMO传输的802.11n设备，它只在数
+        据帧前面使用。
+
+*** DIFS
+        对于non-QoS设备，一般在arbitration完成之前使用。它的时间长度等
+        于 2*SIFS + 2 * slot times.
+        
+        对于 802.11a/n , 5G下，slot time的长度为9ms。 
+        对于802.11g/n, 2.4G下，且使用了HT或ERP，slot time的长度为9ms。
+        对于802.11a/g/n，2.4G下，使用DSSS物理层，slot time的长度为20ms。
+        当使用长前导码的情况下，开启HT或ERP，则slot time的长度为20ms。
+        802.11 FHSS使用的slot time为50ms，但从来没有实现过。
+
+*** EIFS
+        当检测到Corrupted的帧后，会使用EIFS。
+
+*** PIFS
+        等于 1 slot time + 1 SIFS。 用于给AP提供机会发送Beacon来开启一
+        次CFP。 PIFS比DIFS短。
+
+        在现实生活中，PIFS只用于Channel Switch Announcement，它是
+        802.11h定义的一个Action帧， PIFS使其在Arbitration结束后，马上
+        进行传输。
+
+** Random Backoff
+     在IFS时间结束后，在传输数据之间，需要进行一次退避算法，退避时间一
+     般是slot time的整数倍，它的最小值是0，最大值是CW，当传输帧发生错
+     误时，CW会增大，但是有上限，不同类型的网络上限会有些区别 。
+     
+** Frame Transmission
+    发送一包数据，到收到Ack响应，一次传送过程就结束了。然后会开启第二
+    次传输，所有的STA又会进入一个竞争等待的过程，其中上次退避时间没有
+    到0的会从上次退避时间开始倒数。
+       
+** Quality of Service
+     802.11e定义了HCF功能作为一个新的信道访问方法来改善DCF和PCF。 HCF
+     引入了两种信道访问方法：
+     - HCF controlled channel access(HCCA)
+       Designed to be an improvement for contention-free access (specifically, PCF)
+     - Enhanced distributed channel access(EDCA)
+       Designed to be an improvement for contention-based access
+       (specifically, DCF) 
+
+     QoS BSS划分了4种访问类型，提供访问信道的不同优先级，优先级从高到
+     低依次为： voice, video, best effort, and background. 总体来说，
+     对媒介竞争访问的修改主要在如下几点：
+     - IFS
+       An AIFS is used instead of a DIFS.
+     - CW
+       Different access categories are assigned different CW values.
+     - Frame transmission
+       A transmit opportunity (TXOP) is allocated rather than allowing
+       a single frame.
+
+*** AIFS
+        802.11e网络下代替DIFS。 AIFS不是静态值，它等于一个SIFS以及可变
+        的slot time。不同的优先级传输slot time的数量不一样。slot time
+        的数量也称为arbitration interframe space number (AIFSN). 默认
+        情况下，不同类别的AIFS的长度值如下：
+        - voice and video
+          two slot times
+        - best effort
+          three slot times
+        - background
+          seven slot times
+
+*** QoS-Based Random Backoff Timer
+         这是另外一种区分优先级的情况。 通过设置不同AC下的CWmin和CWmax
+         的值 。
+
+         #+CAPTION: AIFS
+         | Access category | Min x | CW Min | Max x | CW Max |
+         |-----------------+-------+--------+-------+--------|
+         | Voice           |     2 |      3 |     3 |      7 |
+         | Video           |     3 |      7 |     4 |     15 |
+         | Best effort     |     4 |     15 |    10 |   1023 |
+         | Background      |     4 |     15 |    10 | 1023   |
+         |-----------------+-------+--------+-------+--------|
+
+         当两个STA传送的数据属于相同的AC时，则与DCF无异。当两个STA传送
+         的数据不属于相同的AC时，则与DCF差异明显。
+
+         #+CAPTION: EDCA-based channel access: different ACs
+         [[./images/2016/2016110801.png]]
+
+         不过，AC级别低的STA还是有可能先获得媒介的访问权。
+
+*** TXOP
+         TXOP Limit是为STA和AP分配的一段时间，在这段时间内，它们可以一
+         直占用信道 连续发送数据，而不用竞争信道的访问权(multiple
+         frames are transmitted without having arbitration before each
+         frame)。
+
+         #+CAPTION: TXOP
+         [[./images/2016/2016110802.png]]
+
+         
+         802.11e为每种AC定义了默认的TXOP的值 。
+         
+         #+CAPTION: Default TXOP limits
+         | Access category | DSSS (b,g,n) | OFDM (a,g,n) TXOP |
+         |-----------------+--------------+-------------------|
+         | Voice           |         3264 |              1504 |
+         | Video           |         6016 |              3008 |
+         | Best Effort     |            0 |                 0 |
+         | Background      |            0 |                 0 |
+         |-----------------+--------------+-------------------|
+         
+** 802.11n
+      802.11n adds two features to channel access that improve the
+      efficiency of the data/acknowledgment process: the RIFS and the
+      block acknowledgment. 
+      
+*** Block Acknowledgments
+        The block acknowledgment process is designed to make TXOPs
+        more efficient. 
+
+        By adding the block acknowledgment, 802.11n stations are able
+        to transmit larger numbers of data frames within a TXOP.
+
+        In the real world, the block acknowledgment is used in a
+        different way.
+        1. TXOP rarely used.  even when the TXOP is used, stations and
+           APs almost never have more than one frame ready for
+           transmission at any given moment.
+        2. so 802.11n devices use the block acknowledgment to
+           acknowledge aggregated frames.
+
+*** RIFS
+        used when a TXOP, CFB, and block acknowledgment are all in
+        use.
+        
+        RIFS is defined only in 802.11n. 
+        
+        #+CAPTION: RIFS
+        [[./images/2016/2016110803.png]]
+        
+** Review Questions
+    
+    1. Which coordination function is an optional method that is not
+       used in real-world 802.11 APs?
+       
+       A. ACF mode
+
+       B. DCF mode
+
+       C. ECF mode
+
+       D. PCF mode
+
+       *答案解析*
+
+       D. PCF mode is the coordination function that involves the AP
+       taking control of the BSS at regular intervals in order to
+       regulate channel access. It is optional in the 802.11 standard
+       and unavailable in APs. DCF mode is the coordination function
+       that involves all 802.11 devices—APs and stations—arbitrating
+       equally for channel access. It is required in the 802.11
+       standard. ACF mode and ECF mode are not 802.11 coordination
+       functions. 
+
+    2. Which of the following will cause a 2.4 GHz 802.11n station to
+       stay quiet even though it has data ready to be transmitted?
+
+       A. An 802.11b station from a nearby BSS is transmitting a data
+       frame, and the received signal is above the ED threshold.
+
+       B. An 802.11b station associated to the same BSS is
+       transmitting a data frame, and the received signal is below the
+       ED threshold. 
+
+       C. A Bluetooth pairing has been made and detected on the
+       channel by the AP.
+
+       D. The 2.4 GHz 802.11n station has just chosen zero slot times
+       in the random backoff timer.
+
+       *答案解析*
+
+       A. APs and stations stay quiet because of the CCA being set to
+       Busy whenever another 802.11 transmission is detected above the
+       ED threshold. In the case of a 2.4 GHz 802.11n station, that
+       means an 802.11b, 802.11g, or 802.11n frame transmission
+       received above the ED threshold will cause the CCA to be set to
+       Busy, no matter which BSS the frame emanates from. If frames
+       are received at a signal below the ED threshold, then stations
+       set the CCA to Idle and frames may be transmitted. Bluetooth
+       transmissions will not set the CCA to Idle in 802.11
+       stations. When zero slot times have been chosen in the random
+       backoff timer, an 802.11 device immediately transmits a frame.
+
+    3. Which IFS is used only in between frame transmissions by the
+       same AP or station?
+
+       A. AIFS
+
+       B. EIFS
+       
+       C. RIFS
+
+       D. SIFS
+
+       *答案解析*
+
+       C. The RIFS, which was introduced with 802.11n, is used
+       exclusively between frames transmitted during a single CFB. A
+       single CFB is always transmitted by a single station. The AIFS
+       and EIFS are used exclusively between frames transmitted by
+       different stations. The SIFS may be used during a CFB, but it
+       may also be used prior to an acknowledgment, which would place
+       it between frames transmitted by different stations. 
+
+    4. When an 802.11n station begins the arbitration process after a
+       failed frame transmission, which IFS is used?
+
+       A. AIFS
+       
+       B. DIFS
+
+       C. EIFS
+
+       D. SIFS
+
+       *答案解析*
+
+       A. Even if the previous frame transmission failed, 802.11n
+       stations will always use the AIFS during arbitration. DIFS is
+       used during the arbitration process for 802.11a/b/g stations
+       that are not using 802.11e QoS if the previous frame seen on
+       the channel was not corrupted. EIFS is used only if the
+       previous frame transmission on the channel was received as
+       corrupted. This is the case for all 802.11a/b/g/n
+       stations. SIFS is never used during arbitration. 
+
+    5. Which two access categories use the same default AIFSN values
+       by default? (Choose two.)
+
+       A. Voice
+       
+       B. Video
+
+       C. Best effort
+
+       D. Background
+
+       *答案解析*
+
+       A, B. The voice and video access categories both have default
+       AIFSN values of 2. The best effort access category has a default
+       AIFSN value of 3. The background access category has a default
+       AIFSN value of 7. 
+
+    6. Which two access categories use the same default CW values by
+       default?
+
+       A. Voice
+
+       B. Video
+
+       C. Best effort
+
+       D. Background
+
+       *答案解析*
+       
+       C, D. The best-effort and background access categories both
+       have default CWmin values of 15 and default CWmax values
+       of 1023. The voice access category has a default CWmin value of
+       3 and a default CWmax value of 7. The video access category has
+       a default CWmin value of 7 and a default CWmax value of 15. 
+
+    7. An AP without RTS/CTS enabled, a station with an RTS/CTS
+       enabled, and a station with RTS/CTS disabled all have a data
+       frame ready to be transmitted as part of the same BSS. Which
+       device will transmit first? 
+
+       A. The station with RTS/CTS enabled will always transmit first.
+
+       B. The AP will always transmit first.
+
+       C. The station without RTS/CTS enabled will be allowed to
+       transmit first only if it chooses the lowest slot time during
+       the random backoff timer. 
+
+       D. The station with RTS/CTS enabled will be allowed to transmit
+       first only if it chooses the highest number of slot times
+       during the random backoff timer.
+
+       *答案解析*
+
+       C. The station or AP that has the lowest amount of time from
+       the combination of the IFS and the random backoff timer will
+       always transmit first. That means a low number of slot times
+       allows a station to transmit first. RTS/CTS settings do not
+       affect which station or AP will gain access to the channel
+       first when multiple devices have data ready to transmit. APs do
+       not have priority over stations when accessing the wireless
+       channel. 
+
+    8. In a mixed mode 5 GHz WLAN, which of the following devices
+       would transmit first?
+
+       A. An 802.11n AP with a beacon frame to transmit after choosing
+       two slot times
+
+       B. An 802.11n station with a data frame to transmit after
+       choosing one slot time
+
+       C. An 802.11n station with a data frame to send and RTS/CTS
+       enabled, no matter what number of slot times are chosen 
+
+       D. An 802.11a station with a data frame to transmit after
+       choosing zero slot times
+
+       *答案解析*
+
+       D. The station or AP that chooses the lowest number of slot
+       times during the random backoff timer will always transmit
+       first. Frame type, 802.11a/b/g/n standards support, and RTS/CTS
+       do not affect which station will transmit first when multiple
+       stations have data ready to be transmitted.
+
+    9. What is the minimum CWmin value for an 802.11b AP?
+
+       A. 15
+       
+       B. 16
+
+       C. 31
+
+       D. 32
+
+       *答案解析*
+
+       C. The default CWmin value for 802.11b devices is 31. That is
+       the default CWmin value whenever DSSS frame transmissions are
+       ready to be sent. The default CWmin value for 802.11a/g/n
+       devices is 15. Finally, 16 and 32 are not default CWmin values
+       under any circumstance。 
+
+    10. What is the non-QOS CW value for an 802.11g station when it is
+        about to transmit its second retry frame to an 802.11n AP?
+
+        A. 63
+
+        B. 64
+
+        C. 127
+
+        D. 128
+
+        *答案解析*
+
+        A. An 802.11g station associated to an 802.11n AP will have a
+        default CWmin value of 15. The CW will increase exponentially
+        with each retry. On the first retry, the CW value will be 31,
+        and on the second retry the CW value will be 63. On the third
+        retry from an 802.11g station that is about to transmit to an
+        802.11n AP, a CW value of 127 will be used. Finally, 64 and
+        128 are not CW values under any circumstances. 
+
+    11. When will an EIFS be used prior to a frame transmission?
+        
+        A. When a corrupted frame has been received
+        
+        B. When a station is about to send a retransmitted frame
+        
+        C. When an 802.11n station is about to transmit on a mixed
+        mode 802.11b/g/n or 802.11a/n BSS
+
+        D. When an 802.11a/b/g station is about to transmit on a mixed
+        mode 802.11b/g/n or 802.11a/n BSS
+
+        *答案解析*
+
+        A. The EIFS is used only after a corrupted frame has been
+        received. When a station has failed to receive an
+        acknowledgment after a frame transmission, it sends a
+        retransmitted frame. The retransmitted frame will be sent
+        after either DIFS (non-QoS) or AIFS (QoS). Distinctions
+        between 802.11a/b/g/n do not affect whether the EIFS is used
+        prior to a frame transmission.
+
+    12. Which well-known problem is EIFS known to cause?
+        
+        A. Hidden node
+
+        B. Mixed mode
+
+        C. Near/Far
+
+        D. Protection mechanism
+
+        *答案解析*
+
+        C. Near/Far may be caused by EIFS because successful frame
+        transmissions may be seen as corrupted if stations are too far
+        from the AP. The hidden node problem is caused by two stations
+        or APs that cover the same transmission area but cannot hear
+        each other’s transmissions. Mixed mode and protection
+        mechanism are not problems. 
+
+    13. Which 802.11e QoS channel access method requires the QoS AP to
+        take control of the wireless channel and manage service
+        periods for associated stations?
+
+        A. DCF mode
+        
+        B. PCF mode
+
+        C. HCF mode using EDCA
+
+        D. HCF mode using HCCA
+
+        *答案解析*
+
+        D. HCF mode using HCCA is a QoS-based channel access method
+        that involves the AP taking control of the wireless channel in
+        order to manage station service periods. DCF mode and HCF mode
+        using EDCA do not involve the AP taking control of the
+        wireless channel. PCF mode does involve the AP taking control
+        of the wireless channel, but it comes from the original 802.11
+        standard, not the 80211e QoS amendment. 
+
+    14. Which IFS is used prior to the random backoff timer when a QoS
+        AP or station is about to transmit a frame and a corrupted
+        frame has just been received? 
+
+        A. AIFS
+
+        B. DIFS
+        
+        C. EIFS
+
+        D. PIFS
+
+        *答案解析*
+        
+        C. The EIFS is used prior to frame transmission any time a
+        corrupted frame has just been received. The AIFS is used prior
+        to frame transmission when data frames are about to be sent by
+        QoS devices. The DIFS is used prior to frame transmission when
+        data frames are about to be sent by non-QoS devices. The PIFS
+        is used by APs to take control of the wireless channel before
+        a contention-free period when in PCF mode. 
+
+    15. By default, what is the AIFSN value for the background access
+        category?
+
+        A. 2
+        
+        B. 3
+
+        C. 5
+
+        D. 7
+
+        *答案解析*
+
+        D. The background AC has a default AIFSN value of 7. Higher
+        AIFSN values give traffic a lower priority, and background is
+        designed to be the lowest-priority AC. Voice and video traffic
+        uses an AIFSN value of 2 by default, and best-effort traffic
+        uses a default AIFSN value of 3. There is no AC with a default
+        AIFSN value of 5. 
+
+    16. By default, what is the minimum CW value for the video access
+        category?
+
+        A. 3
+        
+        B. 7
+        
+        C. 15
+
+        D. 31
+
+        *答案解析*
+        
+        B. The default CWmin value for the video AC is 7. That gives
+        video traffic a lower priority level than voice traffic (which
+        has a default CWmin value of 3) and higher priority than
+        besteffort and background traffic (which both have default
+        CWmin values of 15). 802.11b stations and APs that do not
+        support QoS use the default CWmin value of 31. 
+
+    17. If an AP is configured with the TXOP limit for the voice
+        access category left to the default value of 47, how many
+        microseconds will the maximum TXOP be for traffic that uses
+        the voice access category?
+        
+        A. 47
+
+        B. 188
+
+        C. 470
+
+        D. 1504
+
+        *答案解析*
+
+        D. The TXOP limit value is multiplied by 32 to determine the
+        maximum number of microseconds in a TXOP. Therefore, a TXOP
+        limit value of 47 would result in a maximum TXOP of 1504
+        microseconds. 
+
+    18. What protocols are required in 802.11n to make TXOPs more
+        efficient that are not required in 802.11e? (Choose two.) 
+
+        A. Block acknowledgments
+
+        B. CFB
+
+        C. CWmax
+
+        D. RIFS
+
+        *答案解析*
+        
+        A, D. Block acknowledgments are optional in 802.11e but
+        required in 802.11n. Block acknowledgments make the channel
+        more efficient by reducing the number of acknowledgment frames
+        on the channel. The RIFS is not part of 802.11e and is
+        required in 802.11n. The RIFS is an interframe space of 2
+        microseconds, allowing the channel to be more efficient than
+        when the SIFS of 10 or 16 microseconds is used. CFBs were
+        introduced in 802.11e and are required. CFBs do make the
+        channel more efficient by allowing multiple data frames to be
+        transmitted without going through arbitration for each
+        frame. CWmax was part of the 802.11 standard. A low CWmax
+        value could make the wireless channel more efficient because
+        large CW values can cause stations to spend a large amount of
+        time in the random backoff timer before transmitting a frame.
+
+    19. How many frames will be transmitted within a TXOP if the
+        transmitting AP has four frames to send and block
+        acknowledgments are not used? 
+
+        A. 4
+
+        B. 6
+
+        C. 8
+
+        D. 10
+
+        *答案解析*
+
+        C. If block acknowledgments are not used, then one
+        acknowledgment must be received for every data frame
+        sent. That means a total of eight frame transmissions during a
+        TXOP that includes a four-frame CFB. If block acknowledgments
+        were used, a four-frame CFB would result in six total frames
+        being sent during the TXOP. 
+
+    20. How long is the RIFS?
+
+        A. 2 microseconds
+
+        B. 10 microseconds
+
+        C. 16 microseconds
+
+        D. 32 microseconds
+
+        *答案解析*
+        
+        A. RIFS is 2 microseconds. SIFS is 10 microseconds for 2.4 GHz
+        802.11b/g/n devices and 16 microseconds for 5 GHz 802.11a/n
+        devices. 
+
 * CH08 Power Management
+** Wireless Radios and Battery Life
+     一个无线设备会执行如下如下4种活动：
+     1. Asleep
+     2. Idle and awake
+     3. Receiving
+     4. Transmitting
+
+     这些活动的耗电量依次变大。802.11省电管理就是要让一个无线设备尽量
+     的处于低耗电量的状态下，尽量减少高耗电量的活动，只在必要的时候才
+     执行高耗电量的活动(RX & TX)。 另外，也要让 RX & TX执行得更有效率。
+
+*** Power Save Modes
+        1. Active Mode
+           此状态下STA与AP总是处于准备发送和接收数据的状态。
+        2. Power Save Mode
+           此状态下STA处于休眠状态下，不能接收数据帧。
+           处于此种状态下的STA并不一定一直保持休眠状态, 只是说明AP会认
+           为STA处于休眠状态，所以会缓冲发往STA的帧 直到STA发送一个帧
+           来向AP请求缓存的数据。
+
+*** Power States
+        当一个STA处于Power Save Mode，它会在如下两种状态下之间进行切换：
+        - Doze State
+          The station is saving the most battery life.
+        - Awake State
+          The station may either be idle, receiving, or transmitting.
+
+        目前存在有3种802.11省电管理协议，但它们的目标都是一致的：最大
+        化Doze State的时间，最小化Awake/Idle的时间。
+
+        任何一种省电管理方法都会遵循如下步骤：
+        1. Before a station goes into the doze state, it sends a
+           frame, usually a null data frame, to the AP indicating that
+           power management is enabled
+           
+           #+CAPTION: Station sends a null data frame
+           [[./images/2016/2016112801.png]]
+
+        2. Once the station indicates that it is in Power Save mode,
+           the AP begins to buffer all frames destined to that
+           station.
+
+           #+CAPTION: AP buffers data
+           [[./images/2016/2016112802.png]]
+
+        3. When the station goes into the awake state (more on that
+           later), it sends a frame to the AP in order to begin the
+           data retrieval process 
+
+           #+CAPTION: Station retrieves data
+           [[./images/2016/2016112803.png]]
+
+        4. When the AP has finished sending all buffered data to the
+           station, the station goes back into the doze state
+
+           #+CAPTION: Station returns to the doze state
+           [[./images/2016/2016112804.png]]
+
+** Power Management Structure
+     到目前为止，在802.11家族中，有三种省电管理方法：
+     1. 802.11 power management
+        Legacy Method
+     2. Unscheduled automatic power save delivery (U-APSD) from the 802.11e amendment
+     3. Power save multi-poll (PSMP) from the 802.11n amendment.
+
+*** Association Identifier
+        省电管理始于STA与AP关联成功的最后一步。AP返回的Association
+        Response会分配一个AID(1~2007)给刚关联上的STA。AID为0时，代表有
+        缓存广播帧。
+        
+        一旦STA获得了AID，就可以进入省电模式了。STA进入省电状态时，通
+        常会一个Null数据帧，其中的Power Management位置为1，AP收到该帧
+        后，会为该STA缓存数据帧。 当STA处于省电模式后，其行为就与各厂
+        商的实现有关。
+
+        STA从休眠状态醒来有三个原因， *第一个原因* 是该STA有帧待传。这
+        咱情况下STA会马上醒来并发送帧。发送完成后，它会进入休眠模式或
+        者是活跃模式继续发送帧。可通过802.11头部的Power Management位看
+        出。
+
+*** Traffic Indication Map
+        *第二个原因* 是STA内部的某种机制来唤醒STA。 
+        当STA依赖其内部某种机制定期唤醒的时候，它会计算它们的唤醒时间，
+        使得在Beacon到达前及时唤醒。因为beacon帧携带了TIM信息列出了哪
+        些STA需要向AP请求缓存帧。
+        
+*** Delivery Traffic Indication Message
+         DTIM beacon帧与其他的beacon帧一样，唯一的区别是TIM IE显示的信
+         息是关于缓存在AP中的广播/多播帧情况。当一个beacon帧是DTIM
+         beacon帧时，如下两个值会受影响：
+         - DTIM Count
+           This will always be set to 0.
+         - Bitmap Control
+           使用第一个比特位，如果为1，表示AP有缓存广播/多播帧，为0时，
+           代表没有。
+
+** 802.11 Power Management
+      如下一些方面，使得802.11省电管理与众
+      不同：
+      - Stations Stay in Power Save Mode
+        在第三步中，STA通过向AP发送一个帧来取数据，其中802.11头部中的
+        Power Management位置为1. 
+
+        在第四步中，当取完数据后，STA不用通知AP就可以进入休眠状态，因
+        为STA一直处于Power Save模式下。
+
+      - Power Save Poll (PS-Poll) Frames Are Used
+        在第三步中，STA向AP发送PS-Poll帧来取数据。
+      - Stations Transmit Frames While in Power Save Mode
+        STA传输的帧中的Power Management位被置为1. 
+
+
+      802.11省电管理有如下一些局限：
+      1. 增加了无线信道的开销。
+         PS-POLL没有包含数据。传输这些帧会降低信道的最大吞吐量。802.11
+         省电管理中，要求向AP取每笔数据前，都要先发一个PS-POLL帧。
+      2. STA花费了太多时间在传输帧
+         STA处于传输状态是最耗电的。由于在取每笔数据前都要先发一个
+         PS-POLL帧，增加了传输时间，从而增加了耗电时间。这也是802.11省
+         电管理在实际上应用很少的原因。
+        
+** 802.11e U-APSD
+     U-APSD是802.11e修订一部分，也是WMM-Power Save认证中的一部分，同时
+     也是802.11n STA必需的功能。 
+
+     整体框架上，U-APSD与802.11省电管理的步骤一样，但有如下一些区别：
+     - Stations Vacillate Between Active Mode and Power Save Mode
+
+       在802.11省电管理中，STA始终处于Power Save模式下，只是在Awake和
+       Doze状态之间来回在切换。
+
+       在第三步中，通常STA会发送一个Null数据帧向AP取Buffered的数据。
+       
+       #+CAPTION: Station retrieves data
+       [[./images/2016/2016112805.png]]
+
+       在第四步中，STA必须显式地通知AP后，才能进入Doze状态。AP也才会重
+       新为STA缓存发送的帧。
+
+       #+CAPTION: Station returns to the doze state
+       [[./images/2016/2016112901.png]]
+
+     - PS-Poll Frames Are Not Used
+       
+       通常使用Null-Data来向AP取数据，并且是一次性取的，不会取一次发一
+       次Null-Data。
+
+       U-APSD相对802.11省电管理来说，是一种更高级的省电管理机制，任何
+       时候都应该尽量使用它。由于U-APSD是从802.11e修订引进的，现实中大
+       量的STA可能并不支持802.11e。 但是许多STA支持U-APSD-esque省电管
+       理方法。它们取AP的缓存数据时，都只需要发一次null-data数据帧，差
+       异主要体现在AP发送缓存的单播帧时，当使用U-APSD时，之前缓存的数
+       据帧是通过一个TXOP来连续发送的，使用较小的SIFS或RIFS(对于
+       802.11n设备来说)。而non-802.11e模式下，则必须遵循一般的媒介竞争
+       访问机制，帧间传输需要经历一个DIFS时间以及随机退避时间。
+
+       当一个TXOP时间只允许传输一个帧的话，实际上两者之间就是等同的。
+     
+** 802.11n Power Management
+     802.11n设备实际上是使用U-APSD，虽然802.11n省电管理包含了
+     PSMP(power save multi-poll)和SMPS(spatial multiplexing power save)。
+
+*** SMPS
+        SMPS involves stations reducing the number of data streams
+        used during spatial multiplexing. 
+
+*** PSMP
+        基于S-APSD之上的一种Power Management方法，主要应用于使用HCCA
+        信道访问控制机制的网络 。
+    
+
+** IBSS Power Management
+     The basic structure is the same: stations send a notification
+     before dozing, and then frames get buffered, and finally the
+     dozing stations wake up in order to retrieve their frames. The
+     difference is that there is no central AP to buffer the frames,
+     and there is no need for a TIM or DTIM. 
+
+     To accommodate the fact that multiple devices may be buffering frames for one dozing
+     station, IBSS power management introduces the use of the announcement traffic indication
+     message (ATIM) frame.
+
+     When a station receives an ATIM frame, that formerly dozing station must begin the process of
+     retrieving buffered frames from the station that transmitted the ATIM.
+
+** Review Questions
+    1. Which one of the following 802.11 amendments defined new power
+       management methods, involving stations entering the doze state,
+       that are used in real-world devices? (Choose all that apply.)
+       
+       A. 802.11b
+
+       B. 802.11e
+
+       C. 802.11h
+
+       D. 802.11n
+
+       *答案解析*
+
+       B, D. 802.11e defined U-APSD and 802.11n defined unscheduled
+       PSMP, which are used in real-world stations and APs that are
+       WMM Power Save certified. 802.11b and 802.11h amendments did
+       not define new power management methods. 
+
+    2. Which of the following frame types is typically used by
+       stations to notify an AP of a change in power management mode? 
+
+       A. Acknowledgment
+       
+       B. Null data
+
+       C. PS-Poll
+       
+       D. RTS
+
+       *答案解析*
+
+       B. Null data frames use the power management flag in the 802.11
+       header to change between active mode and Power Save
+       mode. Acknowledgment and RTS frames do not play a role in power
+       management. PS-Poll frames are used in power management, but
+       they are typically used to retrieve buffered unicast frames
+       from the AP, not to notify the AP of a change in power state.
+
+    3. Which of the following states drains the most battery life?
+
+       A. Doze
+
+       B. Idle
+
+       C. Receive
+
+       D. Transmit
+
+       *答案解析*
+       
+       D. The transmit state drains the most battery life. The receive
+       state drains the second-most battery life, idle drains the
+       third most, and doze drains the least battery life. 
+
+    4. Which of the following states drains the least battery life?
+       
+       A. Doze
+
+       B. Idle
+
+       C. Receive
+
+       D. Transmit
+
+       *答案解析*
+
+       A. The doze state drains the least battery life. The idle state
+       drains the second-least battery life, receive drains the third
+       most, and transmit drains the most battery life. 
+
+    5. Which power management method uses the PS-Poll frame?
+
+       A. 802.11 power management
+
+       B. 802.11 power save polling
+
+       C. 802.11e automatic power save delivery
+
+       D. 802.11n power save multi-poll
+
+       *答案解析*
+
+       A. 802.11 power management is the only power management method
+       that uses the PS-Poll frame. 802.11 power save polling is not a
+       power management method. 802.11e APSD uses null data frames to
+       alternate between power management modes. 802.11n PSMP does not
+       use PS-Poll frames. 
+
+    6. If the only station that has buffered unicast frames at the AP
+       was assigned an AID of 27, what will be the value of the Bitmap
+       Offset in the TIM information element? 
+
+       A. 1
+
+       B. 2
+
+       C. 3
+
+       D. 4
+
+       *答案解析*
+
+       A. The Bitmap Offset defines how many 8-bit sequences (octets) may be eliminated from
+       the Partial Virtual Bitmap field because of the stations not having unicast frames buffered
+       at the AP. Each station is assigned an AID, and if the station does not have any unicast
+       frames buffered at the AP, then the value for that station’s AID in the Partial Virtual Bitmap
+       is 0. If an entire byte of AIDs at the start of the bitmap are 0s (AIDs 0–7, 8–15, 16–24, and
+       so on), then a Bitmap Offset value can be set. If the station with an AID of 27 is the first
+       AID with unicast frames buffered at the AP, then a Bitmap Offset value of 1 (meaning that
+       AIDs 0–7 and 8–15 are all set to 0) would be used.
+
+       If the Bitmap Offset were set to 2, then AIDs 0–7, 8–15, 16–23,
+       and 24–31 would all be equal to 0. Since AID 27 is equal to 1
+       in the Partial Virtual Bitmap, 2 is incorrect. 
+       
+    7. What is the minimum value of the Length field of the TIM
+       information element? 
+
+       A. 4
+
+       B. 5
+       
+       C. 6
+       
+       D. 7
+
+       *答案解析*
+
+       A. The Length field defines how many bytes are used by
+       information carrying fields in the TIM information element. The
+       DTIM Count, DTIM Period, Bitmap Control, and Partial Virtual
+       Bitmap are the fields of the TIM, and each field has a minimum
+       length of 1 byte. Therefore, 4 is the lowest possible value for
+       the Length field. 
+
+    8. What is the element ID of the TIM information element?
+
+       A. 4
+
+       B. 5
+
+       C. 6
+
+       D. 7
+
+       *答案解析*
+
+       B. 5 is the element ID for the TIM information element.
+
+    9. Which of the following is false?
+
+       A. Stations must use the PS-Poll frame to retrieve buffered
+       unicast frames from the AP when 802.11 power management is
+       used.
+
+       B. Stations use the DTIM beacon to view information about
+       unicast, multicast, and broadcast frames that are buffered at
+       the AP. 
+
+       C. Stations must always be awake when DTIM beacon frames are
+       sent by the AP.
+
+       D. Stations using 802.11e U-APSD will never transmit a PS-Poll
+       frame.
+
+       *答案解析*
+
+       C. Stations with the Receive DTIMs setting set to false will
+       not wake up for DTIM beacon frames from the AP. 802.11 power
+       management does involve stations retrieving unicast frames from
+       the AP using PS-Poll frames. DTIM beacon frames do carry
+       information about unicast, multicast, and broadcast frames
+       buffered at the AP. U-APSD does not support the use of PS-Poll
+       frames. 
+
+    10. Which additional fields are added to the TIM information
+        element in a DTIM beacon frame?
+        
+        A. DTIM Count
+        
+        B. DTIM Period
+        
+        C. Both A and B
+        
+        D. Neither A nor B
+
+        *答案解析*
+
+        D. The DTIM Count and DTIM Period fields are present in all
+        TIM information elements of beacon frames. If a beacon is a
+        DTIM beacon, then the DTIM Count field will be set to 0. The
+        DTIM Period field plays no role in identifying whether a
+        beacon is a DTIM beacon. 
+
+    11. Which type of power management frame is used only in an IBSS?
+
+        A. ATIM
+
+        B. DTIM
+        
+        C. CF-Poll
+
+        D. PS-Poll
+
+        *答案解析*
+
+        A. The ATIM is a frame used in IBSS networks to allow a
+        station with frames in its buffer to notify a sleeping station
+        that the frames are ready to be retrieved. DTIM is not a type
+        of frame. CF-Poll and PS-Poll frames are not unique to IBSS
+        networks. 
+
+    12. Which type of frame used during power management is a control
+        frame?
+
+        A. ATIM
+
+        B. Beacon
+
+        C. PS-Poll
+
+        D. Null
+
+        *答案解析*
+
+        C. The PS-Poll is a control frame. The ATIM and beacon frames
+        are management frames. The null frame is a data frame. 
+
+    13. When a station sends a PS-Poll frame to the AP, how many
+        frames of buffered unicast data are retrieved?
+
+        A. 0
+
+        B. 1
+
+        C. Enough to fill a single TXOP
+
+        D. All unicast frames in the AP’s buffer
+
+        *答案解析*
+
+        B. A PS-Poll frame retrieves one unicast frame buffered at the
+        AP. Null data frames retrieve all unicast frames in the AP’s
+        buffer. Frames that are not PS-Poll frames and that have the
+        power management flag in the 802.11 header set to 1 retrieve 0
+        unicast frames from the AP’s buffer. There is no type of
+        frame that retrieves only a single TXOP’s worth of unicast
+        frames from the AP’s buffer. 
+
+    14. When an AP is sending a unicast frame to a station in response
+        to a PS-Poll, which flag in the 802.11 header lets the station
+        know whether there are more frames in the AP’s buffer for the
+        station to retrieve?
+
+        A. From DS
+        
+        B. More data
+
+        C. Order
+
+        D. Power management
+
+        *答案解析*
+
+        B. The More Data flag in the 802.11 header is set to 1 by the
+        AP when additional unicast frames are still in the AP’s
+        buffer. The From DS and Order flags have nothing to do with
+        power management. The Power Management flag is set to 1 by
+        stations as a way of indicating to the AP that frames should
+        be held in the AP’s buffer. 
+
+    15. Which field in the TIM information element is used to indicate
+        whether broadcast and/or multicast frames are buffered at the
+        AP?
+
+        A. DTIM Count
+
+        B. DTIM Period
+
+        C. Bitmap Control
+
+        D. Partial Virtual Bitmap
+
+        *答案解析*
+
+        C. When broadcast and/or multicast frames are buffered at the
+        AP, the first bit of the Bitmap Control field (which
+        corresponds to AID 0) will be set to 1. 
+
+        The DTIM Count, DTIM Period, and Partial Virtual Bitmap fields
+        are all present in DTIM beacon frames, but none of them
+        carries the indicator to stations that broadcast and/or
+        multicast frames that are buffered at the AP. 
+
+    16. Which of the following are reasons that stations might wake up
+        from the doze state? (Choose two.)
+
+        A. The station has received a frame from the AP.
+
+        B. The station’s NAV timer expires.
+
+        C. The station has a frame ready to be transmitted.
+
+        D. The station expects a DTIM beacon frame to be transmitted
+        by the AP.
+
+        *答案解析*
+
+        C, D. Stations may wake from the doze state when a frame is
+        ready to be transmitted, if the station expects a DTIM beacon
+        frame or if the station has an internal timer that tells it
+        when to wake up. Receiving a frame from the AP would not
+        affect a dozing station because a station’s radio cannot
+        receive frames when dozing. The NAV timer has nothing to do
+        with power management.
+
+    17. If a station has sent a frame to the AP with the power
+        management flag set to 1, which of the following states may
+        the station go into? (Choose all that apply.) 
+
+        A. Doze
+
+        B. Idle
+
+        C. Receive
+
+        D. Transmit
+
+        *答案解析*
+        
+        A, B, C, D. All states may be used by stations that are in
+        Power Save mode. When a station goes into Power Save mode, it
+        causes the AP to buffer frames, but it does not prevent the
+        station from transmitting, receiving, or staying awake and in
+        the idle state. 
+
+    18. If a station has sent a frame to the AP with the power
+        management flag set to 0, which of the following states may
+        the station go into? (Choose all that apply.) 
+
+        A. Doze
+
+        B. Idle
+
+        C. Receive
+
+        D. Transmit
+
+        *答案解析*
+
+        B, C, D. The doze state may not be used by a station that is
+        in active mode, because APs will not buffer frames if all
+        stations are in active mode. 
+
+    19. Name two reasons why 802.11 power management is considered
+        inefficient.
+
+        A. All buffered unicast frames sent by the AP must be followed
+        by an acknowledgment frame.
+
+        B. All buffered unicast frames sent by the AP must be preceded
+        by a PS-Poll frame.
+
+        C. Too much protocol overhead is caused by the acknowledgment
+        frames that follow retrieved unicast frames from the AP’s
+        buffer.
+
+        D. Too much protocol overhead is caused by the PS-Poll frames
+        that precede retrieved unicast frames from the AP’s buffer.
+
+        *答案解析*
+
+        B, D. 802.11 power management is inefficient because the
+        transmission of a PS-Poll frame by stations in advance of
+        retrieving buffered unicast frames from the AP causes the
+        station to drain too much battery life and causes too much
+        overhead to be added to the channel. Acknowledgment frames are
+        not added to the network when 802.11 power management is
+        used. 
+
+    20. You perform a frame capture on a BSS that has a WMM Power
+        Save–certified AP. You notice in the beacon frames that the
+        Beacon Interval is 100 and the DTIM Period is 3. You also
+        notice that when your station is idle, null data frames are
+        transmitted once every second and that the power management
+        flag alternates between 0 and 1 in those null data
+        frames. What does this mean? (Choose two.) 
+
+        A. The Receive DTIMs setting in your station is set to false.
+
+        B. The Receive DTIMs setting in your station is set to true.
+
+        C. The station supports U-APSD.
+
+        D. The station does not support U-APSD.
+
+        *答案解析*
+
+        A, D. If the Beacon Interval field is 100 and the DTIM Period
+        field is 3, then a DTIM beacon frame is transmitted by the AP
+        every 300 kilomicroseconds (approximately every 300
+        milliseconds). If the delta time between a station’s
+        transmitted null data frames alternating the power management
+        mode is 1 second (1,000 milliseconds), then that means the
+        station is dozing while DTIM beacon frames are being
+        transmitted by the AP. The only way a station may doze while
+        DTIM beacon frames are being transmitted by the AP is if the
+        Receive DTIMs setting on the station is set to false. 
+
+        If the Receive DTIMs setting on the station were set to true,
+        then a station would show a delta time of no more than three
+        tenths of a second if the Beacon Interval is 100 and the DTIM
+        Period is 3. 
+
+        The use of null data frames rather than QoS null data frames
+        indicates that the station is not using U-APSD, but rather the
+        non-802.11e power management method that is similar to
+        U-APSD. 
 
 * CH09 802.11 Security
 

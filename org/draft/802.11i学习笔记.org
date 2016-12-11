@@ -74,7 +74,7 @@
 * WAPI
   
 ** 概述 
-   WAPI (（Wireless LAN Authentication and Privacy Infrastructure）无
+   WAPI （Wireless LAN Authentication and Privacy Infrastructure）无
    线局域网鉴别和保密基础结构，是一种安全协议，同时也是中国无线局域网
    安全强制性标准。
 
@@ -82,7 +82,6 @@
    只不过跟它们不同的是它是无线局域网（WLAN）中的一种传输协议而已，它
    与802.11传输协议是同一领域的技术。
 
-   
 ** 主要术语
    - WAI 
      WLAN Authentication Infrastructure
@@ -140,4 +139,5 @@
 | Certification in AP   | No                                | Yes                    |
 | Certificate mechanism | EAP(MD5/TLS/TTLS/PEAP)  Port 1812 | ECC UDP Port 9000      |
 | Ethernet Type         | 0x888E                            | 0x88B4                 |
+|-----------------------+-----------------------------------+------------------------|
 

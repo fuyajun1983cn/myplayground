@@ -21,7 +21,6 @@
     driver registers (like other netdevices such as an ethernet
     driver) a set of operations callbacks by using the struct
     *net_device_ops*.
-
     
 ** Control path
 
@@ -31,703 +30,705 @@
     include/uapi/linux/nl80211.h). You can send commands and get
     events in response.
 
- When you send an nl80211 command it gets initially handled by
- cfg80211 kernel module(it's code is under net/wireless and the
- handlers are in net/wireless/nl80211.c). cfg80211 will usually call a
- lower level driver. In case of *Full MAC hardware* the specific HW
- driver is right below cfg80211. The driver below cfg80211 registers a
- set of ops with cfg80211 by using *cfg80211_ops* struct. For example
- see brcmfmac driver
- (drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c)
-
- For *Soft MAC* hardware there's mac80211 which is a kernel module
- implementing the 802.11 MAC layer. In this case cfg80211 will talk to
- mac80211 which will in turn use the hardware specific lower level
- driver. An example of this is iwlwifi (For Intel chips).
-
- mac80211 registers itself with cfg80211 by using the cfg80211_ops
- (see net/mac80211/cfg.c).The specific HW driver registers itself with
- mac80211 by using the *ieee80211_ops* struct (for example
- drivers/net/wireless/iwlwifi/mvm/mac80211.c).
-
- Initialization of a new NIC you've connected occurs from the bottom
- up the stack. The HW specific driver will call mac80211's
- *ieee80211_allow_hw()* usually after probing the
- HW. *ieee80211_alloc_hw()* gets the size of private data struct used by
- the HW driver. It in turns calls *cfg80211 wiphy_new()* which does the
- actual allocation of space sufficient for the *wiphy* struct, the
- *ieee80211_local struct* (which is used by mac80211) and the HW driver
- private data (the layering is seen in *ieee80211_alloc_hw*
- code). *ieee80211_hw* is an embedded struct within *ieee80211_local*
- which is "visible" to the the HW driver. All of these (wiphy,
- ieee80211_local,ieee80211_hw) represent a single physical device
- connected.
-
- On top of a single physical device (also referred to as phy) you can
- set up multiple virtual interfaces. These are essentially what you
- know as wlan0 or wlan1 which you control with ifconfig. Each such
- virtual interface is represented by an *ieee80211_vif*. This struct
- also contains at the end private structs accessed by the HW
- driver. Multiple interfaces can be used to run something like a
- station on wlan0 and an AP on wlan1 (this is possible depending on
- the HW capabilities).
-
+    When you send an nl80211 command it gets initially handled by
+    cfg80211 kernel module(it's code is under net/wireless and the
+    handlers are in net/wireless/nl80211.c). cfg80211 will usually call a
+    lower level driver. In case of *Full MAC hardware* the specific HW
+    driver is right below cfg80211. The driver below cfg80211 registers a
+    set of ops with cfg80211 by using *cfg80211_ops* struct. For example
+    see brcmfmac driver
+    (drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c)
+   
+    For *Soft MAC* hardware there's mac80211 which is a kernel module
+    implementing the 802.11 MAC layer. In this case cfg80211 will talk to
+    mac80211 which will in turn use the hardware specific lower level
+    driver. An example of this is iwlwifi (For Intel chips).
+   
+    mac80211 registers itself with cfg80211 by using the cfg80211_ops
+    (see net/mac80211/cfg.c).The specific HW driver registers itself with
+    mac80211 by using the *ieee80211_ops* struct (for example
+    drivers/net/wireless/iwlwifi/mvm/mac80211.c).
+   
+    Initialization of a new NIC you've connected occurs from the bottom
+    up the stack. The HW specific driver will call mac80211's
+    *ieee80211_allow_hw()* usually after probing the
+    HW. *ieee80211_alloc_hw()* gets the size of private data struct used by
+    the HW driver. It in turns calls *cfg80211 wiphy_new()* which does the
+    actual allocation of space sufficient for the *wiphy* struct, the
+    *ieee80211_local struct* (which is used by mac80211) and the HW driver
+    private data (the layering is seen in *ieee80211_alloc_hw*
+    code). *ieee80211_hw* is an embedded struct within *ieee80211_local*
+    which is "visible" to the the HW driver. All of these (wiphy,
+    ieee80211_local,ieee80211_hw) represent a single physical device
+    connected.
+   
+    On top of a single physical device (also referred to as phy) you can
+    set up multiple virtual interfaces. These are essentially what you
+    know as wlan0 or wlan1 which you control with ifconfig. Each such
+    virtual interface is represented by an *ieee80211_vif*. This struct
+    also contains at the end private structs accessed by the HW
+    driver. Multiple interfaces can be used to run something like a
+    station on wlan0 and an AP on wlan1 (this is possible depending on
+    the HW capabilities).
+   
 * cfg80211
 ** 主要API速览   
-- =cfg80211_register== 
-  这个必须在 =regsiter_netdevice()= 之前调用   
-- =cfg80211_connect_result=
-  通知上层当前的连接状态。
-- =cfg80211_disconnected=
-  通知上层底层连接已经断开
-- =cfg80211_get_chandef_type=
-  主要的类型有：
-  - =NL80211_CHAN_NO_HT=
-  - =NL80211_CHAN_HT20=
-  - =NL80211_CHAN_HT40MINUS=
-  - =NL80211_CHAN_HT40PLUS=
-- =cfg80211_chandef_create=
-  创建Channel的信息
-- =cfg80211_get_bss=
-- =cfg80211_put_bss=
-- =cfg80211_inform_bss=
-  2.6.31后，优先使用此接口
-  通知80211，获得了一个scan bss。
-- =cfg80211_inform_bss_frame=
-- =cfg80211_find_ie=
-  寻找指定的IE。 如SSID
-- =cfg80211_find_vendor_ie=
-- =cfg80211_tdls_oper_request=
-- =cfg80211_scan_done=
-  通知上层，扫描动作停止。
-- =cfg80211_rx_mgmt=
-  通知上层，接收到未处理的管理帧, 从Kernel上报告管理帧，都是通过些接
-  口。
-- =cfg80211_rx_action=
-  通知上层，接收到未处理的Action帧
-- =cfg80211_mgmt_tx_status=
-- =cfg80211_action_tx_status=
-  通知上层，Action帧的发送状态
-- =cfg80211_new_sta=
-  当关联成功后，会调用此接口通知上层添加了新的关联工作站。
-  驱动在处理对方的Association Request后，如果成功回应了Association
-  Response，会通过该接口通知上层，有新的STA创建。
-- =cfg80211_del_sta=
-  当Deauth或Diassoc后，会调用些接口。
-- =cfg80211_michael_mic_failure=
-- =cfg80211_roamed=
-- =cfg80211_report_obss_beacon=
-- =cfg80211_ibss_joined=
-- =cfg80211_ready_on_channel=
-  repoort remain on channel ready.
-- =cfg80211_remain_on_channel_expired=
-- =wiphy_new= 
-  会创建 =struct cfg80211_registered_device= 结构实例，并初始化其
-  =wdev_list= 链表。这个链表是由 =struct wireless_dev= 类型元素组成。 
-
+      - =cfg80211_register== 
+        这个必须在 =regsiter_netdevice()= 之前调用   
+      - =cfg80211_connect_result=
+        通知上层当前的连接状态。
+      - =cfg80211_disconnected=
+        通知上层底层连接已经断开
+      - =cfg80211_get_chandef_type=
+        主要的类型有：
+        - =NL80211_CHAN_NO_HT=
+        - =NL80211_CHAN_HT20=
+        - =NL80211_CHAN_HT40MINUS=
+        - =NL80211_CHAN_HT40PLUS=
+      - =cfg80211_chandef_create=
+        创建Channel的信息
+      - =cfg80211_get_bss=
+      - =cfg80211_put_bss=
+      - =cfg80211_inform_bss=
+        2.6.31后，优先使用此接口
+        通知80211，获得了一个scan bss。
+      - =cfg80211_inform_bss_frame=
+      - =cfg80211_find_ie=
+        寻找指定的IE。 如SSID
+      - =cfg80211_find_vendor_ie=
+      - =cfg80211_tdls_oper_request=
+      - =cfg80211_scan_done=
+        通知上层，扫描动作停止。
+      - =cfg80211_rx_mgmt=
+        通知上层，接收到未处理的管理帧, 从Kernel上报告管理帧，都是通过些接
+        口。
+      - =cfg80211_rx_action=
+        通知上层，接收到未处理的Action帧
+      - =cfg80211_mgmt_tx_status=
+      - =cfg80211_action_tx_status=
+        通知上层，Action帧的发送状态
+      - =cfg80211_new_sta=
+        当关联成功后，会调用此接口通知上层添加了新的关联工作站。
+        驱动在处理对方的Association Request后，如果成功回应了Association
+        Response，会通过该接口通知上层，有新的STA创建。
+      - =cfg80211_del_sta=
+        当Deauth或Diassoc后，会调用些接口。
+      - =cfg80211_michael_mic_failure=
+      - =cfg80211_roamed=
+      - =cfg80211_report_obss_beacon=
+      - =cfg80211_ibss_joined=
+      - =cfg80211_ready_on_channel=
+        repoort remain on channel ready.
+      - =cfg80211_remain_on_channel_expired=
+      - =cfg80211_classify8021d=
+        返回802.1d中的tag优先级
+      - =wiphy_new= 
+        会创建 =struct cfg80211_registered_device= 结构实例，并初始化其
+        =wdev_list= 链表。这个链表是由 =struct wireless_dev= 类型元素组成。 
+        
+        两个相关函数：
+        1. =wiphy_priv()=
+      
+        2. =priv_to_wiphy()=
 
 ** 主要数据结构速览 
-- =struct wireless_dev= 
-  无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
-  指向这个数据结构。
-
-  #+BEGIN_SRC c
-    struct wireless_dev {
-            struct wiphy *wiphy;
-            enum nl80211_iftype iftype;
-
-            /* the remainder of this struct should be private to cfg80211 */
-            struct list_head list;
-            struct net_device *netdev;
-
-            u32 identifier;
-
-            struct list_head mgmt_registrations;
-            spinlock_t mgmt_registrations_lock;
-
-            struct mutex mtx;
-
-            bool use_4addr, p2p_started;
-
-            u8 address[ETH_ALEN] __aligned(sizeof(u16));
-
-            /* currently used for IBSS and SME - might be rearranged later */
-            u8 ssid[IEEE80211_MAX_SSID_LEN];
-            u8 ssid_len, mesh_id_len, mesh_id_up_len;
-            struct cfg80211_conn *conn;
-            struct cfg80211_cached_keys *connect_keys;
-
-            struct list_head event_list;
-            spinlock_t event_lock;
-
-            struct cfg80211_internal_bss *current_bss; /* associated / joined */
-            struct cfg80211_chan_def preset_chandef;
-            struct cfg80211_chan_def chandef;
-
-            bool ibss_fixed;
-            bool ibss_dfs_possible;
-
-            bool ps;
-            int ps_timeout;
-
-            int beacon_interval;
-
-            u32 ap_unexpected_nlportid;
-
-            bool cac_started;
-            unsigned long cac_start_time;
-            unsigned int cac_time_ms;
-
-            u32 owner_nlportid;
-
-    #ifdef CPTCFG_CFG80211_WEXT
-            /* wext data */
-            struct {
-                    struct cfg80211_ibss_params ibss;
-                    struct cfg80211_connect_params connect;
-                    struct cfg80211_cached_keys *keys;
-                    const u8 *ie;
-                    size_t ie_len;
-                    u8 bssid[ETH_ALEN], prev_bssid[ETH_ALEN];
-                    u8 ssid[IEEE80211_MAX_SSID_LEN];
-                    s8 default_key, default_mgmt_key;
-                    bool prev_bssid_valid;
-            } wext;
-    #endif
-    };  
-  #+END_SRC
-
-- =struct cfg80211_registered_device=
-  #+BEGIN_SRC c
-    struct cfg80211_registered_device {
-            const struct cfg80211_ops *ops;
-            struct list_head list;
-            /* we hold this mutex during any call so that
-             ,* we cannot do multiple calls at once, and also
-             ,* to avoid the deregister call to proceed while
-             ,* any call is in progress */
-            struct mutex mtx;
-
-            /* rfkill support */
-            struct rfkill_ops rfkill_ops;
-            struct rfkill *rfkill;
-            struct work_struct rfkill_sync;
-
-            /* ISO / IEC 3166 alpha2 for which this device is receiving
-             ,* country IEs on, this can help disregard country IEs from APs
-             ,* on the same alpha2 quickly. The alpha2 may differ from
-             ,* cfg80211_regdomain's alpha2 when an intersection has occurred.
-             ,* If the AP is reconfigured this can also be used to tell us if
-             ,* the country on the country IE changed. */
-            char country_ie_alpha2[2];
-
-            /* If a Country IE has been received this tells us the environment
-             ,* which its telling us its in. This defaults to ENVIRON_ANY */
-            enum environment_cap env;
-
-            /* wiphy index, internal only */
-            int wiphy_idx;
-
-            /* associated wireless interfaces */
-            struct mutex devlist_mtx;
-            /* protected by devlist_mtx or RCU */
-            struct list_head wdev_list;
-            int devlist_generation, wdev_id;
-            int opencount; /* also protected by devlist_mtx */
-            wait_queue_head_t dev_wait;
-
-            struct list_head beacon_registrations;
-            spinlock_t beacon_registrations_lock;
-
-            /* protected by RTNL only */
-            int num_running_ifaces;
-            int num_running_monitor_ifaces;
-
-            /* BSSes/scanning */
-            spinlock_t bss_lock;
-            struct list_head bss_list;
-            struct rb_root bss_tree;
-            u32 bss_generation;
-            struct cfg80211_scan_request *scan_req; /* protected by RTNL */
-            struct cfg80211_sched_scan_request *sched_scan_req;
-            unsigned long suspend_at;
-            struct work_struct scan_done_wk;
-            struct work_struct sched_scan_results_wk;
-
-            struct mutex sched_scan_mtx;
-
-    #ifdef CONFIG_NL80211_TESTMODE
-            struct genl_info *testmode_info;
-    #endif
-
-            struct work_struct conn_work;
-            struct work_struct event_work;
-
-            struct cfg80211_wowlan *wowlan;
-
-            struct delayed_work dfs_update_channels_wk;
-
-            /* netlink port which started critical protocol (0 means not started) */
-            u32 crit_proto_nlportid;
-
-            /* must be last because of the way we do wiphy_priv(),
-             ,* and it should at least be aligned to NETDEV_ALIGN */
-            struct wiphy wiphy __aligned(NETDEV_ALIGN);
-    };  
-  #+END_SRC
-- =struct cfg80211_chan_def=
-- =struct cfg80211_scan_request=
-- =struct cfg80211_ibss_params=
-- =struct cfg80211_connect_params=
-  Connection parameters
-  This structure provides information needed to complete IEEE 802.11
-  authentication and association. 
-
-  #+BEGIN_SRC c
-    struct cfg80211_ops CFG80211_Ops = {
-      ...
-      .connect = mt76xx_cfg80211_connect,
-      ...
-    };
-
-    static int mt76xx_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
-                                       struct cfg80211_connect_params *sme)
-    {
-    #ifdef CONFIG_STA_SUPPORT
-            RTMP_ADAPTER *pAd;
-            INT32 Pairwise;
-            INT32 Groupwise;
-            INT32 Keymgmt = 0;
-            int i;
-            CMD_RTPRIV_IOCTL_80211_CONNECT ConnInfo;
-
-            MAC80211_PAD_GET(pAd, wiphy);
-            if (!pAd)
-                    return -EFAULT;
-
-            CFG80211DBG(RT_DEBUG_TRACE, ("80211> %s ==>\n", __func__));
-
-            //Group Wise
-            CFG80211DBG(RT_DEBUG_TRACE, ("Groupwise: %x\n", sme->crypto.cipher_group));
-            Groupwise = sme->crypto.cipher_group;
-
-            //Pair Wise
-            if (sme->crypto.n_ciphers_pairwise)
-                    Pairwise = sme->crypto.ciphers_pairwise[0];
-            else
-                    Pairwise = 0;
-            CFG80211DBG(RT_DEBUG_TRACE, ("Pairwise %x\n", sme->crypto.ciphers_pairwise[0]));
-
-            //Key management
-            for (i = 0; i < sme->crypto.n_akm_suites; ++i)
-                    Keymgmt |= sme->crypto.akm_suites[i];
-
-            memset(&ConnInfo, 0, sizeof(ConnInfo));
-
-            //WPA Version
-
-            if (!sme->crypto.wpa_versions)
-                    ConnInfo.WpaVer = 0;
-            else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_2)
-                    ConnInfo.WpaVer = 2;
-            else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_1)
-                    ConnInfo.WpaVer = 1;
-            else {
-                    CFG80211DBG(RT_DEBUG_ERROR, ("version %x not supported\n",
-                                                 sme->crypto.wpa_versions));
-                    return -ENOTSUPP;
-            }
-            CFG80211DBG(RT_DEBUG_TRACE, ("wpa_versions %x\n", sme->crypto.wpa_versions));
-
-            /* GeK: [todo] WLAN_AKM_SUITE_PSK and others? */
-            CFG80211DBG(RT_DEBUG_TRACE, ("Keymgmt %x\n", Keymgmt));
-            if (Keymgmt == WLAN_AKM_SUITE_8021X)
-                    ConnInfo.FlgIs8021x = TRUE;
-            else
-                    ConnInfo.FlgIs8021x = FALSE;
-
-            //Auth type
-            CFG80211DBG(RT_DEBUG_TRACE, ("Auth_type %x\n", sme->auth_type));
-            if (sme->auth_type == NL80211_AUTHTYPE_SHARED_KEY)
-                    ConnInfo.AuthType = Ndis802_11AuthModeShared;
-            else if (sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM)
-                    ConnInfo.AuthType = Ndis802_11AuthModeOpen;
-            else
-                    ConnInfo.AuthType = Ndis802_11AuthModeAutoSwitch;
-
-            switch (Pairwise) {
-            case 0:
-                    CFG80211DBG(RT_DEBUG_TRACE, ("NONE...\n"));
-                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
-                    break;
-            case WLAN_CIPHER_SUITE_CCMP:
-                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_CCMP...\n"));
-                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
-                    break;
-            case WLAN_CIPHER_SUITE_TKIP:
-                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_TKIP...\n"));
-                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
-                    break;
-            case WLAN_CIPHER_SUITE_WEP40:
-                    /* fall through */
-            case WLAN_CIPHER_SUITE_WEP104:
-                    CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_WEP...\n"));
-                    ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_WEP;
-                    break;
-            default:
-                    CFG80211DBG(RT_DEBUG_ERROR, ("pairwise %x not supported\n", Pairwise));
-                    return -ENOTSUPP;
-            }
-
-            if (Groupwise == WLAN_CIPHER_SUITE_CCMP)
-                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
-            else if (Groupwise == WLAN_CIPHER_SUITE_TKIP)
-                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
-            else
-                    ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
-
-            CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyLen ===> %d\n", sme->key_len));
-            CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyIdx ===> %d\n", sme->key_idx));
-
-            ConnInfo.pKey = (UINT8 *) (sme->key);
-            ConnInfo.KeyLen = sme->key_len;
-            ConnInfo.pSsid = sme->ssid;
-            ConnInfo.SsidLen = sme->ssid_len;
-            ConnInfo.KeyIdx = sme->key_idx;
-            ConnInfo.bWpsConnection = FALSE;
-            /* Check if WPS is triggerred */
-            pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP = WPA_SUPPLICANT_ENABLE;
-            if (sme->ie && sme->ie_len &&
-                sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM &&
-                ConnInfo.PairwiseEncrypType == RT_CMD_80211_CONN_ENCRYPT_NONE) {
-                    if (RTMPFindWPSIE(sme->ie, (UINT32) sme->ie_len) != NULL) {
-                            ConnInfo.bWpsConnection = TRUE;
-                            pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP
-                                    |= WPA_SUPPLICANT_ENABLE_WPS;
-                    }
-            }
-
-            /* Use SIOCSIWGENIE to make out the WPA/WPS IEs in AssocReq. */
-    #ifdef RT_CFG80211_P2P_CONCURRENT_DEVICE
-            if (dev->ieee80211_ptr->iftype == NL80211_IFTYPE_P2P_CLIENT) {
-                    if (sme->ie_len > 0)
-                            CFG80211DRV_SetP2pCliAssocIe(pAd, sme->ie, sme->ie_len);
-                    else
-                            CFG80211DRV_SetP2pCliAssocIe(pAd, NULL, 0);
-            } else
-    #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
-            {
-                    if (sme->ie_len > 0)
-                            RtmpIoctl_rt_ioctl_siwgenie(pAd, sme->ie, sme->ie_len);
-                    else
-                            RtmpIoctl_rt_ioctl_siwgenie(pAd, NULL, 0);
-            }
-
-    #ifdef DOT11W_PMF_SUPPORT
-    #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
-            CFG80211DBG(RT_DEBUG_TRACE, ("80211> PMF Connect %d\n", sme->mfp));
-            if (sme->mfp)
-                    ConnInfo.mfp = TRUE;
-            else
-                    ConnInfo.mfp = FALSE;
-    #endif /* LINUX_VERSION_CODE */
-    #endif /* DOT11W_PMF_SUPPORT */
-
-            /* %NULL if not specified (auto-select based on scan) */
-            if (sme->bssid != NULL && !MAC_ADDR_EQUAL(sme->bssid, ZERO_MAC_ADDR)) {
-                    CFG80211DBG(RT_DEBUG_OFF, ("80211> Connect bssid %02x:%02x:%02x:%02x:%02x:%02x\n",
-                                               PRINT_MAC(sme->bssid)));
-                    ConnInfo.pBssid = sme->bssid;
-            } else
-                    ConnInfo.pBssid = NULL;
-
-            RTMP_DRIVER_80211_CONNECT(pAd, &ConnInfo, dev->ieee80211_ptr->iftype);
-    #endif /*CONFIG_STA_SUPPORT */
-            return 0;
-    }                               /* mt76xx_cfg80211_connect */
-  #+END_SRC
-- =struct cfg80211_pmksa=
-- =struct cfg80211_gtk_rekey_data=
-- =struct cfg80211_mgmt_tx_params=
-- =struct cfg80211_ap_settings=
-- =struct cfg80211_beacon_data=
-- =struct cfg80211_bitrate_mask=
-- =struct cfg80211_ops=
-  TODO:  change_station 何时会调用 
-- =struct cfg80211_bss=
-- =struct cfg80211_crypto_settings=
-- =struct ieee80211_iface_combination=
-  #+BEGIN_SRC c
-    static const struct ieee80211_iface_limit ra_p2p_sta_go_limits[] = 
-    {
-            {
-                    .max = 3,
-                    .types = BIT(NL80211_IFTYPE_STATION)| BIT(NL80211_IFTYPE_AP),
-            },
-            {
-                    .max = 1,
-                    .types = BIT(NL80211_IFTYPE_P2P_GO) | BIT(NL80211_IFTYPE_P2P_CLIENT),
-            },
-    };
-  #+END_SRC
-- =struct ieee80211_iface_limit= 
-  #+BEGIN_SRC c
-    static const struct ieee80211_iface_combination 
-    ra_iface_combinations_p2p[] = {
-            {
-                    .num_different_channels = 1,
-                    .max_interfaces = 3,
-                    //.beacon_int_infra_match = true,
-                    .limits = ra_p2p_sta_go_limits,
-                    .n_limits = 1,//ARRAY_SIZE(ra_p2p_sta_go_limits),
-            },
-    };
-
-    static const struct ieee80211_iface_combination 
-    ra_iface_combinations_p2p_GO[] = {
-            {
-                    .num_different_channels = 1,
-                    .max_interfaces = 3,
-                    //.beacon_int_infra_match = true,
-                    .limits = ra_p2p_sta_go_limits,
-                    .n_limits = ARRAY_SIZE(ra_p2p_sta_go_limits),
-            },
-    };
-  #+END_SRC
-
-  在调用 =wiphy_register= 之前，可以将上述信息设置到 =struct wiphy= 的
-  =iface_combinations= 和 =n_iface_combinations= 。
-- =struct ieee80211_mgmt=  
-  管理帧，相关API有：
-  - =ieee80211_is_mgmt=
-
-  - =ieee80211_is_probe_resp=
-
-  - =ieee80211_is_disassoc=
-
-  - =ieee80211_is_deauth=
-
-  - =ieee80211_is_action=
-
-  - =cfg80211_rx_mgmt=
-    向上层报告有未处理的管理帧收到。
-- =struct cfg80211_bss=
-  BSS信息
-- =struct station_info=
-  描述STA相关的信息， 其中 =filled= 可以告知 =nl80211= 层，上报上来的
-  消息包含哪些IE。 如 =STATION_INFO_ASSOC_REQ_IES= 表明当前上报上来的
-  Association Request会包含相关的IE信息。
-  #+BEGIN_SRC c
-    VOID CFG80211OS_NewSta(IN PNET_DEV pNetDev, IN const PUCHAR mac_addr, IN const PUCHAR assoc_frame, IN UINT32 assoc_len)
-    {
-            struct station_info sinfo;
-            struct ieee80211_mgmt *mgmt;
-
-            NdisZeroMemory(&sinfo, sizeof(sinfo));
-
-            sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
-
-            mgmt = (struct ieee80211_mgmt *) assoc_frame;
-            sinfo.assoc_req_ies_len = assoc_len - 24 - 4;
-            sinfo.assoc_req_ies = mgmt->u.assoc_req.variable;
-
-            return cfg80211_new_sta(pNetDev, mac_addr, &sinfo, GFP_KERNEL);
-    }  
-  #+END_SRC
-
-  还有tx rate的相关信息
-- =struct survey_info=
-  site survey information
-  
+      - =struct wireless_dev= 
+        无线设备的状态， 在 =struct net_device= 的 =ieee80211_ptr= 域中，会
+        指向这个数据结构。
+      
+        #+BEGIN_SRC c
+          struct wireless_dev {
+                  struct wiphy *wiphy;
+                  enum nl80211_iftype iftype;
+      
+                  /* the remainder of this struct should be private to cfg80211 */
+                  struct list_head list;
+                  struct net_device *netdev;
+      
+                  u32 identifier;
+      
+                  struct list_head mgmt_registrations;
+                  spinlock_t mgmt_registrations_lock;
+      
+                  struct mutex mtx;
+      
+                  bool use_4addr, p2p_started;
+      
+                  u8 address[ETH_ALEN] __aligned(sizeof(u16));
+      
+                  /* currently used for IBSS and SME - might be rearranged later */
+                  u8 ssid[IEEE80211_MAX_SSID_LEN];
+                  u8 ssid_len, mesh_id_len, mesh_id_up_len;
+                  struct cfg80211_conn *conn;
+                  struct cfg80211_cached_keys *connect_keys;
+      
+                  struct list_head event_list;
+                  spinlock_t event_lock;
+      
+                  struct cfg80211_internal_bss *current_bss; /* associated / joined */
+                  struct cfg80211_chan_def preset_chandef;
+                  struct cfg80211_chan_def chandef;
+      
+                  bool ibss_fixed;
+                  bool ibss_dfs_possible;
+      
+                  bool ps;
+                  int ps_timeout;
+      
+                  int beacon_interval;
+      
+                  u32 ap_unexpected_nlportid;
+      
+                  bool cac_started;
+                  unsigned long cac_start_time;
+                  unsigned int cac_time_ms;
+      
+                  u32 owner_nlportid;
+      
+          #ifdef CPTCFG_CFG80211_WEXT
+                  /* wext data */
+                  struct {
+                          struct cfg80211_ibss_params ibss;
+                          struct cfg80211_connect_params connect;
+                          struct cfg80211_cached_keys *keys;
+                          const u8 *ie;
+                          size_t ie_len;
+                          u8 bssid[ETH_ALEN], prev_bssid[ETH_ALEN];
+                          u8 ssid[IEEE80211_MAX_SSID_LEN];
+                          s8 default_key, default_mgmt_key;
+                          bool prev_bssid_valid;
+                  } wext;
+          #endif
+          };  
+        #+END_SRC
+      - =struct cfg80211_registered_device=
+        #+BEGIN_SRC c
+          struct cfg80211_registered_device {
+                  const struct cfg80211_ops *ops;
+                  struct list_head list;
+                  /* we hold this mutex during any call so that
+                   ,* we cannot do multiple calls at once, and also
+                   ,* to avoid the deregister call to proceed while
+                   ,* any call is in progress */
+                  struct mutex mtx;
+      
+                  /* rfkill support */
+                  struct rfkill_ops rfkill_ops;
+                  struct rfkill *rfkill;
+                  struct work_struct rfkill_sync;
+      
+                  /* ISO / IEC 3166 alpha2 for which this device is receiving
+                   ,* country IEs on, this can help disregard country IEs from APs
+                   ,* on the same alpha2 quickly. The alpha2 may differ from
+                   ,* cfg80211_regdomain's alpha2 when an intersection has occurred.
+                   ,* If the AP is reconfigured this can also be used to tell us if
+                   ,* the country on the country IE changed. */
+                  char country_ie_alpha2[2];
+      
+                  /* If a Country IE has been received this tells us the environment
+                   ,* which its telling us its in. This defaults to ENVIRON_ANY */
+                  enum environment_cap env;
+      
+                  /* wiphy index, internal only */
+                  int wiphy_idx;
+      
+                  /* associated wireless interfaces */
+                  struct mutex devlist_mtx;
+                  /* protected by devlist_mtx or RCU */
+                  struct list_head wdev_list;
+                  int devlist_generation, wdev_id;
+                  int opencount; /* also protected by devlist_mtx */
+                  wait_queue_head_t dev_wait;
+      
+                  struct list_head beacon_registrations;
+                  spinlock_t beacon_registrations_lock;
+      
+                  /* protected by RTNL only */
+                  int num_running_ifaces;
+                  int num_running_monitor_ifaces;
+      
+                  /* BSSes/scanning */
+                  spinlock_t bss_lock;
+                  struct list_head bss_list;
+                  struct rb_root bss_tree;
+                  u32 bss_generation;
+                  struct cfg80211_scan_request *scan_req; /* protected by RTNL */
+                  struct cfg80211_sched_scan_request *sched_scan_req;
+                  unsigned long suspend_at;
+                  struct work_struct scan_done_wk;
+                  struct work_struct sched_scan_results_wk;
+      
+                  struct mutex sched_scan_mtx;
+      
+          #ifdef CONFIG_NL80211_TESTMODE
+                  struct genl_info *testmode_info;
+          #endif
+      
+                  struct work_struct conn_work;
+                  struct work_struct event_work;
+      
+                  struct cfg80211_wowlan *wowlan;
+      
+                  struct delayed_work dfs_update_channels_wk;
+      
+                  /* netlink port which started critical protocol (0 means not started) */
+                  u32 crit_proto_nlportid;
+      
+                  /* must be last because of the way we do wiphy_priv(),
+                   ,* and it should at least be aligned to NETDEV_ALIGN */
+                  struct wiphy wiphy __aligned(NETDEV_ALIGN);
+          };  
+        #+END_SRC
+      - =struct cfg80211_chan_def=
+        信道定义
+      - =struct cfg80211_scan_request=
+      - =struct cfg80211_ibss_params=
+      - =struct cfg80211_connect_params=
+        Connection parameters
+        This structure provides information needed to complete IEEE 802.11
+        authentication and association. 
+      
+        #+BEGIN_SRC c
+          struct cfg80211_ops CFG80211_Ops = {
+            ...
+            .connect = mt76xx_cfg80211_connect,
+            ...
+          };
+      
+          static int mt76xx_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
+                                             struct cfg80211_connect_params *sme)
+          {
+          #ifdef CONFIG_STA_SUPPORT
+                  RTMP_ADAPTER *pAd;
+                  INT32 Pairwise;
+                  INT32 Groupwise;
+                  INT32 Keymgmt = 0;
+                  int i;
+                  CMD_RTPRIV_IOCTL_80211_CONNECT ConnInfo;
+      
+                  MAC80211_PAD_GET(pAd, wiphy);
+                  if (!pAd)
+                          return -EFAULT;
+      
+                  CFG80211DBG(RT_DEBUG_TRACE, ("80211> %s ==>\n", __func__));
+      
+                  //Group Wise
+                  CFG80211DBG(RT_DEBUG_TRACE, ("Groupwise: %x\n", sme->crypto.cipher_group));
+                  Groupwise = sme->crypto.cipher_group;
+      
+                  //Pair Wise
+                  if (sme->crypto.n_ciphers_pairwise)
+                          Pairwise = sme->crypto.ciphers_pairwise[0];
+                  else
+                          Pairwise = 0;
+                  CFG80211DBG(RT_DEBUG_TRACE, ("Pairwise %x\n", sme->crypto.ciphers_pairwise[0]));
+      
+                  //Key management
+                  for (i = 0; i < sme->crypto.n_akm_suites; ++i)
+                          Keymgmt |= sme->crypto.akm_suites[i];
+      
+                  memset(&ConnInfo, 0, sizeof(ConnInfo));
+      
+                  //WPA Version
+      
+                  if (!sme->crypto.wpa_versions)
+                          ConnInfo.WpaVer = 0;
+                  else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_2)
+                          ConnInfo.WpaVer = 2;
+                  else if (sme->crypto.wpa_versions & NL80211_WPA_VERSION_1)
+                          ConnInfo.WpaVer = 1;
+                  else {
+                          CFG80211DBG(RT_DEBUG_ERROR, ("version %x not supported\n",
+                                                       sme->crypto.wpa_versions));
+                          return -ENOTSUPP;
+                  }
+                  CFG80211DBG(RT_DEBUG_TRACE, ("wpa_versions %x\n", sme->crypto.wpa_versions));
+      
+                  /* GeK: [todo] WLAN_AKM_SUITE_PSK and others? */
+                  CFG80211DBG(RT_DEBUG_TRACE, ("Keymgmt %x\n", Keymgmt));
+                  if (Keymgmt == WLAN_AKM_SUITE_8021X)
+                          ConnInfo.FlgIs8021x = TRUE;
+                  else
+                          ConnInfo.FlgIs8021x = FALSE;
+      
+                  //Auth type
+                  CFG80211DBG(RT_DEBUG_TRACE, ("Auth_type %x\n", sme->auth_type));
+                  if (sme->auth_type == NL80211_AUTHTYPE_SHARED_KEY)
+                          ConnInfo.AuthType = Ndis802_11AuthModeShared;
+                  else if (sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM)
+                          ConnInfo.AuthType = Ndis802_11AuthModeOpen;
+                  else
+                          ConnInfo.AuthType = Ndis802_11AuthModeAutoSwitch;
+      
+                  switch (Pairwise) {
+                  case 0:
+                          CFG80211DBG(RT_DEBUG_TRACE, ("NONE...\n"));
+                          ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
+                          break;
+                  case WLAN_CIPHER_SUITE_CCMP:
+                          CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_CCMP...\n"));
+                          ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
+                          break;
+                  case WLAN_CIPHER_SUITE_TKIP:
+                          CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_TKIP...\n"));
+                          ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
+                          break;
+                  case WLAN_CIPHER_SUITE_WEP40:
+                          /* fall through */
+                  case WLAN_CIPHER_SUITE_WEP104:
+                          CFG80211DBG(RT_DEBUG_TRACE, ("WLAN_CIPHER_SUITE_WEP...\n"));
+                          ConnInfo.PairwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_WEP;
+                          break;
+                  default:
+                          CFG80211DBG(RT_DEBUG_ERROR, ("pairwise %x not supported\n", Pairwise));
+                          return -ENOTSUPP;
+                  }
+      
+                  if (Groupwise == WLAN_CIPHER_SUITE_CCMP)
+                          ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_CCMP;
+                  else if (Groupwise == WLAN_CIPHER_SUITE_TKIP)
+                          ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_TKIP;
+                  else
+                          ConnInfo.GroupwiseEncrypType |= RT_CMD_80211_CONN_ENCRYPT_NONE;
+      
+                  CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyLen ===> %d\n", sme->key_len));
+                  CFG80211DBG(RT_DEBUG_TRACE, ("ConnInfo.KeyIdx ===> %d\n", sme->key_idx));
+      
+                  ConnInfo.pKey = (UINT8 *) (sme->key);
+                  ConnInfo.KeyLen = sme->key_len;
+                  ConnInfo.pSsid = sme->ssid;
+                  ConnInfo.SsidLen = sme->ssid_len;
+                  ConnInfo.KeyIdx = sme->key_idx;
+                  ConnInfo.bWpsConnection = FALSE;
+                  /* Check if WPS is triggerred */
+                  pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP = WPA_SUPPLICANT_ENABLE;
+                  if (sme->ie && sme->ie_len &&
+                      sme->auth_type == NL80211_AUTHTYPE_OPEN_SYSTEM &&
+                      ConnInfo.PairwiseEncrypType == RT_CMD_80211_CONN_ENCRYPT_NONE) {
+                          if (RTMPFindWPSIE(sme->ie, (UINT32) sme->ie_len) != NULL) {
+                                  ConnInfo.bWpsConnection = TRUE;
+                                  pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP
+                                          |= WPA_SUPPLICANT_ENABLE_WPS;
+                          }
+                  }
+      
+                  /* Use SIOCSIWGENIE to make out the WPA/WPS IEs in AssocReq. */
+          #ifdef RT_CFG80211_P2P_CONCURRENT_DEVICE
+                  if (dev->ieee80211_ptr->iftype == NL80211_IFTYPE_P2P_CLIENT) {
+                          if (sme->ie_len > 0)
+                                  CFG80211DRV_SetP2pCliAssocIe(pAd, sme->ie, sme->ie_len);
+                          else
+                                  CFG80211DRV_SetP2pCliAssocIe(pAd, NULL, 0);
+                  } else
+          #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
+                  {
+                          if (sme->ie_len > 0)
+                                  RtmpIoctl_rt_ioctl_siwgenie(pAd, sme->ie, sme->ie_len);
+                          else
+                                  RtmpIoctl_rt_ioctl_siwgenie(pAd, NULL, 0);
+                  }
+      
+          #ifdef DOT11W_PMF_SUPPORT
+          #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
+                  CFG80211DBG(RT_DEBUG_TRACE, ("80211> PMF Connect %d\n", sme->mfp));
+                  if (sme->mfp)
+                          ConnInfo.mfp = TRUE;
+                  else
+                          ConnInfo.mfp = FALSE;
+          #endif /* LINUX_VERSION_CODE */
+          #endif /* DOT11W_PMF_SUPPORT */
+      
+                  /* %NULL if not specified (auto-select based on scan) */
+                  if (sme->bssid != NULL && !MAC_ADDR_EQUAL(sme->bssid, ZERO_MAC_ADDR)) {
+                          CFG80211DBG(RT_DEBUG_OFF, ("80211> Connect bssid %02x:%02x:%02x:%02x:%02x:%02x\n",
+                                                     PRINT_MAC(sme->bssid)));
+                          ConnInfo.pBssid = sme->bssid;
+                  } else
+                          ConnInfo.pBssid = NULL;
+      
+                  RTMP_DRIVER_80211_CONNECT(pAd, &ConnInfo, dev->ieee80211_ptr->iftype);
+          #endif /*CONFIG_STA_SUPPORT */
+                  return 0;
+          }                               /* mt76xx_cfg80211_connect */
+        #+END_SRC
+      - =struct cfg80211_pmksa=
+      - =struct cfg80211_gtk_rekey_data=
+      - =struct cfg80211_mgmt_tx_params=
+      - =struct cfg80211_ap_settings=
+      - =struct cfg80211_beacon_data=
+      - =struct cfg80211_bitrate_mask=
+      - =struct cfg80211_ops=
+        TODO:  change_station 何时会调用 
+      - =struct cfg80211_crypto_settings=
+      - =struct ieee80211_iface_combination=
+        #+BEGIN_SRC c
+          static const struct ieee80211_iface_limit ra_p2p_sta_go_limits[] = 
+          {
+                  {
+                          .max = 3,
+                          .types = BIT(NL80211_IFTYPE_STATION)| BIT(NL80211_IFTYPE_AP),
+                  },
+                  {
+                          .max = 1,
+                          .types = BIT(NL80211_IFTYPE_P2P_GO) | BIT(NL80211_IFTYPE_P2P_CLIENT),
+                  },
+          };
+        #+END_SRC
+      - =struct ieee80211_iface_limit= 
+        #+BEGIN_SRC c
+          static const struct ieee80211_iface_combination 
+          ra_iface_combinations_p2p[] = {
+                  {
+                          .num_different_channels = 1,
+                          .max_interfaces = 3,
+                          //.beacon_int_infra_match = true,
+                          .limits = ra_p2p_sta_go_limits,
+                          .n_limits = 1,//ARRAY_SIZE(ra_p2p_sta_go_limits),
+                  },
+          };
+      
+          static const struct ieee80211_iface_combination 
+          ra_iface_combinations_p2p_GO[] = {
+                  {
+                          .num_different_channels = 1,
+                          .max_interfaces = 3,
+                          //.beacon_int_infra_match = true,
+                          .limits = ra_p2p_sta_go_limits,
+                          .n_limits = ARRAY_SIZE(ra_p2p_sta_go_limits),
+                  },
+          };
+        #+END_SRC
+      
+        在调用 =wiphy_register= 之前，可以将上述信息设置到 =struct wiphy= 的
+        =iface_combinations= 和 =n_iface_combinations= 。
+      - =struct ieee80211_mgmt=  
+        管理帧，相关API有：
+        - =ieee80211_is_mgmt=
+      
+        - =ieee80211_is_probe_resp=
+      
+        - =ieee80211_is_disassoc=
+      
+        - =ieee80211_is_deauth=
+      
+        - =ieee80211_is_action=
+      
+        - =cfg80211_rx_mgmt=
+          向上层报告有未处理的管理帧收到。
+      - =struct cfg80211_bss=
+        BSS信息
+      - =struct station_info=
+        描述STA相关的信息， 其中 =filled= 可以告知 =nl80211= 层，上报上来的
+        消息包含哪些IE。 如 =STATION_INFO_ASSOC_REQ_IES= 表明当前上报上来的
+        Association Request会包含相关的IE信息。
+        #+BEGIN_SRC c
+          VOID CFG80211OS_NewSta(IN PNET_DEV pNetDev, IN const PUCHAR mac_addr, IN const PUCHAR assoc_frame, IN UINT32 assoc_len)
+          {
+                  struct station_info sinfo;
+                  struct ieee80211_mgmt *mgmt;
+      
+                  NdisZeroMemory(&sinfo, sizeof(sinfo));
+      
+                  sinfo.filled = STATION_INFO_ASSOC_REQ_IES;
+      
+                  mgmt = (struct ieee80211_mgmt *) assoc_frame;
+                  sinfo.assoc_req_ies_len = assoc_len - 24 - 4;
+                  sinfo.assoc_req_ies = mgmt->u.assoc_req.variable;
+      
+                  return cfg80211_new_sta(pNetDev, mac_addr, &sinfo, GFP_KERNEL);
+          }  
+        #+END_SRC
+      
+        还有tx rate的相关信息
+      - =struct survey_info=
+        site survey information
   
 ** 主要流程
 
 *** 数据结构
-    - =struct wiphy=
-      wireless hardware description
-    - =wireless_dev=
-      wireless device state
-    - =struct net_device_ops=
-      在Linux 2.6.31内核版本后，在注册设备时，如下几个回调接口一般需要
-      被定义：
-      1. =ndo_open=
-      2. =ndo_stop=
-      3. =ndo_start_xmit=
-      4. =ndo_do_ioctl=
-      5. =ndo_get_stats=
-         可选，获取状态信息
-      6. =ethtool_ops=
-         获取驱动信息的回调函数
-      7. =ndo_validate_addr=
-    - =struct net_device_stats=
-    - =struct ieee80211_rate=
-      支持的速率定义
-    - =struct ieee80211_channel=
-      信道定义, =IEEE80211_CHAN_RADAR= 用于判断当前信道是否需要回避雷达。
-    - =struct ieee80211_supported_band=
-      频段定义：2.4G(=IEEE80211_BAND_2GHZ=), 5G(=IEEE80211_BAND_5GHZ=)等 
+         - =struct wiphy=
+           wireless hardware description
+         - =wireless_dev=
+           wireless device state
+         - =struct net_device_ops=
+           在Linux 2.6.31内核版本后，在注册设备时，如下几个回调接口一般需要
+           被定义：
+           1. =ndo_open=
+           2. =ndo_stop=
+           3. =ndo_start_xmit=
+           4. =ndo_do_ioctl=
+           5. =ndo_get_stats=
+              可选，获取状态信息
+           6. =ethtool_ops=
+              获取驱动信息的回调函数
+           7. =ndo_validate_addr=
+         - =struct net_device_stats=
+         - =struct ieee80211_rate=
+           支持的速率定义
+         - =struct ieee80211_channel=
+           信道定义, =IEEE80211_CHAN_RADAR= 用于判断当前信道是否需要回避雷
+           达。
+           相关接口：
+           1. =ieee80211_get_channel=
+           2. =ieee80211_channel_to_frequency=
+         - =struct ieee80211_supported_band=
+           频段定义：2.4G(=IEEE80211_BAND_2GHZ=), 5G(=IEEE80211_BAND_5GHZ=)等 
 *** 频段和速率的定义
-    1. 信道定义的定义
-       =center_freq, hw_value, max_power, max_antenna_gain= 这个值的定
-       义。需要用到信道与频率之间的映射函数： =ieee80211_channel_to_frequency=
-    2. 初始化所支持的速率
-       定义 =struct ieee80211_rate= 数组
-    3. 频段定义
-       包含的信息有：支持的信道数，支持的速率，以及HT Capability相关信
-       息。
-
+          1. 信道定义的定义
+             =center_freq, hw_value, max_power, max_antenna_gain= 这个值的定
+             义。需要用到信道与频率之间的映射函数： =ieee80211_channel_to_frequency=
+          2. 初始化所支持的速率
+             定义 =struct ieee80211_rate= 数组
+          3. 频段定义
+             包含的信息有：支持的信道数，支持的速率，以及HT Capability相关信
+             息。
+      
 *** 设备注册    
-- =wiphy_new=  
-  Allocate wiphy and hook cfg80211 ops
-- =wiphy_register=  
-  Register the wiphy to cfg80211. Do sanity checking , set up
-  regulatory info according to the wiphy info and so on.
-- =wiphy_free=  
-  Free the allocated wiphy
-- =wiphy_unregister=  
-  Unregister the wiphy.
-  
-在注册 =netdev= 之前进行，主要包含硬件的一些能力信息：
-1. bands and channels
-2. bitrates per band
-3. HT capabilites
-4. supported interface modes
-netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对象 。
+      - =wiphy_new=  
+        Allocate wiphy and hook cfg80211 ops
+      - =wiphy_register=  
+        Register the wiphy to cfg80211. Do sanity checking , set up
+        regulatory info according to the wiphy info and so on.
+      - =wiphy_free=  
+        Free the allocated wiphy
+      - =wiphy_unregister=  
+        Unregister the wiphy.
+        
+      在注册 =netdev= 之前进行，主要包含硬件的一些能力信息：
+      1. bands and channels
+      2. bitrates per band
+      3. HT capabilites
+      4. supported interface modes
+      netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对象 。
+      
+      注册cfg80211相关函数接口。
+      #+BEGIN_SRC c
+        static void wlanCreateWirelessDevice(void)
+        {
+                struct wiphy *prWiphy = NULL;
+                struct wireless_dev *prWdev = NULL;
 
-注册cfg80211相关函数接口。
-#+BEGIN_SRC c
-  /**
-   ,* 注册一个wireless device的过程
-   ,*/
+                /* 4 <1.1> Create wireless_dev */
+                prWdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+                if (!prWdev) {
+                        DBGLOG(INIT, ERROR, "Allocating memory to wireless_dev context failed\n");
+                        return;
+                }
+                /* 4 <1.2> Create wiphy */
+                prWiphy = wiphy_new(&mtk_wlan_ops, sizeof(GLUE_INFO_T));
+                if (!prWiphy) {
+                        DBGLOG(INIT, ERROR, "Allocating memory to wiphy device failed\n");
+                        goto free_wdev;
+                }
+                /* 4 <1.3> configure wireless_dev & wiphy */
+                prWdev->iftype = NL80211_IFTYPE_STATION;
+                prWiphy->iface_combinations = p_mtk_iface_combinations_sta;
+                prWiphy->n_iface_combinations = mtk_iface_combinations_sta_num;
+                prWiphy->max_scan_ssids = 1;    /* FIXME: for combo scan */
+                prWiphy->max_scan_ie_len = 512;
+                prWiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC);
+                prWiphy->bands[IEEE80211_BAND_2GHZ] = &mtk_band_2ghz;
+                /* always assign 5Ghz bands here, if the chip is not support 5Ghz,
+                 ,*  bands[IEEE80211_BAND_5GHZ] will be assign to NULL
+                 ,*/
+                prWiphy->bands[IEEE80211_BAND_5GHZ] = &mtk_band_5ghz;
+                prWiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
+                prWiphy->cipher_suites = (const u32 *)mtk_cipher_suites;
+                prWiphy->n_cipher_suites = ARRAY_SIZE(mtk_cipher_suites);
+        #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0)
+                prWiphy->flags = WIPHY_FLAG_CUSTOM_REGULATORY | WIPHY_FLAG_SUPPORTS_FW_ROAM | WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL;
+        #else
+                prWiphy->flags = WIPHY_FLAG_SUPPORTS_FW_ROAM | WIPHY_FLAG_HAS_REMAIN_ON_CHANNEL;
+                prWiphy->regulatory_flags = REGULATORY_CUSTOM_REG;
+        #endif
 
-  static struct wireless_dev *CFG80211_WdevAlloc(
-          IN CFG80211_CB                                  *pCfg80211_CB,
-          IN CFG80211_BAND                                *pBandInfo,
-          IN VOID                                                 *pAd,
-          IN struct device                                *pDev)
-  {
-          struct wireless_dev *pWdev;
-          ULONG *pPriv;
+        #if (CFG_SUPPORT_TDLS == 1)
+                TDLSEX_WIPHY_FLAGS_INIT(prWiphy->flags);
+        #endif /* CFG_SUPPORT_TDLS */
+                prWiphy->max_remain_on_channel_duration = 5000;
+                prWiphy->mgmt_stypes = mtk_cfg80211_ais_default_mgmt_stypes;
 
+        #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)
+                prWiphy->vendor_commands = mtk_wlan_vendor_ops;
+                prWiphy->n_vendor_commands = sizeof(mtk_wlan_vendor_ops) / sizeof(struct wiphy_vendor_command);
+                prWiphy->vendor_events = mtk_wlan_vendor_events;
+                prWiphy->n_vendor_events = ARRAY_SIZE(mtk_wlan_vendor_events);
+        #endif
+                /* 4 <1.4> wowlan support */
+        #ifdef CONFIG_PM
+        #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)
+                prWiphy->wowlan = &mtk_wlan_wowlan_support;
+        #else
+                kalMemCopy(&prWiphy->wowlan, &mtk_wlan_wowlan_support, sizeof(struct wiphy_wowlan_support));
+        #endif
+        #endif
 
-          /*
-           ,* We're trying to have the following memory layout:
-           ,*
-           ,* +------------------------+
-           ,* | struct wiphy                       |
-           ,* +------------------------+
-           ,* | pAd pointer                        |
-           ,* +------------------------+
-           ,*/
-          pWdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+        #ifdef CONFIG_CFG80211_WEXT
+                /* 4 <1.5> Use wireless extension to replace IOCTL */
+                prWiphy->wext = &wext_handler_def;
+        #endif
+                if (wiphy_register(prWiphy) < 0) {
+                        DBGLOG(INIT, ERROR, "wiphy_register error\n");
+                        goto free_wiphy;
+                }
+                prWdev->wiphy = prWiphy;
+                gprWdev = prWdev;
+                DBGLOG(INIT, INFO, "create wireless device success\n");
+                return;
 
-
-          //struct cfg80211_ops
-          pWdev->wiphy = wiphy_new(&CFG80211_Ops, sizeof(ULONG *)); 
-
-          /* keep pAd pointer, Your Private data */
-          pPriv = (ULONG *)(wiphy_priv(pWdev->wiphy));
-          ,*pPriv = (ULONG)pAd;
-
-          set_wiphy_dev(pWdev->wiphy, pDev);
-
-          //设置wiphy相关的域
-          pWdev->wiphy->features |= NL80211_FEATURE_INACTIVITY_TIMER;
-
-          //初始化Channel信息
-          /*
-           ,* struct wiphy
-           ,* struct ieee80211_channel
-           ,* struct ieee80211_rate
-           ,* struct ieee80211_supported_band
-           ,*/
-
-
-          wiphy_register(pWdev->wiphy);
-
-          
-  }
-
-
-  BOOLEAN CFG80211_Register(
-          IN VOID                                         *pAd,
-          IN struct device                        *pDev,
-          IN struct net_device            *pNetDev)
-  {
-          CFG80211_CB *pCfg80211_CB = NULL;
-          CFG80211_BAND BandInfo;
-
-
-          /* allocate MAC80211 structure */
-          os_alloc_mem(NULL, (UCHAR **)&pCfg80211_CB, sizeof(CFG80211_CB));
-
-          ...
-          /* allocate wireless device */
-          RTMP_DRIVER_80211_BANDINFO_GET(pAd, &BandInfo);
-
-          pCfg80211_CB->pCfg80211_Wdev = \
-                                  CFG80211_WdevAlloc(pCfg80211_CB, &BandInfo, pAd, pDev);
-          ...
-            
-          pNetDev->ieee80211_ptr = pCfg80211_CB->pCfg80211_Wdev;
-          SET_NETDEV_DEV(pNetDev, wiphy_dev(pCfg80211_CB->pCfg80211_Wdev->wiphy));
-          pCfg80211_CB->pCfg80211_Wdev->netdev = pNetDev;
-
-          ...
-            
-          CFG80211DBG(RT_DEBUG_ERROR, ("80211> CFG80211_Register\n"));
-          return TRUE;
-  } /* End of CFG80211_Register */
-
-#+END_SRC
-
-定义基本的网络设备的基本操作函数
-#+TITLE：注册网络设备相关函数
-#+BEGIN_SRC c
-  struct net_device *device = alloc_etherdev(privDataSize);
-
-  struct net_device_ops *pNetDevOps = NULL;
-
-  device->netdev_ops = pNetDevOps;
-
-  //分配一个接口名
-  dev_get_by_name(...)
-
-  //cfg80211 register
-
-  //注册
-  if (rtnl_locked)
-    ret = register_netdevice(pNetDev);
-  else
-    ret = register_netdev(pNetDev);
-
-
-#+END_SRC
-
+        free_wiphy:
+                wiphy_free(prWiphy);
+        free_wdev:
+                kfree(prWdev);
+        }
+      #+END_SRC
+      
+      定义基本的网络设备的基本操作函数
+      #+TITLE：注册网络设备相关函数
+      #+BEGIN_SRC c
+        struct net_device *device = alloc_etherdev(privDataSize);
+              
+        struct net_device_ops *pNetDevOps = NULL;
+              
+        device->netdev_ops = pNetDevOps;
+              
+        //分配一个接口名
+        dev_get_by_name(...)
+              
+        //cfg80211 register
+              
+        //注册
+        if (rtnl_locked)
+          ret = register_netdevice(pNetDev);
+        else
+          ret = register_netdev(pNetDev);
+              
+      #+END_SRC
+      
 *** regulatory enforcement[fn:2]
-    Channel使用信息, 管制
-    =regulatory_init=
-
+          Channel使用信息, 管制
+          =regulatory_init=
+      
 *** station management  
-    添加，移除和修改STA。
-    Dump STA列表
-    主要的回调接口：
-    - =.add_ station=
-    - =.del_station=
-    - =.change_station=
-    - =.get_station=
-    - =.dump_station=
-
+          添加，移除和修改STA。
+          Dump STA列表
+          主要的回调接口：
+          - =.add_ station=
+          - =.del_station=
+          - =.change_station=
+          - =.get_station=
+          - =.dump_station=
+      
 *** mesh management
-    mesh路径处理
-    读取或设置mesh参数 
-
+      mesh路径处理
+      读取或设置mesh参数 
+      
 *** virtual interface management
-    - 创建虚拟接口和移除虚拟接口
-    - 改变虚拟接口的类型
-    - 改变 =monitor= 标记
-    - 跟踪与无线设备关联的接口
-
+      - 创建虚拟接口和移除虚拟接口
+      - 改变虚拟接口的类型
+      - 改变 =monitor= 标记
+      - 跟踪与无线设备关联的接口
+      
 * MAC80211
   
 ** 主要API速览
@@ -928,7 +929,9 @@ netdev结构的 =ieee80211 ptr= 指针指向注册的 =struct wireless_dev= 对�
 
 *** =NL80211_CMD_GET_REG=
        获取驱动的 regulatory information
-       
+
+*** =NL80211_CMD_VENDOR=
+         NL80211扩展命令，由驱动注册第三方专有命令。
 
 * Footnotes
 [fn:1] http://linuxwireless.org/en/users/Documentation/
