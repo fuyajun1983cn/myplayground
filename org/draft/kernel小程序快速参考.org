@@ -243,25 +243,37 @@
 * tasklet
 * 时间与计时器
 ** 获取时间
-   #+BEGIN_SRC c
-     //1. 获取启动时间
-     #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32))
-     struct timespec ts;
-     unsigned long long boot_time;
-     //...
-     get_monotonic_boottime(&ts);
-     boot_time = ts.tv_sec;
-     toot_time *= USEC_PER_SEC;
-     boot_time += ts.tv_nsec/NSEC_PER_USEC;
-     #else
-     struct timeval tv;
-     unsigned long long boot_time;
-     //...
-     do_gettimeofday(&tv);
-     boot_time = ((unsigned long long)tv.tv_sec * 1000000) + tv.tv_usec;
-     #endif
 
-   #+END_SRC
+    1. 获取启动时间
+        #+BEGIN_SRC c
+         //1. 获取启动时间
+         #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32))
+         struct timespec ts;
+         unsigned long long boot_time;
+         //...
+         get_monotonic_boottime(&ts);
+         boot_time = ts.tv_sec;
+         toot_time *= USEC_PER_SEC;
+         boot_time += ts.tv_nsec/NSEC_PER_USEC;
+         #else
+         struct timeval tv;
+         unsigned long long boot_time;
+         //...
+         do_gettimeofday(&tv);
+         boot_time = ((unsigned long long)tv.tv_sec * 1000000) + tv.tv_usec;
+         #endif
+    
+        #+END_SRC
+
+    2. 程序运行时间计时
+       #+BEGIN_SRC c
+         ktime_t start = ktime_get();
+         //some processing
+         do_something();
+         ktime_t end = ktime_get();
+         s64 usecs64 = ktime_to_us(ktime_sub(end, start));
+       #+END_SRC
+
 * 工作队列
   #+BEGIN_SRC c
     struct work_struct * work_item;

@@ -474,7 +474,7 @@
 
 ** 问题描述
 
-    TP-LINK路由器将2.4G设置为Hidden, MT7662T连接2.4不成功；将5G设置为Hidden却可以连接成功
+    TP-LINK路由器将2.4G设置为Hidden, MT7662T连接2.4G不成功；将5G设置为Hidden却可以连接成功
     
 ** 问题分析
 
@@ -532,3 +532,39 @@
     默认情况下，发送Probe Request的时候不把WPS IE包含进来，但是当进行
     Miracast/P2P连接时，动态打开限制，把WPS IE包含进来。这个逻辑通过上
     层传递一个参数进来即可。
+
+* 案例14 手机与TV进行Miracast连接，TCP连接失败
+
+** 问题描述
+    开机后，连接AP，然后使用WFD投屏, 投屏失败，退出WFD。
+
+** 问题分析
+    1. 程序日志分析
+       查看连接过程中的日志，发现：
+       : P2P-GROUP-STARTED p2p1 client ssid="DIRECT-uc-minote" 
+       这个日志出现说明p2p连接是成功的，问题可能出现在后面。
+
+       继续后面，有看到dhcp交互过程也正常，TV有请求到IP地址，这说明问
+       题出现在RTSP交互阶段。
+       : Lease of 192.168.49.30 obtained, lease time 3600
+
+       在RTSP会话建立时，TV要通过TCP协议连接到7236这个端口上，但是连接
+       失败：
+       : WfdRtspClient::buildTcpConnection tcp connect failed
+
+    2. tcpdump日志分析
+       TCP连接涉及三步握手过程，通过tcpdump可以分析一下这个过程是否成
+       功。
+       [[./images/2016/2016120801.png]]
+
+       TV这连一直在重传三步握手中的第一包数据SYN。是TV没有将数据传出去
+       还是手机一直没有回应？
+
+    3. Sniffer日志分析
+       Sniffer日志可以查看最终从硬件发出去的数据。 通过抓取WiFi
+       Sniffer日志，发现并没有看到TV发出来的第一包握手包数据。看来是TV
+       这端的问题。接下来要确认问题是出现在驱动还是FW：
+         打印从驱动向FW送数据前的日志，确认驱动有将数据往FW送。
+
+** 问题解决
+    最终确认问题发生在FW这边，FW没有将数据送出去。更新FW后，问题解决。
