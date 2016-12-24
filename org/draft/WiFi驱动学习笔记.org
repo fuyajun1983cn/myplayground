@@ -434,6 +434,10 @@
       :  echo 0xff:0x00 > /proc/net/wlan/dbg_level
     - 打开日志
       : echo 0xff:0xbf > /proc/net/wlan/dbg_level
+      : echo 0xff:0xbf > /proc/net/wlan/dbg_level    (INFO)
+    - 打开FW日志
+      : iwpriv wlan0 driver "SET_FWLOG 1 1"
+      : iwpriv wlan0 driver "SET_FWLOG 0 1"
 
 ** 客户平台
 

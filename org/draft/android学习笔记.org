@@ -218,7 +218,6 @@
            只不过在所有的Message处理完毕之后，工作线程会自动结束。所以
            可以把IntentService看做是Service和HandlerThread的结合体，适
            合需要在工作线程处理UI无关任务的场景。 
-
           
 ** 安全策略
    在Android中,安全涵盖了应用程序的部署和执行.对于部署来
@@ -779,6 +778,96 @@
            知用户当前有哪些开放网络。
 
 **** WifiServiceImpl
+
+**** 代码实例
+          1. Connect to Wi-Fi with WEP encryption
+             #+BEGIN_SRC java
+               public boolean ConnectToNetworkWEP( String networkSSID, String password )
+               {
+                   try {
+                       WifiConfiguration conf = new WifiConfiguration();
+                       conf.SSID = "\"" + networkSSID + "\"";   // Please note the quotes. String should contain SSID in quotes
+                       conf.wepKeys[0] = "\"" + password + "\""; //Try it with quotes first
+
+                       conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                       conf.allowedGroupCiphers.set(WifiConfiguration.AuthAlgorithm.OPEN);
+                       conf.allowedGroupCiphers.set(WifiConfiguration.AuthAlgorithm.SHARED);
+
+
+                       WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                       int networkId = wifiManager.addNetwork(conf);
+
+                       if (networkId == -1){
+                           //Try it again with no quotes in case of hex password
+                           conf.wepKeys[0] = password;
+                           networkId = wifiManager.addNetwork(conf);
+                       }
+
+                       List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+                       for( WifiConfiguration i : list ) {
+                           if(i.SSID != null && i.SSID.equals("\"" + networkSSID + "\"")) {
+                               wifiManager.disconnect();
+                               wifiManager.enableNetwork(i.networkId, true);
+                               wifiManager.reconnect();
+                               break;
+                           }
+                       }
+
+                       //WiFi Connection success, return true
+                       return true;
+                   } catch (Exception ex) {
+                       System.out.println(Arrays.toString(ex.getStackTrace()));
+                       return false;
+                   }
+               }             
+             #+END_SRC
+
+          2. Connect to Wi-Fi with WPA2 encryption
+             #+BEGIN_SRC java
+               public boolean ConnectToNetworkWPA( String networkSSID, String password ) {
+                 try {
+                   WifiConfiguration conf = new WifiConfiguration();
+                   conf.SSID = "\"" + networkSSID + "\"";   // Please note the quotes. String should contain SSID in quotes
+
+                   conf.preSharedKey = "\"" + password + "\"";
+
+                   conf.status = WifiConfiguration.Status.ENABLED;
+                   conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                   conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                   conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+                   conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+                   conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+
+                   Log.d("connecting", conf.SSID + " " + conf.preSharedKey);
+
+                   WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                   wifiManager.addNetwork(conf);
+
+                   Log.d("after connecting", conf.SSID + " " + conf.preSharedKey);
+
+
+
+                   List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+                   for( WifiConfiguration i : list ) {
+                     if(i.SSID != null && i.SSID.equals("\"" + networkSSID + "\"")) {
+                       wifiManager.disconnect();
+                       wifiManager.enableNetwork(i.networkId, true);
+                       wifiManager.reconnect();
+                       Log.d("re connecting", i.SSID + " " + conf.preSharedKey);
+
+                       break;
+                     }
+                   }
+
+
+                   //WiFi Connection success, return true
+                   return true;
+                 } catch (Exception ex) {
+                   System.out.println(Arrays.toString(ex.getStackTrace()));
+                   return false;
+                 }
+               }             
+             #+END_SRC
 
 *** P2P/Miracast
 

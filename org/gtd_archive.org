@@ -1403,7 +1403,7 @@ Added: [2016-09-19 一 18:15]
       - [X] 完成字符串与数组面试题
       - [X] 7668 SCAN流程学习
       - [X] 梳理mac80211大体框架，制定下一步学习计划
-** 11月[/]
+** 11月[5/5]
 *** ✔ DONE 在发送Association Request之前禁用一些HT/VHT的速率
      CLOSED: [2016-11-02 周三 18:00] SCHEDULED: <2016-09-19 周一>
      http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
@@ -1418,4 +1418,27 @@ Added: [2016-09-19 一 18:15]
     CLOSED: [2016-11-04 周五 14:25]
      http://www.extremetech.com/computing/235842-globalfoundries-announces-new-7nm-finfet-process-full-node-shrink
 Added: [2016-09-18 周日 00:15]
-** 12月[/]
+** 12月[2/2]
+*** ✔ DONE [#C] 整理以前的学习笔记 [4/8]
+     CLOSED: [2016-12-08 周四 14:35]
+    CLOCK: [2016-08-16 周二 11:35]--[2016-08-16 周二 11:50] =>  0:15
+    CLOCK: [2016-08-16 周二 11:05]--[2016-08-16 周二 11:31] =>  0:26
+    CLOCK: [2016-08-13 六 15:11]--[2016-08-13 六 15:22] =>  0:11
+    :PROPERTIES:
+    :Effort:   8:00
+    :END:
+    - [ ] Android研究文章整理
+    - [X] Android学习笔记
+    - [X] Android研究记录
+    - [ ] CMake笔记
+    - [X] C++学习笔记
+    - [ ] Java编程笔记
+    - [ ] Unix下C编程学习笔记
+    - [X] 内核编程笔记
+*** ✔ DONE Power Management
+     CLOSED: [2016-12-19 周一 17:25]
+    - Next Action:
+      Linux MT7603 STA Legacy_PSP and Fast_PSP Driver Control Flow
+      V0.3
+      PS Retrieve_MT7603E
+

@@ -153,6 +153,45 @@
 *** SPI Mode
         此种模式下，引脚8用于中断引脚。
 
+** SDIO识卡流程
+    
+*** 常见命令
+         - CMD 5 (The =IO_SEND_OP_COND= Command)
+
+           这个是发给给WiFi网卡设备的第一条指令，主要用于查询SDIO卡需
+           要的电压范围。通常会响应一个R4. 如果电压与Host端不匹配，则
+           Host端会忽略此卡。
+
+         - CMD 3 ( =SEND_RELATIVE_ADDR= )
+
+           这个命令用于要求SDIO卡设备公布一个新的RCA。RCA用于标识某个
+           特定的SD卡。
+
+         - CMD 7( =SELECT/DESELECT_CARD= )
+
+           该命令主要是将一个卡在 standy-by 和 transfer 状态之间或
+           programming 和 disconnect状态之间进行转换。不管理哪种情况下，
+           卡是通过自己的RCA地址被选中，其他地址取消选中。
+
+         - CMD 52( =IO_RW_DIRECT command= )
+
+           The =IO_RW_DIRECT= is the simplest means to access a single
+           register within the total 128K of register space in any I/O
+           function, including the common I/O area (CIA). This command
+           reads or writes 1 byte using only 1command/response pair. A
+           common use is to initialize registers or monitor status
+           values for I/O functions. This command is the fastest means
+           to read or write single I/O registers, as it requires only
+           a single command/response pair
+
+         - CMD 53( =IO_RW_EXTENDED= command)
+           
+           This command allows the reading or writing of a large
+           number of I/O registers with a single command. Since this
+           is a data transfer command, it provides the highest
+           possible transfer rate.
+
+
     
 * Linux SDIO驱动
 

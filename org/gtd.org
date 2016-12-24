@@ -31,6 +31,7 @@
     - Next Action:
       usb_study_report_junqi_2_USB Driver Register.pdf
 
+*** Date Rate Alg
 ** mt7668驱动学习
     SCHEDULED: <2016-08-29 周一 +1w>
     
@@ -148,22 +149,6 @@ Added: [2016-08-10 周三 13:40]
     SCHEDULED: <2016-10-10 周一>
 TPUT_study
 Added: [2016-08-10 周三 13:45]
-** ☛ TODO [#C] 整理以前的学习笔记 [4/8]
-   SCHEDULED: <2016-08-29 周一 +1w>
-   CLOCK: [2016-08-16 周二 11:35]--[2016-08-16 周二 11:50] =>  0:15
-   CLOCK: [2016-08-16 周二 11:05]--[2016-08-16 周二 11:31] =>  0:26
-   CLOCK: [2016-08-13 六 15:11]--[2016-08-13 六 15:22] =>  0:11
-   :PROPERTIES:
-   :Effort:   8:00
-   :END:
-   - [ ] Android研究文章整理
-   - [X] Android学习笔记
-   - [X] Android研究记录
-   - [ ] CMake笔记
-   - [X] C++学习笔记
-   - [ ] Java编程笔记
-   - [ ] Unix下C编程学习笔记
-   - [X] 内核编程笔记
 ** ☛ TODO [#C] 处理云笔记                                             :Study:
     SCHEDULED: <2016-08-29 周一 +1w>
     CLOCK: [2016-08-18 周四 18:02]--[2016-08-18 周四 18:23] =>  0:21
@@ -181,15 +166,6 @@ Added: [2016-08-10 周三 13:45]
      5. [ ] 第6章 深入理解Wi-Fi Simple Configuration
      6. [ ] 第7章 深入理解Wi-Fi P2P
 Added: [2016-09-02 周五 14:15]
-** ☛ TODO 健身计划                                                    :Check:
-    SCHEDULED: <2016-10-11 二 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 00:00]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-10 六 13:35]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-09-18 周日 00:02]
-   :END:
-    - 每周至少两次健身
-Added: [2016-09-05 周一 19:25]
 ** ☛ TODO Linux IPC机制研究                                            :Study:
     1. [[https://lwn.net/Articles/466304/][Fast interprocess communication revisited]]
     2. [[https://lwn.net/Articles/697191/][Bus1: a new Linux interprocess communication proposal]]
@@ -197,28 +173,6 @@ Added: [2016-09-07 周三 09:50]
 ** ☛ TODO Linux Trace API研究                                          :Study:
     
 Added: [2016-09-09 周五 13:45]
-** ☛ TODO [#B] 研究wpa_supplicant上的修改记录                         :Study:
-    SCHEDULED: <2016-10-31 周一 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-26 周三 20:05]
-   - State "✔ DONE"     from "☛ TODO"     [2016-10-18 二 16:30]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:25]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-21 三 13:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 17:05]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 17:45]
-    CLOCK: [2016-09-09 周五 17:08]--[2016-09-09 周五 17:43] =>  0:35
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-31 周三 11:50]
-    CLOCK: [2016-08-31 周三 09:45]--[2016-08-31 周三 11:50] =>  2:05
-    CLOCK: [2016-08-30 周二 19:01]--[2016-08-30 周二 20:03] =>  1:02
-    CLOCK: [2016-08-30 周二 17:47]--[2016-08-30 周二 18:08] =>  0:21
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 17:35]
-    CLOCK: [2016-08-25 周四 16:50]--[2016-08-25 周四 17:34] =>  0:44
-    CLOCK: [2016-08-15 周一 17:25]--[2016-08-15 周一 18:07] =>  0:42
-   :PROPERTIES:
-   :Effort:   8:00
-   :LAST_REPEAT: [2016-10-26 周三 20:07]
-   :END:
-     - 2015-October
-     - Next Action: Auguest2009
 ** ☛ TODO SDIO规范阅读                                                 :Study:
 
 Added: [2016-09-18 周日 00:15]
@@ -291,8 +245,8 @@ Added: [2016-09-05 周一 09:50]
      - [X] 第五章
      - [X] 第六章
      - [X] 第七章
-     - [ ] 第八章
-     - [ ] 第九章
+     - [X] 第八章
+     - [X] 第九章
      - [ ] 第十章
      - [ ] 第十一章
      - [ ] 第十二章
@@ -402,7 +356,11 @@ Added: [2016-11-04 周五 16:40]
         interrupts列出了两个中断号，表示BCI可以产生两个中断。
 
         一般需要配置的设备是一些固定的设备，不能自动枚举的设备。
-        
+** ☛ TODO 研究MT7662 VHT的修改                                         :Study:
+    SCHEDULED: <2016-12-09 周五>
+    
+    Added: [2016-12-08 周四 14:30]
+
 * Calendar
   :PROPERTIES:
   :CATEGORY: CALENDAR
@@ -463,7 +421,7 @@ Added: [2016-11-04 周五 16:40]
     CLOCK: [2016-09-06 周二 09:32]--[2016-09-06 周二 10:10] =>  0:38
     CLOCK: [2016-08-31 周三 17:20]--[2016-08-31 周三 18:06] =>  0:46
     - 第二部分 物理层
-      下次读第五章
+      下次读6.2节
     - 第三部分 数据链路层
 Added: [2016-08-31 周三 17:20]
 ** ☛ TODO 计算机语言的构造与解释
@@ -479,24 +437,66 @@ Added: [2016-08-31 周三 17:20]
 ** SDIO规范阅读
     - [ ] SDIO识卡流程
       驱动流程已经理清，下一步就是对照Spec跟读一下代码流程。
+
 * 本月已完成目标
+** W45
+    - [X] 准备Scan模块分享PPT
+    - [X] 完成CWAP第六章的学习
+    - [X] 完成如下资料学习
+          http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
+    - [X] 完成如下资料学习
+      晶元制程
+** W46
+    - [X] 完成第八章线性表的练习
+    - [X] 完成USB规范第三章的学习
+    - [X] 完成CWAP第七章的学习
+** W47
+    - [ ] 了解下SDIO识卡流程
+    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
+    - [ ] 了解下SDIO Low Power
+** W48
+    - [ ] 了解下SDIO识卡流程
+      代码流程已经理清，下一步要对着Spec再看一下。
+    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
+    - [ ] 了解下SDIO Low Power
 ** W49
+     - [X] 了解下SDIO识卡流程
+      代码流程已经理清，下一步要对着Spec再看一下。
+     - [X] 阅读完 Understanding SD, SDIO and MMC Interface 文档
+     - [X] 了解一个7662/7668 PM的功能
+     - [X] 完成CWAP第八章的学习
+
 * 今天必须做的事情
   :PROPERTIES:
   :CATEGORY: 重要且紧急（计划内）
   :END:
-  1. USB规范第三章学习
-  2. MT7668 P2P/TDLS学习
-  3. 开始第八章练习的学习
-  4. 准备cfg80211的报告
-  5. SDIO规范阅读
+  1. 开始第八章练习的学习
+  2. 编写p2p测试代码
+  3. 找Bobby Tsai拿手機
+  4. 理清non-delivery & non-triggerable的含义
 
-** ☛ TODO Power Management
-   - Next Action:
-     Linux MT7603 STA Legacy_PSP and Fast_PSP Driver Control Flow
-     V0.3
-     PS Retrieve_MT7603E
-
+** ☛ TODO [#B] 研究wpa_supplicant上的修改记录                         :Study:
+    SCHEDULED: <2016-10-31 周一 +1w>
+    - State "✔ DONE"     from "☛ TODO"     [2016-10-26 周三 20:05]
+   - State "✔ DONE"     from "☛ TODO"     [2016-10-18 二 16:30]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:25]
+   - State "✔ DONE"     from "☛ TODO"     [2016-09-21 三 13:40]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 17:05]
+    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 17:45]
+    CLOCK: [2016-09-09 周五 17:08]--[2016-09-09 周五 17:43] =>  0:35
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-31 周三 11:50]
+    CLOCK: [2016-08-31 周三 09:45]--[2016-08-31 周三 11:50] =>  2:05
+    CLOCK: [2016-08-30 周二 19:01]--[2016-08-30 周二 20:03] =>  1:02
+    CLOCK: [2016-08-30 周二 17:47]--[2016-08-30 周二 18:08] =>  0:21
+    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 17:35]
+    CLOCK: [2016-08-25 周四 16:50]--[2016-08-25 周四 17:34] =>  0:44
+    CLOCK: [2016-08-15 周一 17:25]--[2016-08-15 周一 18:07] =>  0:42
+   :PROPERTIES:
+   :Effort:   8:00
+   :LAST_REPEAT: [2016-10-26 周三 20:07]
+   :END:
+     - 2015-October
+     - Next Action: Auguest2009
 * 今天应该做的事情
   :PROPERTIES:
   :CATEGORY: 重要不紧急(计划内）)

@@ -1086,3 +1086,6 @@
 
 
 https://pythonprogramming.net/
+
+
+https://gist.github.com/JeffPaine/6213790

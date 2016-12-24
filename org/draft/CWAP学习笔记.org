@@ -3585,7 +3585,7 @@
         for the CTS, DATA, and ACK frames to be transmitted, along with a SIFS before
         each of these frames.
            
-* CH06 Data Frames
+* CH06 802.11 Data Frames
 ** Data Subtypes
      总共定义了15种数据帧类型。 
 
@@ -4989,7 +4989,6 @@
 *** PSMP
         基于S-APSD之上的一种Power Management方法，主要应用于使用HCCA
         信道访问控制机制的网络 。
-    
 
 ** IBSS Power Management
      The basic structure is the same: stations send a notification
@@ -5427,6 +5426,697 @@
         U-APSD. 
 
 * CH09 802.11 Security
+** Authentication
+    Authentication是WiFi设备连接某个BSS之前所需要进行的两个步骤之一，
+    并且一定要在Association之前进行。这步其实所做的事情基本类似于将有线网
+    络插入网卡使得Ethernet网络物理层接通这个操作。 其目的主要就是验证
+    当前设备是一个合法的802.11无线网络设备。
+
+*** Open System Authentication
+        在这种认证模式下，由Client首先发出第一帧Auth包，然后AP回复成功
+        或失败。WEP加密方式是可选的，且主要是在关联成功后，加密Layer 3
+        层以上的数据。 不过，目前会采用安全的安全认证方法：802.11i
+        WPA/WPA2， 802.1X/EAP。
+
+*** Shared Key Authentication
+        它是一种Pre-RSNA的安全加密方法。交互过程涉及4步，如图所示：
+        #+CAPTION: Shared Key authentication exchange
+        [[./images/2016/2016121201.png]]
+
+** WLAN Encryption Methods
+    Layer 2 Encryption Method: Wired Equivalent Privacy (WEP),
+    Temporal Key Integrity Protocol (TKIP), CTR with CBC-MAC Protocol
+    (CCMP). 这些方法主要是保护MSDU，也即Layer 3层以上的数据的安全。
+
+*** WEP
+      
+**** WEP encryption process
+
+          [[./images/2015/2015121002.png]]
+
+          
+**** WEP MPDU format
+
+         [[./images/2016/2016121202.png]]
+
+*** TKIP
+    
+**** TKIP encryption and data integrity process
+
+           [[./images/2016/2016121203.png]]
+
+           TKIP encryption and data integrity process:
+           - TTAK = Phase 1 (TK, TA, TSC)
+           - WEP seed = Phase 2 (TTAK, TK, TSC)
+
+
+           Where does the 128-bit temporal key come from?
+
+           the 128-bit temporal key is a dynamically generated key
+           that comes from a 4-Way Handshake creation process. The
+           128-bit temporal key can either be a pairwise transient key
+           (PTK) used to encrypt unicast traffic or a group temporal
+           key (GTK) used to encrypt broadcast and multicast traffic. 
+
+           After the appropriate 128-bit temporal key (pairwise or
+           group) is created, the two-phase key-mixing process begins.
+
+**** TKIP MPDU
+          The encrypted frame body consists of five key pieces:
+          - IV/Key ID
+          - IV/Key ID
+          - IV/Key ID
+          - MIC
+          - ICV
+
+          [[./images/2016/2016121204.png]]
+
+*** CCMP
+
+**** CCMP encryption and data integrity process
+     
+           [[./images/2016/2016121205.png]]
+
+           #+CAPTION: Additional authentication data (AAD)
+           [[./images/2016/2016121206.png]]
+
+**** CCMP MPDU
+
+          [[./images/2016/2016121207.png]]
+
+** WPA/WPA2
+      WPA是802.11i规范正式分布前的临时解决方案，它只支持TKIP/RC4动态加
+      密密钥产生方法。802.11i发布后，WFA修订了WPA形成了WPA2，主要的不
+      同之处是WPA2采用了CCMP/AES动态加密密钥产生机制。WPA/WPA2都支持
+      802.1X/EAP、PSK认证机制。
+
+** Robust Security Networks (RSN)
+     802.11i规范正式发布后，被收录进802.11 2007标准规范中，它定义了一
+     种称为RSN以及RSNA。安全关联是指一系列策略和用于保护住处的密钥。
+     RSNA(robust security network association)要求两个802.11 STA之间通
+     过4步握手的过程来建立一系列相互认证，关联以及创建动态加密密钥的过
+     程。 两个80211 STA之间进行的关联行为称为RSNA。CCMP/AES加密方法的
+     支持是制性的，而TKIP/RC4加密方法的支持是可选的。
+
+     #+CAPTION: RSNA within a BSS
+     [[./images/2016/2016121301.png]]
+
+     #+CAPTION: RSNA within an IBSS
+     [[./images/2016/2016121302.png]]
+
+     RSN网络只允许创建RSNA。 换句话说，在RSN网络中，只存在CCMP/AES或
+     TKIP/RC4等两种加密方法。如果存在Pre-RSNA支持的加密方法如Dynamic
+     WEP，则该网络称为TSN(transition security network)
+
+     #+CAPTION: Robust security network
+     [[./images/2016/2016121303.png]]
+
+     #+CAPTION: Transition security network
+     [[./images/2016/2016121304.png]]
+
+     每个WLAN有一个逻辑名称SSID，以及一个唯一的Layer 2层标识BSSID。
+     BSSID通常是AP的Mac地址。多数WLAN设备可以创建多个虚拟BSSID的能力。
+     这样就可以支持创建虚拟WLAN，每个唯一的SSID名可以赋给一个特定的
+     VLAN，每个VLAN与一个虚拟的BSSID关联。这样，每个VLAN拥有一个SSID和
+     唯一的虚拟的Layer 2标识BSSID，这样每个WLAN可以被映射到一个唯一的
+     Layer 3层的VLAN。 每个WLAN可以要求不同的安全关联类型。
+
+     #+CAPTION: RSN, pre-RSN, and TSN within the same AP cell
+     [[./images/2016/2016121305.png]]
+     
+** RSN Information Element
+     在一个BSS内部，设备间是通过管理帧携带的RSN IE来获知对方的RSN能力
+     信息的。RSN IE包含了加密能力信息，是否使用802.1X/EAP,或PSK认证机
+     制等。
+
+     RSN IE信息通常在如下4种802.11管理帧中出现：
+     1. beacon management frames
+     2. probe response frames
+     3. association request frames
+     4. reassociation request frames
+
+     AP通过Beacon或Probe Response管理帧告知STA有关安全方面的能力信息。
+     
+     #+CAPTION: Access point RSN security capabilities
+     [[./images/2016/2016121306.png]]
+
+     STA可以通过Association Request和Re-Association Request来向AP表明
+     自己安全方面的能力信息。如果相关的能力支持不符合AP的要求，则会被
+     拒绝关联。
+
+     #+CAPTION: Client station RSN security capabilities
+     [[./images/2016/2016121307.png]]
+
+     RSN IE的信息截图如下：
+     +CAPTION: RSN Information
+     [[./images/2016/2016121308.png]]
+     
+     - group cipher suite
+       加密广播包的方法
+     - pairwise cipher suite
+       加密单播包的方法
+     - AKM suite field
+       这个表明当前支持的是802.1X还是PSK。
+        
+** 802.1X
+     802.1X provides an authorization framework that allows or
+     disallows traffic to pass through a port and thereby access
+     network resources.
+
+     802.1X可用于无线或有线环境下。 
+     
+     802.1X授权框架包含三个组成部分，使用Layer 2层的EAP认证协议进行交
+     互，在Layer 2层对用户进行认证。
+
+*** Supplicant
+         Supplicant在Layer 2与Authentication Server进行通信。直到被AS
+         认证前，它都不能在Layer 3以上进行通信。
+*** Authenticator
+        Authenticator维护两个虚拟端口：一个非受控端口，只允许EAP包通过。
+        一个受控端口，只有在认证通过的情况下，才允许通过此端口进行通信。
+
+*** Authentication Server
+         对Supplicant进行认证。与Supplicant在Layer 2通过EAP进行通信。
+         并将认证结果告知Authenticator。
+
+** EAP
+     EAP消息是封装在EAPOL帧上的。 Authenticator在送给AS时，会将其转换
+     成EAP。
+
+     #+CAPTION: EAPOL messages
+     [[./images/2016/2016121601.png]]
+
+     802.1X/EAP交互过程始于Layer 2链接成功建立之后，即Association成功
+     之后 。
+
+     #+CAPTION: Generic EAP exchange
+     [[./images/2016/2016121602.png]]
+
+*** Strong EAP Protocols
+        The stronger and more commonly deployed methods of EAP use
+        Transport Layer Security (TLS)–based authentication and/or
+        TLS-tunneled authentication.
+
+        使用tunneled认证的EAP方法拥有两个Supplicant标识：外部标识以及
+        内部标识。
+
+        外部标识只是一个伪装的标识，内部标识才是直正的标识。
+
+        The whole purpose of tunneled authentication is to provide a
+        secure channel to protect the user identity credentials. The
+        user credentials are encrypted inside the TLS tunnel.
+        
+*** EAP-PEAP
+         在Supplicant与认证服务器之间建立一个加密的TLS 隧道。
+
+         #+CAPTION: EAP-PEAP process
+         [[./images/2016/2016121603.png]]
+
+** 4-Way Handshake
+     [[http://ifjy.me/wifi/2015/12/14/4%25E6%25AD%25A5%25E6%258F%25A1%25E6%2589%258B%25E8%25BF%2587%25E7%25A8%258B.html][4步握手过程]]
+** Group Key Handshake
+    [[http://ifjy.me/wifi/2015/12/14/4%25E6%25AD%25A5%25E6%258F%25A1%25E6%2589%258B%25E8%25BF%2587%25E7%25A8%258B.html#sec-3][Group HandShake]]
+** FastBSS Transition (FT)                                        :nonexport:
+
+*** Information Elements
+
+*** FT Initial Mobility Domain Association
+
+*** Over-the-air Fast BSS Transition
+
+*** Over-the-DS Fast BSS Transition
+
+** 802.11w Protected Management Frames
+      protect Management Frames and Action Framesto prevent DoS
+      attacks.
+
+** Review Questions
+
+    1. Laura is attempting to diagnose a WLAN by using a packet
+       analyzer to capture the exchange of frames and packets between
+       a wireless client and the AP. In the process of analyzing the
+       packets, she sees two 802.11 authentication frames, two 802.11
+       association frames, and DHCP requests and responses, and then
+       she begins to see encrypted data. Which of the following could
+       the client be using? (Choose all that apply.) 
+
+       A. Open System authentication
+
+       B. Shared Key authentication
+
+       C. 802.1X/EAP
+
+       D. WEP
+
+       E. PPTP
+
+       F. L2TP/IPsec
+
+       *答案解析*
+
+       A, E, F. Since there are only two 802.11 authentication frames, Open System authentication
+       is being used. Shared Key authentication would generate four 802.11 authentication
+       frames. If 802.1X/EAP or WEP were being used, then the client would be doing L2 encryption,
+       and the DHCP frames would be encrypted and not visible. Therefore, 802.1X/EAP
+       and WEP are not being used. Both PPTP and L2TP/IPsec perform layer 3 encryption that
+       would allow Laura to see the DHCP exchange and any other IP traffic.
+
+    2. This graphic shows a packet capture of a successful 802.11
+       authentication. In which of the following types of client
+       connections could this authentication not occur? (Choose all
+       that apply.)
+
+       [[./images/2016/2016121901.png]]
+
+       A. 802.1X/EAP
+
+       B. VPN
+
+       C. WEP with Shared Key authentication
+
+       D. WEP with Open System authentication
+
+       E. Open System authentication with WEP
+
+       *答案解析*
+
+       A, D, E. The graphic shows an 802.11 Shared Key authentication that consists of four
+       authentication frames: an authentication request followed by a clear-text challenge frame,
+       followed by a challenge response with the clear-text data encrypted, and then followed by
+       an authentication response. 802.1X/EAP works together with Open System authentication
+       but cannot be deployed when WEP is used. To use Shared Key authentication, WEP must
+       be enabled. A VPN can be used with Shared Key or Open System authentication. Companies
+       would use a VPN for data privacy because WEP has been cracked, but they often
+       would still use WEP as an added layer of security. Shared Key authentication is optional
+       with WEP, although not recommended.
+
+    3. The graphic shows a packet capture of a successful 802.11
+       authentication. In which of the following types of client
+       connections could this not occur? 
+
+       [[./images/2016/2016121902.png]]
+
+       A. 802.1X/EAP
+
+       B. VPN
+
+       C. WEP with Shared Key authentication
+
+       D. WEP with Open System authentication
+
+       E. Unencrypted
+
+       *答案解析*
+
+       C. The graphic shows a two-frame Open System authentication. 802.1X/EAP works
+       together with Open System authentication. VPN can be configured with either Open System
+       or Shared Key authentication. An unencrypted session uses Open System authentication.
+
+    4. Given that CCMP uses a MIC for data integrity to protect the
+       frame body and portions of the MAC header, what information
+       needs to be constructed to protect certain fields in the MAC
+       header? 
+
+       A. Nonce
+
+       B. Extended IV
+
+       C. ICV
+
+       D. AAD
+
+       E. PN
+
+       E. PN
+
+       *答案解析*
+
+       D. Additional authentication data (AAD) is constructed from portions of the MPDU
+       header. This information is used for data integrity of portions of the MAC header. Receiving
+       stations can then validate the integrity of these MAC header fields. The MIC protects
+       the AAD information and the frame body for data integrity.
+
+    5. How many extra bytes of overhead does TKIP/RC4 encryption add
+       to the body of an 802.11 MPDU?
+
+       A. 16 bytes
+
+       B. 12 bytes
+
+       C. 20 bytes
+
+       D. 10 bytes
+
+       E. None of the above
+
+       *答案解析*
+
+       C. When TKIP is implemented, because of the extra overhead from the extended IV and
+       the MIC, a total of 20 bytes of overhead is added to the body of an 802.11 MPDU. CCMP/
+       AES encryption will add an extra 16 bytes of overhead to the body of an 802.11 MPDU.
+       WEP encryption will add an extra 8 bytes of overhead to the body of an 802.11 MPDU.
+
+    6. The TKIP MIC is used for data integrity. Which portions of an
+       802.11 MPDU does the TKIP MIC protect from being altered?
+       (Choose all that apply.) 
+
+       A. MSDU
+
+       B. SA
+
+       C. DA
+
+       D. TA
+
+       E. Frame Control field
+
+       F. MSDU priority bit
+
+       *答案解析*
+       
+       A, B, C. TKIP uses a stronger data integrity check known as the message integrity code
+       (MIC) to mitigate known forgery attacks against WEP. The MIC is often referred to by its
+       nickname of Michael. The MIC can be used to defeat bit-flipping attacks, fragmentation
+       attacks, redirection, and impersonation attacks. The MIC is computed using the destination
+       address (DA), source address (SA), MSDU Priority, and the entire unencrypted MSDU
+       plaintext data. After the MIC is generated, it is appended to the end of the MSDU payload.
+
+    7. What does 802.1X/EAP provide when implemented for WLAN
+       security? (Choose all that apply.)
+
+       A. Access to network resources
+
+       B. Verification of access point credentials
+
+       C. Dynamic authentication
+
+       D. Dynamic encryption-key generation
+
+       E. Verification of user credentials
+
+       *答案解析*
+
+       A, D, E. The purpose of 802.1X/EAP is authentication of user credentials and authorization
+       to access network resources. Although the 802.1X framework does not require encryption,
+       it highly suggests the use of encryption. A by-product of 802.1X/EAP is the generation
+       and distribution of dynamic encryption keys. Although the encryption process is actually a
+       byproduct of the authentication process, the goals of authentication and encryption are very
+       different. Authentication provides mechanisms for validating user identity while encryption
+       provides mechanisms for data privacy or confidentiality.
+
+    8. View the frame capture of the 4-Way Handshake in the graphic
+       shown here. Which EAPOL-Key message frame is displayed?
+
+       [[./images/2016/2016121903.png]]
+
+       A. 4-Way Handshake message 1
+
+       B. 4-Way Handshake message 2
+
+       C. 4-Way Handshake message 3
+
+       D. 4-Way Handshake message 4
+
+       *答案解析*
+
+       C. The third EAPOL-Key frame of the 4-Way Handshake may also contain a message to
+       the supplicant to install the temporal keys. The frame capture indicates that the temporal
+       key is to be installed. The third EAPOL-Key frame also sends the supplicant the ANonce,
+       the authenticator’s RSN information element capabilities, and a MIC. If a GTK has been
+       generated, the GTK will be inside the third EAPOL-Key frame. The GTK confidentiality is
+       protected because it will be encrypted with the PTK.
+
+    9. What are some of the frames that carry the security
+       capabilities found in the RSN information element? (Choose all
+       that apply.) 
+
+       A. Beacon management frame
+
+       B. Probe request frame
+
+       C. Probe response frame
+
+       D. Association request frame
+
+       E. EAPOL-Key frame
+
+       F. Request-to-Send frame
+
+       *答案解析*
+
+       A, C, D, E. The RSN information element field is found in four different 802.11 management
+       frames: beacon management frames, probe response frames, association request
+       frames, and reassociation request frames. The RSN information element can also be found
+       in the second and third EAPOL-Key frames of the 4-Way Handshake.
+
+    10. In a robust security network (RSN), which 802.11 management
+        frames are used by client stations to inform an access point
+        about the RSNA security capabilities of the client
+        STAs?(Choose all that apply.) 
+
+        A. Beacon management frame
+
+        B. Probe request frame
+
+        C. Probe response frame
+
+        D. Association request frame
+
+        E. Reassociation response frame
+
+        F. Reassociation request frame
+
+        G. Association response frame
+
+        *答案解析*
+
+        D, F. The RSN information element field is found in four different 802.11 management
+       frames: beacon management frames, probe response frames, association request frames,
+       and reassociation request frames. Within a basic service set, an access point and client
+       stations use the RSN information element within these four management frames to communicate
+       with each other about their security capabilities prior to establishing association.
+       Client stations use the association request frame to inform the access point of the client
+       station security capabilities. When stations roam from one access point to another access
+       point, they use the reassociation request frame to inform the new access point of the roaming
+       client station’s security capabilities. The security capabilities include supported encryption
+       cipher suites and supported authentication methods.
+
+    11. After viewing the frame capture shown here, identify the type
+        of authentication method being used.
+
+        [[./images/2016/2016121904.png]]
+
+        A. EAP-TTLS
+
+        B. Open System
+
+        C. PSK
+
+        D. EAP-TLS
+
+        E. PEAP
+
+        *答案解析*
+
+        C. The RSN information element can also be used to indicate what authentication methods
+       are supported. The authentication key management (AKM) suite field in the RSN information
+       element indicates whether the station supports either 802.1X authentication or PSK
+       authentication. If the AKM suite value is 00-0F-AC-01, authentication is negotiated over an
+       802.1X infrastructure using an EAP protocol. If the AKM suite value is 00-0F-AC-02, then
+       PSK is the authentication method that is being used.
+
+    12. Which of these roaming methods requires the use of FT Action
+        frames?
+
+        A. Over-the-air fast BSS transition
+
+        B. Over-the-WDS fast BSS transition
+
+        C. Over-the-DS fast BSS transition
+
+        D. Over-the-WLS fast BSS transition
+
+        *答案解析*
+
+        C. The pairwise transient key (PTK) is the third-level key of the FT key hierarchy. The
+        PTK is the final key used to encrypt 802.11 data frames. The PTK is created during either
+        an over-the-air fast BSS transition frame exchange or over-the-DS fast BSS transition frame
+        exchange. In any 802.11 robust security network (RSN), the PTK is used to encrypt the
+        MSDU payload of an 802.11 unicast data frame.
+
+    13. Before an 802.11 client STA can pass traffic through the AP,
+        which two of the following must occur? (Choose two answers.)
+
+        A. 802.1X
+
+        B. EAP
+
+        C. Association
+
+        D. Authentication
+
+        E. WEP keys must match
+
+        *答案解析*
+
+        C, D. For a client to connect to the WLAN and pass data, the client must authenticate and
+        associate. The other three choices could occur but do not have to do so.
+
+    14. How many extra bytes of overhead does CCMP/AES encryption add
+        to the body of an 802.11 data frame?
+
+        A. 16 bytes
+
+        B. 12 bytes
+
+        C. 20 bytes
+
+        D. 10 bytes
+
+        E. None of the above
+
+        *答案解析*
+
+        A. CCMP/AES encryption will add an extra 16 bytes of overhead to the body of an 802.11
+        data frame. Eight bytes are added by the CCMP header and 8 bytes are added by the MIC.
+        WEP encryption will add an extra 8 bytes of overhead to the body of an 802.11 data frame.
+        When TKIP is implemented, because of the extra overhead from the extended IV and the
+        MIC, a total of 20 bytes of overhead is added to the body of an 802.11 data frame.
+
+    15. A data integrity check known as message integrity code (MIC)
+        is used by which of the following?(Choose all that apply.) 
+
+        A. WEP
+
+        B. TKIP
+
+        C. CCMP
+        
+        D. AES
+
+        E. DES
+
+        *答案解析*
+
+        B, C. A stronger data integrity check known as a message integrity code (MIC), or by its
+        common name, Michael, was introduced with TKIP to correct some of the weaknesses in
+        WEP. CCMP also uses a MIC. AES and DES are encryption algorithms and are not concerned
+        with message integrity.
+
+    16. How does a RADIUS server communicate with an authenticator?
+        (Choose all that apply.)
+
+        A. UDP ports 1812 and 1813
+
+        B. TCP ports 1645 and 1646
+
+        C. Encrypted TLS tunnel
+
+        D. Encrypted IPsec tunnel
+
+        E. RADIUS IP packets
+        
+        F. EAPOL frames
+
+        *答案解析*
+
+        A, E. The RADIUS protocol uses UDP ports 1812 for RADIUS authentication and 1813
+        for RADIUS accounting. These ports were officially assigned by the Internet Assigned
+        Number Authority (IANA). However, prior to IANA allocation of UDP ports 1812 and
+        1813, the UDP ports of 1645 and 1646 (authentication and accounting, respectively) were
+        used as the default ports by many RADIUS server vendors. TCP is not used. All Layer
+        2 EAP traffic sent between the RADIUS server and the authenticator is encapsulated in
+        RADIUS IP packets. The encrypted TLS tunnel communications are between the supplicant
+        and the authentication server. IPsec is not used.
+
+    17. What must occur in order for dynamic TKIP/RC4 or CCMP/AES
+        encryption keys to be generated? (Choose all that apply.)
+
+        A. Shared Key authentication and 4-Way Handshake
+
+        B. 802.1X/EAP authentication and 4-Way Handshake
+
+        C. Open System authentication and 3-Way Handshake
+
+        D. Open System authentication and 4-Way Handshake
+
+        E. 802.1X/EAP authentication and 3-Way Handshake
+
+        *答案解析*
+
+        B, D. Open System and Shared Key authentication are legacy authentication methods that
+        do not provide seeding material to generate dynamic encryption keys. However, a four-way
+        Open System authentication must occur prior to the EAP exchange. A robust security network
+        association requires a four-frame EAP exchange known as the 4-Way Handshake that
+        is used to generate dynamic TKIP or CCMP keys.
+
+    18. After viewing the frame capture in the graphic shown here,
+        identify which type of security network is being used. 
+
+        [[./images/2016/2016121905.png]]
+
+        A. Robust Security Network
+
+        B. Rotund Security Network
+
+        C. Transition Security Network
+
+        D. WPA Security Network
+
+        E. WPA
+
+        *答案解析*
+
+        C. The frame capture shows an RSN information element field that can be found in a management
+        frame. The RSN information element shows that the group cipher that is being
+        used is WEP. A transition security network (TSN) supports RSN-defined security as well as
+        legacy security such as WEP within the same BSS. Within a TSN, some client stations will
+        use RSNA security using TKIP/RC4 or CCMP/AES for encrypting unicast traffic. However,
+        some legacy stations are still using static WEP keys for unicast encryption. All of the clients
+        will use WEP encryption for the broadcast and multicast traffic. Because all the stations
+        share a single group encryption key for broadcast and multicast traffic, the lowest common
+        denominator must be used for the group cipher.
+
+    19. 802.11w provides protection for which of the following types
+        of frames? (Choose all that apply.)
+
+        A. Unicast
+
+        B. Broadcast
+
+        C. Anycast
+
+        D. Simulcast
+
+        E. Multicast
+
+        *答案解析*
+
+        A, B, E. 802.11w provides protection for unicast, broadcast, and multicast management
+        frames. These 802.11w frames are referred to as robust management frames. Anycast and
+        simulcast frames do not exist.
+
+    20. 802.11w Protected Management Frames was created to prevent
+        which of the following types of attacks? (Choose all that
+        apply.)
+
+        A. Denial of service
+
+        B. Deauthentication attack
+
+        C. Disassociation attack
+
+        D. Impersonation attack
+
+        E. Bit-flipping attack
+
+        *答案解析*
+
+        A, B, C. 802.11w was developed to provide security for management frames. This prevents
+        denial-of-service attacks, such as deauthentication attacks and disassociation attacks. It
+        will not prevent bit-flipping attacks. Some impersonation attacks use denial of service prior
+        to performing the impersonation; however, since some do not use DoS attacks, this answer
+        is not always correct.
 
 * CH10 802.11n HT Analysis
 
