@@ -330,6 +330,8 @@ body...)
 *** current-buffer
 *** other-buffer
 *** switch-to-buffer
+*** get-buffer-create
+    如果存在对应名字的buffer，则返回该buffer，否则，创建一个对应名称的buffer.
 ** Buffer size
 *** buffer-size
 *** point, point-min, point-max
@@ -338,6 +340,67 @@ body...)
 *** with-current-buffer
     将buffer临时作为当前buffer执行
 *** with-temp-current
+    #+BEGIN_SRC emacs-lisp
+      ;; use a temp buffer to manipulate string
+      (with-temp-buffer
+        (insert myStr)
+        ;; manipulate the string here
+        (buffer-string) ; get result
+      )    
+    #+END_SRC
+* File Operations
+** Open, Append, Write
+   #+BEGIN_SRC emacs-lisp
+     ;; open a file (returns a buffer)
+     (find-file "/home/jane/test.txt")
+
+     ;; save current buffer (write to the associated file)
+     (save-buffer)
+
+     ;; like “Save As”. Save current buffer, close it, and open the new saved
+     (write-file "/home/jane/new.txt")
+
+     ;; append text between positions 100 to 200 to file 
+     (append-to-file 100 200 "/home/jane/test.txt")
+
+     ;; close a buffer
+     (kill-buffer myBuffName)   
+   #+END_SRC
+** Rename, Copy, Delete
+   #+BEGIN_SRC emacs-lisp
+     (rename-file "/home/jane/test1.txt" "/home/jane/test2.txt")
+
+     (copy-file "/home/jane/test1.txt" "/home/jane/test2.txt")
+
+     (delete-file "/home/jane/test2.txt")
+
+     (copy-directory "/home/jane/stuff" "/home/jane/stuff-backup")
+
+     ;; delete a whole dir. (new in emacs 23)
+     (delete-directory "/home/jane/stuff" t)   
+   #+END_SRC
+** File Name Manipulation
+   #+BEGIN_SRC emacs-lisp
+     ; get the dir path part
+     (file-name-directory "/home/jane/xyz.txt") ; "/home/jane/"
+
+     ;; get filename part
+     (file-name-nondirectory "/home/jane/xyz.txt") ; "xyz.txt"
+
+     ;; get filename's extension
+     (file-name-extension "/home/jane/cat.txt.jpg") ; "jpg"
+
+     ;; get filename without extension
+     (file-name-sans-extension "/home/jane/cat.txt.jpg") ; "/home/jane/cat.txt"
+
+     ;; get relative path
+     (file-relative-name "/home/jane/b/cat.jpg" "/home/jane/") ; "b/cat.jpg"
+
+     ;; get full path
+     (expand-file-name "test.el")
+     ;; sample output
+     ;; "/home/jane/misc/emacs/test.el"   
+   #+END_SRC
 * Window
 ** window-buffer
    返回当前窗口中显示的buffer
