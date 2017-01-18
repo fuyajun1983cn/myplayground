@@ -2,6 +2,7 @@
 
 * 常见的字符串操作 str
   __str__ : 执行print的时候调用。
+
   __repr__ : 直接打印的时候调用 
 
   接口：
@@ -16,12 +17,14 @@
     #+END_SRC
   - upper() / lower()
   - split() / splitlines()
-    splitlines()用于侵害跨行的文本，按行进行侵害。
+
+    splitlines()用于分割跨行的文本，按行进行分割。
+
   - join()
 
 
   Unicode字符串： 在python3中，字符串默认是unicode格式的，而在python2
-  中，字符串默认是assic格式的，表示unicode字符串是，在加前缀： u
+  中，字符串默认是assic格式的，表示unicode字符串时，在加前缀： u
 
 * 正则表达式  
 ** 转义字符
