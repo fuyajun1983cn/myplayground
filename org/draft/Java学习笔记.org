@@ -738,7 +738,8 @@
 
      开发高性能和高扩展性的应用时，可以考虑使用 Apache MINA 框架，项目
      地址为： http://mina.apache.org/
-
+*** Streams
+    https://www.ibm.com/developerworks/cn/java/j-2016-java-good-article/index.html
 * JNI
   
 * 虚拟机
