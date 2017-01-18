@@ -1,0 +1,45 @@
+#+TITLE: C++标准库工具类的使用笔记
+
+
+* Pairs and Tuples
+
+* Smart Pointers
+
+* Numeric Limits
+
+* Type Traits and Type Utilities
+  "Type Traits"提供了一种根据类型来定义行为的一种机制。通常用于元编程。
+  与模板编程紧密相关。
+  
+  它提供了一种处理类型属性的方法 。它本质上是一种模块，在编译期间会根
+  据传递进来的一个或多个模板参数，最终替换为特定的类型或值。
+
+  例子：
+  #+BEGIN_SRC c++
+    #include <type_traits>
+
+    template <typename T>
+    void foo_impl(const T& val, std::true_type)
+    {
+      std::cout<<"foo() called for pointer to "<<*val<<std::endl();
+    }
+
+    template <typename T>
+    void foo_impl(const T& val, std::false_type)
+    {
+      std::cout<<"foo() called for val "<<val<<std::endl();
+    }
+
+    template <typename T>
+    void foo(const T& val)
+    {
+      foo_impl(val, std::is_pointer<T>());
+    }
+
+  #+END_SRC
+
+* Auxiliary Functions
+
+* Clocks and Timers
+
+* Header Files <cstddef>, <cstdlib> and <cstring>
