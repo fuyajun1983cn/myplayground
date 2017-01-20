@@ -1,0 +1,68 @@
+#+TITLE: 程序运行——execve()家庭函数
+
+
+* 函数原型
+  #+BEGIN_SRC c
+    #include <unistd.h>
+
+    int execve(const char *pathname, char *const argv[], char *const envp[]);
+    //never return on success; return -1 on error.
+  #+END_SRC
+
+* 同一类函数族说明
+  
+** 原型声明
+   #+BEGIN_SRC c
+     #include <unistd.h>
+
+     int execle(const char *pathname, const char *arg, ...
+                /*, (char *)NULL, char *const envp[] */);
+     int execlp(const char *filename, const char *arg, ...
+                /*, (char *)NULL */);
+     int execvp(const char *filename, char *const argv[]);
+     int execv(const char *pathname, char *const argv[]);
+     int execl(const char *pathname, const char *arg, ...
+               /*, (char *)NULL */);
+   #+END_SRC
+
+** 说明
+   - 函数原型中带 =p= 后缀的，只需要指定运行的程序名称，不需要指定完整
+     路径，它会在 =PATH= 环境变量指定的路径中去搜索要执行的程序文件。
+     但一旦文件名中包含有 =/= ,则会将 =filename= 视为绝对或相对路径，
+     不使用 =PATH= 环境变量。
+   - 函数原型中带 =l= 后缀的，表示指定的参数不是一个字符串数组，而是以
+     列表的形式传递，列表以 =NULL= 作为结束标记。
+   - 函数原型中带 =v= 后缀的，表示指定的参数通过字符串数组的形式传递，
+     字符串数组最后一个元素为NULL。
+   - 函数原型中带 =e= 后缀的，表示可以为新运行的程序指定环境变量，以字
+     符串数组的形式表示，最后一个元素为NULL. 
+
+   #+CAPTION: 不同exec()函数差异总结
+   | Function | Specification of program file(-,p) | Specification of arguments(v, l) | Source of environment(e, -) |
+   |----------+------------------------------------+----------------------------------+-----------------------------|
+   | execve() | pathname                           | array                            | envp environment            |
+   | execle() | pathname                           | list                             | envp environment            |
+   | execlp() | filename + PATH                    | list                             | caller's environment        |
+   | execvp() | filename + PATH                    | array                            | caller's environment        |
+   | execv()  | pathname                           | array                            | caller's environment        |
+   | execl()  | pathname                           | list                             | caller's environment        |
+   |----------+------------------------------------+----------------------------------+-----------------------------|
+
+* fexecve()
+  通过打开的文件的描述符来运行一个程序。一般适用于在运行程序前需要事先
+  打开文件内容进行验证的情况 。
+
+  #+CAPTION: 函数原型
+  #+BEGIN_SRC c
+    #define _GNU_SOURCE
+    #include <unistd.h>
+
+    int fexecve(int fd, char *const argv[], char *const envp[]);
+  #+END_SRC
+
+* =FD_CLOEXEC=
+  当该标记置上后，在成功执行 =exec()= 后，会自动关闭打开的文件描述符。
+  如果执行失败，则文件描述符仍然保持打开状态。
+
+* =system()=
+  

@@ -1,0 +1,25 @@
+#+TITLE: 系统管理 
+
+
+* os
+  
+** 遍历目录下的文件
+   #+BEGIN_SRC python
+     for dirpath, dirnames, filenames in os.walk(path):
+         for filename in filenames:
+             filepath = os.path.join(dirpath, filename)
+   #+END_SRC
+* shuitl
+
+** 复制
+   : shuitl.copytree()
+
+** 移动
+   : shuitl.move()
+
+** 重命名
+   
+** 删除
+
+* filecmp
+  文件对比

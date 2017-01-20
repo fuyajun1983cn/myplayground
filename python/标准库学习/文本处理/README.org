@@ -154,14 +154,17 @@
      dom.getElementsByTagName(...)
 
    #+END_SRC
-   
-* difflib的使用
+
+* 信息收集，格式化与发布
+  
+* 标准库的使用
+** difflib的使用
 对比字符串或列表之间的差异
 
-* textwrap
+** textwrap
 textwrap模块用于格式式文本输出， 主要提供了如下几个接口：
-** fill()
-   格式化输出文本
-   可以通过initial_indent和subsequent参数来调整首行和其他行的缩进量
-** dedent()
-  删除存在的缩进
+*** fill()
+    格式化输出文本
+    可以通过initial_indent和subsequent参数来调整首行和其他行的缩进量
+*** dedent()
+   删除存在的缩进
