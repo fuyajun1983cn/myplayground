@@ -42,6 +42,7 @@ def git_push():
     git push command
     '''
     os.system("git push -u origin master")
+    os.system("git push csdn master")
     
 if __name__ == "__main__":
 
