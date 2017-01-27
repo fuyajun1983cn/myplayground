@@ -33,6 +33,33 @@
    - Definitions that associate names with values provide a limited
      means of abstraction. 
 
+
+   #+BEGIN_SRC common-lisp
+     (defun f(n)
+       (cond ((= n 0) 0)
+             ((= n 1) 1)
+             ((= n 2) 2)
+             (else (f-iter 4 2 1 0 3 n))))
+
+     ;;迭代算法（尾递归）
+     (defun f-iter(result n2 n1 n0 counter max-count)
+       (if (= counter max-count)
+           result
+           (f-iter (+ n2 (* 2 n1) (* 3 n0))
+                   n2
+                   n1
+                   (+ counter 1)
+                   max-count)))
+
+     (defun f-iter (result n2 n1 n0 count)
+       (if (= count 3)
+           result
+           (f-iter (+ n2 (* 2 n1) (* 3 n0))
+                   n2
+                   n1
+                   (- count 1))))
+   #+END_SRC
+
 ** Building Abstractions with Data
 
 ** Modularity, Objects, and State
