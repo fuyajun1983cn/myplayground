@@ -1,0 +1,352 @@
+#+TITLE: JavaScript基础语法参考
+
+* 值、类型和操作符
+
+** 数据类型
+   JavaScript中拥有6种基本的数据类型：
+   1. Numbers
+
+      JavaScript使用64位固定长度的比特位表示一个数字。
+
+      科学计算法：
+      : 2.998e8 // 2.998 * （10 ^ 8）
+
+      三个特殊的数字：
+      1. Infinity
+
+         无限大的正数
+
+      2. -Infinity
+
+         无限大的负数
+
+      3. NaN
+
+         非数字
+
+   2. Strings
+      
+      常见的方法有：
+      1. slice()
+
+      2. indexOf()
+
+      3. trim()
+
+      4. charAt()
+
+
+   3. Booleans
+      
+   4. Objects
+   5. Functions
+   6. Undefined Values
+      
+      *null* 和 *undefined* , 不等于0.
+
+** 操作符
+
+   单元操作符： typeof 
+   #+BEGIN_SRC javascript
+     console.log(typeof 4.5)    // number
+     console.log(typeof "x") //string
+   #+END_SRC
+
+   逻辑操作符： &&(and) ||(or) !(not)
+   
+   比较操作符: ===(严格相等)， !==(严格不相等)
+
+* 程序结构
+
+** 表达式和语句
+
+   在JavaScript中的switch语句中，可以对字符串进行操作：
+   #+BEGIN_SRC javascript
+     switch ( prompt (" What is the w e a t h e r like ?") ) {
+       case " rainy ":
+       console.log (" R e m e m b e r to bring an u m b r e l l a .") ;
+       break ;
+       case " sunny ":
+       console.log(" Dress l i g h t l y .") ;
+       case " c l o u d y ":
+       console.og" Go o u t s i d e .") ;
+       break ;
+       default :
+       console.log(" U n k n o w n w e a t h e r type !") ;
+       break ;
+     }   
+   #+END_SRC
+
+* 函数
+  函数有两种定义方式：
+  #+BEGIN_SRC javascript
+    var squre = function(x） {
+      return x * x;
+    }
+
+    function squre(x) {
+      return x * x;
+    }
+  #+END_SRC
+
+  函数是唯一能创建另一个作用域的地方，如下代码并不会产生一个局部作用域：
+  #+BEGIN_SRC javascript
+    var something = 1;
+    {
+      var something = 2;
+    }
+    console.log(someting) //2
+  #+END_SRC
+
+  除非使用 let 关键字。
+  #+BEGIN_SRC javascript
+    var someting = 1;
+    {
+      let someting = 2;
+    }
+    console.log(someting); //1
+  #+END_SRC
+
+  每当一个函数被调用时，有一个特殊变量 *arguments* 加入到了函数体运行
+  的环境中。它有一个属性 =length= 可以得知传进来多少参数。
+  
+** 高阶函数
+
+   1. bind()
+
+   2. apply()
+      第一个参数是对象或空，第二个参数是一个参数，传递给被调用函数的参
+      数。
+      #+BEGIN_SRC javascript
+        function speak(line) {
+          console.log("I speak " + line);
+        }
+
+        speak.apply(null, ["Hello"]);
+      #+END_SRC
+
+   3. call()
+      与apply()类型，不过直接传递函数的参数。
+
+** 闭包
+   being able to reference a specific instance of local variables in
+   an enclosing function.
+
+* 数据结构：对象和数组
+  
+** 对象
+
+*** prototype
+    A prototype is another object that is used as a fallback source of
+    properties. 
+
+    Root: Object.prototype.
+
+    Functions derive from Function.prototype
+
+    arrays derive from Array.prototype.
+
+    *函数*
+    
+    1. Object.getPrototypeOf
+       returns the prototype of an object.
+    2. Object.create
+       create an object with a specific prototype.
+       #+BEGIN_SRC javascript
+         var protoRabbit = {
+           speak: function (line) {
+             console.log("The " + this.type + " rabbit says '" + line+ "'");
+           }
+         };
+         var killerRabbit = Object.create(protoRabbit);
+         killerRabbit.type = "killer";
+         killerRabbit.speak("SKREEE");
+       #+END_SRC
+
+       如下调用可以创建一个没有prototype的对象：
+       : Object.create(null)
+
+*** Constructors
+    #+BEGIN_SRC javascript
+      function Rabbit(type) {
+        this.type = type;
+      }
+
+      var killerRabbit = new Rabbit("killer");
+      var blackRabbit = new Rabbit("black");
+      console.log(blackRabbit.type);
+    #+END_SRC
+
+    使用这种方式构建的对象默认拥有一个prototype属性，默认情况下是一个
+    从Object.prototype派生的对象。所以添加新的方法到实例中的写法如下：
+    #+BEGIN_SRC javascript
+      Rabbit.prototype.speak = function(line) {
+        console.log("The " + this.type + " Rabbit says '" + line + "'");
+      }
+
+      blackRabbit.speak("Doom...");
+    #+END_SRC
+
+*** Property
+    JavaScript distinguishes between enumerable and nonenumerable
+    properties. 
+
+    All properties that we create by simply assigning to them are
+    enumerable. 
+
+    The standard properties in Object.prototype are all
+    nonenumerable. 
+
+    通过Object.defineProperty可以定义一个属性：
+    #+BEGIN_SRC javascript
+      Object.definePrototy(Object.prototype, "hiddenNonsense",
+                           {enumerable:false, value: "hi"})    ;
+    #+END_SRC
+
+    hasOwnProperty: This method tells us whether the object itself has
+    the property, without  looking at its prototypes.
+
+*** setters and getters
+    JavaScript提供了如下语法来指定setter和getter方法：
+    #+BEGIN_SRC javascript
+      var pile = {
+        elements : ['eggshell', "orange peel", "worm"],
+        get height() {
+          return elements.length;
+        },
+        set height(value) {
+          console.log("Ignoring attempt to set height to ", value);
+        }
+      };
+
+      //或者通过如下方法定义：
+      Object.defineProperty(TextCell.prototype, "heightProp", {
+        get : function() {
+          return this.text.height;
+        }
+      });
+
+    #+END_SRC
+
+    如果只定义getter，没有定义setter，则对属性的写操作会被忽略。
+
+*** JSON
+    主要两个函数：JSON.stringify， JSON.parse。
+
+** 数组
+   1. 创建数组
+      #+BEGIN_SRC javascript
+        var arr = [2,3,4]
+        var a = new Array(4)
+        var a = new Array(5, 4, 3, 2, 1, "test string")
+
+        var a1 = [,,]           //this array is [undefined, undefined, undefined]
+        var a2 = new Array(2)   //this array has no values at all      
+      #+END_SRC
+
+   2. 数组长度
+      #+BEGIN_SRC javascript
+        a = [1, 2, 3]
+        a.length
+        Object.defineProperty(a, "length", {writable:false});  //make the length property read only.      
+      #+END_SRC
+
+   3. 添加和删除元素
+      #+BEGIN_SRC javascript
+        a = []
+        a.push("zero")
+        a.push("one", "two")
+
+        a = [1, 2, 3]
+        delete a[1] //delete element in index 1
+
+        spice()
+        unshift()
+        shift()
+        pop()
+
+        forEach()
+        var data = [1, 2, 3, 4]
+        var sumOfSquares = 0;
+        data.forEach(function(x) {
+          sumOfSquares += x * x;
+        });      
+      #+END_SRC
+
+   4. 常见的数组方法
+      #+BEGIN_SRC javascript
+        join()  //将数据所有的元素转换为字符串并连接起来。
+        reverse()  //反转一个数组的元素顺序
+        sort()  //数组元素排序， 默认是按字母顺序排序，也可以传递一个比较函数来指定排序的依据
+        concat() //返回一个新的数组包含原数组和传递进来的参数
+        var a = [1, 2, 3];
+        a.concat([4,5], [6, 7])   //Returns [1, 2, 3, 4, 5, 6, 7]
+        a.concat(4, [5, [6, 7]])  //Returns [1, 2, 3, 4, 5, [6, 7]]
+
+        slice() //切分数组
+        var a = [1, 2, 3, 4, 5]
+        a.slice(0, 3)  // returns [1, 2, 3]
+        a.slice(3)   // return [4, 5]
+        a.slice(1, -1)  //returns [2, 3, 4]
+        a.slice(-3, -2)  //returns [3]
+
+        splice()  //通用的数组元素插入和删除函数
+        //对数组本身进行了修改。 前两个参数指定要删除的元素，之后的参数指定要插入的元素。
+        var a = [1,2,3,4,5];
+        a.splice(2,0,'a','b');  // Returns []; a is [1,2,'a','b',3,4,5]
+        a.splice(2,2,[1,2],3);  // Returns ['a','b']; a is [1,2,[1,2],3,3,4,5]
+
+      #+END_SRC
+
+      push()和pop():  让数组可以像栈一样工作。
+
+      unshift()和shift(): 跟push()和pop()函数类似，只不过操作元素的位
+      置是数组的开始处。
+
+      toString()和toLocaleString()
+
+   5. ECMAScript 5数组方法
+      #+BEGIN_SRC javascript
+        forEach()
+        data.forEach(function(v, i, a) { a[i] = v + 1; });
+
+        map()
+        a = [1, 2, 3];
+        b = a.map(function(x) { return x * x; }); // b is [1, 4, 9]
+        //传递进来的函数必须有返回值
+      #+END_SRC
+
+      : filter()
+      传递进来的函数必须返回true或false
+      : a = [5, 4, 3, 2, 1];
+      : smallvalues = a.filter(function(x) { return x < 3 });
+
+      every() 和 some()
+      传递进来的函数必须返回true或false
+      #+BEGIN_SRC javascript
+        a = [1, 2, 3, 4, 5];
+        a.every(function(x) { return x < 10; }) // true, all values < 10
+        a.some(function(x) { return x % 2 === 0; }); // true, a has some even numbers.      
+      #+END_SRC
+
+      reduce(), reduceRight()
+      #+BEGIN_SRC javascript
+        a = [1,2,3,4,5]
+        sum = a.reduce(function(x,y) { return x+y }, 0);  //sum of values
+        product = a.reduce(function(x,y) { return x*y }, 1); // Product of values
+        max = a.reduce(function(x,y) { return (x>y)?x:y; }); // Largest value
+
+      #+END_SRC
+
+      indexOf(), lastIndexOf()
+      
+      #+BEGIN_SRC javascript
+        var isArray = Function.isArray || function(o) {
+          return typeof o === "object" &&
+            Object.prototype.toString.call(o) === "[object Array]";
+        };      
+      #+END_SRC
+      
+      
+      
+
