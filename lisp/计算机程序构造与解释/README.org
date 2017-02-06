@@ -1,0 +1,42 @@
+#+TITLE: 计算机程序构造与解释学习笔记
+
+* 在线书箱
+  https://mitpress.mit.edu/sicp/full-text/book/book-Z-H-4.html
+
+* 知识点
+
+** Building Abstractions with Procedures
+   Every powerful language has three mechanisms for accomplishing
+   this:
+   - *primitive expressions*, which represent the simplest entities
+     the language is concerned with, 
+   - *means of combination*, by which compound elements are built from
+     simpler ones, and 
+   - *means of abstraction*, by which compound elements can be named
+     and manipulated as units.
+
+     
+   the general notion of the environment as providing a context in
+   which evaluation takes place will play an important role in our
+   understanding of program execution.
+
+   Each special form has its own evaluation rule. The various kinds of
+   expressions (each with its associated evaluation rule) constitute
+   the syntax of the programming language.  
+
+   some of the elements that must appear in any powerful programming
+   language:
+   - Numbers and arithmetic operations are primitive data and
+     procedures.
+   - Nesting of combinations provides a means of combining
+     operations.
+   - Definitions that associate names with values provide a limited
+     means of abstraction. 
+
+** Building Abstractions with Data
+
+** Modularity, Objects, and State
+
+** Metalinguistic Abstraction
+
+** Computing with Register Machines

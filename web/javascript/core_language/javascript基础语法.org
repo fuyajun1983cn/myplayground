@@ -346,7 +346,147 @@
             Object.prototype.toString.call(o) === "[object Array]";
         };      
       #+END_SRC
-      
-      
-      
 
+* 正则表达式
+
+** 创建正则表达
+   有如下两种方法：
+   #+BEGIN_SRC javascript
+     var re1 = new RegExp("abc");
+     var re2 = /abc/;
+   #+END_SRC
+
+** 匹配测试
+   #+BEGIN_SRC javascript
+     console.log(/abc/.test("abcde")); //true
+     console.log(/abc/.test("abxde")); //false
+   #+END_SRC
+
+*** 匹配一组字符
+    #+BEGIN_SRC javascript
+      console.log(/[0123456789]/.test("in 1992"))
+      console.log(/[0-9]/.test("in 1992"))
+    #+END_SRC
+      
+   
+    常见的字符组如下所示：
+    | 字符 | 意义                 |
+    |------+----------------------|
+    | \d   | 任何数字字符         |
+    | \w   | 任何字母数字字符     |
+    | \s   | 任何空格字符         |
+    | \D   | 非数字字符           |
+    | \W   | 非字母数字字符       |
+    | \S   | 非空格字符           |
+    | .    | 除换行符外的所有字符 |
+    | [^]  | 匹配任何字符         |
+    |------+----------------------|
+
+    反转匹配：
+    #+BEGIN_SRC javascript
+      var nonBinary = /[^01]/;
+      console.log(notBinary.test("110010000110")); //false
+      console.log(notBinary.test("110010000211")); //true
+    #+END_SRC
+
+    重复匹配模式的某个部分：
+    | 字符   | 意义                              |
+    |--------+-----------------------------------|
+    | +      | 匹配一个或多个字符                |
+    | *      | 匹配零个或多个字符                |
+    | ？     | 匹配0个或1个字符                  |
+    | {4}    | 匹配4个字符                       |
+    | {2,4}  | 至少匹配两个字符，至多匹配4个字符 |
+    | {,  5} | 匹配0到5个字符                    |
+    | {5,}   | 匹配5个 或更多字符                |
+    | \b \b  | 字符边界                          |
+    | ^      | 模式匹配开始                      |
+    | $      | 模式匹配结束                      |
+    |--------+-----------------------------------|
+
+    
+*** 模式分组
+    #+BEGIN_SRC javascript
+      var cartoonCrying = /boo+(hoo+)+/i ;
+      console.log(cartoonCrying.test("Boohooohoohooo")); //true
+    #+END_SRC
+    i表示不区分大小写。
+
+** 匹配与组
+   exec可以返回匹配的对象：
+   #+BEGIN_SRC javascript
+     var match = /\d+/.exec("one two 100") ;
+     console.log(match); //  ["100"]
+     console.log(match.index); //8
+   #+END_SRC
+
+   模式匹配串中包含了分组时，返回结果中的第一个元素总是整个匹配结果，
+   如果某个分组没有匹配到任何字符串，则其结果为undefined。当匹配到多个
+   字符串时，则为最后一个匹配的值。
+   #+BEGIN_SRC javascript
+     console.log(/bad(ly)？/.exec("bad")); //[”bad", undefined"]
+     console.log(/(\d)+/.exec("123")); //["123", "3"]
+   #+END_SRC
+
+** replace方法
+   #+BEGIN_SRC javascript
+     console.log("Borobudur".replace(/[ou]/, "a")) ;//Barabudur
+     console.log("Borobudur".replace(/[ou]/g, "a"));//Barabadar
+
+     console.log(
+       "Hopper, Grace\nMcCarthy ,John\nRitchie, Dennis"
+         .replace(/([\w ]+), ([\w ]+)/g, "$2 $1"));
+     //Grace Hopper
+     //John McCarthy
+     //Dennis Ritchie
+   #+END_SRC
+
+   使用 $1 ~ $9 引用匹配的组， 使用 $& 引用整个匹配串。
+
+   转义字符：
+   #+BEGIN_SRC javascript
+     var name = "dea+h[]rd";
+     var ecaped = name.replace(/[^\w\s]/g, "\\$&");
+   #+END_SRC
+
+   replace函数的第二个参数也可以传递一个函数：
+   #+BEGIN_SRC javascript
+     var s = "the cia and fbi";
+     console.log(s.replace(/\b(fbi|cia)\b/g, function(str) {
+       return str.toupperCase();
+     })); //the CIA and FBI
+   #+END_SRC
+
+   
+** 贪婪匹配
+
+   +, *, ? 和{}默认情况下都是贪婪匹配的。如果在它们后面加上?号，则变成
+   非贪婪匹配。
+
+** 动态创建RegExp对象
+   #+BEGIN_SRC javascript
+     var name = "harry";
+     var text = "Harry is a suspicous character";
+     var regexp = new RegExp("\\b(" + name + ")\\b", "gi");
+     console.log(text.replace(regexp, "_$1__"));
+   #+END_SRC
+
+** search方法
+   #+BEGIN_SRC javascript
+     console.log("    word".search(/\S/)); //2
+     console.log("     ".search(/\S/)); //-1
+   #+END_SRC
+
+** lastIndex属性
+   exec方法没有提供从指定位置进行匹配的方法。
+
+   与此同时表达式对象有两个属性：
+   - source
+     contains the string that expression was created from
+   - lastIndex 
+     controls, in some limited circumstances, where the next match
+     will start. 这个limited circumstances就是要使用exec方法，且全局匹
+     配打开的情况下。
+     
+     如果匹配成功，那么exec会自动更新lastIndex属性值为匹配位置的后一位，
+     如果匹配失败，则会自动设置回0.
