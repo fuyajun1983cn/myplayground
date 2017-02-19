@@ -33,6 +33,33 @@
    - Definitions that associate names with values provide a limited
      means of abstraction. 
 
+     
+   条件表达式谓词逻辑：
+   #+BEGIN_SRC lisp
+     ;;定义取绝对值函数
+     (defun myabs(x) (cond ((> x 0) x)
+                           ((= x 0) 0)
+                           ((< x 0) (- x))))
+
+     (defun myabs(x) (cond ((< x 0) (- x))
+                           (else x)))
+
+     (defun myabs(x) (if (< x 0)
+                         (- x)
+                         x))
+   #+END_SRC
+
+   1. Define a procedure that takes three numbers as arguments and
+      returns the sum of the squares of the two larger numbers.
+      
+      #+BEGIN_SRC common-lisp
+        (defun sum-of-squre(a b c)
+          "三个数中较大的两个数的和"
+          (cond ((and (< a b) (< a c)) (+ b c))
+                (and (< b a) (< b c)) (+ a c)
+                (and (< c a) (< c b)) (+ b c)))
+      #+END_SRC
+
 ** Building Abstractions with Data
 
 ** Modularity, Objects, and State

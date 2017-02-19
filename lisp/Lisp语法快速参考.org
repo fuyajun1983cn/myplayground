@@ -1,0 +1,17 @@
+#+TITLE: Common Lisp语法快速参考
+
+* 函数
+
+  
+** 函数作为属性
+
+   #+BEGIN_SRC lisp
+   (defun behave(animal)
+     (funcall (get animal 'behaviour)))
+   #+END_SRC
+
+   定义函数属性：
+   #+BEGIN_SRC lisp
+   (setf (get 'dog 'behaviour)
+         #'lambda() (wag-tail) (bark))
+   #+END_SRC
