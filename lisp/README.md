@@ -1,3 +1,43 @@
+##基本数据类型   
+1. 八进制数  
+   `#o125`
+
+2. 十进制数  
+   `#x125`  
+
+3. 二进制数   
+   `b1011`
+
+4. 字符L对应的字符对象   
+   `#\L`  
+
+5. 函数对象  
+   `#'fn`  =>  `(function f)`
+
+6. 复数  
+   `C(5 -3)`  
+
+7. 数组   
+   `#(1 2 3)`
+
+8. bit vector 
+   `#*10110`
+
+9. 结构体  
+   `#S(structure-name slot-name1 slot-name2 ...)
+
+
+backquote "`" signals that the next expression is a template that may
+contain commas(,)
+这种语法结构代表一个能根据模板创建一个数据结构的程序。（宏）
+
+":" indicate which package a symbol belongs to . 
+a symbol noted with a leading colon is in effect a constant that evaluates to itself.
+
+## Scope and Extent   
+
+
+
 ##函数  
 函数是Lisp语言本身以及Lisp应用程序的构建模块。用户自定义的函数与语言内建的函数具有同等地位。
 事实上，Lisp语言的核心就是一系列Lisp函数，你可以自由地添加更多的Lisp函数。  
