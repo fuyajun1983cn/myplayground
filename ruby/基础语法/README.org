@@ -1,0 +1,14 @@
+#+TITLE: ruby基础语法速览
+
+参考书籍： https://learnrubythehardway.org/book
+
+* 变量
+  变量引用使用： 
+  : #{var}
+
+  格式化输出：
+  #+BEGIN_SRC ruby
+    formatter = "%{first}, %{second}, %{third}, %{fourth}"
+
+    puts formatter %{first:1, second:2, third:3, fourth:4}
+  #+END_SRC
