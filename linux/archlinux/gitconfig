@@ -1,0 +1,17 @@
+[user]
+	name = Yajun Fu
+	email = fuyajun1983cn@163.com
+[push]
+	default = simple
+[core]
+	editor = ee
+	quotepath = false
+[gui]
+        encoding = utf-8 #代码库统一用urf-8,在git gui中可以正常显示中文
+
+[i18n]
+        commitencoding = utf-8 #log编码，window下默认gb2312,声明后发到服务器才不会乱码
+
+[svn]
+        pathnameencoding = GB2312 #支持中文路径
+
