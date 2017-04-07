@@ -22,7 +22,7 @@
    5. 在MIMO系统中，发射器和接收器可以复用多个路径。每个路径获得不同的
       数据集, 不易受到多径效应的影响, 因为每个天线传输的数据是不同的数
       据，相互之间不产生干扰。
-   6. 使用40MHz频宽，但与其他非802.11的设备存在干扰，所以一般2.4GHz的频段一般会禁用40MHz的频宽。
+   6. 使用40MHz频宽，但与其他非802.11的设备存在干扰，所以2.4GHz的频段一般会禁用40MHz的频宽。
    7. 增加效率的方法是：frame aggregation。
    8. 802.11n MAC扩展了802.11的省电功能，消耗更多的电量，对于低功耗设备来讲，算是一个需要考量的缺点。
 
@@ -30,13 +30,13 @@
    
    1. 如何加快网络速度？
 
-      - 增加传输速率, 使用MIMO技术，可达150Mbps，最高可达600Mbps。
+      - 增加传输速率, 使用MIMO技术，可达150Mbps，最高可达600Mbps。(go faster)
 
-      - 增加协议的效率，即单位时间内传输更多的数据。
+      - 增加协议的效率，即单位时间内传输更多的数据。(efficiency)
 
    2. MIMO
 
-      - 在MIMO系统中，所在天线都是同时活跃。
+      - 在MIMO系统中，所有天线都是同时活跃。可以独立地发送和接收数据流。
 
       - MIMO表示方法
 
@@ -243,7 +243,6 @@
 
         这个改进对TCP的吞吐量有大约多达40%的提升。
 
-
 ** 频道，成帧和编码
 
    1. 频道结构和布局
@@ -257,9 +256,10 @@
 
       - 保留了802.11之前标准的20MHz频道，但通过增加子载波来改进频谱效率。
 
-      - 增加了4个子载波，而无需额外增加Pilot子载波。
+      - 增加了4个数据子载波，而无需额外增加Pilot子载波。
 
-      - Pilot子载波用于频道测量和校准，是一种开销，就像MIMO增强数据传输的效率一数, 它增强了Pilot负载操作的效率。
+      - Pilot子载波用于频道测量和校准，是一种开销，就像MIMO增强数据传
+        输的效率一数, 它增强了Pilot子载波操作的效率。
 
       - 支持40Mhz的信道上操作
 
@@ -277,7 +277,7 @@
            QPSK, 16-QAM, 64-QAM）以及纠错码。
 
         2. 发送端必须选择一个Guard Interval, 802.11n需要更短的Guard
-           Interval。
+           Interval。从800ns降到400ns。
 
    4. PLCP Framing
 
@@ -285,15 +285,15 @@
 
       1. =Non-HT mode=
 
-         legacy mode
+         legacy mode, non-11n mode.  必须支持。
 
       2. HT mixed mode
 
-         这种模式下，会考虑与之前设备的兼容性。
+         这种模式下，会考虑与之前设备的兼容性。必须支持。
 
       3. =HT-Greenfield mode=
 
-         这种模式下，不会考虑与之前设备的兼容性。
+         这种模式下，不会考虑与之前设备的兼容性。可选。
 
    5. 速率
 
@@ -434,6 +434,52 @@
      - SU: Performed in STA
      - MU: Performed in AP, need to collect channel of all users.
 
+** 802.11n测试
+
+*** 必须通过的测试项
+     - Minimum number of spatial streams
+       对于支持11n的AP来说，必须至少支持2路空中流。虽然Spec中规定可以支
+       持最多4路空中流，但是一般最多只支持3路空中流。
+     - A-MPDU reception
+     - A-MSDU reception
+     - Overlapping BSS (both bands)
+     - Reduced Interframe Space (RIFS) support
+     - Security: TKIP & WEP negative tests
+       11n设备可以支持TKIP&WEP加密算法，但是不能使用11n的速率进行数据传输。
+
+*** 可选的测试项
+     - 40 MHz operation in 5 GHz
+     - 40 MHz operation in 2.4 GHz (including coexistence)
+     - Short Guard Interval
+     - Space-Time Block Coding (STBC)
+       增加信号传输距离。
+     - Transmission of A-MPDUs
+     - Greenfield mode
+     - HT Duplicate Mode (MCS 32)
+       sends the identical data stream on both halves of a 40 MHz
+       channel at 6 Mbps。
+
+** 网络性能调试
+
+*** Tuning for voice
+     1. QoS configuration
+        enable Wi-Fi Multi-Media (WMM) and priority queuing。
+     2. Increase data rate used for Beacon frame transmission
+        遇到需要减少信号覆盖范围的情况，可以增加Beacon帧发送的速率来达
+        到这个目的。
+     3. Limit use of lower data rates
+     4. Shorten DTIM interval
+        针对多播应用场景，如视频会议。
+     5. Reduce retry counters
+        针对语音的应用，减少Layer 2重传的次数。
+
+*** Tuning for multicast
+    1. Shorten DTIM interval
+       尽快将数据收到。
+    2. Increase the data rate for multicast frames
+    3. Enable multicast-to-unicast conversion
+       转成单播数据后，可以使用更高的速率进行传输。
+
 * How does 802.11n get to 600Mbps? [fn:1]
   802.11n incorporates all earlier amendments to 802.11, including the
   MAC enhancements in 802.11e for QoS and power savings.
@@ -501,7 +547,9 @@
        antennas may be used for better reception by optimally
        combining the received signals from the different
        antennas. This technique is called Maximal-Ratio-Combining
-       (MRC).  
+       (MRC).  for a given distance, MRC yields higher data
+       rates. Conversely, for a given data rate, the MRC-enabled
+       receiver can hear weaker signals and enable greater range.
 
 ** 40 MHz channels
 

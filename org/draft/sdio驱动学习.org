@@ -10,78 +10,78 @@
 * 理论与规范
   
 ** 术语
-
-     - SDIO
-       Secure Digital Input / Output
-     - OCR
-       Operating Conditions Register
-     - MMC
-       Multi Media Card
-     - CMD
-       Command (SDIO commands)
-     - RCA
-       Relative Card Address
+   
+   - SDIO
+     Secure Digital Input / Output
+   - OCR
+     Operating Conditions Register
+   - MMC
+     Multi Media Card
+   - CMD
+     Command (SDIO commands)
+   - RCA
+     Relative Card Address
 
 ** SD内存接口
-     Security Digital(SD)内存卡首次出现在2000年的消费电子展上。 它属于
-     一种可插拔的非易失性存储设备。 SD设备相比硬盘来说，体积更小，单价
-     更便宜，通常应用在如下电子设备。
-     
-     [[./images/2016/2016110901.png]]
+   Security Digital(SD)内存卡首次出现在2000年的消费电子展上。 它属于
+   一种可插拔的非易失性存储设备。 SD设备相比硬盘来说，体积更小，单价
+   更便宜，通常应用在如下电子设备。
+   
+   ./images/2016/2016110901.png]]
 
-     相对于早期的PCMCIA接口（主要用于笔记本电脑），SD设备主要用于消费
-     电子设备，物理Pin脚更少（5个信号和一个时钟与电源引脚），数据传
-     输速率通常在25MHz到208MHz。 SD卡已经成为消费电子数据存储的标准。
+   相对于早期的PCMCIA接口（主要用于笔记本电脑），SD设备主要用于消费
+   电子设备，物理Pin脚更少（5个信号和一个时钟与电源引脚），数据传
+   输速率通常在25MHz到208MHz。 SD卡已经成为消费电子数据存储的标准。
 
 ** MMC
-    MMC与SD卡紧密相关，MMC标准早于SD卡标准几年。两种标准拥有相同的物理
-    层以及电气方面的规范，区别主要体现在软件层的命令。MMC卡与SD卡可以
-    插入相同的卡槽。
+   MMC与SD卡紧密相关，MMC标准早于SD卡标准几年。两种标准拥有相同的物理
+   层以及电气方面的规范，区别主要体现在软件层的命令。MMC卡与SD卡可以
+   插入相同的卡槽。
 
 ** SD协议
-     SD总线通过双向CMD和DATA引脚串行地传输数据。每个命令数据包包含CMD
-     引脚中传输的48位的信息。命令数据包包含有命令索引号，参数以及CRC校
-     检位。命令总是通过主机发起，SD卡通过COMMAND引脚发送响应。大部分响
-     应包也是48位的。主机总是命令发起者，SD卡是命令的发送目标。并非所
-     有的命令伴随数据的传输。只是那些读写命令才会伴随着数据的传输。数
-     据包的单位是块，主机可以定义不同的块大小，一般大小为512k。数据传
-     输可使用1个或4个数据引脚。每个数据包后面跟着16位的CRC数据。
+   SD总线通过双向CMD和DATA引脚串行地传输数据。每个命令数据包包含CMD
+   引脚中传输的48位的信息。命令数据包包含有命令索引号，参数以及CRC校
+   检位。命令总是通过主机发起，SD卡通过COMMAND引脚发送响应。大部分响
+   应包也是48位的。主机总是命令发起者，SD卡是命令的发送目标。并非所
+   有的命令伴随数据的传输。只是那些读写命令才会伴随着数据的传输。数
+   据包的单位是块，主机可以定义不同的块大小，一般大小为512k。数据传
+   输可使用1个或4个数据引脚。每个数据包后面跟着16位的CRC数据。
 
-     SD命令的处理与状态强相关。 在任何时刻，SD卡总是处于特定的操作状态。
-     在某个状态下，只有一些命令是有效的。通过初始化命令序列，主机修改
-     了SD卡的操作状态直到它已经准备好传输数据。
+   SD命令的处理与状态强相关。 在任何时刻，SD卡总是处于特定的操作状态。
+   在某个状态下，只有一些命令是有效的。通过初始化命令序列，主机修改
+   了SD卡的操作状态直到它已经准备好传输数据。
 
-     命令与数据传输是通过主机产生的一个时间信号进行同步的。重置后，主
-     机使用最低的时间频率400KHz与SD卡进行通信。SD卡的内部寄存器会提供
-     SD能力相关的信息给主机，通过了解SD卡的最大操作频率，数据总线宽度
-     以及其他 的一些能力信息后，主机会调整时钟频率来优化性能 。
+   命令与数据传输是通过主机产生的一个时间信号进行同步的。重置后，主
+   机使用最低的时间频率400KHz与SD卡进行通信。SD卡的内部寄存器会提供
+   SD能力相关的信息给主机，通过了解SD卡的最大操作频率，数据总线宽度
+   以及其他 的一些能力信息后，主机会调整时钟频率来优化性能 。
 
 *** SD and MMC versions
-
-      [[./images/2016/2016110902.png]]
+    
+     [[./images/2016/2016110902.png]]
 
 *** SDIO  & SDIO Combo
-      SD总线规范定义了三种卡类型： 
-      1. 内存卡（只用于存储）
-      2. IO卡（SDIO）
-      3. 包含存储以及IO的功能（SD Combo）。
+    SD总线规范定义了三种卡类型： 
+    1. 内存卡（只用于存储）
+    2. IO卡（SDIO）
+    3. 包含存储以及IO的功能（SD Combo）。
 
-       SDIO是SD规范的一个扩展，主要用于IO-Only的设备。在SDIO规范中定义
-       了一些新的命令，而只与存储相关的特性都删除了。SDIO规范支持多功
-       能架构，每个功能独立运行，且拥有自己的内存空间。最小的功能数量
-       是1，最大的功能数量是8. 典型的SDIO通常有两个功能，0号功能是系
-       统功能，1号功能是用户功能。
+     SDIO是SD规范的一个扩展，主要用于IO-Only的设备。在SDIO规范中定义
+     了一些新的命令，而只与存储相关的特性都删除了。SDIO规范支持多功
+     能架构，每个功能独立运行，且拥有自己的内存空间。最小的功能数量
+     是1，最大的功能数量是8. 典型的SDIO通常有两个功能，0号功能是系
+     统功能，1号功能是用户功能。
 
-         SD Combo包含了Memory 以及IO的功能，但不如Memory-Only和SDIO-Only
-         的设备常见。
+       SD Combo包含了Memory 以及IO的功能，但不如Memory-Only和SDIO-Only
+       的设备常见。
 
-         使用SDIO卡主要是为了达到：
-         1. 高速率I/O
-         2. 低功耗
+       使用SDIO卡主要是为了达到：
+       1. 高速率I/O
+       2. 低功耗
 
 ** SD bus architecture
     
-     #+CAPTION: SD bus system with the host controller and the SD card
+   #+CAPTION: SD bus system with the host controller and the SD card
     [[./images/2016/2016110903.png]]
 
     SD总线上的信号主要包含：一个时钟引脚（由Host产生时钟信号），一个双
@@ -121,77 +121,127 @@
 
 *** 几种不同尺寸的SD卡
       
-      #+CAPTION: SD,miniSD,MicroSD
+    #+CAPTION: SD,miniSD,MicroSD
      [[./images/2016/2016120102.png]]
 
 *** 软件需求
 
-       #+CAPTION: software requirements
-       [[./images/2016/2016120103.png]]
+    #+CAPTION: software requirements
+    [[./images/2016/2016120103.png]]
 
-       1. the operating system module that handles the initialization
-          and the low level signaling to the SD device,
-       2. the device driver that runs on top of the OS to perform
-          application specific function of the device.
-       3. the software that runs the local microprocessor inside the
-          SD card. 
+    1. the operating system module that handles the initialization
+       and the low level signaling to the SD device,
+    2. the device driver that runs on top of the OS to perform
+       application specific function of the device.
+    3. the software that runs the local microprocessor inside the
+       SD card. 
 
 ** SDIO数据传输模式
 
     [[./images/2016/2016112301.png]]
     
 *** 1-bit mode
-        在这种模式下，数据传输只在DAT[0]的引脚上。在该模式下，引脚8用
-        于中断引脚。（此引脚中内存卡中未用到）
+    在这种模式下，数据传输只在DAT[0]的引脚上。在该模式下，引脚8用
+    于中断引脚。（此引脚中内存卡中未用到）
 
 *** 4-bit Mode
-        在这种模式下，数据传输在所有的4个数据引脚中进行（DAT[3:0]）。
-        在这种模式下，中断引脚不能独占为中断所有，它会初始化为一个数据
-        传输线，因此，当需要中断功能时，需要一个特别的计时来提供中断。
-        这种模式下，会尽可能地提供最高的数据传输速率。
+    在这种模式下，数据传输在所有的4个数据引脚中进行（DAT[3:0]）。
+    在这种模式下，中断引脚不能独占为中断所有，它会初始化为一个数据
+    传输线，因此，当需要中断功能时，需要一个特别的计时来提供中断。
+    这种模式下，会尽可能地提供最高的数据传输速率。
 
 *** SPI Mode
-        此种模式下，引脚8用于中断引脚。
+    此种模式下，引脚8用于中断引脚。
 
 ** SDIO识卡流程
     
+*** Overview of Card States vs. Operation Modes
+
+    | Card state           | Operation mode            |
+    | Inactive             | Inactive                  |
+    |----------------------+---------------------------|
+    | Idle State           | Card indentification Mode |
+    | Ready State          |                           |
+    | Identification State |                           |
+    |----------------------+---------------------------|
+    | Stand-by State       | data transfer Mode        |
+    | Transfer State       |                           |
+    | Sending-data State   |                           |
+    | Receive-data State   |                           |
+    | Programming State    |                           |
+    | Disconnect State     |                           |
+    |----------------------+---------------------------|
+
+    识卡模式下，主要有三种状态：Idle, Ready 以及Identification. 
+       
 *** 常见命令
-         - CMD 5 (The =IO_SEND_OP_COND= Command)
+    - CMD 5 (The =IO_SEND_OP_COND= Command)
 
-           这个是发给给WiFi网卡设备的第一条指令，主要用于查询SDIO卡需
-           要的电压范围。通常会响应一个R4. 如果电压与Host端不匹配，则
-           Host端会忽略此卡。
+      这个是发给给WiFi网卡设备的第一条指令，主要用于查询SDIO卡需
+      要的电压范围。通常会响应一个R4. 如果电压与Host端不匹配，则
+      Host端会忽略此卡。
 
-         - CMD 3 ( =SEND_RELATIVE_ADDR= )
+    - CMD 3 ( =SEND_RELATIVE_ADDR= )
 
-           这个命令用于要求SDIO卡设备公布一个新的RCA。RCA用于标识某个
-           特定的SD卡。
+      这个命令用于要求SDIO卡设备公布一个新的RCA。RCA用于标识某个
+      特定的SD卡。
 
-         - CMD 7( =SELECT/DESELECT_CARD= )
+    - CMD 7( =SELECT/DESELECT_CARD= )
 
-           该命令主要是将一个卡在 standy-by 和 transfer 状态之间或
-           programming 和 disconnect状态之间进行转换。不管理哪种情况下，
-           卡是通过自己的RCA地址被选中，其他地址取消选中。
+      该命令主要是将一个卡在 standy-by 和 transfer 状态之间或
+      programming 和 disconnect状态之间进行转换。不管理哪种情况下，
+      卡是通过自己的RCA地址被选中，其他地址取消选中。
 
-         - CMD 52( =IO_RW_DIRECT command= )
+    - CMD 52( =IO_RW_DIRECT command= )
 
-           The =IO_RW_DIRECT= is the simplest means to access a single
-           register within the total 128K of register space in any I/O
-           function, including the common I/O area (CIA). This command
-           reads or writes 1 byte using only 1command/response pair. A
-           common use is to initialize registers or monitor status
-           values for I/O functions. This command is the fastest means
-           to read or write single I/O registers, as it requires only
-           a single command/response pair
+      The =IO_RW_DIRECT= is the simplest means to access a single
+      register within the total 128K of register space in any I/O
+      function, including the common I/O area (CIA). This command
+      reads or writes 1 byte using only 1command/response pair. A
+      common use is to initialize registers or monitor status
+      values for I/O functions. This command is the fastest means
+      to read or write single I/O registers, as it requires only
+      a single command/response pair
 
-         - CMD 53( =IO_RW_EXTENDED= command)
-           
-           This command allows the reading or writing of a large
-           number of I/O registers with a single command. Since this
-           is a data transfer command, it provides the highest
-           possible transfer rate.
+      Suspend and Resume commands are CMD52 operations.
+
+    - CMD 53( =IO_RW_EXTENDED= command)
+      
+      This command allows the reading or writing of a large
+      number of I/O registers with a single command. Since this
+      is a data transfer command, it provides the highest
+      possible transfer rate.
+
+      The SDIO command CMD53 definition limits the maximum data
+      size of data transfers according to the following formula:
+      : Max data size = Block size x Block count
+
+      Block size is specified by the buffer size， block count
+      can be a maximum of 512 (9-bit count) as specified in the
+      command argument for CMD53. 
+
+      最坏情况下，如果SDIO卡只有一个byte buffer，则使用CMD53最多
+      能传512个字节。（Block Size =1, Block Count = 512）
+
+    - CMD11
+      该命令是Voltage Switch Command， 只能在Ready状态下执行。
 
 
+*** SD Card Identification Procedure
+
+      在识卡模式下， 主机会重置所有SD卡设备，验证操作电压范围，识别
+         卡设备，并要求它们公布Relative Card Address(RCA)。
+         
+      [[./images/2017/2017030801.png]]
+
+    SDIO卡的CMD5命令类似于SD Memory Card的
+    ACMD41命令的操作。它会查询SDIO卡的电压范围，SD CARD会回应此命令是
+    否接受切换到1.8V电压。
+
+    针对SDIO 3.0 ,即 UHS-I Card，还要进行tuning，以确定一个合适的运行
+    频率。
+    
+** asynchronized IRQ
     
 * Linux SDIO驱动
 
@@ -209,3 +259,32 @@
     化的话，会触发识卡流程，一般是调用 =mmc_detect_change= 。它会调用
     执行识卡的工作队列执行识卡流程。
     : mmc_schedule_delayed_work(&host->detect, delay);
+
+    mmc_alloc_host : INIT_DELAYED_WORK(&host->detect, mmc_rescan);
+    mmc_rescan
+    mmc_rescan_try_freq
+    mmc_attach_sdio --> mmc_sdio_init_card
+
+    sdio_reset_comm() --> mmc_sdio_init_card()
+
+    上电的时候，你们上层应用需要读id，做了第一次上电，走的是mmc_resan。
+    第二次打开wifi，走的是sdio_reset_comm函数。 第三次打开wifi，走的是
+    sdio_reset_comm函数，这个函数，发送了cmd0，然后发送第一次cmd5获取
+    模组ocr正常，接着与平台支持的电压相与。获得都支持的电压，然后置位
+    ocr  bit4(为1.8V）,接着再次发送cmd5，返回err，出现异常退出sdio初始
+    化。因为我们走的是通用的初始化流程，如果硬件上没有电压波动导致模组
+    异常的问题的话，模组厂应该之前有遇到过类似的问题才对。
+
+
+    suspend时保持SDIO BUS处于上电状态：
+    : sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER)
+
+
+参考网址：
+
+
+http://www.cnblogs.com/RandyQ/p/3607107.html
+
+http://blog.csdn.net/wh_19910525/article/details/7392518
+
+http://blog.sina.com.cn/s/blog_4b4b54da0102vivr.html

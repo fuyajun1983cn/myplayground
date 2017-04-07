@@ -14,114 +14,114 @@
     [[./images/2016/2016082301.png]]
     
 *** GLUE Layer
-        1. Provides OS specific interface – A Driver
-           Entry(Open/Start/Stop/Remove), OID/IOCTL/CFG80211 part and
-           driver hooks as well.
-        2. Glue Layer will access the MT6630 WLAN Core Library to
-           invoke proper event to MT6630 Driver  Arbiter to complete
-           the operating system’s request.
+    1. Provides OS specific interface – A Driver
+       Entry(Open/Start/Stop/Remove), OID/IOCTL/CFG80211 part and
+       driver hooks as well.
+    2. Glue Layer will access the MT6630 WLAN Core Library to
+       invoke proper event to MT6630 Driver  Arbiter to complete
+       the operating system’s request.
 
 *** KAL
-        Provides kernel service to WLAN Core Library, This can be
-        divided into two part. 
-        1. First part is OS function/library access such as memory
-           access, host timer, event indication to supplicant and RX
-           packet  indication.
-        2. Second part is the wrapper of bus driver API or System IO
-           functions used by WLAN Core library to  read/write MCR,
-           send/receive incoming packets.
+    Provides kernel service to WLAN Core Library, This can be
+    divided into two part. 
+    1. First part is OS function/library access such as memory
+       access, host timer, event indication to supplicant and RX
+       packet  indication.
+    2. Second part is the wrapper of bus driver API or System IO
+       functions used by WLAN Core library to  read/write MCR,
+       send/receive incoming packets.
 
 *** WLAN Core Library
-         In MT6630 WLAN Core Library, we divide the library into 4 parts. They are
-         1. A centralized Arbiter Finite State Machine and its associated event handling
-         2. Management and Protocol Layer.
-         3. NIC Layer to maintain SW/HW synchronization, such as TX FIFO status, TX/RX Queue Operation.
-         4. HAL Layer to provide basic foundations for NIC Layer, such
-            as MCR value composing, read a specific  field for MIB
-            counter, A series of MCR write for a special
-            function..etc.
+    In MT6630 WLAN Core Library, we divide the library into 4 parts. They are
+    1. A centralized Arbiter Finite State Machine and its associated event handling
+    2. Management and Protocol Layer.
+    3. NIC Layer to maintain SW/HW synchronization, such as TX FIFO status, TX/RX Queue Operation.
+    4. HAL Layer to provide basic foundations for NIC Layer, such
+       as MCR value composing, read a specific  field for MIB
+       counter, A series of MCR write for a special
+       function..etc.
 
 ** 主要数据结构
 
 *** =STA_RECORD=
 
-         Station Record , Capability and basic information of peer station 
+    Station Record , Capability and basic information of peer station 
 
-         相关API
-         1. MLME state (SAA and AAA)
-            - aaaFsmRunEventRxAuth
-            - saaFsmSendEventJoinComplete
-            - saaFsmRunEventRxAuth
-            - assocBuildCapabilityInfo
-         2. Client List operation
-            - cnmStaRoutinesForAbort
-            - cnmStaRecAlloc
-            - cnmStaRecFree
-            - bssAddClient
-            - bssAddClient
-         3. Queue management
-            - qmActivateStaRec
-            - qmDeactivateStaRec
-            - qmFlushStaTxQueues
-            - qmFlushStaRxQueue
-            - qmProcessPktWithReordering
-            - qmProcessBarFrame
-         4. QoS
-            - mqmGenerateWmmInfoIEByStaRec
-         5. STA_RECORD sync with firmware
-            - cnmStaSendUpdateCmd
+    相关API
+    1. MLME state (SAA and AAA)
+       - aaaFsmRunEventRxAuth
+       - saaFsmSendEventJoinComplete
+       - saaFsmRunEventRxAuth
+       - assocBuildCapabilityInfo
+    2. Client List operation
+       - cnmStaRoutinesForAbort
+       - cnmStaRecAlloc
+       - cnmStaRecFree
+       - bssAddClient
+       - bssAddClient
+    3. Queue management
+       - qmActivateStaRec
+       - qmDeactivateStaRec
+       - qmFlushStaTxQueues
+       - qmFlushStaRxQueue
+       - qmProcessPktWithReordering
+       - qmProcessBarFrame
+    4. QoS
+       - mqmGenerateWmmInfoIEByStaRec
+    5. STA_RECORD sync with firmware
+       - cnmStaSendUpdateCmd
 
 *** =BSS INFO=
-         主要信息有：
-         - AP capability and basic information 
-           SSID, BSSID...
-         - Operation Mode (ENUM_OP_MODE_T) - eCurrentOPMode 
-           INFRASTRUCTURE, AP…
-         - Connection State (ENUM_PARAM_MEDIA_STATE_T) - eConnectionState 
-           Connected, Disconnected 
+    主要信息有：
+    - AP capability and basic information 
+      SSID, BSSID...
+    - Operation Mode (ENUM_OP_MODE_T) - eCurrentOPMode 
+      INFRASTRUCTURE, AP…
+    - Connection State (ENUM_PARAM_MEDIA_STATE_T) - eConnectionState 
+      Connected, Disconnected 
 
-         相关API
-         1. Init
-            - cnmGetBssInfoAndInit
-            - cnmFreeBssInfo
-         2. AP setting
-            - bssBuildBeaconProbeRespFrameCommonIEs
-            - bssUpdateBeaconContent
-            - p2pFuncStartGO
-         3. Client List operation
-            - bssAddClient
-            - bssRemoveClient
-            - cnmStaFreeAllStaByNetwork
-         4. STA join
-            - bssInitForAP
-            - bssDetermineApBssInfoPhyTypeSet
-            - aisUpdateBssInfoForJOIN
-            - p2pFuncUpdateBssInfoForJOIN
-         5. BSS sync with firmware
-            - nicUpdateBss
-            - nicActivateNetwork
-            - nicDeactivateNetwork
-            - nicQmUpdateWmmParms
+    相关API
+    1. Init
+       - cnmGetBssInfoAndInit
+       - cnmFreeBssInfo
+    2. AP setting
+       - bssBuildBeaconProbeRespFrameCommonIEs
+       - bssUpdateBeaconContent
+       - p2pFuncStartGO
+    3. Client List operation
+       - bssAddClient
+       - bssRemoveClient
+       - cnmStaFreeAllStaByNetwork
+    4. STA join
+       - bssInitForAP
+       - bssDetermineApBssInfoPhyTypeSet
+       - aisUpdateBssInfoForJOIN
+       - p2pFuncUpdateBssInfoForJOIN
+    5. BSS sync with firmware
+       - nicUpdateBss
+       - nicActivateNetwork
+       - nicDeactivateNetwork
+       - nicQmUpdateWmmParms
 
 *** =_GLUE_INFO_T=  && =_ADAPTER_T=
-        =_ADAPTER_T= : Major data structure for driver operation, main data structure of internal protocol stack
-        
-        =_GLUE_INFO_T=: Major data structure for driver
+    =_ADAPTER_T= : Major data structure for driver operation, main data structure of internal protocol stack
+    
+    =_GLUE_INFO_T=: Major data structure for driver
 
-        这两个数据结构相互引用，即通过任何一方可以访问到另一方。
+    这两个数据结构相互引用，即通过任何一方可以访问到另一方。
 
-        与网络驱动相关的数据结构之间的引用关系：
-        #+BEGIN_SRC c
-          // _GLUE_INFO_T 与 struct net_device
-          prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(prWdev->wiphy);
-          gPrDev = prGlueInfo->prDevHandler;
-          P_ADAPTER_T prAdapter = prGlueInfo->prAdapter ;
-          P_GLUE_INFO_T prGlueInfo = prAdpater->prGlueInfo;
-          P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T *) netdev_priv(prWdev->netdev);
-        #+END_SRC
+    与网络驱动相关的数据结构之间的引用关系：
+    #+BEGIN_SRC c
+      // _GLUE_INFO_T 与 struct net_device
+      prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(prWdev->wiphy);
+      gPrDev = prGlueInfo->prDevHandler;
+      P_ADAPTER_T prAdapter = prGlueInfo->prAdapter ;
+      P_GLUE_INFO_T prGlueInfo = prAdpater->prGlueInfo;
+      P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T *) netdev_priv(prWdev->netdev);
+    #+END_SRC
 
 *** =_GL_P2P_INFO_T=
-         p2p structure
+    p2p structure
       
 ** Software Modules
 
@@ -154,34 +154,34 @@
 *** AIS FSM
 
 *** CNM 
-        Concurrent Network Management (CNM)
-        - RLM(Radio Link Management) resource control
-          + Channel switch
-          + Configure RLM settings like TX power
-        - Common database/feature management
-          + BSS info/STA record
-          + Timer
-          + Packet allocate
+    Concurrent Network Management (CNM)
+    - RLM(Radio Link Management) resource control
+      + Channel switch
+      + Configure RLM settings like TX power
+    - Common database/feature management
+      + BSS info/STA record
+      + Timer
+      + Packet allocate
 
-        主要目的是为协调其他模块对Radio资源的访问。
+    主要目的是为协调其他模块对Radio资源的访问。
 
-        CNM has no task/thread to handle it, so its FSM controlled by :
-        - HW timer interrupt
-          + CTT (CATT/CPTT) Timeout
-            Channel Absence/Presence Target Time
-        - HEM mail box
-          + Privilege Request
-          + Privilege Abort
-        - Function Call
-          + BSS update (create/modify/remove)
+    CNM has no task/thread to handle it, so its FSM controlled by :
+    - HW timer interrupt
+      + CTT (CATT/CPTT) Timeout
+        Channel Absence/Presence Target Time
+    - HEM mail box
+      + Privilege Request
+      + Privilege Abort
+    - Function Call
+      + BSS update (create/modify/remove)
 
-            
-        Important database
-        - Pending List
-          + Channel Privilege Request will queue here.
-        - Operation Channel (OPCH)
-          + Every BSS has its working channel
-          + BSS with same working channel will be put into same OPCH
+        
+    Important database
+    - Pending List
+      + Channel Privilege Request will queue here.
+    - Operation Channel (OPCH)
+      + Every BSS has its working channel
+      + BSS with same working channel will be put into same OPCH
     
 ** 命令数据发送的基本流程
    
@@ -279,9 +279,17 @@
         [[./images/2016/2016083003.png]]
 
 ** 编译
-    因為當初SDIO開發時候只有x86 PC跟HE兩種平台 
-    这个宏 =MTK_WCN_HIF_SDIO= 要定义为0。
+   為當初SDIO開發時候只有x86 PC跟HE兩種平台 
+   这个宏 =MTK_WCN_HIF_SDIO= 要定义为0。
 
+** 配置项
+   1. 用版子的efuse設定
+      : EfuseBufferModeCal 0
+   2. 需要p2p concurrent interface
+      : RegP2pIfAtProbe 1
+   3. 需要DBDC
+      : DbdcMode 2
+    
 * 调试
 
 ** FixedRate Iwpriv CMD
@@ -415,17 +423,17 @@
 
 ** 常用API
 *** 获取当前Sta Rec信息
-         : prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
-         : prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
-         : prStaRec = cnmGetStaRecByAddress(prAdapter, (UINT_8) prAdapter->prAisBssInfo->ucBssIndex, mac);
+    : prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
+    : prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+    : prStaRec = cnmGetStaRecByAddress(prAdapter, (UINT_8) prAdapter->prAisBssInfo->ucBssIndex, mac);
 
 *** 获取当前BSS信息
-         : prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prStaRec->ucBssIndex);
-         : prBssInfo = prAdapter->aprBssInfo[prMsduInfo->ucBssIndex];
+    : prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prStaRec->ucBssIndex);
+    : prBssInfo = prAdapter->aprBssInfo[prMsduInfo->ucBssIndex];
          
 *** 获取两个全局变量的实例
-         : prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
-         : prAdapter = prGlueInfo->prAdapter;
+    : prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
+    : prAdapter = prGlueInfo->prAdapter;
 
 ** Log开关
     - 檢查debug level 
@@ -442,17 +450,38 @@
 ** 客户平台
 
 *** ZTE
-         加载KO前，输入：
-         : echo 1 > /sys/class/remount/need_remount
-         : ioctl /dev/wifi_power 27907
+    加载KO前，输入：
+    : echo 1 > /sys/class/remount/need_remount
+    : ioctl /dev/wifi_power 27907 (on)
+    :  ioctl /dev/wifi_power 27906 (off)
 
-         4-bit需要加载添加如下命令(set async interrupt)：
-         : iwpriv wlan0 driver "set_drv_mcr 0x8 0xf"
-         
-         替换dt.img(uboot命令行中):
-         : usb start ; fatload usb 0  12000000 dt.img  ; store dtb write 12000000 256
+    4-bit需要加载添加如下命令(set async interrupt)：
+    : iwpriv wlan0 driver "set_drv_mcr 0x8 0xf"
+    
+    替换dt.img(uboot命令行中):
+    : usb start ; fatload usb 0  12000000 dt.img  ; store dtb write 12000000 256
 
-         替换boot.img的方法(Android启动后):
-         : dd if=boot.img of=/dev/block/boot
+    替换boot.img的方法(Android启动后):
+    : dd if=boot.img of=/dev/block/boot
+
+    启动softap时，输入如下命令：
+    : insmod wlan_mt7668.ko sta=wlan p2p=p2p ap=ap
+
+**** 问题列表 
+     1. ping包延迟很大
+        先将wifi.cfg中的SetChip0 KeepFullPwr 1， 发现ping 包延迟正常了。
+
+**** Release Notes
+
+***** 2017/2/10
+      1.只做Verification , 不做Calibration . 詳細內容我們有跟志軍討論 . 
+      2. 附件為wifitestool文檔 , 請參考2.3節的verification flow .
+      3. 請配合新版wifi driver
+         “MT7668_WIFI_DRV_SDIO_ZTE_V1.0.1.3.tgz”, 才能使用此新
+         版wifitesttool . 
+      4.此新版wifi driver & wifitesttool是for PVT硬件使用 . 如果
+         用在現有硬件上 , Tx power會不準 , 但還是可以驗證PVT的
+         flow . 
+      5.記得要將”EEPROM_MT7668_170209.rar”內容放到/etc/firmware路徑下 .
 
 

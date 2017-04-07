@@ -274,6 +274,11 @@
          s64 usecs64 = ktime_to_us(ktime_sub(end, start));
        #+END_SRC
 
+    3. GetTimeTick()
+       #+BEGIN_SRC c
+         #define kalGetTimeTick()                            jiffies_to_msecs(jiffies)       
+       #+END_SRC
+
 * 工作队列
   #+BEGIN_SRC c
     struct work_struct * work_item;

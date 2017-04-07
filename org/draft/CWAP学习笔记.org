@@ -29,10 +29,10 @@
     位。
 
 ** Data-Link layer
-    
+
     802.11数据链路层分为两个子层：
     - 处于上层的是802.11逻辑链路控制层，跟所有其他的802网络一样。
-    - 处于上层的是媒体访问控制子层。802.11标准定义了MAC子层的操作。MAC
+    - 处于下层的是媒体访问控制子层。802.11标准定义了MAC子层的操作。MAC
       子层是下层物理层与逻辑链路控制层之间的接口。
 
 *** MSDU
@@ -73,11 +73,14 @@
 
 ** 802.11 architecture
 
-    - distribution system (DS)
+    - *distribution system (DS)*
+
       A system used to interconnect a set of basic service sets and
       integrated local area networks (LANs) to create an extended
       service set (ESS).
-    - distribution system medium (DSM)
+
+    - *distribution system medium (DSM)*
+
       The logical physical medium used by a distribution system for
       communications between access points and portals of an extended
       service set. In most cases, the DSM is an 802.3 Ethernet LAN.

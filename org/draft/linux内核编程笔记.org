@@ -4980,37 +4980,37 @@ Vmalloc映射分三步：
      MODULE_LICENSE("GPL");
         
    #+END_SRC
-* Device Tree
-   对于不同被内核自动识别的设备，使用平台设备的这种机制来解决。但是，
-   它最大的缺点就是需要在代码中初始化这些设备。一种新的解决方案就是设
-   备树。
-
-   设备树是一种文本的方式描述 特定系统的硬件配置。设备树在内核启动的时
-   候被传递给内核，内核会通过读取设备树信息来了解当前运行的系统相关的
-   信息，特别是一些硬件配置信息。
-
-   设备树抽象了不同系统的硬件差异，使得通用的内核可以运行在更广泛的硬
-   件平台上。
-
-   对于使能了设备树的系统，仍然可以使用平台设备机制，而且不需要额外工
-   作。如果一个设备树包含一个平台设备（它是设备树根结点的直接子设备结
-   点或是挂载到一个“简单总线”上），该设备会被初始化并会为其匹配相应
-   的驱动。内存映射的I/O以及中断资源会从设备树的描述中分配，并在驱动的
-   probe()函数中可以访问这些资源。驱动并不清楚这些资源是通过设备树描述
-   信息信息分配的，还是通过代码定义的。 
-
-   内核中提供了 =of_device_id= 数据结构来将一个特定的名称（设备树中的
-   结点名称）与平台设备关 联。
-
-   #+BEGIN_SRC c
+* 知识点48 Device Tree
+  对于不同被内核自动识别的设备，使用平台设备的这种机制来解决。但是，
+  它最大的缺点就是需要在代码中初始化这些设备。一种新的解决方案就是设
+  备树。
+  
+  设备树是一种文本的方式描述 特定系统的硬件配置。设备树在内核启动的时
+  候被传递给内核，内核会通过读取设备树信息来了解当前运行的系统相关的
+  信息，特别是一些硬件配置信息。
+  
+  设备树抽象了不同系统的硬件差异，使得通用的内核可以运行在更广泛的硬
+  件平台上。
+  
+  对于使能了设备树的系统，仍然可以使用平台设备机制，而且不需要额外工
+  作。如果一个设备树包含一个平台设备（它是设备树根结点的直接子设备结
+  点或是挂载到一个“简单总线”上），该设备会被初始化并会为其匹配相应
+  的驱动。内存映射的I/O以及中断资源会从设备树的描述中分配，并在驱动的
+  probe()函数中可以访问这些资源。驱动并不清楚这些资源是通过设备树描述
+  信息分配的，还是通过代码定义的。 
+  
+  内核中提供了 =of_device_id= 数据结构来将一个特定的名称（设备树中的
+  结点名称）与平台设备关 联。
+  
+  #+BEGIN_SRC c
      static const struct of_device_id my_of_ids[] = {
              { .compatible = "long,funky-device-tree-name" },
              { }
          };   
-   #+END_SRC
-
-   当声明平台设备驱动时，它会保存一个指向该结点实例的指针：
-   #+BEGIN_SRC c
+  #+END_SRC
+  
+  当声明平台设备驱动时，它会保存一个指向该结点实例的指针：
+  #+BEGIN_SRC c
      static struct platform_driver my_driver = {
              /* ... */
              .driver = {
@@ -5018,43 +5018,99 @@ Vmalloc映射分三步：
                      .of_match_table = my_of_ids
              }
          };   
-   #+END_SRC
-
-   驱动也可以通过如下宏来使得在设备树初始化自动加载模块：
+  #+END_SRC
+  
+  驱动也可以通过如下宏来使得在设备树初始化自动加载模块：
    : MODULE_DEVICE_TABLE(of, my_of_ids);
-
-   通过设备树这种方式初始化平台设备时，不能传递 =platform_data= , 所在
-   在驱动的 probe() 函数中，可以判断 =dev.platform_data= 是否为空，如
-   果不为空，则说明平台设备是以传统的方式初始化的，如果为空，则说明设
-   备是通过设备树来初始化的，驱动所需要的信息需要通过其他的方式获得。
-   在这种情况下，驱动会寻找平台设备的 =dev.of_node= 域，它是一个指向
-   =device_node= 结构的指针。有了这个指针 ，就可以使用设备树相关的函数
-   来访问所需要的信息（主要通过 =of_get_property()= 接口）。
-
-   DTS文件格式的说明，可以参考： http://elinux.org/Device_Tree_Usage
-   
+  
+  通过设备树这种方式初始化平台设备时，不能传递 =platform_data= , 所以
+  在驱动的 probe() 函数中，可以判断 =dev.platform_data= 是否为空，如
+  果不为空，则说明平台设备是以传统的方式初始化的，如果为空，则说明设
+  备是通过设备树来初始化的，驱动所需要的信息需要通过其他的方式获得。
+  在这种情况下，驱动会寻找平台设备的 =dev.of_node= 域，它是一个指向
+  =device_node= 结构的指针。有了这个指针 ，就可以使用设备树相关的函数
+  来访问所需要的信息（主要通过 =of_get_property()= 接口）。
+  
+  DTS文件格式的说明，可以参考： http://elinux.org/Device_Tree_Usage
+  
+*** board file
+    描述主板信息的C文件。
+    类似如下：
+    #+BEGIN_SRC c
+            static struct of_device_id xxx_of_bus_ids[] __initdata = {
+                    { .compatible = "simple-bus", },
+                    {},
+            };
+           
+            void __init xxx_mach_init(void)
+            {
+                    of_platform_bus_probe(NULL, xxx_of_bus_ids, NULL);
+            }
+           
+            #ifdef CONFIG_ARCH_XXX
+           
+            DT_MACHINE_START(XXX_DT, "Generic XXX (Flattened Device Tree)")
+                    …
+                    .init_machine   = xxx_mach_init,
+                    …
+            MACHINE_END
+            #endif
+    #+END_SRC
+    
+*** devicetree
+    devicetree的源码文件包含了两种信息： SoC identification ，
+    component configuration
+    但是不包含SoC与组件之间的Glue代码。这些代码应该是比较通用的代
+    码，具体平台不应该包含这些代码。
+    
+    源文件一般以.dts结尾，.dtsi一般被包含进.dts文件中。
+    
+    示例：
+    #+BEGIN_SRC sh
+      charger: bci {
+              compatible = "ti,twl4030-bci";
+              interrupts = <9>, <2>;
+              bci3v1-supply = <&vusb3v1>;
+          };        
+    #+END_SRC
+    
+    上述片断描述了电池充电器设备。
+    charger是一个字符标签，使得该结点可在其他处被引用。bci是该结点
+    位于其父结点下的名字。完整名称实际上：
+    /ocp/i2c@48070000/twl@48/bci
+    
+    compatible告知Linux该设备是干什么的。Every device can list one
+    or more strings that it is "compatible" with. Similarly every
+    driver in the kernel can list one or more strings that it is
+    compatible with (via the  "driver.of_match_table" field).
+    
+    interrupts列出了两个中断号，表示BCI可以产生两个中断。
+    
+    一般需要配置的设备是一些固定的设备，不能自动枚举的设备。
+    
 * RCU
   rcu_dereference
   struct rcu_head
   rcu_dereference_protected
-   
+  
+* =iov_iter= interface──新的异步IO接口
 * ＝iov_iter= interface──新的异步IO接口
-      AIO changed to read/write-iter
-      https://lwn.net/Articles/625077/  The iov_iter interface
-
+  AIO changed to read/write-iter
+  https://lwn.net/Articles/625077/  The iov_iter interface
+  
 * 内核调试
   
   http://opensourceforu.com/2011/01/understanding-a-kernel-oops/
-
-  http://www.kerneloops.org/
-
-  https://www.freebsd.org/doc/en/books/developers-handbook/kerneldebug.html
-
-  https://wiki.ubuntu.com/Kernel/KernelDebuggingTricks
-
   
-    
-
-
-
-https://kernelnewbies.org/KernelMemoryAllocation
+  http://www.kerneloops.org/
+  
+  https://www.freebsd.org/doc/en/books/developers-handbook/kerneldebug.html
+  
+  https://wiki.ubuntu.com/Kernel/KernelDebuggingTricks
+  
+  
+  
+  
+  
+  
+  https://kernelnewbies.org/KernelMemoryAllocation

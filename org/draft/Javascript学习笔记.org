@@ -622,7 +622,31 @@
           length of the Buffer in bytes, an array of bytes to copy
           into the Buffer, or a string to copy into the Buffer.
 
-          
+*** Using Multiple Processors
+        Node是单线程的，通过cluster 可以将一些工作交给子进程（其他核心）
+        #+BEGIN_SRC javascript
+          var cluster = require('cluster');
+          var http = require('http');
+          var numCPUs = require('os').cpus().length;
+
+          if (cluster.isMaster) {
+            // Fork workers.
+            for (var i = 0; i < numCPUs; i++) {
+              cluster.fork();
+            }
+
+            cluster.on('death', function(worker) {
+              console.log('worker ' + worker.pid + ' died');
+            });
+          } else {
+            // Worker processes have a http server.
+            http.Server(function(req, res) {
+              res.writeHead(200);
+              res.end("hello world\n");
+            }).listen(8000);
+          }        
+        #+END_SRC
+         
 * HTML5
 
 ** HTML5特性检查 -- MODERNIZR

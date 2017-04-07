@@ -45,13 +45,13 @@
 *** ☛ TODO [#B] cfg80211
 *** ☛ TODO [#C] Low power and WOW
 
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
 *** ☛ TODO [#C] BF/MU/RA/Calibration
     
 *** ☛ TODO [#B] FW
 
 *** ☛ TODO [#C] Roaming
 
-** 阅读FreeMind代码，理清大体框架
 ** 802.11ac
    http://chimera.labs.oreilly.com/books/1234000001739/index.html
    
@@ -110,6 +110,7 @@
 *** Javascript
 **** 学习"Javascript Data Structures - Stacks, Queue and Deque"
      http://www.i-programmer.info/programming/javascript/1674-javascript-data-structures-stacks-queues-and-deques.html
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
 *** Python
 **** 学习Python基本的网络编程方法
 **** https://automatetheboringstuff.com/
@@ -166,6 +167,7 @@ Added: [2016-08-10 周三 13:45]
      5. [ ] 第6章 深入理解Wi-Fi Simple Configuration
      6. [ ] 第7章 深入理解Wi-Fi P2P
 Added: [2016-09-02 周五 14:15]
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
 ** ☛ TODO Linux IPC机制研究                                            :Study:
     1. [[https://lwn.net/Articles/466304/][Fast interprocess communication revisited]]
     2. [[https://lwn.net/Articles/697191/][Bus1: a new Linux interprocess communication proposal]]
@@ -173,6 +175,9 @@ Added: [2016-09-07 周三 09:50]
 ** ☛ TODO Linux Trace API研究                                          :Study:
     
 Added: [2016-09-09 周五 13:45]
+<<<<<<< HEAD
+** ☛ TODO 802.1X深入研究
+     EAPOL 一些状态机的研究
 ** ☛ TODO SDIO规范阅读                                                 :Study:
 
 Added: [2016-09-18 周日 00:15]
@@ -226,6 +231,7 @@ Added: [2016-09-05 周一 09:50]
     DEADLINE: <2016-11-30 三> SCHEDULED: <2016-10-10 一>
 ** ☛ TODO 802.1X深入研究
      EAPOL 一些状态机的研究
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
 ** ☛ TODO [#B] CWAP学习                                                :Study:
    DEADLINE: <2016-11-30 周三> SCHEDULED: <2016-10-17 一 +1w>
     - State "✔ DONE"    q from "☛ TODO"     [2016-09-18 周日 00:05]
@@ -248,6 +254,8 @@ Added: [2016-09-05 周一 09:50]
      - [X] 第八章
      - [X] 第九章
      - [ ] 第十章
+     - [X] 第十一章
+     - [X] 第十二章
      - [ ] 第十一章
      - [ ] 第十二章
 
@@ -267,7 +275,21 @@ Added: [2016-09-05 周一 09:50]
     数据结构与常见算法思想学习
 *** 编程珠矶
 *** 算法设计手册
-*** 数据 结构与习题与解答——Java语言描述
+<<<<<<< HEAD
+*** ☛ TODO 算法精解——C语言描述
+**** 数据结构
+          - [ ] 链表
+          - [ ] 栈和队列
+          - [ ] 集合
+          - [ ] 哈希表
+          - [ ] 树
+          - [ ] 堆和优先队列
+          - [ ] 图
+          - [ ] 字符串
+
+**** 算法
+         - [ ] 搜索与排序         
+
 **** 第八章 —— 线性表
 **** 第九章 —— 树
 **** 第十章 —— 二叉树
@@ -281,6 +303,10 @@ Added: [2016-08-11 周四 13:25]
 
 ** ☛ TODO mac80211学习
     DEADLINE: <2016-12-31 周六> SCHEDULED: <2016-11-01 周二>
+<<<<<<< HEAD
+
+*** MT7601代码研究
+
 ** ⚑ WAITING MT7668内存管理研究                                       :Study:
       研究内存池的管理
 Added: [2016-11-04 周五 16:40]
@@ -289,254 +315,126 @@ Added: [2016-11-04 周五 16:40]
       保存的扫描结果列表 。
       bss_generation代数
       
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
 ** ⚑ WAITING USB规范阅读                                              :Study:
     - [ ] Architectural Overview  
       本月内完成
     - [ ] 第4章
     - [ ] 第9章
     - [ ] 第十章
-** ☛ TODO Linux devicetree mechanism
-     A devicetree essentially describes a specific device.This
-     devicetree (encoded as a binary "dtb" file) can be  stored in ROM
-     on the system, or can be loaded from wherever the kernel is
-     loaded. The  theory is that when a system (e.g. motherboard) is
-     created, a "dtb" can be created for it, and it  will work with
-     all future software releases. It is a nice theory... 
-*** board file
-        描述主板信息的C文件。
-        类似如下：
-        #+BEGIN_SRC c
-          MACHINE_START(GTA04, "GTA04")
-                  /* Maintainer: Nikolaus Schaller - http://www.gta04.org */
-                  .atag_offset    =   0x100,
-                  .reserve        =   omap_reserve,
-                  .map_io         =   omap3_map_io,
-                  .init_irq       =   omap3_init_irq,
-                  .handle_irq     =   omap3_intc_handle_irq,
-                  .init_early     =   omap3_init_early,
-                  .init_machine   =   gta04_init,
-                  .init_late      =   omap3630_init_late,
-                  .timer          =   &omap3_secure_timer,
-                  .restart        =   omap_prcm_restart,
-              MACHINE_END        
-        #+END_SRC
-
-        其中，gta04_init是平台相关的代码，它通常使用
-        platform_add_devices()
-        
-        所以，这个主板文件定义了跟主板相关的一切信息，识别了所有其他组
-        件的标识，其中SoC与组件之间的Glue代码。
-*** devicetree
-        devicetree的源码文件包含了两种信息： SoC identification ，
-        component configuration
-        但是不包含SoC与组件之间的Glue代码。这些代码应该是比较通用的代
-        码，具体平台不应该包含这些代码。
-
-        源文件一般以.dts结尾，.dtsi一般被包含进.dts文件中。
-
-        示例：
-        #+BEGIN_SRC sh
-          charger: bci {
-                  compatible = "ti,twl4030-bci";
-                  interrupts = <9>, <2>;
-                  bci3v1-supply = <&vusb3v1>;
-              };        
-        #+END_SRC
-
-        上述片断描述了电池充电器设备。
-        charger是一个字符标签，使得该结点可在其他处被引用。bci是该结点
-        位于其父结点下的名字。完整名称实际上：
-        /ocp/i2c@48070000/twl@48/bci
-
-        compatible告知Linux该设备是干什么的。Every device can list one
-        or more strings that it is "compatible" with. Similarly every
-        driver in the kernel can list one or more strings that it is
-        compatible with (via the  "driver.of_match_table" field).
-
-        interrupts列出了两个中断号，表示BCI可以产生两个中断。
-
-        一般需要配置的设备是一些固定的设备，不能自动枚举的设备。
 ** ☛ TODO 研究MT7662 VHT的修改                                         :Study:
     SCHEDULED: <2016-12-09 周五>
     
     Added: [2016-12-08 周四 14:30]
+** ☛ TODO ns-3工具研究与使用                                           :Study:
+     重点了解如何 模拟WiFi的一些行为
+     Added: [2017-01-16 周一 14:45]
+** ☛ TODO 阅读Mobile and Wireless Communications Physical Layer Development and Implementatiom :Study:
+      网址： http://www.intechopen.com/books/mobile-and-wireless-communications-physical-layer-development-and-implementatiom
+Added: [2017-01-24 周二 17:25]
+** ☛ TODO Common Lisp学习                                              :Study:
+    https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node1.html
+    下次看宏
 
-* Calendar
-  :PROPERTIES:
-  :CATEGORY: CALENDAR
-  :END:
-* Financial
-  :PROPERTIES:
-  :CATEGORY: FINANCIAL
-  :END:
-** ☛ TODO 招商银行信用卡还款提醒
-    SCHEDULED: <2016-12-27 周二 +1m>
-    - State "✔ DONE"     from "☛ TODO"     [2016-11-28 周一 09:35]
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-31 周一 09:50]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-27 二 14:35]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
-    - State "✔ DONE"     from ""           [2016-08-25 周四 13:35]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-11-28 周一 09:37]
-   :END:
+    https://www.gnu.org/software/emacs/manual/html_mono/cl.html
 
-** ☛ TODO 浦发银行信用卡还款提醒
-    SCHEDULED: <2016-12-30 周五 +1m>
-    - State "✔ DONE"     from "☛ TODO"     [2016-11-28 周一 09:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-31 周一 09:50]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:30]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-11-28 周一 09:38]
-   :END:
+    http://sixty-north.com/blog/writing-the-simplest-emacs-company-mode-backend
 
-** ☛ TODO 广发银行信用卡还款提醒
-    SCHEDULED: <2017-01-03 周二 +1m>
-    - State "✔ DONE"     from "☛ TODO"     [2016-11-28 周一 09:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-31 周一 09:50]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:30]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-11-28 周一 09:38]
-   :END:
-
-** ☛ TODO 还贷提醒
-    SCHEDULED: <2016-12-29 周四 +1m +2d>
-    - State "✔ DONE"     from "☛ TODO"     [2016-11-28 周一 09:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-31 周一 09:50]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:30]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-26 周五 19:25]
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 13:40]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-11-28 周一 09:38]
-   :END:
+Added: [2017-02-08 周三 16:35]
+** ☛ GOING [#B] 研究wpa_supplicant上的修改记录                         :Study:
 
 * 本月必须启动的任务
 ** ☛ TODO The Art of Learning
    SCHEDULED: <2016-08-27 周六>
-** ☛ TODO 阅读数据通信与网络                                          :Study:
-   DEADLINE: <2016-12-31 六> SCHEDULED: <2016-10-17 一>
-    CLOCK: [2016-09-06 周二 09:32]--[2016-09-06 周二 10:10] =>  0:38
-    CLOCK: [2016-08-31 周三 17:20]--[2016-08-31 周三 18:06] =>  0:46
-    - 第二部分 物理层
-      下次读6.2节
-    - 第三部分 数据链路层
-Added: [2016-08-31 周三 17:20]
 ** ☛ TODO 计算机语言的构造与解释
    SCHEDULED: <2016-08-27 周六>
 ** ☛ TODO [#C] IW源码学习                                             :Study:
     SCHEDULED: <2016-09-19 周一>
    - Action: 熟悉iw命令的使用
-** ☛ TODO [#C] TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
-    SCHEDULED: <2016-08-19 周五>
-    CLOCK: [2016-08-16 周二 19:06]--[2016-08-16 周二 20:06] =>  1:00
-    - [X] 第一章
-    - [X] Netlink
 ** SDIO规范阅读
     - [ ] SDIO识卡流程
       驱动流程已经理清，下一步就是对照Spec跟读一下代码流程。
 
-* 本月已完成目标
-** W45
-    - [X] 准备Scan模块分享PPT
-    - [X] 完成CWAP第六章的学习
-    - [X] 完成如下资料学习
-          http://lists.infradead.org/pipermail/hostap/2015-October/034018.html
-    - [X] 完成如下资料学习
-      晶元制程
-** W46
-    - [X] 完成第八章线性表的练习
-    - [X] 完成USB规范第三章的学习
-    - [X] 完成CWAP第七章的学习
-** W47
-    - [ ] 了解下SDIO识卡流程
-    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-    - [ ] 了解下SDIO Low Power
-** W48
-    - [ ] 了解下SDIO识卡流程
-      代码流程已经理清，下一步要对着Spec再看一下。
-    - [ ] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-    - [ ] 了解下SDIO Low Power
-** W49
-     - [X] 了解下SDIO识卡流程
-      代码流程已经理清，下一步要对着Spec再看一下。
-     - [X] 阅读完 Understanding SD, SDIO and MMC Interface 文档
-     - [X] 了解一个7662/7668 PM的功能
-     - [X] 完成CWAP第八章的学习
+* Today GTD
+  每日待办清单问题最多5个。
 
-* 今天必须做的事情
-  :PROPERTIES:
-  :CATEGORY: 重要且紧急（计划内）
-  :END:
-  1. 开始第八章练习的学习
-  2. 编写p2p测试代码
-  3. 找Bobby Tsai拿手機
-  4. 理清non-delivery & non-triggerable的含义
+  7668驱动研究：
+  1. 每天学习2个Change List。
+  2. 按计划逐步学习代码流程。
 
-** ☛ TODO [#B] 研究wpa_supplicant上的修改记录                         :Study:
-    SCHEDULED: <2016-10-31 周一 +1w>
-    - State "✔ DONE"     from "☛ TODO"     [2016-10-26 周三 20:05]
-   - State "✔ DONE"     from "☛ TODO"     [2016-10-18 二 16:30]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-28 三 16:25]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-21 三 13:40]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 17:05]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-09 周五 17:45]
-    CLOCK: [2016-09-09 周五 17:08]--[2016-09-09 周五 17:43] =>  0:35
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-31 周三 11:50]
-    CLOCK: [2016-08-31 周三 09:45]--[2016-08-31 周三 11:50] =>  2:05
-    CLOCK: [2016-08-30 周二 19:01]--[2016-08-30 周二 20:03] =>  1:02
-    CLOCK: [2016-08-30 周二 17:47]--[2016-08-30 周二 18:08] =>  0:21
-    - State "✔ DONE"     from "☛ TODO"     [2016-08-25 周四 17:35]
-    CLOCK: [2016-08-25 周四 16:50]--[2016-08-25 周四 17:34] =>  0:44
-    CLOCK: [2016-08-15 周一 17:25]--[2016-08-15 周一 18:07] =>  0:42
-   :PROPERTIES:
-   :Effort:   8:00
-   :LAST_REPEAT: [2016-10-26 周三 20:07]
-   :END:
-     - 2015-October
-     - Next Action: Auguest2009
-* 今天应该做的事情
-  :PROPERTIES:
-  :CATEGORY: 重要不紧急(计划内）)
-  :END:
-** ☛ TODO 编程每日一练                                                :Study:
-   SCHEDULED: <2016-09-30 五 +1d>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-22 四 10:00]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-20 二 20:45]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-20 二 11:20]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-18 周日 08:45]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-17 周六 18:00]
-    - State "✔ DONE"     from "☛ TODO"     [2016-09-14 周三 13:20]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-09-22 四 10:01]
-   :END:      
-*** glib编程
-**** dbus-glib
-*** C++标准模板库学习
-** ☛ TODO 英语每日一练                                                :Study:
-   SCHEDULED: <2016-09-28 三 +1d>
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-27 二 17:35]
-     -背单词──10分钟分钟
-     - 阅读双语新闻一篇──[[http://www.fortunechina.com/index.htm][财富中国]]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-21 三 09:20]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-20 二 20:45]
-   - State "✔ DONE"     from "☛ TODO"     [2016-09-19 一 21:55]
-   :PROPERTIES:
-   :LAST_REPEAT: [2016-09-27 二 17:35]
-   :END:
-   
-Added: [2016-09-19 一 19:00]
+  角色：
+  1. CPL
+  2. WiFi工程师
+  3. 程序员
+  
+** Do Today [0/5]
+*** ☛ TODO Soft Ap研究
+**** DFS流程
+*** ☛ TODO [#B] DBDC
+*** ☛ TODO [#C] TCP-IP.Architecture.Design.and.Implementation.in.Linux.2008
+     SCHEDULED: <2016-08-19 周五>
+     CLOCK: [2016-08-16 周二 19:06]--[2016-08-16 周二 20:06] =>  1:00
+     - [X] 第一章
+     - [X] Netlink
+     - [ ] PROTOCOL FUNDAMENTALS
+    :END: 
+     
+** In Progress [1/2]
+    
+*** MT7668 QM机制研究
+    CLOCK: [2017-03-16 周四 15:58]--[2017-03-16 周四 16:27] =>  0:29
+    CLOCK: [2017-03-16 周四 15:22]--[2017-03-16 周四 15:53] =>  0:31
+    CLOCK: [2017-03-16 周四 14:49]--[2017-03-16 周四 15:15] =>  0:26
+    CLOCK: [2017-03-06 周一 14:48]--[2017-03-06 周一 15:20] =>  0:32
+        1. TC-based HIF TX flow control
+        2. adaptive TC quota adjustment
+        3. HIF TX grant scheduling
+        4. Power-Save forwarding control
+        5. RX packet reordering
+        6. RX BA agreement management
+*** ☛ TODO SDIO Spec 
+**** ☛ TODO 第一章 概述
+     CLOCK: [2017-03-06 周一 16:22]--[2017-03-06 周一 16:48] =>  0:26
+     
+**** 第二章 SDIO信号定义
+**** ☛ TODO 第三章 SDIO卡的初始化
+     CLOCK: [2017-03-08 周三 14:43]--[2017-03-08 周三 19:00] =>  4:17
+     CLOCK: [2017-03-08 周三 14:10]--[2017-03-08 周三 14:43] =>  0:33
+     :PROPERTIES:
+     :ORDERED:  t
+     :END:
+     
+**** 第四章 与SD内存规范之间的差异
+**** 第五章 新的I/O读写命令
+**** 第六章 SDIO卡内部操作
+**** 第七章 嵌入式I/O代码存储区域(CSA)
+**** 第八章 SDIO中断
+**** 第九章 SDIO Suspend/Resume操作
+**** 第十章 暂停SDIO读操作的时序
+**** 第十一章 电力控制 
+**** 第十二章 高速模式
+**** 第十三章 SDIO物理属性
+**** 第十四章 SDIO功率
+**** 第十五章 Inrush Current Limiting
+**** 第十六章 CIS formats
+**** 第十七章 Embedded SDIO
+
+** Done [1/1]
 ** ☛ TODO PPT每日一练                                                 :Study:
     
 Added: [2016-10-27 周四 19:00]
-* 今天可以做的事情
-  :PROPERTIES:
-  :CATEGORY: 紧急不重要(计划外))
-  :END:
 * STAR
 ** Situation
 ** Task
 ** Action
 ** Result
+<<<<<<< HEAD
+* 消除忧虑的方法
+** 问题是什么？
+    认清问题，理解问题，确认目标。
+** 问题的成因是什么？
+    调查事实，包括正面与反面的。
+** 可能解决问题的方法有哪些？
+    分析事实，总结在各种情况假设下的可能的解决方案。
+** 你建议用哪一种方法？
+    从候选的解决方案中选择最优的解决方案。

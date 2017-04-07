@@ -41,6 +41,11 @@
 ** Sliding window protocol
     https://en.wikipedia.org/wiki/Sliding_window_protocol
    Segment
+
+** congestion control mechanism
+    Depending on the traffic conditions, TCP makes a decision on
+    whether to send data in smaller or bigger chunks.
+
 ** UDP
    RFC 768,  mainly used for Voip, and Video Conference.  tolerate for
    packet loss, but not latency.
@@ -152,7 +157,6 @@
 
      QoS is used to allow network devices to handle VoIP ahead of
      other traffic. 
-
 
 * 应用层
 
@@ -367,3 +371,7 @@
 
 Linux Advanced Routing & Traffic Control HOWTO
 http://www.lartc.org/howto/index.html
+
+
+
+https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/

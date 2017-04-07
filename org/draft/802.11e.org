@@ -107,7 +107,7 @@
 * Arbitration InterFrame Space
 
   [[./images/2016/2016051903.png]]
-
+  
 * Throughput Enhancements
 
   improve channel utilization and efficiency.

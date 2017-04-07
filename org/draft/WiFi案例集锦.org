@@ -331,7 +331,11 @@
          based on the below condition we are deleting the STA managed
          interface.
          =wpas_p2p_group_delete()= should not be called on the non-P2P
+<<<<<<< HEAD
+         station interface.
+=======
          station interface..
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
          #+BEGIN_SRC c
            else if (wpa_s->p2p_group_interface == P2P_GROUP_INTERFACE_CLIENT ||
                              (ssid && ssid->mode == WPAS_MODE_INFRA)) {
@@ -557,7 +561,11 @@
        功。
        [[./images/2016/2016120801.png]]
 
+<<<<<<< HEAD
+       TV这边一直在重传三步握手中的第一包数据SYN。是TV没有将数据传出去
+=======
        TV这连一直在重传三步握手中的第一包数据SYN。是TV没有将数据传出去
+>>>>>>> 2ce2cc088f9810992052e5c74f211d6484be1bb4
        还是手机一直没有回应？
 
     3. Sniffer日志分析
@@ -568,3 +576,226 @@
 
 ** 问题解决
     最终确认问题发生在FW这边，FW没有将数据送出去。更新FW后，问题解决。
+<<<<<<< HEAD
+
+* 案例15 WPA: 4-Way Handshake failed， PSK may be incorrect
+
+** 问题描述
+    当通过 =wpa_supplicant= 跟某个AP进行连接时，出现4步握手错误，不断
+    重复打印日志
+    如下：
+    #+BEGIN_SRC sh
+      ...
+      State: DISCONNECTED -> SCANNING
+      Starting AP scan (broadcast SSID)
+      Scan requested (ret=0) - scan timeout 30 seconds
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b19 len=8
+      Received 3891 bytes of scan results (9 BSSes)
+      CTRL-EVENT-SCAN-RESULTS 
+      Selecting BSS from priority group 0
+      Try to find WPA-enabled AP
+      0: 00:27:19:fd:ca:94 ssid='XXXXXXXX' wpa_ie_len=0 rsn_ie_len=20 caps=0x11
+         skip - SSID mismatch
+         skip - SSID mismatch
+         skip - SSID mismatch
+         selected based on RSN IE
+         selected WPA AP 00:27:19:fd:ca:94 ssid='XXXXXXXX'
+      Trying to associate with 00:27:19:fd:ca:94 (SSID='XXXXXXXX' freq=2412 MHz)
+      Cancelling scan request
+      WPA: clearing own WPA/RSN IE
+      Automatic auth_alg selection: 0x1
+      RSN: using IEEE 802.11i/D9.0
+      WPA: Selected cipher suites: group 16 pairwise 16 key_mgmt 2 proto 2
+      WPA: clearing AP WPA IE
+      WPA: set AP RSN IE - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 01 00
+      WPA: using GTK CCMP
+      WPA: using PTK CCMP
+      WPA: using KEY_MGMT WPA-PSK
+      WPA: Set own WPA IE default - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+      No keys have been configured - skip key clearing
+      wpa_driver_wext_set_drop_unencrypted
+      State: SCANNING -> ASSOCIATING
+      wpa_driver_wext_set_operstate: operstate 0->0 (DORMANT)
+      WEXT: Operstate: linkmode=-1, operstate=5
+      wpa_driver_wext_associate
+      wpa_driver_wext_set_psk
+      Setting authentication timeout: 10 sec 0 usec
+      EAPOL: External notification - EAP success=0
+      EAPOL: External notification - EAP fail=0
+      EAPOL: External notification - portControl=Auto
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b06 len=8
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b04 len=12
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b1a len=16
+      RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8c08 len=24
+      AssocResp IE wireless event - hexdump(len=16): 01 08 82 84 8b 96 0c 18 30 48 32 04 12 24 60 6c
+      RTM_NEWLINK: operstate=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b15 len=20
+      Wireless event: new AP: 00:27:19:fd:ca:94
+      Association info event
+      resp_ies - hexdump(len=16): 01 08 82 84 8b 96 0c 18 30 48 32 04 12 24 60 6c
+      State: ASSOCIATING -> ASSOCIATED
+      wpa_driver_wext_set_operstate: operstate 0->0 (DORMANT)
+      WEXT: Operstate: linkmode=-1, operstate=5
+      Associated to a new BSS: BSSID=00:27:19:fd:ca:94
+      No keys have been configured - skip key clearing
+      Associated with 00:27:19:fd:ca:94
+      WPA: Association event - clear replay counter
+      WPA: Clear old PTK
+      EAPOL: External notification - portEnabled=0
+      EAPOL: External notification - portValid=0
+      EAPOL: External notification - EAP success=0
+      EAPOL: External notification - portEnabled=1
+      EAPOL: SUPP_PAE entering state CONNECTING
+      EAPOL: SUPP_BE entering state IDLE
+      Setting authentication timeout: 10 sec 0 usec
+      Cancelling scan request
+      RX EAPOL from 00:27:19:fd:ca:94
+      Setting authentication timeout: 10 sec 0 usec
+      IEEE 802.1X RX: version=1 type=3 length=95
+        EAPOL-Key type=2
+        key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+        key_length=16 key_data_length=0
+        replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 01
+        key_nonce - hexdump(len=32): af a0 0b 03 51 8b 24 56 a1 2b 35 21 8f 94 94 85 27 26 76 33 6c 7e b0 cf 2f 14 19 
+        key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      State: ASSOCIATED -> 4WAY_HANDSHAKE
+      WPA: RX message 1 of 4-Way Handshake from 00:27:19:fd:ca:94 (ver=2)
+      RSN: msg 1/4 key data - hexdump(len=0):
+      WPA: Renewed SNonce - hexdump(len=32): 6d e5 7b a9 a6 3a 7e 8e b7 c8 a2 40 d1 f1 9c 6e 76 73 50 ec e1 77 84 38 0
+      WPA: PTK derivation - A1=00:80:48:3d:5d:60 A2=00:27:19:fd:ca:94
+      WPA: PMK - hexdump(len=32): [REMOVED]
+      WPA: PTK - hexdump(len=64): [REMOVED]
+      WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+      WPA: Sending EAPOL-Key 2/4
+      RX EAPOL from 00:27:19:fd:ca:94
+      IEEE 802.1X RX: version=1 type=3 length=95
+        EAPOL-Key type=2
+        key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+        key_length=16 key_data_length=0
+        replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 02
+        key_nonce - hexdump(len=32): af a0 0b 03 51 8b 24 56 a1 2b 35 21 8f 94 94 85 27 26 76 33 6c 7e b0 cf 2f 14 19 
+        key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      State: 4WAY_HANDSHAKE -> 4WAY_HANDSHAKE
+      WPA: RX message 1 of 4-Way Handshake from 00:27:19:fd:ca:94 (ver=2)
+      RSN: msg 1/4 key data - hexdump(len=0):
+      WPA: PTK derivation - A1=00:80:48:3d:5d:60 A2=00:27:19:fd:ca:94
+      WPA: PMK - hexdump(len=32): [REMOVED]
+      WPA: PTK - hexdump(len=64): [REMOVED]
+      WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+      WPA: Sending EAPOL-Key 2/4
+      RX EAPOL from 00:27:19:fd:ca:94
+      IEEE 802.1X RX: version=1 type=3 length=95
+        EAPOL-Key type=2
+        key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+        key_length=16 key_data_length=0
+        replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 03
+        key_nonce - hexdump(len=32): af a0 0b 03 51 8b 24 56 a1 2b 35 21 8f 94 94 85 27 26 76 33 6c 7e b0 cf 2f 14 19 
+        key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      State: 4WAY_HANDSHAKE -> 4WAY_HANDSHAKE
+      WPA: RX message 1 of 4-Way Handshake from 00:27:19:fd:ca:94 (ver=2)
+      RSN: msg 1/4 key data - hexdump(len=0):
+      WPA: PTK derivation - A1=00:80:48:3d:5d:60 A2=00:27:19:fd:ca:94
+      WPA: PMK - hexdump(len=32): [REMOVED]
+      WPA: PTK - hexdump(len=64): [REMOVED]
+      WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+      WPA: Sending EAPOL-Key 2/4
+      EAPOL: startWhen --> 0
+      EAPOL: disable timer tick
+      EAPOL: SUPP_PAE entering state CONNECTING
+      EAPOL: enable timer tick
+      EAPOL: txStart
+      WPA: drop TX EAPOL in non-IEEE 802.1X mode (type=1 len=0)
+      RX EAPOL from 00:27:19:fd:ca:94
+      IEEE 802.1X RX: version=1 type=3 length=95
+        EAPOL-Key type=2
+        key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+        key_length=16 key_data_length=0
+        replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 04
+        key_nonce - hexdump(len=32): af a0 0b 03 51 8b 24 56 a1 2b 35 21 8f 94 94 85 27 26 76 33 6c 7e b0 cf 2f 14 19 
+        key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+        key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      State: 4WAY_HANDSHAKE -> 4WAY_HANDSHAKE
+      WPA: RX message 1 of 4-Way Handshake from 00:27:19:fd:ca:94 (ver=2)
+      RSN: msg 1/4 key data - hexdump(len=0):
+      WPA: PTK derivation - A1=00:80:48:3d:5d:60 A2=00:27:19:fd:ca:94
+      WPA: PMK - hexdump(len=32): [REMOVED]
+      WPA: PTK - hexdump(len=64): [REMOVED]
+      WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 00 00
+      WPA: Sending EAPOL-Key 2/4
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      RTM_NEWLINK: operstate=0 ifi_flags=0x1003 ([UP])
+      RTM_NEWLINK, IFLA_IFNAME: Interface 'wlan0' added
+      Wireless event: cmd=0x8b15 len=20
+      Wireless event: new AP: 00:00:00:00:00:00
+      WPA: 4-Way Handshake failed - pre-shared key may be incorrect
+      Setting scan request: 0 sec 100000 usec
+      BSSID 00:27:19:fd:ca:94 blacklist count incremented to 2
+      CTRL-EVENT-DISCONNECTED - Disconnect event - remove keys
+      wpa_driver_wext_set_key: alg=0 key_idx=0 set_tx=0 seq_len=0 key_len=0
+      wpa_driver_wext_set_key: alg=0 key_idx=1 set_tx=0 seq_len=0 key_len=0
+      wpa_driver_wext_set_key: alg=0 key_idx=2 set_tx=0 seq_len=0 key_len=0
+      wpa_driver_wext_set_key: alg=0 key_idx=3 set_tx=0 seq_len=0 key_len=0
+      wpa_driver_wext_set_key: alg=0 key_idx=0 set_tx=0 seq_len=0 key_len=0
+      State: 4WAY_HANDSHAKE -> DISCONNECTED
+      ...
+
+      ... and again from the top.
+          
+    #+END_SRC
+
+    一直报： "WPA: 4-Way Handshake failed - pre-shared key may be
+    incorrect"
+
+** 问题分析
+    从日志的字面上理解，可能是我们提供的密码有错。但是，再三确认过，输
+    入的密码是正确的。
+
+    =wpa_supplicant= 的网络配置如下：
+    #+BEGIN_SRC sh
+      $ wpa_passphrase "test" "passphrase"
+      network={
+              ssid="test"
+              #psk="passphrase"
+              psk=a8f6fbf02bfbd7ddd27249ac101487ff51c245b2c34c2efe46b6e680b367ee32
+      }    
+    #+END_SRC
+
+    *Note* 
+
+    但 =psk= 使用明文表示时，则 =wpa_supplicant= 在第一次读取配置文件
+    时，会实时生成一个 256-bit 的十六进制的 =psk= 。当然我们也可以通过
+    =wpa_passphrase= 程序提供生成 256-bit 的十六进制的 =psk= ，直接写
+    在配置文件中。
+
+    遇到日志报密码不正确的问题时，有如下几个Check点：
+    1. 换一种 =psk= 的写法，交叉对比测试一下。
+    2. 检查 =psk= 是否有特殊字符存在。
+    3. 通过Sniffer Log看下是否底层传递数据的问题。
+
+** 问题解决
+    当使用明文的方式 配置 psk 的时候，连接就正常了。

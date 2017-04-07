@@ -362,6 +362,27 @@ IE_EXT_CAPABILITY
        Dequeue outgoing frames from TxSwQueue0..3 queue and process it 
        : RTMPDeQueuePacket()
 
+* Scan
+  三个主要变量：
+  1. pAd->MlmeAux.Channel == 0
+     表示当前扫描已经结束, 不为0表示当前准备扫描的信道。
+  2. pAd->CommonCfg.CentralChannel
+     表示Scan前所处的信道
+  3. pAd->LatchRfRegs.Channel
+     表示当前扫描的信道。
+
+   #+CAPTION: 只扫描GO所处的信道
+     #+BEGIN_SRC c
+       if (RTMP_CFG80211_VIF_P2P_GO_ON(pAd)) {
+         DBGPRINT(RT_DEBUG_OFF, ("%s():Scan Only GO Channel %d\n",
+                                 __func__, pAd->CommonCfg.Channel));
+         while (pAd->MlmeAux.Channel != 0) {
+           if (pAd->MlmeAux.Channel == pAd->CommonCfg.Channel)
+             break;
+           pAd->MlmeAux.Channel = CFG80211DRV_OpsScanGetNextChannel(pAd, ScanPending);
+         }
+        }     
+     #+END_SRC
 * SoftAp
 
 ** 初始化Channel选择
@@ -579,7 +600,7 @@ IE_EXT_CAPABILITY
   andes_send_cmd_msg
 
 * Rate Control
-   MlmePeriodicExec --> ...
+  MlmePeriodicExec --> ...
 
 ** APMlmeDynamicTxRateSwitching
      This routine walks through the MAC table, see if TX rate change
@@ -655,9 +676,10 @@ IE_EXT_CAPABILITY
         | Not acceptable | PMF supported | PMF Not Available | PMF supported     |
         |----------------+---------------+-------------------+-------------------|
 
-** VHT
-    p2p vht CL: //Jedi/MP/JEDI.MT76x2_WLDRV.MP2/...@155501
-    : wpa_cli -p /data/misc/wifi/sockets/ -i p2p0 p2p_group_add persistent freq=5180 vht
+<<<<<<< HEAD
+* VHT(11ac support)
+   p2p vht CL: //Jedi/MP/JEDI.MT76x2_WLDRV.MP2/...@155501
+   : wpa_cli -p /data/misc/wifi/sockets/ -i p2p0 p2p_group_add persistent freq=5180 vht
 * 问题调试
 
 ** 读取TX RX寄存器状态
