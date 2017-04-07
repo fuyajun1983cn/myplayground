@@ -4722,12 +4722,29 @@
           to use the internal MLME/SME or not.
 
 ** WDS
+    Wireless Distribution System. 
+    
+    [[./images/2017/2017040701.png]]
+
+    NOTES:Same channel, Encryption KEY of WDS link
+
+    帧格式：
+
+    [[./images/2017/2017040702.png]]
+
+    WDS Modes:
+    - Bridge (Ap without beacon sending)
+    - Repeater (Ap with beacon sending)
+
+    No Loop Topology:
+    
+    [[./images/2017/2017040703.png]]
     
 *** Setting up a WDS peer
     WDS是IEEE 802.11的一个非标准扩展。 由于它是一个非标准扩展，各家芯
     片厂商的驱动和固件实现都不一样，无法做到兼容，所以为了使用WDS， AP
     和Repeater等无线设备的硬件和软件必须相同，以保证兼容。（不能是AP属
-    于一个厂商，Repeater来自另外一个厂家）。
+    于一个厂商，Repeater来自另外一个厂商）。
 
     创建一个WDS Peer的命令如下：
     #+BEGIN_SRC sh
