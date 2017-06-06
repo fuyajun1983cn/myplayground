@@ -33,3 +33,5 @@ Thumbs.db
 *.db
 *.db-journal
 *.org_archive
+*.fas
+*.lib
