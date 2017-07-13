@@ -96,3 +96,17 @@
 ;;
 ;;宏
 ;;
+(defmacro make-comparison-expr (field value)
+  `(equal (getf cd ,field) ,value))
+
+(defun make-comparisons-list (fields)
+  (loop while fields
+     collecting (make-comparison-expr (pop fields) (pop fields))))
+
+;;
+;;","与",@"的区别
+;;`(and ,(list 1 2 3)) --> (and (1 2 3))
+;;`(and ,@(list 1 2 3)) --> (and 1 2 3)
+;;
+(defmacro where2 (&rest clauses)
+  `#'(lambda (cd) (and ,@(make-comparisons-list clauses))))
