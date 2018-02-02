@@ -264,6 +264,91 @@
        -
 
 ** C++ templates
+   
+*** Variadic Template
+    从C++11开始，模板可以使用可变参数的形式，这种能力叫做variadic
+    templates。例如，你可以使用如下方法调用print()， 使用类型可变，且
+    参数个数可变的。 
+    #+BEGIN_SRC C++
+      /*
+       ,* Variadic Template
+       ,*
+       ,* A template that can take any number of template arguments of any type.
+       ,* Both class and function templates can be variadic.
+       ,*/
+      template<typename... arg>
+      class BoTemplate;
+
+      BoTemplate<float> t1;
+      BoTemplate<int, long, double, float> t2;
+      BoTemplate<int, std::vector<double>> t3;
+
+      BoTemplate<> t4;
+
+
+      // Combination of variadic and non-variadic argument
+      template<typename T, typename... arg>
+      class BoTemplate;
+
+      BoTemplate<> t4;  // Error
+      BoTemplate<int, long, double, float> t2;  // OK
+
+
+      // Define a default template argument
+      template<typename T = int, typename... arg>
+      class BoTemplate;    
+    #+END_SRC
+
+    实例：
+    #+BEGIN_SRC C++ :flags -std=c++0x
+      #include <iostream>
+
+      template<typename T>
+      void print(const T& arg)
+      {
+          std::cout<<arg<<std::endl;
+      }
+
+      template<typename T, typename... Types>
+      void print(const T& firstArg, const Types&... args)
+      {
+          std::cout<<firstArg<<std::endl; //print first argument
+          print(args...); //call print() for remaining arguments.
+      }
+
+      int main()
+      {
+        print(1, "2", 3, 4, "5");
+
+        return 0;
+      }
+    #+END_SRC
+
+    #+RESULTS:
+    | 1 |
+    | 2 |
+    | 3 |
+    | 4 |
+    | 5 |
+
+*** Template Alias
+    
+    #+BEGIN_SRC C++
+      /*
+       ,* Template Alias
+       ,*/
+        template<class T> class Dog { /* ... */ };
+        template<class T>
+          using DogVec = std::vector<T, Dog<T>>;
+
+        DogVec<int> v;  // Same as: std::vector<int, Dog<int>>    
+    #+END_SRC
+
+*** Others
+    从C++11开始，函数模板可以默认模板参数。另外，本地类型也可以做为模
+    板参数。内部链接的函数现在 也可以被用做无类型模板的函数指针或指针
+    引用的参数。 
+
 ** C++ classes
 
 *** Big Five
@@ -391,9 +476,769 @@
        - When you use a variable defined outside the lambda in the
          lambda, you have to capture it
 
+** Random Number
+   
+*** random engine
+    c++11 introduce the concept of  random engine, it's a stateful generator that
+    generates random value within predefined min and max. not a truely
+    random -- pseudorandom.
+
+    #+BEGIN_SRC C++ :flags -std=c++0x
+      #include <iostream>
+      #include <sstream>
+      #include <random>
+
+      using namespace std;
+
+      int main()
+      {
+        std::default_random_engine eng;
+        cout << "Min: " << eng.min() << endl; 
+        cout << "Max: " << eng.max() << endl;
+
+        cout << eng() << endl;  // Generate one random value
+        cout << eng() << endl;  // Generate second random value
+
+        std::stringstream state;
+        state << eng;  // Save the state
+
+        cout << eng() << endl;  // Generate one random value
+        cout << eng() << endl;  // Generate second random value
+
+        state >> eng;  // Restore the state
+        cout << eng() << endl;  // Generate one random value
+        cout << eng() << endl;  // Generate second random value
+      }
+
+    #+END_SRC
+
+    #+RESULTS:
+    |       Min: |          1 |
+    |       Max: | 2147483646 |
+    |      16807 |            |
+    |  282475249 |            |
+    | 1622650073 |            |
+    |  984943658 |            |
+    | 1622650073 |            |
+    |  984943658 |            |
 
 
+    调用默认的构造函数就可以产生随机数，但是从结果中可以看到，后面两次
+    调用产生的随机数序列是相同的。在每个状态下，都会产生相同的随机数序
+    列。为了产生完全随机的数字序列，需要初始不同的seed. 
+    
+    #+BEGIN_SRC C++ :flags -std=c++0x
+      #include <iostream>
+      #include <sstream>
+      #include <random>
+      #include <chrono>
+      #include <vector>
+      #include <algorithm>
+
+      using namespace std;
+
+      /* More examples */
+      void printRandom(std::default_random_engine e) {
+        for (int i=0; i<10; i++) 
+          cout << e() << " ";
+        cout << endl;
+      }
 
 
+      template <typename T>
+      void printArray(T arr) {
+        for (auto v:arr) {
+          cout << v << " ";
+        }
+        cout << endl;
+      }
+
+      int main ()
+      {
+        std::default_random_engine eng;
+        printRandom(eng);
+
+        std::default_random_engine eng2;
+        printRandom(eng2);
+
+        unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
+        std::default_random_engine e3(seed);
+        printRandom(e3);
+
+        eng.seed();  // reset engine to initial state
+        eng.seed(109); // set engine to a state according to seed 109
+
+        eng2.seed(109);
+        if (eng == eng2)   // will return true
+          cout << "eng and eng2 have the same state" << endl;
 
 
+        cout << "\n\n Shuffling:" << endl;
+        int arr[] = {1,2,3,4,5,6,7,8,9};
+        vector<int> dd(arr, arr+9);
+        printArray(dd);
+
+        vector<int> d =  {1,2,3,4,5,6,7,8,9};
+        std::shuffle(d.begin(), d.end(), std::default_random_engine());
+        printArray(d);
+        std::shuffle(d.begin(), d.end(), std::default_random_engine());  // same order
+        printArray(d);
+          
+        std::shuffle(d.begin(), d.end(), eng);
+        printArray(d);
+        std::shuffle(d.begin(), d.end(), eng);  // different order
+        printArray(d);
+      }
+          
+    #+END_SRC
+
+    #+RESULTS:
+    |      16807 |  282475249 | 1622650073 | 984943658 | 1144108930 |  470211272 |  101027544 | 1457850878 | 1458777923 | 2007237709 |
+    |      16807 |  282475249 | 1622650073 | 984943658 | 1144108930 |  470211272 |  101027544 | 1457850878 | 1458777923 | 2007237709 |
+    | 1709805768 | 1226862269 | 1883660236 | 473662378 |  121707617 | 1135486975 | 1589901583 |  336885860 | 1273755528 | 1892165800 |
+    |        eng |        and |       eng2 |      have |        the |       same |      state |            |            |            |
+    |            |            |            |           |            |            |            |            |            |            |
+    |            |            |            |           |            |            |            |            |            |            |
+    | Shuffling: |            |            |           |            |            |            |            |            |            |
+    |          1 |          2 |          3 |         4 |          5 |          6 |          7 |          8 |          9 |            |
+    |          4 |          1 |          5 |         8 |          6 |          2 |          9 |          7 |          3 |            |
+    |          8 |          4 |          6 |         7 |          2 |          1 |          3 |          9 |          5 |            |
+    |          6 |          3 |          1 |         8 |          7 |          4 |          2 |          9 |          5 |            |
+    |          4 |          6 |          7 |         8 |          3 |          2 |          1 |          9 |          5 |            |
+
+    
+
+    
+*** Distribution
+    engine only provide a source of randomness, 随机数的分布则是另一回
+    事，如正态分布等 。
+
+    #+BEGIN_SRC C++ :flags -std=c++0x
+      #include <iostream>
+      #include <sstream>
+      #include <random>
+      #include <chrono>
+      #include <vector>
+      #include <algorithm>
+
+      using namespace std;
+
+      /* Distribution */
+
+      int main ()  {
+          // engine only provides a source of randomness
+          unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+          std::default_random_engine e(seed);
+         // How to get a random number between 0 and 5?
+         //  e()%6  
+          //    -- Bad quality of randomness
+          //    -- Can only provide uniform distribution
+
+          std::uniform_int_distribution<int> distr(0,5);  // range: [0,5]  -- both 1 and 5 are included
+                                                          // default param: [0, INT_MAX]
+          cout << " int_distribution: " << endl; 
+          for (int i=0; i<30; i++) {
+              cout << distr(e) << " ";
+          }
+
+
+          cout << "\n\n real_distribution: " << endl;
+
+          std::uniform_real_distribution<double> distrReal(0,5);  // half open: [1, 5)  -- 1 is included, 5 is not.
+                                                              // default param: [0, 1)
+          for (int i=0; i<30; i++) {
+              cout << distrReal(e) << " ";
+          }
+
+          cout << " poisson_distribution: " << endl; 
+          std::poisson_distribution<int> distrP(1.0);  //  mean (double) 
+          for (int i=0; i<30; i++) {
+              cout << distrP(e) << " ";
+          }
+          cout << endl;   
+
+          cout << " normal_distribution: " << endl; 
+          std::normal_distribution<double> distrN(10.0, 3.0);  // mean and standard deviation
+          vector<int> v(20);
+          for (int i=0; i<800; i++) {
+              int num = distrN(e); // convert double to int
+              if (num >= 0 && num < 20)
+                  v[num]++;   // E.g., v[10] records number of times 10 appeared
+          }
+          for (int i=0; i<20; i++) {
+              cout << i << ": " << std::string(v[i], '*') << endl;
+          }
+          cout << endl;
+
+          // Stop using rand()%n; 
+      }
+          
+    #+END_SRC
+
+    #+RESULTS:
+    |    int_distribution: |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                    5 | 3                                                                                                                    |        2 |       5 |       3 |       2 |       0 |       1 |         1 |        4 |       3 |       0 |       0 |       0 |       3 |       1 |      4 |       0 |       3 |       4 |       3 |        2 |       3 |        0 |       5 |        1 |       2 |       3 |        0 |        5 |                       |
+    |                      |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |   real_distribution: |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |              3.84402 | 4.75624                                                                                                              | 0.562844 | 3.37921 | 1.89651 | 3.49425 | 4.63805 | 3.50818 | 0.0117023 | 0.781109 | 1.08755 | 1.16845 | 1.00699 | 2.10719 | 4.95868 | 3.21359 | 2.1691 | 3.99914 | 1.51048 | 2.61093 | 1.76548 | 0.202622 | 2.59489 | 0.692019 | 1.15938 | 0.300472 | 3.73156 | 2.24284 | 0.677817 | 0.578444 | poisson_distribution: |
+    |                    1 | 0                                                                                                                    |        0 |       0 |       0 |       4 |       3 |       2 |         1 |        1 |       0 |       1 |       0 |       3 |       1 |       0 |      1 |       1 |       2 |       1 |       0 |        0 |       1 |        1 |       2 |        1 |       1 |       0 |        0 |        2 |                       |
+    | normal_distribution: |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   0: |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   1: | *                                                                                                                    |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   2: | ****                                                                                                                 |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   3: | ******                                                                                                               |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   4: | ********************                                                                                                 |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   5: | ***************************************                                                                              |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   6: | **********************************************                                                                       |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   7: | ***********************************************************                                                          |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   8: | *****************************************************************************************************                |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                   9: | ******************************************************************************************************************** |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  10: | *************************************************************************************************                    |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  11: | ************************************************************************************************                     |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  12: | ***************************************************************************************                              |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  13: | ***************************************************                                                                  |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  14: | **************************************                                                                               |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  15: | *****************                                                                                                    |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  16: | **************                                                                                                       |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  17: | ******                                                                                                               |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  18: |                                                                                                                      |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+    |                  19: | *                                                                                                                    |          |         |         |         |         |         |           |          |         |         |         |         |         |         |        |         |         |         |         |          |         |          |         |          |         |         |          |          |                       |
+
+** Regular Expression
+   a regular expression is a specific pattern that provides concise
+   and flexible means to "match" strings of text, such as particular
+   characters, words, or patterns of characters. 
+
+*** 一般匹配
+    #+BEGIN_SRC C++ :flags -std=c++0x
+      #include <regex>
+      #include <iostream>
+      using namespace std;
+
+      int main() {
+         string str;
+         while (true) {
+            cin >> str;
+            //regex e("abc.", regex_constants::icase);   // .   Any character except newline
+            //regex e("abc?");               // ?       Zero or 1 preceding character
+            //regex e("abc*");               // *       Zero or more preceding character
+            //regex e("abc+");               // +       One of more preceding character
+            //regex e("ab[cd]*");            // [...]   Any character inside the square brackets
+            //regex e("ab[^cd]*");           // [...]   Any character not inside the square brackets
+            //regex e("ab[cd]{3,5}");
+            //regex e("abc|de[\]fg]");         // |       Or
+            //regex  e("(abc)de+\\1");       // \1      First group
+            //regex  e("(ab)c(de+)\\2\\1");
+            //regex e("[[:w:]]+@[[:w:]]+\.com"); // [[:w:]] word character: digit, number, or underscore
+
+            //regex e("abc.$");                 // $   End of the string
+            regex e("^abc.+", regex_constants::grep);                 // ^   begin of the string
+            
+
+            //bool match = regex_match(str, e);
+            bool match = regex_search(str, e);
+
+            cout << (match? "Matched" : "Not matched") << endl << endl;
+         }
+      }   
+    #+END_SRC
+    
+*** 分组匹配
+    #+BEGIN_SRC C++
+      /* 
+        std::match_results<>  Store the detailed matches
+        smatch                Detailed match in string
+
+        smatch m;
+        m[0].str()   The entire match (same with m.str(), m.str(0))
+        m[1].str()   The substring that matches the first group  (same with m.str(1))
+        m[2].str()   The substring that matches the second group
+        m.prefix()   Everything before the first matched character
+        m.suffix()   Everything after the last matched character
+      ,*/
+
+      int main() {
+         string str;
+
+         while (true) {
+            cin >> str;
+            smatch m;        // typedef std::match_results<string>
+
+            regex e("([[:w:]]+)@([[:w:]]+)\.com");  
+
+            bool found = regex_search(str, m, e);
+
+            cout << "m.size() " << m.size() << endl;
+            for (int n = 0; n< m.size(); n++) {
+                 cout << "m[" << n << "]: str()=" << m[n].str() << endl;
+                 cout << "m[" << n << "]: str()=" << m.str(n) << endl;
+                  cout << "m[" << n << "]: str()=" << *(m.begin()+n) << endl;
+            }
+            cout << "m.prefix().str(): " << m.prefix().str() << endl;
+            cout << "m.suffix().str(): " << m.suffix().str() << endl;
+         }
+      }
+          
+    #+END_SRC
+
+*** iterator
+    #+BEGIN_SRC C++
+      Regex Iterator/* 
+        std::match_results<>  Store the detailed matches
+        smatch                Detailed match in string
+
+        smatch m;
+        m[0].str()   The entire match (same with m.str(), m.str(0))
+        m[1].str()   The substring that matches the first group  (same with m.str(1))
+        m[2].str()   The substring that matches the second group
+        m.prefix()   Everything before the first matched character
+        m.suffix()   Everything after the last matched character
+      ,*/
+
+      int main() {
+         string str;
+
+         while (true) {
+            cin >> str;
+            smatch m;        // typedef std::match_results<string>
+
+            regex e("([[:w:]]+)@([[:w:]]+)\.com");  
+
+            bool found = regex_search(str, m, e);
+
+            cout << "m.size() " << m.size() << endl;
+            for (int n = 0; n< m.size(); n++) {
+                 cout << "m[" << n << "]: str()=" << m[n].str() << endl;
+                 cout << "m[" << n << "]: str()=" << m.str(n) << endl;
+                  cout << "m[" << n << "]: str()=" << *(m.begin()+n) << endl;
+            }
+            cout << "m.prefix().str(): " << m.prefix().str() << endl;
+            cout << "m.suffix().str(): " << m.suffix().str() << endl;
+         }
+      }
+
+    #+END_SRC
+
+    
+    Token Iterator 
+    #+BEGIN_SRC C++
+      /**************** Regex Token Iterator ******************/
+      int main() {
+          cout << "Hi" << endl;
+
+          //string str = "Apple; Orange, {Cherry}; Blueberry";
+          string str = "boq@yahoo.com, boqian@gmail.com; bo@hotmail.com";
+
+          //regex e("[[:punct:]]+");  // Printable character that is not space, digit, or letter.
+          //regex e("[ [:punct:]]+"); 
+          regex e("([[:w:]]+)@([[:w:]]+)\.com");
+            
+          sregex_token_iterator pos(str.cbegin(), str.cend(), e, 0);
+          sregex_token_iterator end;  // Default constructor defines past-the-end iterator
+          for (; pos!=end; pos++) {
+              cout << "Matched:  " << *pos << endl;
+          }
+          cout << "=============================\n\n";
+              
+          
+          cin >> str;
+      }    
+    #+END_SRC
+
+*** Replace
+    #+BEGIN_SRC C++
+      /**************** regex_replace ******************/
+      int main() {
+          cout << "Hi" << endl;
+
+          string str = "boq@yahoo.com, boqian@gmail.com; bo@hotmail.com";
+
+          regex e("([[:w:]]+)@([[:w:]]+)\.com");
+          regex e("([[:w:]]+)@([[:w:]]+)\.com", regex_constants::grep|regex_constants::icase );
+            
+          //cout << regex_replace(str, e, "$1 is on $2");
+         cout << regex_replace(str, e, "$1 is on $2", regex_constants::format_no_copy|regex_constants::format_first_only);
+          cout << regex_replace(str, e, "$1 is on $2");
+              
+          
+          std::cin >> str;
+      }    
+    #+END_SRC
+
+** chrono -- Date and Time
+   
+*** period
+    #+BEGIN_SRC C++ :flags -std=c++0x :includes <chrono> :includes <iostream>
+      /* Introduce to <chrono> 
+          
+          -- A precision-neutral library for time and date
+          
+       ,* clocks:
+       ,*
+       ,* std::chrono::system_clock:  current time according to the system (it is not steady)
+       ,* std::chrono::steady_clock:  goes at a uniform rate (it can't be adjusted)
+       ,* std::chrono::high_resolution_clock: provides smallest possible tick period. 
+       ,*                   (might be a typedef of steady_clock or system_clock)
+       ,*
+       ,* clock period is represented with std:ratio<>
+       ,*/
+
+      using namespace std;
+      std::ratio<1,10>  r; // 
+      cout << r.num << "/" << r.den << endl;
+
+      cout << chrono::system_clock::period::num << "/" << chrono::system_clock::period::den << endl;
+      cout << chrono::steady_clock::period::num << "/" << chrono::steady_clock::period::den << endl;
+      cout << chrono::high_resolution_clock::period::num << "/" << chrono::high_resolution_clock::period::den << endl;    
+    #+END_SRC
+
+    #+RESULTS:
+
+       
+*** duration
+    #+BEGIN_SRC C++
+      /*
+       ,*
+       ,* std:chrono::duration<>:  represents time duration
+       ,*    duration<int, ratio<1,1>> --  number of seconds stored in a int  (this is the default)
+       ,*    duration<double, ration<60,1>> -- number of minutes (60 seconds) stored in a double
+       ,*    convenince duration typedefs in the library:
+       ,*    nanoseconds, microseconds, milliseconds, seconds, minutes, hours
+       ,* system_clock::duration  -- duration<T, system_clock::period>
+       ,*                                 T is a signed arithmetic type, could be int or long or others
+       ,*/
+      chrono::microseconds mi(2745);
+      chrono::nanoseconds na = mi;
+      chrono::milliseconds mill = chrono::duration_cast<chrono::milliseconds>(mi);  // when information loss could happen, convert explicitly
+                                                                // Truncation instead of rounding
+          mi = mill + mi;  // 2000 + 2745 = 4745
+          mill = chrono::duration_cast<chrono::milliseconds>(mill + mi);  // 6
+          cout << na.count() << std::endl;
+          cout << mill.count() << std::endl;
+          cout << mi.count() << std::endl;
+
+         cout << "min: " << chrono::system_clock::duration::min().count() << "\n";
+         cout << "max: " << chrono::system_clock::duration::max().count() << "\n";    
+    #+END_SRC
+
+*** time point
+    #+BEGIN_SRC C++
+      /* std::chrono::time_point<>: represents a point of time
+       ,*       -- Length of time elapsed since a spacific time in history: 
+       ,*          00:00 January 1, 1970 (Corordinated Universal Time - UTC)  -- epoch of a clock
+       ,* time_point<system_clock, milliseconds>:  according to system_clock, the elapsed time since epoch in milliseconds
+       ,*
+       ,* typdefs
+        system_clock::time_point  -- time_point<system_clock, system_clock::duration>
+        steady_clock::time_point  -- time_point<steady_clock, steady_clock::duration>
+       ,*/
+          // Use system_clock
+          chrono::system_clock::time_point tp = chrono::system_clock::now();
+          cout << tp.time_since_epoch().count() << endl;  
+          tp = tp + seconds(2);  // no need for cast because tp is very high resolution
+          cout << tp.time_since_epoch().count() << endl;
+
+          // Calculate time interval
+          chrono::steady_clock::time_point start = chrono::steady_clock::now();
+          cout << "I am bored" << endl;
+          chrono::steady_clock::time_point end = chrono::steady_clock::now();
+          chrono::steady_clock::duration d = end - start;
+          if (d == chrono::steady_clock::duration::zero())
+              cout << "no time elapsed" << endl;
+          cout << duration_cast<microseconds>(d).count() << endl;
+         // Using system_clock may result in incorrect value    
+    #+END_SRC
+
+** Tuple
+   
+*** 基本使用方法
+    #+BEGIN_SRC C++
+      #include <algorithm>
+      #include <sstream>
+      #include <future>
+      #include <tuple>
+
+
+      #include <random>
+      using namespace std;
+
+      struct Node {
+          char id; 
+          int value;
+          Node(char i, int v) : id(i), value(v) {}
+          Node() : id(0), value('z') {}
+      };
+
+      int main() {
+         tuple<int, string, char> t(32, "Penny wise", 'a');
+         tuple<int, string, char> t = {32, "Penny wise", 'a'};  // Wont compile, constructor is explicit
+
+         cout << get<0>(t) << endl;
+         cout << get<1>(t) << endl;
+         cout << get<2>(t) << endl;
+
+         get<1>(t) = "Pound foolish";
+         cout << get<1>(t) << endl;
+
+         string& s = get<1>(t);
+         s = "Patience is virtue"; 
+         cout << get<1>(t) << endl;   
+         //get<3>(t);  // Won't compile, t only has 3 fields
+         // get<1>(t) is similar to t[1] for vector
+
+         int i = 1;
+         //get<i>(t); // Won't compile, i must be a compile time constant
+
+
+         tuple<int, string, char> t2;  // default construction 
+         t2 = tuple<int, string, char>(12, "Curiosity kills the cat", 'd'); 
+         t2 = make_tuple(12, "Curiosity kills the cat", 'd'); 
+
+         if (t > t2) {  // Lexicographical comparison
+             cout << "t is larger than t2" << endl;
+         }
+
+         t = t2;  // member by member copying
+
+
+      // Tuple can store references !!  STL containers such as vectors cannot.  Pair can.
+         string st = "In for a penny";
+         tuple<string&> t3(st);  
+         //auto t3 = make_tuple(ref(st));  // Do the same thing
+         get<0>(t3) = "In for a pound";  // st has "In for a pound"
+         cout << st << endl;
+         t2 = make_tuple(12, "Curiosity kills the cat", 'd'); 
+         int x;
+         string y;
+         char z;
+         std::make_tuple(std::ref(x), std::ref(y), std::ref(z)) = t2;  // assign t2 to x, y, z
+         std::tie(x,y,z) = t2;  // same thing
+         std::tie(x, std::ignore, z) = t2;  // get<1>(t2) is ignored
+
+      // Other features
+         auto t4 = std::tuple_cat( t2, t3 );  // t4 is tuple<int, string, char, string>
+         cout << get<3>(t4) << endl;  // "In for a pound" 
+
+         // type traits
+         cout << std::tuple_size<decltype(t4)>::value << endl;  // Output: 4
+         std::tuple_element<1, decltype(t4)>::type dd; // dd is a string
+         
+      }    
+    #+END_SRC
+
+    tuple可以存储引用，而STL窗口则不能。
+
+    何时使用元组，何时使用普通的结构体呢？ 一般来说，当我们只需要一次
+    性使用某个结构的话，可以使用元组来代替。
+    #+BEGIN_SRC C++
+      // tuple vs struct
+
+      tuple<string, int> getNameAge() { 
+         return make_tuple("Bob", 34);
+      }
+
+      int main() {
+         struct Person { string name; int age; } p;
+         tuple<string, int> t;
+
+         cout << p.name << " " << p.age << endl;
+         cout << get<0>(t) << " " << get<1>(t) << endl;
+
+         // As a one-time only structure to transfer a group of data
+         string name;
+         int age;
+         tie(name, age) = getNameAge();
+
+         // Comparison of tuples
+         tuple<int, int, int> time1, time2; // hours, minutes, seconds
+         if (time1 > time2) 
+            cout << " time1 is a later time";
+
+         // Multi index map
+         map<tuple<int,int,int>, string> timemap;
+         timemap.insert(make_pair(make_tuple(12, 2, 3), "Game start"));
+          cout << timemap[make_tuple(2,3,4)]; 
+         unordered_map<tuple<int,int,int>, string> timemap;
+
+         // Little trick
+         int a, b, c;
+         tie(b, c, a) = make_tuple(a, b, c);
+
+      }    
+    #+END_SRC
+
+** smart pointer
+
+*** shared pointer
+    #+BEGIN_SRC C++
+      /*********** Shared_ptr ***********/
+
+      // 1. When a pointer outlives pointee: danling pointer
+      // 2. When a pointee outlives all its pointers: resource leak
+      //
+      // Smart Pointers: Make sure the lifetime of a pointer and pointee match.
+
+      class Dog {
+          string m_name;
+        public:
+            void bark() { cout << "Dog " << m_name << " rules!" << endl; }
+            Dog(string name) { cout << "Dog is created: " << name << endl; m_name = name; }
+            Dog() { cout << "Nameless dog created." << endl; m_name = "nameless"; }
+           ~Dog() { cout << "dog is destroyed: " << m_name << endl; }
+            //void enter(DogHouse* h) { h->setDog(shared_from_this()); }  // Dont's call shared_from_this() in constructor
+      };
+
+      class DogHouse {
+          shared_ptr<Dog> m_pD;
+      public:
+          void setDog(shared_ptr<Dog> p) { m_pD = p; cout << "Dog entered house." << endl;}
+      };
+
+      int main ()
+      {
+          shared_ptr<Dog> pD(new Dog("Gunner"));
+          shared_ptr<Dog> pD = make_shared<Dog>(new Dog("Gunner")); // faster and safer
+          
+          pD->bark();
+          
+          (*pD).bark();
+          
+          //DogHouse h;
+      //    DogHouse* ph = new DogHouse();
+      //    ph->setDog(pD);
+      //    delete ph;
+          
+          
+          //auto pD2 = make_shared<Dog>( Dog("Smokey") ); // Don't use shared pointer for object on stack.
+      //    auto pD2 = make_shared<Dog>( *(new Dog("Smokey")) ); 
+      //    pD2->bark();
+      //
+      //    Dog* p = new Dog();
+      //    shared_ptr<int> p1(p);
+      //    shared_ptr<int> p2(p);  // Erroneous
+          
+          shared_ptr<Dog> pD3;
+          pD3.reset(new Dog("Tank"));
+          pD3.reset();  // Dog destroyed. Same effect as: pD3 = nullptr;
+      //    
+          //pD3.reset(pD.get());  // crashes
+          
+          /********** Custom Deleter ************/
+          shared_ptr<Dog> pD4( new Dog("Victor"), 
+                              [](Dog* p) {cout << "deleting a dog.\n"; delete p;}
+                              );
+                              // default deleter is operator delete.
+                              
+          //shared_ptr<Dog> pDD(new Dog[3]);
+          shared_ptr<Dog> pDD(new Dog[3], [](Dog* p) {delete[] p;} );
+
+      }    
+    #+END_SRC
+
+*** weak pointer
+    #+BEGIN_SRC C++
+      /*********** weak_ptr *********************/
+      class Dog {
+            //shared_ptr<Dog> m_pFriend;
+            weak_ptr<Dog> m_pFriend;
+        public:
+            string m_name;
+            void bark() { cout << "Dog " << m_name << " rules!" << endl; }
+            Dog(string name) { cout << "Dog is created: " << name << endl; m_name = name; }
+           ~Dog() { cout << "dog is destroyed: " << m_name << endl; }
+           void makeFriend(shared_ptr<Dog> f) { m_pFriend = f; }
+           void showFriend() { //cout << "My friend is: " << m_pFriend.lock()->m_name << endl;
+                               if (!m_pFriend.expired()) cout << "My friend is: " << m_pFriend.lock()->m_name << endl;
+                               cout << " He is owned by " << m_pFriend.use_count() << " pointers." << endl; }
+      };
+
+      int main ()
+      {
+          shared_ptr<Dog> pD(new Dog("Gunner"));
+          shared_ptr<Dog> pD2(new Dog("Smokey"));
+          pD->makeFriend(pD2);
+          pD2->makeFriend(pD);
+          
+          pD->showFriend();
+      }    
+    #+END_SRC
+
+*** unique pointer
+    #+BEGIN_SRC C++
+      /*********** unique_ptr *********************/
+
+      // Unique Pointers: exclusive owenership
+
+      class Dog {
+            //Bone* pB;
+            unique_ptr<Bone> pB;  // This prevents memory leak even constructor fails.
+        public:
+            string m_name;
+            void bark() { cout << "Dog " << m_name << " rules!" << endl; }
+            Dog() { pB = new Bone(); cout << "Nameless dog created." << endl; m_name = "nameless"; }
+            Dog(string name) { cout << "Dog is created: " << name << endl; m_name = name; }
+           ~Dog() { delete pB; cout << "dog is destroyed: " << m_name << endl; }
+      };
+
+      void test() {
+          
+          //Dog* pD = new Dog("Gunner");
+          unique_ptr<Dog> pD(new Dog("Gunner"));
+          
+          pD->bark();
+          /* pD does a bunch of different things*/
+          
+          //Dog* p = pD.release();
+          pD = nullptr;
+          //pD.reset(new Dog("Smokey"));
+          
+          if (!pD) {
+              cout << "pD is empty.\n";
+          }
+          
+          //delete pD;   
+      }
+
+      void f(unique_ptr<Dog> p) {
+          p->bark();
+      }
+
+      unique_ptr<Dog> getDog() {
+          unique_ptr<Dog> p(new Dog("Smokey"));
+          return p;
+      }
+
+      void test2() {
+          unique_ptr<Dog> pD(new Dog("Gunner"));
+          unique_ptr<Dog> pD2(new Dog("Smokey"));
+          pD2 = move(pD);
+          // 1. Smokey is destroyed
+          // 2. pD becomes empty.
+          // 3. pD2 owns Gunner.
+
+          pD2->bark();
+      //    f(move(pD));
+      //    if (!pD) {
+      //        cout << "pD is empty.\n";
+      //    }
+      //    
+      //    unique_ptr<Dog> pD2 = getDog();
+      //    pD2->bark();
+          
+          unique_ptr<Dog[]> dogs(new Dog[3]);
+          dogs[1].bark();
+          //(*dogs).bark(); // * is not defined
+      }
+
+      void test3() {
+          // prevent resource leak even when constructor fails
+      }
+
+
+      int main ()
+      {
+          test2();
+      }
+
+          
+    #+END_SRC
